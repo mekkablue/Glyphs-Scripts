@@ -328,6 +328,8 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Fill Up Empty Masters:** Copies paths from one Master to another. But only if target master is empty.
 * **Find and Replace in Layer Names:** Replaces text in all layer names (except Master layers) of selected glyphs. Useful if you use the bracket trick in many glyphs.
 * **Find Shapeshifting Glyphs:** Finds glyphs that change the number of paths while interpolating. Opens a new tab and reports to Macro window.
+* **HOI Cleaner:** Removes all HOI (higher-order interpolation) attributes from all nodes in all layers of the frontmost font. Requires Glyphs 4.
+* **HOI Dekinker:** Goes through each axis and finds kinks of smooth (green) curve nodes halfway between neighboring key layers (masters and brace layers) along that axis. Adds an HOI intermediate point in the lower layer for every kink larger than 0.92 units. Skips nodes that already have HOI attributes. Processes selected glyphs and reports in the Macro Window. Requires Glyphs 4.
 * **Insert Brace Layers for Rotating Components:** Inserts a number of Brace Layers with continuously scaled and rotated components. Useful for OTVar interpolations with rotating elements.
 * **Insert Brace Layers for Movement along Background Path:** Inserts a number of Brace Layers with copies of the first layer, shifted according to the first path in the background. Useful for OTVar interpolations with moving elements.
 * **Insert Instances:** GUI for calculating and inserting weight instances. It is described in this tutorial: https://www.glyphsapp.com/learn/multiple-masters-part-3-setting-up-instances
