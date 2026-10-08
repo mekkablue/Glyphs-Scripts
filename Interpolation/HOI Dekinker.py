@@ -116,12 +116,15 @@ def setIntermediatePoint(node, axisTag, point):
 
 
 def dekinkGlyph(glyph, axes):
+	"""Returns (number of added points, number of skipped incompatible spans)."""
 	count = 0
+	skipped = 0
 	keyLayers = keyLayersOf(glyph)
 	for axis in axes:
 		for lowerLayer, upperLayer in spansForAxis(keyLayers, axis.axisId):
 			if not layersAreCompatible(lowerLayer, upperLayer):
 				print(f"\t⚠️ {glyph.name}: {lowerLayer.name} and {upperLayer.name} are incompatible, skipping {axis.axisTag} span")
+				skipped += 1
 				continue
 			for pathIndex, lowerPath in enumerate(lowerLayer.paths):
 				upperPath = upperLayer.paths[pathIndex]
@@ -137,8 +140,12 @@ def dekinkGlyph(glyph, axes):
 						continue
 					setIntermediatePoint(lowerNode, axis.axisTag, point)
 					count += 1
-					print(f"\t✅ {glyph.name}, {axis.axisTag}, {lowerLayer.name} → {upperLayer.name}, path {pathIndex}, node {nodeIndex}: ip ({point.x:.1f}, {point.y:.1f})")
-	return count
+					kinkSize = distanceBetweenPoints(interpolatePoint(lowerNode.position, upperNode.position), point)
+					print(
+						f"\t✅ {glyph.name}, {axis.axisTag}, {lowerLayer.name} → {upperLayer.name}, "
+						f"path {pathIndex}, node {nodeIndex}: kink {kinkSize:.2f}u, ip ({point.x:.1f}, {point.y:.1f})"
+					)
+	return count, skipped
 
 
 if Glyphs.versionNumber < 4:
@@ -149,17 +156,33 @@ else:
 		Message(title="HOI Dekinker", message="No font open.", OKButton=None)
 	else:
 		Glyphs.clearLog()
+		Glyphs.showMacroWindow()
 		print("Report for HOI Dekinker\n")
+		print(f"Font: {font.familyName}")
+		print(f"Axes: {', '.join(axis.axisTag for axis in font.axes)}")
+		print(f"Threshold: {THRESHOLD}u\n")
 		glyphs = []
 		for layer in font.selectedLayers:
 			if layer.parent not in glyphs:
 				glyphs.append(layer.parent)
-		total = 0
+		if not glyphs:
+			print("⚠️ No glyphs selected.")
+		total, skippedSpans, changedGlyphNames = 0, 0, []
 		font.disableUpdateInterface()
 		try:
 			for glyph in glyphs:
-				total += dekinkGlyph(glyph, font.axes)
+				count, skipped = dekinkGlyph(glyph, font.axes)
+				total += count
+				skippedSpans += skipped
+				if count:
+					changedGlyphNames.append(glyph.name)
+				else:
+					print(f"\t☑️ {glyph.name}: no kinks above threshold")
 		finally:
 			font.enableUpdateInterface()
-		print(f"\nAdded {total} intermediate point{'s' if total != 1 else ''} in {len(glyphs)} glyph{'s' if len(glyphs) != 1 else ''}.")
+		print(f"\nSummary: added {total} intermediate point{'s' if total != 1 else ''} in {len(changedGlyphNames)} of {len(glyphs)} glyph{'s' if len(glyphs) != 1 else ''}.")
+		if changedGlyphNames:
+			print(f"Changed glyphs: {', '.join(changedGlyphNames)}")
+		if skippedSpans:
+			print(f"⚠️ Skipped {skippedSpans} incompatible span{'s' if skippedSpans != 1 else ''}.")
 		Glyphs.showNotification("HOI Dekinker", f"Added {total} HOI intermediate points. Details in Macro Window.")
