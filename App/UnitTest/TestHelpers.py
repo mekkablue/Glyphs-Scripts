@@ -2,7 +2,7 @@ import importlib.util
 from pathlib import Path
 
 
-repositoryRoot = Path(__file__).resolve().parent.parent
+repositoryRoot = Path(__file__).resolve().parents[2]
 
 
 def loadModule(moduleName, relativePath):
