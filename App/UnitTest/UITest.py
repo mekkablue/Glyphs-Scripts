@@ -30,7 +30,7 @@ from GlyphsApp import Glyphs
 from mekkablue import mekkaObject
 
 
-repositoryRoot = Path(__file__).resolve().parent.parent
+repositoryRoot = Path(__file__).resolve().parents[2]
 logPath = Path(__file__).resolve().with_name("UITest.log")
 application = NSApplication.sharedApplication()
 windowClassNames = {"FloatingWindow", "Window"}

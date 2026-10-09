@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 repositoryRoot = Path(__file__).resolve().parents[2]
-unitTests = runpy.run_path(str(repositoryRoot / "UnitTest" / "UnitTest.py"))
+unitTests = runpy.run_path(str(repositoryRoot / "App" / "UnitTest" / "UnitTest.py"))
 
 # Load the Glyphs-visible tests without importing the repository's macOS-only
 # top-level package on the Linux CI runner.
