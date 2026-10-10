@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Goes through each axis and finds kinks of green (smooth) curve nodes halfway between neighboring key layers (masters and brace layers) along that axis. For every kink larger than the threshold, it adds an HOI intermediate point in the lower layer of the span. Nodes that already have HOI attributes are skipped and assumed to be fine. Processes the selected glyphs. Requires Glyphs 4.
+Goes through each axis and finds kinks of green (smooth) curve nodes halfway between neighboring key layers (masters and brace layers) along that axis. For every kink larger than the threshold, it adds an HOI intermediate point in the lower layer of the span. Nodes that already have HOI attributes are skipped and assumed to be fine. Processes the selected glyphs, or the whole font if no glyph is selected. Reports in the Macro Window and opens a tab with the affected glyphs. Requires Glyphs 4.
 """
 
 from GlyphsApp import Glyphs, GSSMOOTH, GSOFFCURVE, Message
