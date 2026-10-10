@@ -9,6 +9,7 @@ from GlyphsApp import Glyphs, GSSMOOTH, GSOFFCURVE, Message
 from Foundation import NSPoint
 
 THRESHOLD = 0.92  # in units
+verbose = False  # if True, also report glyphs without changes
 
 
 def interpolatePoint(pointA, pointB, factor=0.5):
@@ -168,7 +169,8 @@ else:
 			if layer.parent not in glyphs:
 				glyphs.append(layer.parent)
 		if not glyphs:
-			print("⚠️ No glyphs selected.")
+			glyphs = list(font.glyphs)
+			print(f"No glyphs selected, processing all {len(glyphs)} glyphs in the font.\n")
 		total, skippedSpans, changedGlyphNames = 0, 0, []
 		font.disableUpdateInterface()
 		try:
@@ -178,7 +180,7 @@ else:
 				skippedSpans += skipped
 				if count:
 					changedGlyphNames.append(glyph.name)
-				else:
+				elif verbose:
 					print(f"\t☑️ {glyph.name}: no kinks above threshold")
 		finally:
 			font.enableUpdateInterface()
