@@ -2,21 +2,23 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Removes all HOI (higher-order interpolation) attributes from all nodes in all layers of the frontmost font, reports in the Macro Window and opens a tab with the affected glyphs. Requires Glyphs 4 and a font with Font Info → Document → File format version 4.
+Removes all HOI (higher-order interpolation) attributes from all nodes in all layers of the frontmost font, reports in the Macro Window and opens a tab with the affected glyphs. Requires Glyphs 4 or later and a font with Font Info → Document → File format version 4 or later.
 """
 
 from GlyphsApp import Glyphs, Message
 
-if Glyphs.versionNumber < 4:
-	Message(title="HOI Cleaner", message="This script requires Glyphs 4 or later.", OKButton=None)
+minimumVersion = 4  # HOI exists since Glyphs 4, and since file format version 4
+
+if Glyphs.versionNumber < minimumVersion:
+	Message(title="HOI Cleaner", message=f"This script requires Glyphs {minimumVersion} or later.", OKButton=None)
 else:
 	font = Glyphs.font
 	if not font:
 		Message(title="HOI Cleaner", message="No font open.", OKButton=None)
-	elif font.formatVersion < 4:
+	elif font.formatVersion < minimumVersion:
 		Message(
 			title="HOI Cleaner",
-			message=f"The file format version of ‘{font.familyName}’ is {font.formatVersion}, which cannot contain HOI attributes. Nothing to clean. "
+			message=f"The file format version of ‘{font.familyName}’ is {font.formatVersion}, which cannot contain HOI attributes (they need version {minimumVersion} or later). Nothing to clean. "
 			"The file format version is set in Font Info → Document → File format version.",
 			OKButton=None,
 		)
