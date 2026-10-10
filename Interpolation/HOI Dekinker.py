@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Goes through each axis and finds kinks of green (smooth) curve nodes halfway between neighboring key layers (masters and brace layers) along that axis. For every kink larger than the threshold, it adds an HOI intermediate point in the lower layer of the span. Nodes that already have HOI attributes are skipped and assumed to be fine. Processes the selected glyphs, or the whole font if no glyph is selected. Reports in the Macro Window, selects the nodes with HOI attributes in the affected glyphs and opens a tab with them. Requires Glyphs 4.
+Goes through each axis and finds kinks of green (smooth) curve nodes halfway between neighboring key layers (masters and brace layers) along that axis. For every kink larger than the threshold, it adds an HOI intermediate point in the lower layer of the span. Nodes that already have HOI attributes are skipped and assumed to be fine. Processes the selected glyphs, or the whole font if no glyph is selected. Reports in the Macro Window, selects the nodes with HOI attributes in the affected glyphs and opens a tab with them. Requires Glyphs 4. Sets Font Info → Document → File format version to 4 if it is lower.
 """
 
 from GlyphsApp import Glyphs, GSSMOOTH, GSOFFCURVE, Message
@@ -168,7 +168,11 @@ else:
 		print("Report for HOI Dekinker\n")
 		print(f"Font: {font.familyName}")
 		print(f"Axes: {', '.join(axis.axisTag for axis in font.axes)}")
-		print(f"Threshold: {THRESHOLD}u\n")
+		print(f"Threshold: {THRESHOLD}u")
+		if font.formatVersion < 4:
+			print(f"☑️ Font Info → Document → File format version was {font.formatVersion}, setting it to 4 for HOI.")
+			font.formatVersion = 4
+		print()
 		glyphs = []
 		for layer in font.selectedLayers:
 			if layer.parent not in glyphs:

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Removes all HOI (higher-order interpolation) attributes from all nodes in all layers of the frontmost font, reports in the Macro Window and opens a tab with the affected glyphs. Requires Glyphs 4.
+Removes all HOI (higher-order interpolation) attributes from all nodes in all layers of the frontmost font, reports in the Macro Window and opens a tab with the affected glyphs. Requires Glyphs 4 and a font with Font Info → Document → File format version 4.
 """
 
 from GlyphsApp import Glyphs, Message
@@ -13,6 +13,13 @@ else:
 	font = Glyphs.font
 	if not font:
 		Message(title="HOI Cleaner", message="No font open.", OKButton=None)
+	elif font.formatVersion < 4:
+		Message(
+			title="HOI Cleaner",
+			message=f"The file format version of ‘{font.familyName}’ is {font.formatVersion}, which cannot contain HOI attributes. Nothing to clean. "
+			"The file format version is set in Font Info → Document → File format version.",
+			OKButton=None,
+		)
 	else:
 		Glyphs.clearLog()
 		Glyphs.showMacroWindow()
