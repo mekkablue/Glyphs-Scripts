@@ -2,13 +2,14 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Goes through each axis and finds kinks of green (smooth) curve nodes halfway between neighboring key layers (masters and brace layers) along that axis. For every kink larger than the threshold, it adds an HOI intermediate point in the lower layer of the span. Nodes that already have HOI attributes are skipped and assumed to be fine. Processes the selected glyphs, or the whole font if no glyph is selected. Reports in the Macro Window, selects the nodes with HOI attributes in the affected glyphs and opens a tab with them. Requires Glyphs 4.
+Goes through each axis and finds kinks of green (smooth) curve nodes halfway between neighboring key layers (masters and brace layers) along that axis. For every kink larger than the threshold, it adds an HOI intermediate point in the lower layer of the span. Nodes that already have HOI attributes are skipped and assumed to be fine. Processes the selected glyphs, or the whole font if no glyph is selected. Reports in the Macro Window, selects the nodes with HOI attributes in the affected glyphs and opens a tab with them. Requires Glyphs 4 or later. Sets Font Info → Document → File format version to the major version of Glyphs if it is lower.
 """
 
 from GlyphsApp import Glyphs, GSSMOOTH, GSOFFCURVE, Message
 from Foundation import NSPoint
 
 THRESHOLD = 0.92  # in units
+minimumVersion = 4  # HOI exists since Glyphs 4, and since file format version 4
 verbose = False  # if True, also report glyphs without changes
 
 
@@ -156,8 +157,8 @@ def dekinkGlyph(glyph, axes, stats):
 	return count, skipped
 
 
-if Glyphs.versionNumber < 4:
-	Message(title="HOI Dekinker", message="This script requires Glyphs 4 or later.", OKButton=None)
+if Glyphs.versionNumber < minimumVersion:
+	Message(title="HOI Dekinker", message=f"This script requires Glyphs {minimumVersion} or later.", OKButton=None)
 else:
 	font = Glyphs.font
 	if not font:
@@ -168,7 +169,12 @@ else:
 		print("Report for HOI Dekinker\n")
 		print(f"Font: {font.familyName}")
 		print(f"Axes: {', '.join(axis.axisTag for axis in font.axes)}")
-		print(f"Threshold: {THRESHOLD}u\n")
+		print(f"Threshold: {THRESHOLD}u")
+		appVersion = int(Glyphs.versionNumber)
+		if font.formatVersion < appVersion:
+			print(f"☑️ Font Info → Document → File format version was {font.formatVersion}, setting it to {appVersion} for HOI.")
+			font.formatVersion = appVersion
+		print()
 		glyphs = []
 		for layer in font.selectedLayers:
 			if layer.parent not in glyphs:
