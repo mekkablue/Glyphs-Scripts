@@ -638,8 +638,11 @@ class InstanceMaker(mekkaObject):
 					for thisMaster in theFont.masters:
 						for thisInstance in [i for i in theFont.instances if i.type == 0]:
 							if thisMaster.axes == thisInstance.axes:
-								thisMaster.customParameters[paramName] = thisInstance.customParameters[paramName]
-								break
+								axisLocation = thisInstance.customParameters[paramName]
+								if axisLocation:
+									# skip instances without Axis Location, a None value would end up as NSNull and break saving
+									thisMaster.customParameters[paramName] = axisLocation
+									break
 
 			self.SavePreferences()
 
