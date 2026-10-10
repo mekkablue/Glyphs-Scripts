@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Goes through each axis and finds kinks of green (smooth) curve nodes halfway between neighboring key layers (masters and brace layers) along that axis. For every kink larger than the threshold, it adds an HOI intermediate point in the lower layer of the span. Nodes that already have HOI attributes are skipped and assumed to be fine. Processes the selected glyphs, or the whole font if no glyph is selected. Reports in the Macro Window and opens a tab with the affected glyphs. Requires Glyphs 4.
+Goes through each axis and finds kinks of green (smooth) curve nodes halfway between neighboring key layers (masters and brace layers) along that axis. For every kink larger than the threshold, it adds an HOI intermediate point in the lower layer of the span. Nodes that already have HOI attributes are skipped and assumed to be fine. Processes the selected glyphs, or the whole font if no glyph is selected. Reports in the Macro Window, selects the nodes with HOI attributes in the affected glyphs and opens a tab with them. Requires Glyphs 4.
 """
 
 from GlyphsApp import Glyphs, GSSMOOTH, GSOFFCURVE, Message
@@ -190,5 +190,13 @@ else:
 		if skippedSpans:
 			print(f"⚠️ Skipped {skippedSpans} incompatible span{'s' if skippedSpans != 1 else ''}.")
 		if changedGlyphNames:
+			# select only the nodes with HOI attributes in all layers of the affected glyphs:
+			for glyphName in changedGlyphNames:
+				for layer in font.glyphs[glyphName].layers:
+					layer.clearSelection()
+					for path in layer.paths:
+						for node in path.nodes:
+							if node.attributes["hoi"]:
+								node.selected = True
 			font.newTab("/" + "/".join(changedGlyphNames))
 		Glyphs.showNotification("HOI Dekinker", f"Added {total} HOI intermediate points. Details in Macro Window.")
