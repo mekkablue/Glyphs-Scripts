@@ -469,7 +469,6 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Fix Math Operator Spacing:** Syncs widths and centers glyphs for +−×÷=≠±≈¬, optionally also lesser/greater symbols and asciicircum/asciitilde.
 * **Freeze Placeholders:** In the current Edit tab, will change all inserted placeholders for the current glyph, thus 'freeze' the placeholders.
 * **Metrics Key Manager:** Batch apply metrics keys to the current font.
-* **Mirror Spacer:** Double-checks and corrects spacings in mirrored glyphs such as `()[]{}''"«»‹›¿?¡!<>≤≥`.
 * **Monospace Checker:** Checks if all glyph widths in the frontmost font are actually monospaced. Reports in Macro Window and opens a tab with affected layers.
 * **New Tab with All Figure Combinations:** Opens a new tab with all possible figure combos. Also outputs a string for copying into the Macro window, in case the opening of the tab fails.
 * **New Tab with Fraction Figure Combinations:** Opens an Edit tab with fraction figure combos for spacing and kerning.
