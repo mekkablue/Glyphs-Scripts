@@ -116,13 +116,17 @@ def setIntermediatePoint(node, axisTag, point):
 	node.attributes["hoi"] = hoi
 
 
-def dekinkGlyph(glyph, axes):
-	"""Returns (number of added points, number of skipped incompatible spans)."""
+def dekinkGlyph(glyph, axes, stats):
+	"""
+	Returns (number of added points, number of skipped incompatible spans).
+	Also counts the spans found and the nodes skipped because they already have HOI in the stats dict.
+	"""
 	count = 0
 	skipped = 0
 	keyLayers = keyLayersOf(glyph)
 	for axis in axes:
 		for lowerLayer, upperLayer in spansForAxis(keyLayers, axis.axisId):
+			stats["spans"] += 1
 			if not layersAreCompatible(lowerLayer, upperLayer):
 				print(f"\t⚠️ {glyph.name}: {lowerLayer.name} and {upperLayer.name} are incompatible, skipping {axis.axisTag} span")
 				skipped += 1
@@ -136,6 +140,7 @@ def dekinkGlyph(glyph, axes):
 					if not lowerPath.closed and nodeIndex in (0, lastIndex):
 						continue
 					if lowerNode.attributes["hoi"]:
+						stats["nodesWithHOI"] += 1
 						continue
 					upperNode = upperPath.nodes[nodeIndex]
 					point = intermediatePoint(tripletPositions(lowerNode), tripletPositions(upperNode), kinkIndex=1, threshold=THRESHOLD)
@@ -168,14 +173,16 @@ else:
 		for layer in font.selectedLayers:
 			if layer.parent not in glyphs:
 				glyphs.append(layer.parent)
-		if not glyphs:
+		wholeFont = not glyphs
+		if wholeFont:
 			glyphs = list(font.glyphs)
 			print(f"No glyphs selected, processing all {len(glyphs)} glyphs in the font.\n")
 		total, skippedSpans, changedGlyphNames = 0, 0, []
+		stats = {"spans": 0, "nodesWithHOI": 0}
 		font.disableUpdateInterface()
 		try:
 			for glyph in glyphs:
-				count, skipped = dekinkGlyph(glyph, font.axes)
+				count, skipped = dekinkGlyph(glyph, font.axes, stats)
 				total += count
 				skippedSpans += skipped
 				if count:
@@ -199,4 +206,19 @@ else:
 							if node.attributes["hoi"]:
 								node.selected = True
 			font.newTab("/" + "/".join(changedGlyphNames))
-		Glyphs.showNotification("HOI Dekinker", f"Added {total} HOI intermediate points. Details in Macro Window.")
+		if total:
+			Glyphs.showNotification("HOI Dekinker", f"Added {total} HOI intermediate points. Details in Macro Window.")
+		else:
+			if wholeFont:
+				scope = f"In all {len(glyphs)} glyphs in font ‘{font.familyName}’"
+			else:
+				scope = f"In the {len(glyphs)} selected glyph{'s' if len(glyphs) != 1 else ''} of {len(font.glyphs)} total glyphs in font ‘{font.familyName}’"
+			if not stats["spans"]:
+				message = f"{scope}, no pair of neighboring key layers (masters or brace layers) was found along any axis, so there was nothing to check."
+			else:
+				message = f"{scope}, there were no kinks larger than the threshold {THRESHOLD}u."
+				if stats["nodesWithHOI"]:
+					message += f"\n\n{stats['nodesWithHOI']} smooth node{'s' if stats['nodesWithHOI'] != 1 else ''} already had HOI attributes and were skipped."
+				if skippedSpans:
+					message += f"\n\n{skippedSpans} span{'s' if skippedSpans != 1 else ''} with incompatible layers {'were' if skippedSpans != 1 else 'was'} skipped. Details in Macro Window."
+			Message(title="HOI Dekinker", message=message, OKButton=None)
