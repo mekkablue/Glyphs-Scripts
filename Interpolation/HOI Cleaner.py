@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Removes all HOI (higher-order interpolation) attributes from all nodes in all layers of the frontmost font. Requires Glyphs 4.
+Removes all HOI (higher-order interpolation) attributes from all nodes in all layers of the frontmost font, reports in the Macro Window and opens a tab with the affected glyphs. Requires Glyphs 4.
 """
 
 from GlyphsApp import Glyphs, Message
@@ -38,4 +38,6 @@ else:
 		if not totalNodes:
 			print("☑️ No HOI attributes found.")
 		print(f"\nSummary: removed HOI from {totalNodes} node{'s' if totalNodes != 1 else ''} in {len(glyphNames)} glyph{'s' if len(glyphNames) != 1 else ''}.")
+		if glyphNames:
+			font.newTab("/" + "/".join(glyphNames))
 		Glyphs.showNotification("HOI Cleaner", f"Removed HOI from {totalNodes} nodes. Details in Macro Window.")

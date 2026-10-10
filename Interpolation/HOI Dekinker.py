@@ -187,4 +187,6 @@ else:
 			print(f"Changed glyphs: {', '.join(changedGlyphNames)}")
 		if skippedSpans:
 			print(f"⚠️ Skipped {skippedSpans} incompatible span{'s' if skippedSpans != 1 else ''}.")
+		if changedGlyphNames:
+			font.newTab("/" + "/".join(changedGlyphNames))
 		Glyphs.showNotification("HOI Dekinker", f"Added {total} HOI intermediate points. Details in Macro Window.")
