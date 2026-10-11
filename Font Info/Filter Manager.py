@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Edit Filter custom parameters as plain text, one filter value string per line, including the optional exclude/include parts. ‘Paste Parameters’ reads the parameters plist from the clipboard (as copied from Custom Parameters in Font Info) into the text view. ‘Copy Parameters’ turns the lines back into a parameters plist on the clipboard, ready to paste into Custom Parameters in Font Info. Disabled filters are prefixed with //.
+Edit Filter custom parameters as plain text, one filter value string per line, including the optional exclude/include parts. ‘Paste Parameters’ reads the parameters plist from the clipboard (as copied from Custom Parameters in Font Info) into the text view. ‘Copy Parameters’ turns the lines back into a parameters plist on the clipboard, ready to paste into Custom Parameters in Font Info. Disabled filters are prefixed with #.
 """
 
 import vanilla
@@ -12,7 +12,7 @@ from GlyphsApp import Glyphs
 from mekkablue import mekkaObject, getClipboard, setClipboard
 
 parameterName = "Filter"
-disabledPrefix = "//"
+disabledPrefix = "#"
 unlimited = 10000000.0
 
 
@@ -51,7 +51,7 @@ class FilterManager(mekkaObject):
 		inset = 15
 
 		self.w.filters = vanilla.TextEditor("auto", "", callback=self.SavePreferences, checksSpelling=False)
-		self.w.filters.setToolTip("One filter value string per line, without the parameter name ‘Filter’, e.g.: Transformations;OffsetX:10;exclude:a,b. Prefix a line with // to disable it.")
+		self.w.filters.setToolTip("One filter per line, without the name ‘Filter’. Start a line with # to disable it.")
 		scrollView = self.w.filters.getNSScrollView()
 		scrollView.setHasVerticalScroller_(True)
 		scrollView.setHasHorizontalScroller_(True)
@@ -73,9 +73,9 @@ class FilterManager(mekkaObject):
 		textView.textContainer().setWidthTracksTextView_(False)
 
 		self.w.pasteButton = vanilla.Button("auto", "Paste Parameters", callback=self.pasteParameters)
-		self.w.pasteButton.setToolTip("Reads Filter parameters from the clipboard (copied from Custom Parameters in Font Info) and replaces the text with one filter per line.")
+		self.w.pasteButton.setToolTip("Copy parameters in Font Info first. Replaces the text with one filter per line.")
 		self.w.copyButton = vanilla.Button("auto", "Copy Parameters", callback=self.copyParameters)
-		self.w.copyButton.setToolTip("Puts the lines as Filter parameters on the clipboard, ready to paste into Custom Parameters in Font Info.")
+		self.w.copyButton.setToolTip("Puts the lines on the clipboard, ready to paste into Font Info.")
 		self.w.setDefaultButton(self.w.copyButton)
 
 		self.w.addAutoPosSizeRules(
