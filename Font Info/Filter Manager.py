@@ -6,10 +6,10 @@ Edit Filter custom parameters as plain text, one filter value string per line, i
 """
 
 import vanilla
-from AppKit import NSEvent, NSEventModifierFlagShift, NSFont, NSMakeSize
+from AppKit import NSEvent, NSEventModifierFlagShift, NSMakeSize
 from Foundation import NSPropertyListSerialization, NSString, NSUTF8StringEncoding
 from GlyphsApp import Glyphs
-from mekkablue import mekkaObject, getClipboard, setClipboard
+from mekkablue import mekkaObject, getClipboard, setClipboard, getLegibleFont
 
 parameterName = "Filter"
 disabledPrefix = "#"
@@ -57,7 +57,7 @@ class FilterManager(mekkaObject):
 		scrollView.setHasHorizontalScroller_(True)
 		scrollView.setAutohidesScrollers_(True)
 		textView = self.w.filters.getNSTextView()
-		textView.setFont_(NSFont.userFixedPitchFontOfSize_(11))
+		textView.setFont_(getLegibleFont())
 		textView.setRichText_(False)
 		textView.setAutomaticQuoteSubstitutionEnabled_(False)
 		textView.setAutomaticDashSubstitutionEnabled_(False)
