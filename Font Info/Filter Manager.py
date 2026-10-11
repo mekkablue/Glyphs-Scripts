@@ -6,7 +6,7 @@ Edit Filter custom parameters as plain text, one filter value string per line, i
 """
 
 import vanilla
-from AppKit import NSFont, NSMakeSize
+from AppKit import NSEvent, NSEventModifierFlagShift, NSFont, NSMakeSize
 from Foundation import NSPropertyListSerialization, NSString, NSUTF8StringEncoding
 from GlyphsApp import Glyphs
 from mekkablue import mekkaObject, getClipboard, setClipboard
@@ -73,7 +73,7 @@ class FilterManager(mekkaObject):
 		textView.textContainer().setWidthTracksTextView_(False)
 
 		self.w.pasteButton = vanilla.Button("auto", "Paste Parameters", callback=self.pasteParameters)
-		self.w.pasteButton.setToolTip("Copy parameters in Font Info first. Replaces the text with one filter per line.")
+		self.w.pasteButton.setToolTip("Copy parameters in Font Info first. Replaces the text with one filter per line. Hold Shift to append instead.")
 		self.w.copyButton = vanilla.Button("auto", "Copy Parameters", callback=self.copyParameters)
 		self.w.copyButton.setToolTip("Puts the lines on the clipboard, ready to paste into Font Info.")
 		self.w.setDefaultButton(self.w.copyButton)
@@ -115,9 +115,15 @@ class FilterManager(mekkaObject):
 				line = f"{disabledPrefix} {line}"
 			lines.append(line)
 
+		pastedCount = len(lines)
+		appending = NSEvent.modifierFlags() & NSEventModifierFlagShift == NSEventModifierFlagShift
+		existingText = self.w.filters.get().rstrip("\n")
+		if appending and existingText:
+			lines.insert(0, existingText)
 		self.w.filters.set("\n".join(lines))
 		self.SavePreferences()
-		message = f"Pasted {len(lines)} filter(s)."
+		verb = "Added" if appending else "Pasted"
+		message = f"{verb} {pastedCount} filter(s)."
 		if skipped:
 			message += f" Skipped {skipped} other parameter(s)."
 		print(f"Filter Manager: {message}")
