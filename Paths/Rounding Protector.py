@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Marks nodes so the Round Corners filter leaves them alone (node.userData["name"] = "c"), and copies the marks of one master to all compatible layers (other masters, brace and bracket layers).
+Marks nodes so the Round Corners filter leaves them alone (node.name = "c"), and copies the marks of one master to all compatible layers (other masters, brace and bracket layers).
 """
 
 from math import hypot
@@ -19,7 +19,6 @@ from AppKit import (
 	NSLayoutPriorityWindowSizeStayPut,
 )
 
-PROTECT_KEY = "name"
 PROTECT_VALUE = "c"
 PROBE_DISTANCE = 0.5  # in units, at 1000 upm; probe points are placed this far from the node, on both sides
 OFFCURVE = "offcurve"
@@ -29,25 +28,47 @@ QCURVE = "qcurve"
 # ---- node status ----
 
 
+def usesUserDataName():
+	"""Glyphs 4.0 and 4.1 do not display node.name properly, but node.userData["name"] works."""
+	return 4.0 <= Glyphs.versionNumber < 4.2
+
+
+def nodeMark(node):
+	"""The current mark of the node: its name, or None."""
+	if usesUserDataName():
+		return node.userData["name"]
+	return node.name
+
+
+def switchNode(node, on=True):
+	"""Sets (on=True) or removes (on=False) the mark that keeps the Round Corners filter from rounding the node."""
+	if usesUserDataName():
+		if on:
+			node.userData["name"] = PROTECT_VALUE
+		elif node.userData["name"] is not None:
+			del node.userData["name"]
+	else:
+		node.name = PROTECT_VALUE if on else None
+
+
 def isProtected(node):
-	return node.userData[PROTECT_KEY] == PROTECT_VALUE
+	return nodeMark(node) == PROTECT_VALUE
 
 
 def setProtection(node, protect, overwrite):
 	"""
 	Protects or unprotects an on-curve node.
 	Returns False if the node was left alone because it carries a different
-	value in the same key and overwriting is switched off, True otherwise.
+	name and overwriting is switched off, True otherwise.
 	"""
-	currentValue = node.userData[PROTECT_KEY]
-	hasOtherValue = currentValue is not None and currentValue != PROTECT_VALUE
+	currentValue = nodeMark(node)
+	hasOtherValue = bool(currentValue) and currentValue != PROTECT_VALUE
 	if hasOtherValue and not overwrite:
 		return False
-	if protect:
-		if currentValue != PROTECT_VALUE:
-			node.userData[PROTECT_KEY] = PROTECT_VALUE
-	elif currentValue is not None:
-		del node.userData[PROTECT_KEY]
+	if protect and currentValue != PROTECT_VALUE:
+		switchNode(node, True)
+	elif not protect and currentValue:
+		switchNode(node, False)
 	return True
 
 
@@ -272,7 +293,7 @@ class RoundingProtector(mekkaObject):
 
 		self.w.descriptionText = vanilla.TextBox(
 			"auto",
-			"Protects nodes from the Round Corners filter (node.userData[\"%s\"] = \"%s\"), and copies the protection of a master to all compatible layers." % (PROTECT_KEY, PROTECT_VALUE),
+			"Protects nodes from the Round Corners filter (node name “%s”), and copies the protection of a master to all compatible layers." % PROTECT_VALUE,
 			sizeStyle="small",
 			selectable=True,
 		)
