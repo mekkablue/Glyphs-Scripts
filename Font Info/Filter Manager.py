@@ -5,9 +5,9 @@ __doc__ = """
 Edit Filter custom parameters as plain text, one filter value string per line, including the optional exclude/include parts. ‘Paste Parameters’ reads the parameters plist from the clipboard (as copied from Custom Parameters in Font Info) into the text view. ‘Copy Parameters’ turns the lines back into a parameters plist on the clipboard, ready to paste into Custom Parameters in Font Info. Disabled filters are prefixed with #.
 """
 
+import re
 import vanilla
 from AppKit import NSEvent, NSEventModifierFlagShift, NSMakeSize
-from Foundation import NSPropertyListSerialization, NSString, NSUTF8StringEncoding
 from GlyphsApp import Glyphs
 from mekkablue import mekkaObject, getClipboard, setClipboard, getLegibleFont
 
@@ -16,16 +16,60 @@ disabledPrefix = "#"
 unlimited = 10000000.0
 
 
+plistTokens = re.compile(r'"((?:\\.|[^"\\])*)"|([^\s=;{}(),"]+)|([={}();,])')
+escapes = {"n": "\n", "t": "\t"}
+
+
+def parsePlist(text):
+	"""Parses an old-style (ASCII) plist into dicts, lists and strings."""
+	tokens = []
+	for quotedText, bareText, symbol in plistTokens.findall(text):
+		if symbol:
+			tokens.append((symbol, None))
+		elif bareText:
+			tokens.append(("string", bareText))
+		else:  # quoted string, possibly empty
+			tokens.append(("string", re.sub(r"\\(.)", lambda m: escapes.get(m.group(1), m.group(1)), quotedText)))
+	position = 0
+
+	def parseValue():
+		nonlocal position
+		kind, content = tokens[position]
+		position += 1
+		if kind == "{":
+			result = {}
+			while tokens[position][0] != "}":
+				key = tokens[position][1]
+				position += 2  # skip key and =
+				result[key] = parseValue()
+				position += 1  # skip ;
+			position += 1
+			return result
+		if kind == "(":
+			result = []
+			while tokens[position][0] != ")":
+				result.append(parseValue())
+				if tokens[position][0] == ",":
+					position += 1
+			position += 1
+			return result
+		return content
+
+	return parseValue()
+
+
 def parseParameters(plistString):
 	"""Returns a list of parameter dicts from a plist string, or None if it cannot be parsed."""
-	data = NSString.stringWithString_(plistString).dataUsingEncoding_(NSUTF8StringEncoding)
-	parsed, _, error = NSPropertyListSerialization.propertyListWithData_options_format_error_(data, 0, None, None)
-	if parsed is None:
+	try:
+		parsed = parsePlist(plistString)
+	except (IndexError, TypeError):
 		return None
-	if hasattr(parsed, "objectForKey_"):
-		# a single parameter was copied
-		return [parsed]
-	return list(parsed)
+	if isinstance(parsed, dict):
+		# Glyphs 4 format, or a single parameter
+		parsed = parsed.get("customParameters", [parsed])
+	if not isinstance(parsed, list):
+		return None
+	return parsed
 
 
 def quoted(text):
@@ -103,7 +147,7 @@ class FilterManager(mekkaObject):
 		lines = []
 		skipped = 0
 		for parameter in parameters:
-			if not hasattr(parameter, "objectForKey_") or parameter.get("name") != parameterName:
+			if not isinstance(parameter, dict) or parameter.get("name") != parameterName:
 				skipped += 1
 				continue
 			value = parameter.get("value")
@@ -138,15 +182,15 @@ class FilterManager(mekkaObject):
 				line = line[len(disabledPrefix):].strip()
 			if not line:
 				continue
-			entry = f"{{\nname = {parameterName};\nvalue = {quoted(line)};\n"
+			entry = "{\n"
 			if disabled:
 				entry += "disabled = 1;\n"
-			entries.append(entry + "}")
+			entries.append(f"{entry}name = {parameterName};\nvalue = {quoted(line)};\n}},\n")
 
 		if not entries:
 			Glyphs.showNotification("Filter Manager", "No filters to copy.")
 			return
-		plist = "(\n" + ",\n".join(entries) + "\n)"
+		plist = "{\n.formatVersion = 4;\ncustomParameters = (\n" + "".join(entries) + ");\n}"
 		if setClipboard(plist):
 			message = f"Copied {len(entries)} filter parameter(s)."
 		else:
