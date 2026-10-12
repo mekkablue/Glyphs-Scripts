@@ -254,9 +254,16 @@ def currentOTVarExportPath(useExportPath=False):
 	return exportPath
 
 
+def resolveFamilyNamesPlaceholder(name, thisFont):
+	# {{{familyNames}}} is auto-replaced by font.familyName on export
+	if name and "{{{familyNames}}}" in name:
+		return name.replace("{{{familyNames}}}", thisFont.familyName)
+	return name
+
+
 def otVarFamilyName(thisFont):
 	if thisFont.customParameters["Variable Font Family Name"]:
-		return thisFont.customParameters["Variable Font Family Name"]
+		return resolveFamilyNamesPlaceholder(thisFont.customParameters["Variable Font Family Name"], thisFont)
 	else:
 		return thisFont.familyName
 
@@ -1646,7 +1653,7 @@ def listOfAllStyles(thisFont):
 def familyNameOfInstance(thisInstance):
 	familyNameProperty = thisInstance.propertyForName_languageTag_("familyNames", "dflt")
 	if familyNameProperty:
-		return familyNameProperty.value
+		return resolveFamilyNamesPlaceholder(familyNameProperty.value, thisInstance.font)
 	else:
 		return thisInstance.font.familyName
 
