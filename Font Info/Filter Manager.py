@@ -7,7 +7,7 @@ Edit Filter custom parameters as plain text, one filter value string per line, i
 
 import re
 import vanilla
-from AppKit import NSEvent, NSEventModifierFlagShift, NSMakeSize
+from AppKit import NSEvent, NSEventModifierFlagShift, NSMakeSize, NSDictionary, NSArray
 from GlyphsApp import Glyphs
 from mekkablue import mekkaObject, getClipboard, setClipboard, getLegibleFont
 
@@ -20,54 +20,19 @@ plistTokens = re.compile(r'"((?:\\.|[^"\\])*)"|([^\s=;{}(),"]+)|([={}();,])')
 escapes = {"n": "\n", "t": "\t"}
 
 
-def parsePlist(text):
-	"""Parses an old-style (ASCII) plist into dicts, lists and strings."""
-	tokens = []
-	for quotedText, bareText, symbol in plistTokens.findall(text):
-		if symbol:
-			tokens.append((symbol, None))
-		elif bareText:
-			tokens.append(("string", bareText))
-		else:  # quoted string, possibly empty
-			tokens.append(("string", re.sub(r"\\(.)", lambda m: escapes.get(m.group(1), m.group(1)), quotedText)))
-	position = 0
-
-	def parseValue():
-		nonlocal position
-		kind, content = tokens[position]
-		position += 1
-		if kind == "{":
-			result = {}
-			while tokens[position][0] != "}":
-				key = tokens[position][1]
-				position += 2  # skip key and =
-				result[key] = parseValue()
-				position += 1  # skip ;
-			position += 1
-			return result
-		if kind == "(":
-			result = []
-			while tokens[position][0] != ")":
-				result.append(parseValue())
-				if tokens[position][0] == ",":
-					position += 1
-			position += 1
-			return result
-		return content
-
-	return parseValue()
-
-
 def parseParameters(plistString):
 	"""Returns a list of parameter dicts from a plist string, or None if it cannot be parsed."""
 	try:
-		parsed = parsePlist(plistString)
-	except (IndexError, TypeError):
+		parsed = plistString.propertyList()
+	except:
+		import traceback
+		print(traceback.format_exc())
 		return None
-	if isinstance(parsed, dict):
+
+	if isinstance(parsed, (dict, NSDictionary)):
 		# Glyphs 4 format, or a single parameter
 		parsed = parsed.get("customParameters", [parsed])
-	if not isinstance(parsed, list):
+	if not isinstance(parsed, (list, NSArray)):
 		return None
 	return parsed
 
@@ -147,7 +112,7 @@ class FilterManager(mekkaObject):
 		lines = []
 		skipped = 0
 		for parameter in parameters:
-			if not isinstance(parameter, dict) or parameter.get("name") != parameterName:
+			if not isinstance(parameter, (dict, NSDictionary)) or parameter.get("name") != parameterName:
 				skipped += 1
 				continue
 			value = parameter.get("value")
