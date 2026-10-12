@@ -316,6 +316,10 @@ def otVarFileName(thisFont, thisInstance=None):
 		# circumvent bug in Glyphs 3.0.5
 		if fileName.endswith(".otf"):
 			fileName = fileName[:-4]
+		if "{{{familyNames}}}" in fileName:
+			# Glyphs appends "VF" to the unresolved family name (e.g. "{{{familyNames}}} VF"),
+			# so build the file name from the resolved family name instead:
+			fileName = familyNameOfInstance(thisInstance)
 		if not fileName:
 			fileName = thisInstance.customParameters["fileName"]
 			if not fileName:
