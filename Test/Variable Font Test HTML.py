@@ -1747,12 +1747,17 @@ else:
 	for variableFontInfo in variableFontInfos:
 		fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, exportFolder, glyphInfos, plainSuffix = variableFontInfo
 
+		# safety net: no {{{familyNames}}} residue in names or file names
+		fullName = resolveFamilyNamesPlaceholder(fullName, thisFont)
+		fileName = resolveFamilyNamesPlaceholder(fileName, thisFont)
+
 		print("\nPreparing Test HTML for: %s%s" % (
 			fullName,
 			f" ({fileName})" if fileName else "",
 		))
 		print("👷🏼‍ Building HTML code...")
 		htmlContent = buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, shouldCreateSamsa, glyphInfos=glyphInfos, plainSuffix=plainSuffix)
+		htmlContent = resolveFamilyNamesPlaceholder(htmlContent, thisFont)  # catches residue anywhere else, e.g. in style or axis names
 
 		# Write file to disk:
 		print("💾 Writing files to disk...")
