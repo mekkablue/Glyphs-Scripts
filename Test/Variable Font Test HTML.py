@@ -316,16 +316,22 @@ def otVarFileName(thisFont, thisInstance=None):
 		# circumvent bug in Glyphs 3.0.5
 		if fileName.endswith(".otf"):
 			fileName = fileName[:-4]
+		if "{{{familyNames}}}" in fileName:
+			# Glyphs appends "VF" to the unresolved family name (e.g. "{{{familyNames}}} VF"),
+			# so build the file name from the resolved family name instead:
+			fileName = familyNameOfInstance(thisInstance)
 		if not fileName:
 			fileName = thisInstance.customParameters["fileName"]
 			if not fileName:
 				familyName = familyNameOfInstance(thisInstance)
 				fileName = f"{familyName}-{thisInstance.name}".replace(" ", "")
+		fileName = resolveFamilyNamesPlaceholder(fileName, thisFont)
 		return f"{fileName}.{suffix}"
 	elif thisFont.customParameters["Variable Font File Name"] or thisFont.customParameters["variableFileName"]:
 		fileName = thisFont.customParameters["Variable Font File Name"]
 		if not fileName:
 			fileName = thisFont.customParameters["variableFileName"]
+		fileName = resolveFamilyNamesPlaceholder(fileName, thisFont)
 		return f"{fileName}.{suffix}"
 	else:
 		familyName = otVarFamilyName(thisFont)
@@ -1741,12 +1747,17 @@ else:
 	for variableFontInfo in variableFontInfos:
 		fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, exportFolder, glyphInfos, plainSuffix = variableFontInfo
 
+		# safety net: no {{{familyNames}}} residue in names or file names
+		fullName = resolveFamilyNamesPlaceholder(fullName, thisFont)
+		fileName = resolveFamilyNamesPlaceholder(fileName, thisFont)
+
 		print("\nPreparing Test HTML for: %s%s" % (
 			fullName,
 			f" ({fileName})" if fileName else "",
 		))
 		print("👷🏼‍ Building HTML code...")
 		htmlContent = buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, shouldCreateSamsa, glyphInfos=glyphInfos, plainSuffix=plainSuffix)
+		htmlContent = resolveFamilyNamesPlaceholder(htmlContent, thisFont)  # catches residue anywhere else, e.g. in style or axis names
 
 		# Write file to disk:
 		print("💾 Writing files to disk...")
