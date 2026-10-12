@@ -321,11 +321,13 @@ def otVarFileName(thisFont, thisInstance=None):
 			if not fileName:
 				familyName = familyNameOfInstance(thisInstance)
 				fileName = f"{familyName}-{thisInstance.name}".replace(" ", "")
+		fileName = resolveFamilyNamesPlaceholder(fileName, thisFont)
 		return f"{fileName}.{suffix}"
 	elif thisFont.customParameters["Variable Font File Name"] or thisFont.customParameters["variableFileName"]:
 		fileName = thisFont.customParameters["Variable Font File Name"]
 		if not fileName:
 			fileName = thisFont.customParameters["variableFileName"]
+		fileName = resolveFamilyNamesPlaceholder(fileName, thisFont)
 		return f"{fileName}.{suffix}"
 	else:
 		familyName = otVarFamilyName(thisFont)
