@@ -2,13 +2,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Edit Filter custom parameters as plain text, one filter value string per line, including the optional exclude/include parts. ‘Paste Parameters’ reads the parameters plist from the clipboard (as copied from Custom Parameters in Font Info) into the text view. ‘Copy Parameters’ turns the lines back into a parameters plist on the clipboard, ready to paste into Custom Parameters in Font Info. Disabled filters are prefixed with #.
+Edit Filter custom parameters as plain text, one filter value string per line, including the optional exclude/include parts. ‘Paste’ reads the parameters plist from the clipboard (as copied from Custom Parameters in Font Info) into the text view (‘Paste & Add’ adds them at the bottom). ‘Copy Parameters’ turns the lines back into a parameters plist on the clipboard, ready to paste into Custom Parameters in Font Info. Disabled filters are prefixed with #.
 """
 
 import re
 import vanilla
-from AppKit import NSEvent, NSEventModifierFlagShift, NSMakeSize, NSDictionary, NSArray
-from GlyphsApp import Glyphs
+from AppKit import NSMakeSize, NSDictionary, NSArray
 from mekkablue import mekkaObject, getClipboard, setClipboard, getLegibleFont
 
 parameterName = "Filter"
@@ -81,8 +80,10 @@ class FilterManager(mekkaObject):
 		textView.textContainer().setContainerSize_(NSMakeSize(unlimited, unlimited))
 		textView.textContainer().setWidthTracksTextView_(False)
 
-		self.w.pasteButton = vanilla.Button("auto", "Paste Parameters", callback=self.pasteParameters)
-		self.w.pasteButton.setToolTip("Copy parameters in Font Info first. Replaces the text with one filter per line. Hold Shift to append instead.")
+		self.w.pasteButton = vanilla.Button("auto", "Paste", callback=self.pasteParameters)
+		self.w.pasteButton.setToolTip("Copy parameters in Font Info first. Replaces the text with one filter per line.")
+		self.w.pasteAddButton = vanilla.Button("auto", "Paste & Add", callback=self.pasteAndAddParameters)
+		self.w.pasteAddButton.setToolTip("Like Paste, but adds the filters at the bottom and keeps the existing lines.")
 		self.w.copyButton = vanilla.Button("auto", "Copy Parameters", callback=self.copyParameters)
 		self.w.copyButton.setToolTip("Puts the lines on the clipboard, ready to paste into Font Info.")
 		self.w.setDefaultButton(self.w.copyButton)
@@ -90,8 +91,9 @@ class FilterManager(mekkaObject):
 		self.w.addAutoPosSizeRules(
 			[
 				"H:|-inset-[filters]-inset-|",
-				"H:|-inset-[pasteButton(>=120)]-gap-[copyButton(>=120)]-(>=inset)-|",
+				"H:|-inset-[pasteButton(>=70)]-gap-[pasteAddButton(>=70)]-(>=inset)-[copyButton(>=120)]-inset-|",
 				"V:|-inset-[filters]-inset-[pasteButton]-inset-|",
+				"V:[pasteAddButton]-inset-|",
 				"V:[copyButton]-inset-|",
 			],
 			metrics={"inset": inset, "gap": 8},
@@ -102,41 +104,35 @@ class FilterManager(mekkaObject):
 		self.w.makeKey()
 
 	def pasteParameters(self, sender=None):
+		self.pasteFromClipboard(append=False)
+
+	def pasteAndAddParameters(self, sender=None):
+		self.pasteFromClipboard(append=True)
+
+	def pasteFromClipboard(self, append=False):
 		clipboard = getClipboard()
 		parameters = parseParameters(clipboard) if clipboard else None
 		if parameters is None:
 			print("⚠️ Filter Manager: the clipboard does not contain parameters. Copy them from Custom Parameters in Font Info.")
-			Glyphs.showNotification("Filter Manager", "No parameters on the clipboard.")
 			return
 
 		lines = []
-		skipped = 0
 		for parameter in parameters:
 			if not isinstance(parameter, (dict, NSDictionary)) or parameter.get("name") != parameterName:
-				skipped += 1
 				continue
 			value = parameter.get("value")
 			if not isinstance(value, str):
-				skipped += 1
 				continue
 			line = value.replace("\n", " ")
 			if str(parameter.get("disabled", 0)) not in ("0", "False", ""):
 				line = f"{disabledPrefix} {line}"
 			lines.append(line)
 
-		pastedCount = len(lines)
-		appending = NSEvent.modifierFlags() & NSEventModifierFlagShift == NSEventModifierFlagShift
 		existingText = self.w.filters.get().rstrip("\n")
-		if appending and existingText:
+		if append and existingText:
 			lines.insert(0, existingText)
 		self.w.filters.set("\n".join(lines))
 		self.SavePreferences()
-		verb = "Added" if appending else "Pasted"
-		message = f"{verb} {pastedCount} filter(s)."
-		if skipped:
-			message += f" Skipped {skipped} other parameter(s)."
-		print(f"Filter Manager: {message}")
-		Glyphs.showNotification("Filter Manager", message)
 
 	def copyParameters(self, sender=None):
 		entries = []
@@ -153,15 +149,10 @@ class FilterManager(mekkaObject):
 			entries.append(f"{entry}name = {parameterName};\nvalue = {quoted(line)};\n}},\n")
 
 		if not entries:
-			Glyphs.showNotification("Filter Manager", "No filters to copy.")
 			return
 		plist = "{\n.formatVersion = 4;\ncustomParameters = (\n" + "".join(entries) + ");\n}"
-		if setClipboard(plist):
-			message = f"Copied {len(entries)} filter parameter(s)."
-		else:
-			message = "Could not write to the clipboard."
-		print(f"Filter Manager: {message}")
-		Glyphs.showNotification("Filter Manager", message)
+		if not setClipboard(plist):
+			print("⚠️ Filter Manager: could not write to the clipboard.")
 
 
 FilterManager()
