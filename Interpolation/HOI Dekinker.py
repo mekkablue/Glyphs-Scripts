@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Goes through each axis and finds kinks of green (smooth) curve nodes halfway between neighboring key layers (masters and brace layers) along that axis. For every kink larger than the threshold, it adds an HOI intermediate point in the lower layer of the span. Nodes that already have HOI attributes are skipped and assumed to be fine. Processes the selected glyphs, or the whole font if no glyph is selected. Reports in the Macro Window, selects the nodes with HOI attributes in the affected glyphs and opens a tab with them. Requires Glyphs 4 or later. Sets Font Info → Document → File format version to the major version of Glyphs if it is lower.
+Goes through each axis and finds kinks of green (smooth) curve nodes halfway between neighboring key layers (masters and brace layers) along that axis. For every kink larger than the threshold, it adds an HOI intermediate point in the lower layer of the span. For two adjacent smooth nodes between two offcurves (offcurve-smooth-smooth-offcurve), both nodes are projected onto the line through the two offcurves. Nodes that already have HOI attributes are skipped and assumed to be fine. Processes the selected glyphs, or the whole font if no glyph is selected. Reports in the Macro Window, selects the nodes with HOI attributes in the affected glyphs and opens a tab with them. Requires Glyphs 4 or later. Sets Font Info → Document → File format version to the major version of Glyphs if it is lower.
 """
 
 from GlyphsApp import Glyphs, GSSMOOTH, GSOFFCURVE, Message
@@ -105,8 +105,31 @@ def layersAreCompatible(firstLayer, secondLayer):
 	return True
 
 
-def tripletPositions(node):
-	return (node.prevNode.position, node.position, node.nextNode.position)
+def tripletPositions(path, nodeIndex):
+	"""
+	Returns the positions of the three points that should be collinear around the node at nodeIndex.
+	Usually that is the previous node, the node and the next node. In the special case
+	offcurve-smooth-smooth-offcurve, it is the offcurve on the far side of the neighboring smooth node,
+	the node, and the offcurve on its own side, so both smooth nodes get projected onto the line through the two offcurves.
+	"""
+	nodes = path.nodes
+
+	def nodeAt(offset):
+		index = nodeIndex + offset
+		if path.closed:
+			return nodes[index % len(nodes)]
+		return nodes[index] if 0 <= index < len(nodes) else None
+
+	node, prevNode, nextNode = nodes[nodeIndex], nodeAt(-1), nodeAt(1)
+	if prevNode.type != GSOFFCURVE and nextNode.type == GSOFFCURVE and prevNode.connection == GSSMOOTH:
+		farHandle = nodeAt(-2)
+		if farHandle is not None and farHandle.type == GSOFFCURVE:
+			return (farHandle.position, node.position, nextNode.position)
+	elif nextNode.type != GSOFFCURVE and prevNode.type == GSOFFCURVE and nextNode.connection == GSSMOOTH:
+		farHandle = nodeAt(2)
+		if farHandle is not None and farHandle.type == GSOFFCURVE:
+			return (prevNode.position, node.position, farHandle.position)
+	return (prevNode.position, node.position, nextNode.position)
 
 
 def setIntermediatePoint(node, axisTag, point):
@@ -144,7 +167,7 @@ def dekinkGlyph(glyph, axes, stats):
 						stats["nodesWithHOI"] += 1
 						continue
 					upperNode = upperPath.nodes[nodeIndex]
-					point = intermediatePoint(tripletPositions(lowerNode), tripletPositions(upperNode), kinkIndex=1, threshold=THRESHOLD)
+					point = intermediatePoint(tripletPositions(lowerPath, nodeIndex), tripletPositions(upperPath, nodeIndex), kinkIndex=1, threshold=THRESHOLD)
 					if point is None:
 						continue
 					setIntermediatePoint(lowerNode, axis.axisTag, point)
