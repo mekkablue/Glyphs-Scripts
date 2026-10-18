@@ -211,7 +211,7 @@ class ShortSegmentFinder(mekkaObject):
 				for thisNode in thisPath.nodes:
 					if thisNode.name:
 						if nodeMarker in thisNode.name:
-							thisNode.name = None
+							thisNode.setName_(None)
 
 			# delete possible annotation circles:
 			annotations = thisLayer.annotations

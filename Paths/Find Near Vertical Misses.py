@@ -190,7 +190,7 @@ class FindNearVerticalMisses(mekkaObject):
 
 	def doubleCheckNodeName(self, thisNode):
 		if thisNode.name == self.marker:
-			thisNode.name = None
+			thisNode.setName_(None)
 
 	def doubleCheckAnnotations(self, thisLayer):
 		for i in range(len(thisLayer.annotations))[::-1]:

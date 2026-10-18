@@ -283,7 +283,7 @@ class KinkFinder(mekkaObject):
 				for thisNode in thisPath.nodes:
 					if thisNode.name:
 						if nodeMarker in thisNode.name:
-							thisNode.name = None
+							thisNode.setName_(None)
 
 			# delete possible annotation circles:
 			annotations = thisLayer.annotations
@@ -463,7 +463,7 @@ class KinkFinder(mekkaObject):
 										self.markNodeAtPosition(thisGlyph.layers[0], thisNode.position, nodeName)
 
 								elif self.pref("markKinks"):
-									thisNode.name = None
+									thisNode.setName_(None)
 
 			# Progress bar 100%
 			self.w.progress.set(100.0)

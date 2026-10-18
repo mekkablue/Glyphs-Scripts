@@ -307,7 +307,7 @@ class GarbageCollection(mekkaObject):
 									for thisNode in thisPath.nodes:
 										if thisNode.name:
 											removeNodeNamesGlyph += 1
-											thisNode.name = None
+											thisNode.setName_(None)
 
 							if removeLocalGuides:
 								localGuidesGlyph += len(guidesOf(thisLayer))

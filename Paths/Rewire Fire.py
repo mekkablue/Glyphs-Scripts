@@ -196,7 +196,7 @@ class RewireFire(mekkaObject):
 				else:
 					allCoordinates.append(thisNode.position)
 					if thisNode.name == self.duplicateMarker:
-						thisNode.name = None
+						thisNode.setName_(None)
 
 		if duplicateCoordinates:
 			thisGlyph = thisLayer.parent
