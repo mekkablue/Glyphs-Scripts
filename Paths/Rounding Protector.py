@@ -48,7 +48,7 @@ def switchNode(node, on=True):
 		elif node.userData["name"] is not None:
 			del node.userData["name"]
 	else:
-		node.name = PROTECT_VALUE if on else None
+		node.setName_(PROTECT_VALUE if on else None)
 
 
 def isProtected(node):
