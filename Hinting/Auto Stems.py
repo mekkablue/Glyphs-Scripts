@@ -19,6 +19,8 @@ whichShape = (
 	"first shape",
 	"smallest shape",
 	"largest shape",
+	"second shape",
+	"last shape",
 )
 
 
@@ -114,8 +116,15 @@ class AutoStems(mekkaObject):
 		layerCopy = layer.copyDecomposedLayer()
 		layerCopy.parent = layer.parent
 
+		if shape == 3 and len(layerCopy.shapes) < 2:  # second
+			raise ValueError(f"{layer.parent.name} has fewer than two shapes, cannot measure its second shape")
+
 		if shape == 0:  # first
 			s = layerCopy.shapes[0]
+		elif shape == 3:  # second
+			s = layerCopy.shapes[1]
+		elif shape == 4:  # last
+			s = layerCopy.shapes[-1]
 		elif shape == 1:  # smallest
 			s = sorted(layerCopy.shapes, key=lambda thisShape: thisShape.bounds.size.height * thisShape.bounds.size.width)[0]
 		elif shape == 2:  # largest
