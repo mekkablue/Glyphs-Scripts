@@ -17,10 +17,10 @@ whichMeasure = (
 
 whichShape = (
 	"first shape",
-	"smallest shape",
-	"largest shape",
 	"second shape",
 	"last shape",
+	"smallest shape",
+	"largest shape",
 )
 
 
@@ -28,7 +28,7 @@ class AutoStems(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"hMeasure": 0,
-		"hShape": 1,
+		"hShape": 3,
 		"hStemGlyph": "f",
 		"vMeasure": 1,
 		"vShape": 0,
@@ -116,18 +116,18 @@ class AutoStems(mekkaObject):
 		layerCopy = layer.copyDecomposedLayer()
 		layerCopy.parent = layer.parent
 
-		if shape == 3 and len(layerCopy.shapes) < 2:  # second
+		if shape == 1 and len(layerCopy.shapes) < 2:  # second
 			raise ValueError(f"{layer.parent.name} has fewer than two shapes, cannot measure its second shape")
 
 		if shape == 0:  # first
 			s = layerCopy.shapes[0]
-		elif shape == 3:  # second
+		elif shape == 1:  # second
 			s = layerCopy.shapes[1]
-		elif shape == 4:  # last
+		elif shape == 2:  # last
 			s = layerCopy.shapes[-1]
-		elif shape == 1:  # smallest
+		elif shape == 3:  # smallest
 			s = sorted(layerCopy.shapes, key=lambda thisShape: thisShape.bounds.size.height * thisShape.bounds.size.width)[0]
-		elif shape == 2:  # largest
+		elif shape == 4:  # largest
 			s = sorted(layerCopy.shapes, key=lambda thisShape: thisShape.bounds.size.height * thisShape.bounds.size.width * -1)[0]
 
 		# reduce layer to just the shape we want to measure
