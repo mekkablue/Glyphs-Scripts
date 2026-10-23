@@ -550,9 +550,11 @@ class BatchGrader(mekkaObject):
 
 		def upsertGradeLocation(axLoc, gradeValue):
 			# update existing entry or append a new one
-			for entry in axLoc:
+			for i, entry in enumerate(axLoc):
 				if entry.get("Axis") == axisName:
-					entry["Location"] = gradeValue
+					newEntry = dict(entry)  # entries are immutable NSDictionaries
+					newEntry["Location"] = gradeValue
+					axLoc[i] = newEntry
 					return axLoc
 			axLoc.append({"Axis": axisName, "Location": gradeValue})
 			return axLoc
