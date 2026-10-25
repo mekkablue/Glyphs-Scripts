@@ -83,28 +83,17 @@ def orientationOfSerif(font, cornerComponentName):
 	return 0
 
 
-def isVerticalSerif(font, cornerComponentName):
-	"""True if the corner component starts with a vertical segment, i.e., it hangs on a vertical segment of the outline."""
-	layer, path = cornerLayerAndPath(font, cornerComponentName)
-	if path is None:
-		return False
-	vector = neighborVector(path.nodes[0], 1)
-	return vector is not None and isVertical(vector)
-
-
-def orientationOnNode(node, vertical=False):
+def orientationOnNode(node):
 	"""
 	Returns on which side of the node the horizontal segment is: -1 for before the node, 1 for after.
 	Without a horizontal segment, the same for an adjacent vertical segment.
-	With vertical=True, the vertical segment is looked for first, and the horizontal one is the fallback.
 	Returns 0 if there is no orthogonal segment, if both sides are orthogonal in the same way, or for anything else.
 	"""
 	if node is None or node.type == GSOFFCURVE:
 		return 0
 	before = neighborVector(node, -1)
 	after = neighborVector(node, 1)
-	orthogonalChecks = (isVertical, isHorizontal) if vertical else (isHorizontal, isVertical)
-	for isOrthogonal in orthogonalChecks:
+	for isOrthogonal in (isHorizontal, isVertical):
 		beforeMatches = before is not None and isOrthogonal(before)
 		afterMatches = after is not None and isOrthogonal(after)
 		if beforeMatches and afterMatches:
@@ -128,7 +117,7 @@ def isRightAngle(node):
 def alignmentForHint(font, hint):
 	"""Returns ALIGNLEFT or ALIGNRIGHT for a corner component hint, or None if it cannot be determined."""
 	serifOrientation = orientationOfSerif(font, hint.name)
-	sideOfSegment = orientationOnNode(hint.originNode, vertical=isVerticalSerif(font, hint.name))
+	sideOfSegment = orientationOnNode(hint.originNode)
 	if not serifOrientation or not sideOfSegment:
 		return None
 	if isRightAngle(hint.originNode):
