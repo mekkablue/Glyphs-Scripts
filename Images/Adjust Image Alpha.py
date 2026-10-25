@@ -6,7 +6,8 @@ Slider for setting the alpha of all images in selected glyphs.
 """
 
 import vanilla
-from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
+from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut, NSWindowStyleMaskResizable
+from Foundation import NSSize
 from GlyphsApp import Glyphs
 from mekkablue import mekkaObject
 
@@ -64,6 +65,13 @@ class AdjustImageAlpha(mekkaObject):
 
 		# Open window and focus on it:
 		self.w.open()
+
+		# resizable horizontally only: the height is dictated by the content
+		window = self.w.getNSWindow()
+		window.setStyleMask_(window.styleMask() | NSWindowStyleMaskResizable)
+		contentSize = window.contentView().frame().size
+		window.setContentMinSize_(NSSize(windowWidth, contentSize.height))
+		window.setContentMaxSize_(NSSize(2000, contentSize.height))
 		self.w.makeKey()
 
 	def updateUI(self, sender=None):
