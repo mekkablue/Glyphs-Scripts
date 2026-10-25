@@ -39,23 +39,12 @@ def isVertical(vector):
 	return abs(vector[0]) < TOLERANCE
 
 
-def direction(vector):
-	"""Dominant direction of a vector as "left", "right", "up", "down", or None if it is diagonal or None."""
-	if vector is None:
-		return None
-	dx, dy = vector
-	if abs(dx) > abs(dy):
-		return "right" if dx > 0 else "left"
-	if abs(dy) > abs(dx):
-		return "up" if dy > 0 else "down"
-	return None
-
-
 def orientationOfSerif(font, cornerComponentName):
 	"""
-	Returns -1 for a left serif (starts above the origin, going down, ends right of the origin, going right),
-	1 for a right serif (starts left of the origin, going right, ends above the origin, going up),
+	Returns -1 for a left serif (starts above the origin, ends right of the origin),
+	1 for a right serif (starts right of the origin, ends above the origin),
 	and 0 if the glyph is not a corner component or the orientation cannot be determined.
+	The origin is the position of the anchor "origin" in the corner component, or (0, 0) if it has none.
 	"""
 	if not cornerComponentName.startswith("_corner."):
 		return 0
@@ -69,14 +58,17 @@ def orientationOfSerif(font, cornerComponentName):
 	if path.closed or len(path.nodes) < 2:
 		return 0
 
+	originAnchor = layer.anchors["origin"]
+	originX, originY = (originAnchor.x, originAnchor.y) if originAnchor else (0, 0)
 	startNode, endNode = path.nodes[0], path.nodes[-1]
-	startDirection = direction(neighborVector(startNode, 1))
-	endVector = neighborVector(endNode, -1)  # points back along the path, so flip it
-	endDirection = direction((-endVector[0], -endVector[1])) if endVector else None
+	startAbove = startNode.y - originY > TOLERANCE
+	startRight = startNode.x - originX > TOLERANCE
+	endAbove = endNode.y - originY > TOLERANCE
+	endRight = endNode.x - originX > TOLERANCE
 
-	if startDirection == "down" and endDirection == "right" and startNode.y > 0 and endNode.x > 0:
+	if startAbove and endRight and not (startRight and endAbove):
 		return -1
-	if startDirection == "right" and endDirection == "up" and startNode.x < 0 and endNode.y > 0:
+	if startRight and endAbove and not (startAbove and endRight):
 		return 1
 	return 0
 
