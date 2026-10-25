@@ -10,12 +10,46 @@ from AppKit import NSStringPboardType, NSPasteboard
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject
 
+nonJoiner = "\u200c"
+
+# (language, letters) pairs, separators are marked with "---":
 fullAlphabets = (
-	"abcdefghijklmnopqrstuvwxyz",
-	"abcdefghijklmnñopqrstuvwxyz",
-	"αβγδεζηθικλμνξοπρςστυφχψω",
-	"абвгдеёжзийклмнопрстуфхчцшщьыъэюя",
+	("English, basic Latin", "abcdefghijklmnopqrstuvwxyz"),
+	("Estonian", "abdefghijklmnoprstuvzõäöü"),
+	("Spanish", "abcdefghijklmnñopqrstuvwxyz"),
+	("Croatian, Serbian Latin", "abcčćdđefghijklmnoprsštuvzž"),
+	("Maltese", "abċdefġghħijklmnopqrstuvwxżz"),
+	("Welsh", "abcdefghijlmnoprstuwyâêîôŵŷë"),
+	("Swedish", "abcdefghijklmnopqrstuvwxyzåäö"),
+	("Danish, Norwegian", "abcdefghijklmnopqrstuvwxyzæøå"),
+	("Turkish", "abcçdefgğhıijklmnoöprsştuüvyz"),
+	("German", "abcdefghijklmnopqrstuvwxyzäöüß"),
+	("Romanian", "aăâbcdefghiîjklmnopqrsștțuvwxyz"),
+	("Polish", "aąbcćdeęfghijklłmnńoóprsśtuwyzźż"),
+	("Icelandic", "aábdðeéfghiíjklmnoóprstuúvxyýþæö"),
+	("Lithuanian", "aąbcčdeęėfghiįyjklmnoprsštuųūvzž"),
+	("Latvian", "aābcčdeēfgģhiījkķlļmnņoprsštuūvzž"),
+	("Hungarian", "aábcdeéfghiíjklmnoóöőpqrstuúüűvwxyz"),
+	("Portuguese", "abcdefghijklmnopqrstuvwxyzáàâãçéêíóôõú"),
+	("French", "abcdefghijklmnopqrstuvwxyzàâçéèêëîïôùûüÿœ"),
+	("Czech", "aábcčdďeéěfghiíjklmnňoópqrřsštťuúůvwxyýzž"),
+	("Slovak", "aáäbcčdďeéfghiíjklĺľmnňoóôpqrŕsštťuúvwxyýzž"),
+	("---", ""),
+	("Greek", "αβγδεζηθικλμνξοπρςστυφχψω"),
+	("---", ""),
+	("Russian", "абвгдеёжзийклмнопрстуфхчцшщьыъэюя"),
+	("Serbian Cyrillic", "абвгдђежзијклљмнњопрстћуфхцчџш"),
+	("Bulgarian", "абвгдежзийклмнопрстуфхцчшщъьюя"),
+	("Ukrainian", "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя"),
+	("---", ""),
+	("Hebrew", "אבגדהוזחטיכלמנסעפצקרשת"),
+	("Arabic", "ا‌ب‌ت‌ث‌ج‌ح‌خ‌د‌ذ‌ر‌ز‌س‌ش‌ص‌ض‌ط‌ظ‌ع‌غ‌ف‌ق‌ك‌ل‌م‌ن‌ه‌و‌ي"),
 )
+
+
+# the left-to-right mark keeps Hebrew and Arabic entries from turning the whole title right-to-left:
+leftToRightMark = "\u200e"
+menuTitles = ["---" if language == "---" else "%s%s  %s" % (leftToRightMark, letters, language) for language, letters in fullAlphabets]
 
 
 class PangramHelper(mekkaObject):
@@ -24,7 +58,7 @@ class PangramHelper(mekkaObject):
 		"pangram": "The quick brown fox jumps over the lazy dog.",
 	}
 	title = "Pangram Helper"
-	alphabet = fullAlphabets[0]
+	alphabet = fullAlphabets[0][1]
 
 	def __init__(self):
 		# Window 'self.w':
@@ -43,10 +77,10 @@ class PangramHelper(mekkaObject):
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
 
-		self.w.alphabetChoice = vanilla.PopUpButton((inset, linePos, -inset, 17), fullAlphabets, sizeStyle='small', callback=self.updateMissingLetters)
+		self.w.alphabetChoice = vanilla.PopUpButton((inset, linePos, -inset, 17), menuTitles, sizeStyle='small', callback=self.updateMissingLetters)
 		linePos += lineHeight
 
-		self.w.missingLetters = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Missing: %s" % self.alphabet.upper(), sizeStyle='small')
+		self.w.missingLetters = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Missing: %s" % self.alphabet, sizeStyle='small')
 		linePos += lineHeight
 
 		self.w.pangram = vanilla.TextEditor((1, linePos, -1, -45), "The quick brown fox jumps over the lazy dog.", checksSpelling=True, callback=self.updateMissingLetters)
@@ -76,7 +110,10 @@ class PangramHelper(mekkaObject):
 	def updateMissingLetters(self, sender=None):
 		self.SavePreferences()
 
-		self.alphabet = fullAlphabets[self.pref("alphabetChoice")]
+		# the entry may contain non-joiners, which keep Arabic letters from connecting:
+		letters = fullAlphabets[self.pref("alphabetChoice")][1]
+		self.alphabet = letters.replace(nonJoiner, "")
+		separator = nonJoiner if nonJoiner in letters else ""
 
 		if Glyphs.versionNumber >= 3:
 			# Glyphs 3 code
@@ -95,7 +132,7 @@ class PangramHelper(mekkaObject):
 		missingLetters = ""
 		for thisLetter in self.alphabet:
 			if thisLetter not in currentTextEntry:
-				missingLetters += thisLetter.upper()
+				missingLetters += thisLetter + separator
 		self.w.missingLetters.set("Missing: %s" % missingLetters)
 
 	def PangramHelperMain(self, sender):
