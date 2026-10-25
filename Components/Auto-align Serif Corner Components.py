@@ -2,12 +2,14 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Aligns serif corner components (left or right serifs) to the horizontal or vertical segment next to their origin node.
+Sets the alignment (left or right) of serif corner components (_corner.*) in the selected glyphs, depending on the orientation of the serif, the segment next to the corner’s node, and the horizontal scale of the corner component.
 """
 
 from GlyphsApp import Glyphs, GSOFFCURVE
 
 TOLERANCE = 0.01  # coordinate differences below this count as zero
+ALIGNLEFT = 0  # alignment values stored in hint.options of corner components
+ALIGNRIGHT = 1
 
 
 def neighborVector(node, step):
@@ -39,6 +41,22 @@ def isVertical(vector):
 	return abs(vector[0]) < TOLERANCE
 
 
+def cornerLayerAndPath(font, cornerComponentName):
+	"""Returns the layer (of the selected master) and the one open path of a corner component, or (None, None)."""
+	if not cornerComponentName.startswith("_corner."):
+		return None, None
+	glyph = font.glyphs[cornerComponentName]
+	if glyph is None:
+		return None, None
+	layer = glyph.layers[font.selectedFontMaster.id]
+	if layer is None or len(layer.paths) != 1:
+		return None, None
+	path = layer.paths[0]
+	if path.closed or len(path.nodes) < 2:
+		return None, None
+	return layer, path
+
+
 def orientationOfSerif(font, cornerComponentName):
 	"""
 	Returns -1 for a left serif (starts above the origin, ends right of the origin),
@@ -46,16 +64,8 @@ def orientationOfSerif(font, cornerComponentName):
 	and 0 if the glyph is not a corner component or the orientation cannot be determined.
 	The origin is the position of the anchor "origin" in the corner component, or (0, 0) if it has none.
 	"""
-	if not cornerComponentName.startswith("_corner."):
-		return 0
-	glyph = font.glyphs[cornerComponentName]
-	if glyph is None:
-		return 0
-	layer = glyph.layers[font.selectedFontMaster.id]
-	if layer is None or len(layer.paths) != 1:
-		return 0
-	path = layer.paths[0]
-	if path.closed or len(path.nodes) < 2:
+	layer, path = cornerLayerAndPath(font, cornerComponentName)
+	if path is None:
 		return 0
 
 	originAnchor = layer.anchors["origin"]
@@ -73,17 +83,28 @@ def orientationOfSerif(font, cornerComponentName):
 	return 0
 
 
-def orientationOnNode(node):
+def isVerticalSerif(font, cornerComponentName):
+	"""True if the corner component starts with a vertical segment, i.e., it hangs on a vertical segment of the outline."""
+	layer, path = cornerLayerAndPath(font, cornerComponentName)
+	if path is None:
+		return False
+	vector = neighborVector(path.nodes[0], 1)
+	return vector is not None and isVertical(vector)
+
+
+def orientationOnNode(node, vertical=False):
 	"""
 	Returns on which side of the node the horizontal segment is: -1 for before the node, 1 for after.
 	Without a horizontal segment, the same for an adjacent vertical segment.
+	With vertical=True, the vertical segment is looked for first, and the horizontal one is the fallback.
 	Returns 0 if there is no orthogonal segment, if both sides are orthogonal in the same way, or for anything else.
 	"""
 	if node is None or node.type == GSOFFCURVE:
 		return 0
 	before = neighborVector(node, -1)
 	after = neighborVector(node, 1)
-	for isOrthogonal in (isHorizontal, isVertical):
+	orthogonalChecks = (isVertical, isHorizontal) if vertical else (isHorizontal, isVertical)
+	for isOrthogonal in orthogonalChecks:
 		beforeMatches = before is not None and isOrthogonal(before)
 		afterMatches = after is not None and isOrthogonal(after)
 		if beforeMatches and afterMatches:
@@ -93,3 +114,48 @@ def orientationOnNode(node):
 		if afterMatches:
 			return 1
 	return 0
+
+
+def alignmentForHint(font, hint):
+	"""Returns ALIGNLEFT or ALIGNRIGHT for a corner component hint, or None if it cannot be determined."""
+	serifOrientation = orientationOfSerif(font, hint.name)
+	sideOfSegment = orientationOnNode(hint.originNode, vertical=isVerticalSerif(font, hint.name))
+	if not serifOrientation or not sideOfSegment:
+		return None
+	scaleSign = -1 if hint.scale.x < 0 else 1  # a negative horizontal scale mirrors the serif
+	# Calibrated on a reference font with correctly placed serifs: a left serif (-1) whose segment is
+	# after the node (1), unscaled (1), has the alignment 0, i.e., left
+	if -serifOrientation * sideOfSegment * scaleSign > 0:
+		return ALIGNLEFT
+	return ALIGNRIGHT
+
+
+font = Glyphs.font
+if font and font.selectedLayers:
+	Glyphs.clearLog()
+	print("Auto-align Serif Corner Components Report for %s\n" % font.familyName)
+	changeCount = 0
+	glyphs = []
+	for selectedLayer in font.selectedLayers:
+		if selectedLayer.parent not in glyphs:
+			glyphs.append(selectedLayer.parent)
+
+	for glyph in glyphs:
+		print("🔠 %s" % glyph.name)
+		for layer in glyph.layers:
+			if not (layer.isMasterLayer or layer.isSpecialLayer):
+				continue
+			for hint in layer.hints:
+				if not (hint.isCorner and hint.name.startswith("_corner.")):
+					continue
+				alignment = alignmentForHint(font, hint)
+				if alignment is None:
+					print("\t⚠️ %s: could not determine the alignment of %s" % (layer.name, hint.name))
+				elif hint.options != alignment:
+					print("\t✅ %s: %s alignment %s → %s" % (layer.name, hint.name, hint.options, alignment))
+					hint.options = alignment
+					changeCount += 1
+
+	Glyphs.showNotification("Auto-align Serif Corner Components", "Changed %i corner components. Details in Macro Window." % changeCount)
+else:
+	print("⚠️ Open a font and select glyphs.")
