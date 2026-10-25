@@ -6,6 +6,7 @@ Slider for setting the alpha of all images in selected glyphs.
 """
 
 import vanilla
+from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs
 from mekkablue import mekkaObject
 
@@ -17,34 +18,46 @@ class AdjustImageAlpha(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 320
-		windowHeight = 60
-		windowWidthResize = 500  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 420
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Adjust Image Alpha for Selected Glyphs",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset = 12, 15
-		self.w.text_1 = vanilla.TextBox((inset - 1, linePos + 2, 40, 14), "Alpha:", sizeStyle='small')
+		inset, gap = 15, 8
+		self.w.text_1 = vanilla.TextBox("auto", "Alpha:", sizeStyle='small')
 		self.w.text_1.setToolTip("Transparency of the background images: 100% is fully opaque, 10% is almost invisible.")
 
-		self.w.alphaSlider = vanilla.Slider((inset + 40, linePos, -180, 19), value=100.0, minValue=10.0, maxValue=100.0, sizeStyle='small', callback=self.AdjustImageAlphaMain)
+		self.w.alphaSlider = vanilla.Slider("auto", value=100.0, minValue=10.0, maxValue=100.0, sizeStyle='small', callback=self.AdjustImageAlphaMain)
 		self.w.alphaSlider.setToolTip("Drag to change the alpha of the images in the currently selected glyphs. Updates live.")
 
-		self.w.indicator = vanilla.TextBox((-175, linePos + 2, -145, 14), "100%", sizeStyle='small')
+		self.w.indicator = vanilla.TextBox("auto", "100%", sizeStyle='small', alignment="right")
 		self.w.indicator.setToolTip("Current alpha value in full percentage points.")
 
-		self.w.applyButton = vanilla.Button((-138, linePos - 2, -79, 20), "Apply", sizeStyle='regular', callback=self.AdjustImageAlphaMain)
+		self.w.applyButton = vanilla.Button("auto", "Apply", callback=self.AdjustImageAlphaMain)
 		self.w.applyButton.setToolTip("Reapply the current alpha to the images in the currently selected glyphs, without having to move the slider.")
 
-		self.w.globalButton = vanilla.Button((-74, linePos - 2, -inset, 20), "Global", sizeStyle='regular', callback=self.applyToWholeFont)
+		self.w.globalButton = vanilla.Button("auto", "Global", callback=self.applyToWholeFont)
 		self.w.globalButton.setToolTip("Apply the current alpha to ALL images in ALL glyphs (and all masters) of the frontmost font.")
+
+		# everything hugs vertically, so the window ends up exactly as tall as the content:
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[text_1]-gap-[alphaSlider(>=100)]-gap-[indicator(36)]-inset-[applyButton(>=70)]-gap-[globalButton(>=70)]-inset-|",
+				"V:|-inset-[applyButton]-inset-|",
+				"V:[globalButton]-inset-|",
+				{"view1": self.w.text_1, "attribute1": "centerY", "view2": self.w.applyButton, "attribute2": "centerY"},
+				{"view1": self.w.alphaSlider, "attribute1": "centerY", "view2": self.w.applyButton, "attribute2": "centerY"},
+				{"view1": self.w.indicator, "attribute1": "centerY", "view2": self.w.applyButton, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": gap},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
