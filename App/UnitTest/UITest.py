@@ -16,6 +16,7 @@ import traceback
 from datetime import datetime
 from pathlib import Path
 
+import objc
 import vanilla
 from AppKit import (
 	NSApplication,
@@ -107,15 +108,19 @@ def writeLog(message):
 		print("Could not write UI smoke-test log:\n%s" % traceback.format_exc())
 
 
-class TimerTarget(NSObject):
-	"""Objective-C timer target that safely owns a Python callback until it fires."""
-	callback = None
+# An Objective-C class name can only be registered once per Glyphs session, so re-running the script reuses it:
+try:
+	TimerTarget = objc.lookUpClass("TimerTarget")
+except objc.nosuchclass_error:
+	class TimerTarget(NSObject):
+		"""Objective-C timer target that safely owns a Python callback until it fires."""
+		callback = None
 
-	def timerFired_(self, timer):
-		callback = self.callback
-		self.callback = None
-		if callback is not None:
-			callback()
+		def timerFired_(self, timer):
+			callback = self.callback
+			self.callback = None
+			if callback is not None:
+				callback()
 
 
 class UISmokeTest(mekkaObject):

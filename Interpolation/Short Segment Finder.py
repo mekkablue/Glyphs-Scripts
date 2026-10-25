@@ -6,6 +6,7 @@ Goes through all interpolations and finds segments shorter than a user-specified
 """
 
 import vanilla
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSAnnotation, TEXT, Message, distance
 from mekkablue import mekkaObject
@@ -28,59 +29,71 @@ class ShortSegmentFinder(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 350
-		windowHeight = 280
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Short Segment Finder",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 30), "Finds short segments in interpolations or masters, and opens a new tab with them", sizeStyle='small', selectable=True)
-		linePos += lineHeight * 2
+		self.w.descriptionText = vanilla.TextBox("auto", "Finds short segments in interpolations or masters, and opens a new tab with them", sizeStyle='small', selectable=True)
 
-		self.w.text_1 = vanilla.TextBox((inset, linePos + 2, 185, 14), "Acceptable min segment length:", sizeStyle='small')
-		self.w.minSegmentLength = vanilla.EditText((inset + 185, linePos - 1, -inset, 19), "3", sizeStyle='small', callback=self.SavePreferences)
+		self.w.text_1 = vanilla.TextBox("auto", "Acceptable min segment length:", sizeStyle='small')
+		self.w.minSegmentLength = vanilla.EditText("auto", "3", sizeStyle='small', callback=self.SavePreferences)
 		self.w.minSegmentLength.setToolTip("Minimum length for every segment in all paths, measured in units.")
-		linePos += lineHeight
 
-		self.w.findShortSegmentsInMasters = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Look in masters instead (i.e., not in interpolations)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.findShortSegmentsInMasters = vanilla.CheckBox("auto", "Look in masters instead (i.e., not in interpolations)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.findShortSegmentsInMasters.setToolTip("If checked, will not calculate interpolations, but only measure segments in your master drawings, bracket and brace layers.")
-		linePos += lineHeight
 
-		self.w.allGlyphs = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Process all glyphs in font (i.e., ignore selection)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allGlyphs = vanilla.CheckBox("auto", "Process all glyphs in font (i.e., ignore selection)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.allGlyphs.setToolTip("If unchecked, will only process the currently selected glyph(s).")
-		linePos += lineHeight
 
-		self.w.exportingOnly = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Ignore non-exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.exportingOnly = vanilla.CheckBox("auto", "Ignore non-exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.exportingOnly.setToolTip("If checked, will skip glyphs that do not export. Always skips compounds.")
-		linePos += lineHeight
 
-		self.w.reportIncompatibilities = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Report incompatibilities and no paths in Macro Window", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reportIncompatibilities = vanilla.CheckBox("auto", "Report incompatibilities and no paths in Macro Window", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reportIncompatibilities.setToolTip("If checked, will warn about incompatibilities and if a glyph has no paths. Usually you want this off, because it will report all compounds.")
-		linePos += lineHeight
 
-		self.w.markSegments = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Mark segments in first layer", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.markSegments = vanilla.CheckBox("auto", "Mark segments in first layer", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.markSegments.setToolTip("If checked, will mark affected segments with a warning emoji and the minimum segment length. Will mark the corresponding segment in the first layer if it finds a short segment in a calculated instance. Will use an annotation if the segment cannot be found (e.g. if the segment is in a corner component).")
-		linePos += lineHeight
 
-		self.w.bringMacroWindowToFront = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Bring Macro Window to front", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.bringMacroWindowToFront = vanilla.CheckBox("auto", "Bring Macro Window to front", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.bringMacroWindowToFront.setToolTip("A detailed report is written to the Macro Window. Activate this check box, and the Macro Window will be brought to the front ever time you run this script.")
-		linePos += lineHeight
 
-		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
+		self.w.progress = vanilla.ProgressBar("auto")
 		self.w.progress.set(0)  # set progress indicator to zero
-		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Open Tab", callback=self.ShortSegmentFinderMain)
+		self.w.runButton = vanilla.Button("auto", "Open Tab", callback=self.ShortSegmentFinderMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# the wrapping description takes the width it is given instead of demanding one long line:
+		self.w.descriptionText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
+		# checkboxes stretch vertically by default; hugging makes the window as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[text_1]-gap-[minSegmentLength]-inset-|",
+				"H:|-inset-[findShortSegmentsInMasters]-(>=inset)-|",
+				"H:|-inset-[allGlyphs]-(>=inset)-|",
+				"H:|-inset-[exportingOnly]-(>=inset)-|",
+				"H:|-inset-[reportIncompatibilities]-(>=inset)-|",
+				"H:|-inset-[markSegments]-(>=inset)-|",
+				"H:|-inset-[bringMacroWindowToFront]-(>=inset)-|",
+				"H:|-inset-[progress]-inset-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-inset-[descriptionText(30)]-row-[minSegmentLength]-row-[findShortSegmentsInMasters]-[allGlyphs]-[exportingOnly]-[reportIncompatibilities]-[markSegments]-[bringMacroWindowToFront]-row-[progress(16)]-row-[runButton]-inset-|",
+				{"view1": self.w.text_1, "attribute1": "centerY", "view2": self.w.minSegmentLength, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 8},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -90,9 +103,9 @@ class ShortSegmentFinder(mekkaObject):
 		self.w.makeKey()
 
 		#
-		self.updateUI(None)
+		self.updateUI()
 
-	def updateUI(self, sender):
+	def updateUI(self, sender=None):
 		if self.pref("findShortSegmentsInMasters"):
 			self.w.markSegments.setTitle("Mark short segments 👌🏻")
 		else:

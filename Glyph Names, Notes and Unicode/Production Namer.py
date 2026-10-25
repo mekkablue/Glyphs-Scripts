@@ -28,7 +28,7 @@ Anything after a hashtag (#) is ignored
 
 class ProductionNamer(mekkaObject):
 	prefDict = {
-		"recipe": 0,
+		"recipe": defaultString.strip(),
 		"applyPopup": 0,
 		"applyContaining": "",
 	}

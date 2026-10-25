@@ -5,7 +5,15 @@ __doc__ = """
 Removes the specified component from all (selected) glyphs.
 """
 import vanilla
-# import from enclosing folder:
+from AppKit import (
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityRequired,
+	NSLayoutPriorityWindowSizeStayPut,
+	NSWindowStyleMaskResizable,
+)
+from Foundation import NSSize
 from GlyphsApp import Glyphs
 from mekkablue import mekkaObject, match, UpdateButton
 
@@ -34,47 +42,71 @@ def deleteCornerComponent(componentName, thisLayer):
 class RemoveComponentfromSelectedGlyphs(mekkaObject):
 	prefDict = {
 		"componentName": "a",
-		"fromWhere": "0",
+		"fromWhere": 0,
 	}
 
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 250
-		windowHeight = 135
-		windowWidthResize = 500  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowMinWidth = 230
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Remove Components",  # window title
-			minSize=(windowWidth - 40, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		inset = 15
 
-		self.w.textDescription = vanilla.TextBox((inset, linePos + 1, 115, 14), "Remove component", sizeStyle='small')
-		self.w.componentName = vanilla.ComboBox((inset + 110, linePos - 3, -23 - inset, 19), self.glyphList(), sizeStyle='small')
+		self.w.textDescription = vanilla.TextBox("auto", "Remove component", sizeStyle='small')
+		self.w.componentName = vanilla.ComboBox("auto", self.glyphList(), sizeStyle='small')
 		tooltip = "Pick a glyph name. All components and corner components referencing this glyph will be deleted. Wildcards * and ? are supported."
 		self.w.textDescription.setToolTip(tooltip)
 		self.w.componentName.setToolTip(tooltip)
 
-		self.w.updateButton = UpdateButton((-inset - 18, linePos - 4, -inset, 18), callback=self.updateUI)
+		self.w.updateButton = UpdateButton("auto", callback=self.updateUI)
 		self.w.updateButton.setToolTip("Reload a list of glyph names based on the current font (and selection).")
 
-		linePos += lineHeight
-		self.w.fromWhere = vanilla.RadioGroup((inset, linePos, -inset, 40), ("from all selected glyphs", "⚠️ from all glyphs in the font"), callback=self.SavePreferences, sizeStyle='small')
+		self.w.fromWhere = vanilla.VerticalRadioGroup("auto", ("from all selected glyphs", "⚠️ from all glyphs in the font"), callback=self.SavePreferences, sizeStyle='small')
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((inset, -20 - inset, -inset, -inset), "Remove", callback=self.RemoveComponentFromSelectedGlyphsMain)
+		self.w.runButton = vanilla.Button("auto", "Remove Component", callback=self.RemoveComponentFromSelectedGlyphsMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# the label hugs its text, so the combo box takes the leftover width:
+		nsLabel = self.w.textDescription.getNSTextField()
+		nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		# the window is as tall as the content needs
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[textDescription]-gap-[componentName]-gap-[updateButton]-inset-|",
+				"H:|-inset-[fromWhere]-(>=inset)-|",
+				"H:|-inset-[runButton]-inset-|",
+				"V:|-inset-[componentName]-row-[fromWhere(radioHeight)]-row-[runButton]-inset-|",
+				{"view1": self.w.textDescription, "attribute1": "centerY", "view2": self.w.componentName, "attribute2": "centerY"},
+				{"view1": self.w.updateButton, "attribute1": "centerY", "view2": self.w.componentName, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 8, "radioHeight": self.w.fromWhere.getFittingHeight()},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
+
+		# resizable horizontally only: the height is dictated by the content
+		window = self.w.getNSWindow()
+		window.setStyleMask_(window.styleMask() | NSWindowStyleMaskResizable)
+		contentSize = window.contentView().frame().size
+		window.setContentMinSize_(NSSize(windowMinWidth, contentSize.height))
+		window.setContentMaxSize_(NSSize(windowWidth + 500, contentSize.height))
 		self.w.makeKey()
 
 	def updateUI(self, sender=None):

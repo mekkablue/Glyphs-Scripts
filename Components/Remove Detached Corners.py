@@ -2,10 +2,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Removes the specified component from all (selected) glyphs.
+Removes corner components that are not linked to a node from all (selected) glyphs.
 """
 
 import vanilla
+from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, CORNER
 from mekkablue import mekkaObject
 
@@ -31,38 +32,51 @@ def deleteCornerComponent(componentName, thisLayer):
 
 class RemoveDetachedCorners(mekkaObject):
 	prefDict = {
-		"fromWhere": "0",
-		"backgroundLayersChBox": "0",
-		"allMastersChBox": "0",
+		"fromWhere": 0,
+		"backgroundLayersChBox": 1,
+		"allMastersChBox": 1,
 	}
-
-	padding = (15, 10, 10)
 
 	def __init__(self):
 		# Window 'self.w':
-		x, y, p = self.padding
-		txtH = 14
-		windowWidth = 350
-		windowHeight = 144
+		windowWidth = 260
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Remove Detached Corners",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		self.w.backgroundLayersChBox = vanilla.CheckBox((x, y, -p, txtH), "Apply to Background Layers", sizeStyle='small')
-		y += p + txtH
-		self.w.allMastersChBox = vanilla.CheckBox((x, y, -p, txtH), "Apply to All Masters", sizeStyle='small')
-		y += p + txtH
+		inset = 15
 
-		self.w.fromWhere = vanilla.RadioGroup((x, y, -p, 40), ["from all selected glyphs", "from all glyphs in the font"], callback=self.SavePreferences, sizeStyle='small')
-		self.w.fromWhere.set(0)
-		y += p + 40
+		self.w.descriptionText = vanilla.TextBox("auto", "Delete corner components not linked to a node:", sizeStyle='small', selectable=True)
+		self.w.backgroundLayersChBox = vanilla.CheckBox("auto", "Include background layers", sizeStyle='small', callback=self.SavePreferences)
+		self.w.allMastersChBox = vanilla.CheckBox("auto", "On all masters", sizeStyle='small', callback=self.SavePreferences)
+		self.w.fromWhereText = vanilla.TextBox("auto", "Remove from", sizeStyle='small')
+		self.w.fromWhere = vanilla.VerticalRadioGroup("auto", ["selected glyphs", "all glyphs in font"], callback=self.SavePreferences, sizeStyle='small')
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((x + 220, y, -p, 22), "Remove", callback=self.removeDetachedCornersMain)
+		self.w.runButton = vanilla.Button("auto", "Remove", callback=self.removeDetachedCornersMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; hugging makes the window as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[backgroundLayersChBox]-(>=inset)-|",
+				"H:|-inset-[allMastersChBox]-(>=inset)-|",
+				"H:|-inset-[fromWhereText]-gap-[fromWhere]-(>=inset)-|",
+				"H:|-inset-[runButton]-inset-|",
+				"V:|-inset-[descriptionText]-row-[backgroundLayersChBox]-[allMastersChBox]-row-[fromWhere(radioHeight)]-row-[runButton]-inset-|",
+				# the label sits next to the first radio button:
+				{"view1": self.w.fromWhereText, "attribute1": "top", "view2": self.w.fromWhere, "attribute2": "top"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 8, "radioHeight": self.w.fromWhere.getFittingHeight()},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()

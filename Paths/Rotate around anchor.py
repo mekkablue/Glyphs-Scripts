@@ -5,7 +5,16 @@ __doc__ = """
 Rotate selected glyphs (or selected paths and components) around a 'rotate' anchor.
 """
 
+from math import isfinite
+
 import vanilla
+from AppKit import (
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityRequired,
+	NSLayoutPriorityWindowSizeStayPut,
+)
 from Foundation import NSPoint, NSAffineTransform
 from GlyphsApp import Glyphs
 from mekkablue import mekkaObject, newAnchorWithName, UpdateButton
@@ -24,38 +33,70 @@ class Rotator(mekkaObject):
 	}
 
 	def __init__(self):
-		self.w = vanilla.FloatingWindow((320, 95), "Rotate around anchor")
-
-		# Window 'self.w':
-		windowWidth = 320
-		windowHeight = 83
+		windowWidth = 380
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
-			"",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			"Rotate Around Anchor",  # window title
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
-		linePos, inset, lineHeight = 8, 12, 22
+		self.w.anchor_text = vanilla.TextBox("auto", "Set 'rotate' anchor", sizeStyle='small')
+		self.w.anchor_x = vanilla.EditText("auto", "0", sizeStyle='small', callback=self.SavePreferences)
+		self.w.anchor_y = vanilla.EditText("auto", "0", sizeStyle='small', callback=self.SavePreferences)
+		self.w.updateButton = UpdateButton("auto", callback=self.updateRotateAnchor)
+		self.w.anchor_button = vanilla.Button("auto", "Insert", sizeStyle='small', callback=self.insertRotateAnchor)
 
-		self.w.anchor_text = vanilla.TextBox((inset, linePos + 3, 120, 15), "Set 'rotate' anchor", sizeStyle='small')
-		self.w.anchor_x = vanilla.EditText((inset + 110, linePos, 41, 19), "0", sizeStyle='small', callback=self.SavePreferences)
-		self.w.anchor_y = vanilla.EditText((inset + 111 + 45, linePos, 41, 19), "0", sizeStyle='small', callback=self.SavePreferences)
-		self.w.updateButton = UpdateButton((inset + 111 + 90, linePos - 1, 20, 19), callback=self.updateRotateAnchor)
-		self.w.anchor_button = vanilla.Button((inset + 111 + 120, linePos + 1, -inset, 19), "Insert", sizeStyle='small', callback=self.insertRotateAnchor)
-		linePos += lineHeight
+		self.w.rotate_text1 = vanilla.TextBox("auto", "Rotate by", sizeStyle='small')
+		self.w.rotate_degrees = vanilla.EditText("auto", "10", sizeStyle='small', callback=self.SavePreferences)
+		self.w.rotate_text2 = vanilla.TextBox("auto", "degrees", sizeStyle='small')
+		self.w.rotate_ccw = vanilla.Button("auto", u"↺ ccw", sizeStyle='small', callback=self.rotate)
+		self.w.rotate_cw = vanilla.Button("auto", u"↻ cw", sizeStyle='small', callback=self.rotate)
 
-		self.w.rotate_text1 = vanilla.TextBox((inset, linePos + 3, 55, 19), "Rotate by", sizeStyle='small')
-		self.w.rotate_degrees = vanilla.EditText((inset + 56, linePos, 41, 19), "10", sizeStyle='small', callback=self.SavePreferences)
-		self.w.rotate_text2 = vanilla.TextBox((inset + 60 + 48, linePos + 3, 50, 19), "degrees", sizeStyle='small')
-		self.w.rotate_ccw = vanilla.Button((-150, linePos + 1, -70 - inset, 19), u"↺ ccw", sizeStyle='small', callback=self.rotate)
-		self.w.rotate_cw = vanilla.Button((-80, linePos + 1, -inset, 19), u"↻ cw", sizeStyle='small', callback=self.rotate)
-		linePos += lineHeight
+		self.w.stepAndRepeat_text1 = vanilla.TextBox("auto", "Repeat", sizeStyle='small')
+		self.w.stepAndRepeat_times = vanilla.EditText("auto", "5", sizeStyle='small', callback=self.SavePreferences)
+		self.w.stepAndRepeat_text2 = vanilla.TextBox("auto", "times", sizeStyle='small')
+		self.w.stepAndRepeat_ccw = vanilla.Button("auto", u"↺+ ccw", sizeStyle='small', callback=self.rotate)
+		self.w.stepAndRepeat_cw = vanilla.Button("auto", u"↻+ cw", sizeStyle='small', callback=self.rotate)
 
-		self.w.stepAndRepeat_text1 = vanilla.TextBox((inset, linePos + 3, 55, 19), "Repeat", sizeStyle='small')
-		self.w.stepAndRepeat_times = vanilla.EditText((inset + 56, linePos, 41, 19), "5", sizeStyle='small', callback=self.SavePreferences)
-		self.w.stepAndRepeat_text2 = vanilla.TextBox((inset + 60 + 48, linePos + 3, 50, 19), "times", sizeStyle='small')
-		self.w.stepAndRepeat_ccw = vanilla.Button((-150, linePos + 1, -70 - inset, 19), u"↺+ ccw", sizeStyle='small', callback=self.rotate)
-		self.w.stepAndRepeat_cw = vanilla.Button((-80, linePos + 1, -inset, 19), u"↻+ cw", sizeStyle='small', callback=self.rotate)
+		# the labels of the three rows share one width and resist compression:
+		for label in (self.w.anchor_text, self.w.rotate_text1, self.w.stepAndRepeat_text1):
+			nsLabel = label.getNSTextField()
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		# checkboxes and buttons stretch vertically by default; hugging makes the window as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		rules = [
+			"H:|-inset-[anchor_text]-gap-[anchor_x(41)]-gap-[anchor_y]-gap-[updateButton]-(>=gap)-[anchor_button(>=70)]-inset-|",
+			"H:|-inset-[rotate_text1]-gap-[rotate_degrees]-gap-[rotate_text2]-(>=gap)-[rotate_ccw(>=70)]-gap-[rotate_cw]-inset-|",
+			"H:|-inset-[stepAndRepeat_text1]-gap-[stepAndRepeat_times]-gap-[stepAndRepeat_text2]-(>=gap)-[stepAndRepeat_ccw(>=70)]-gap-[stepAndRepeat_cw]-inset-|",
+			"V:|-inset-[anchor_x]-row-[rotate_degrees]-row-[stepAndRepeat_times]-inset-|",
+		]
+		equalWidths = (
+			(self.w.rotate_text1, self.w.anchor_text),
+			(self.w.stepAndRepeat_text1, self.w.anchor_text),
+			(self.w.anchor_y, self.w.anchor_x),
+			(self.w.rotate_degrees, self.w.anchor_x),
+			(self.w.stepAndRepeat_times, self.w.anchor_x),
+			(self.w.rotate_cw, self.w.rotate_ccw),
+			(self.w.stepAndRepeat_ccw, self.w.rotate_ccw),
+			(self.w.stepAndRepeat_cw, self.w.rotate_ccw),
+		)
+		for view1, view2 in equalWidths:
+			rules.append({"view1": view1, "attribute1": "width", "view2": view2, "attribute2": "width"})
+		# everything in a row sits on the vertical center of its field:
+		rowFields = {
+			self.w.anchor_x: (self.w.anchor_text, self.w.anchor_y, self.w.updateButton, self.w.anchor_button),
+			self.w.rotate_degrees: (self.w.rotate_text1, self.w.rotate_text2, self.w.rotate_ccw, self.w.rotate_cw),
+			self.w.stepAndRepeat_times: (self.w.stepAndRepeat_text1, self.w.stepAndRepeat_text2, self.w.stepAndRepeat_ccw, self.w.stepAndRepeat_cw),
+		}
+		for field, others in rowFields.items():
+			for other in others:
+				rules.append({"view1": other, "attribute1": "centerY", "view2": field, "attribute2": "centerY"})
+		self.w.addAutoPosSizeRules(rules, metrics={"inset": 12, "gap": 8, "row": 8})
 
 		self.LoadPreferences()
 
@@ -90,9 +131,10 @@ class Rotator(mekkaObject):
 
 			# no anchor present:
 			selectionRect = selectedLayer.boundsOfSelection()
-			if selectionRect:
+			selectionCenter = centerOfRect(selectionRect) if selectionRect else None
+			# an empty selection can yield infinite bounds, so check for finite values:
+			if selectionCenter and isfinite(selectionCenter.x) and isfinite(selectionCenter.y):
 				# take center of selection:
-				selectionCenter = centerOfRect(selectionRect)
 				self.w.anchor_x.set(int(selectionCenter.x))
 				self.w.anchor_y.set(int(selectionCenter.y))
 				self.insertRotateAnchor()
