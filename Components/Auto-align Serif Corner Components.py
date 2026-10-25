@@ -116,18 +116,31 @@ def orientationOnNode(node, vertical=False):
 	return 0
 
 
+def isRightAngle(node):
+	"""True if one segment next to the node is horizontal and the other one vertical."""
+	before = neighborVector(node, -1)
+	after = neighborVector(node, 1)
+	if before is None or after is None:
+		return False
+	return (isHorizontal(before) and isVertical(after)) or (isVertical(before) and isHorizontal(after))
+
+
 def alignmentForHint(font, hint):
 	"""Returns ALIGNLEFT or ALIGNRIGHT for a corner component hint, or None if it cannot be determined."""
 	serifOrientation = orientationOfSerif(font, hint.name)
 	sideOfSegment = orientationOnNode(hint.originNode, vertical=isVerticalSerif(font, hint.name))
 	if not serifOrientation or not sideOfSegment:
 		return None
-	scaleSign = -1 if hint.scale.x < 0 else 1  # a negative horizontal scale mirrors the serif
-	# Calibrated on a reference font with correctly placed serifs: a left serif (-1) whose segment is
-	# after the node (1), unscaled (1), has the alignment 0, i.e., left
-	if -serifOrientation * sideOfSegment * scaleSign > 0:
-		return ALIGNLEFT
-	return ALIGNRIGHT
+	if isRightAngle(hint.originNode):
+		return ALIGNLEFT  # the alignment makes no visible difference at a right angle, so it stays at the default
+	# Calibrated on a reference font with correctly placed serifs. The corner component runs from its
+	# vertical to its horizontal arm if it is a left serif (-1), and the other way around if it is a right
+	# serif (1). It is aligned left if that matches the direction of the outline at the node, i.e., if the
+	# horizontal segment is after the node for a left serif, and right if it runs against it.
+	# The horizontal scale is not needed: mirroring does not change the order of the arms.
+	if serifOrientation * sideOfSegment > 0:
+		return ALIGNRIGHT
+	return ALIGNLEFT
 
 
 font = Glyphs.font
