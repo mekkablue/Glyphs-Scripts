@@ -279,19 +279,19 @@ class AddGrade(mekkaObject):
 
 		# UI elements:
 		linePos, inset, lineHeight = 12, 15, 22
-		indent = 95
+		indent = 97
 
 		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Add Grade master (and if necessary Grade axis)", sizeStyle="small", selectable=True)
 		linePos += lineHeight
 
 		self.w.baseMasterText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Based on master", sizeStyle="small", selectable=True)
-		self.w.baseMaster = vanilla.PopUpButton((inset + indent, linePos, -inset - 22, 17), self.mastersOfCurrentFont(), sizeStyle="small", callback=self.SavePreferences)
-		self.w.updateBaseMaster = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.updateUI)
+		self.w.baseMaster = vanilla.PopUpButton((inset + indent, linePos - 1, -inset - 22, 17), self.mastersOfCurrentFont(), sizeStyle="small", callback=self.SavePreferences)
+		self.w.updateBaseMaster = UpdateButton((-inset - 18, linePos - 2, -inset, 18), callback=self.updateFromButton)
 		linePos += lineHeight
 
 		self.w.weightText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Use coordinate", sizeStyle="small", selectable=True)
-		self.w.weight = vanilla.ComboBox((inset + indent, linePos - 1, -inset - 22, 19), self.weightValuesForCurrentFont(), sizeStyle="small", callback=self.SavePreferences)
-		self.w.updateWeight = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.updateUI)
+		self.w.weight = vanilla.ComboBox((inset + indent, linePos - 2, -inset - 22, 19), self.weightValuesForCurrentFont(), sizeStyle="small", callback=self.SavePreferences)
+		self.w.updateWeight = UpdateButton((-inset - 18, linePos - 2, -inset, 18), callback=self.updateFromButton)
 		linePos += lineHeight
 
 		self.w.gradeText = vanilla.TextBox((inset, linePos + 2, indent, 14), "… for grade", sizeStyle="small", selectable=True)
@@ -299,11 +299,11 @@ class AddGrade(mekkaObject):
 		self.w.axisTagText = vanilla.TextBox((inset + indent + 65, linePos + 2, indent, 14), "Axis tag & name", sizeStyle="small", selectable=True)
 		self.w.axisTag = vanilla.EditText((inset + indent * 2 + 60, linePos, 45, 19), "GRAD", callback=self.SavePreferences, sizeStyle="small")
 		self.w.axisName = vanilla.EditText((inset + indent * 2 + 110, linePos, -inset - 22, 19), "Grade", callback=self.SavePreferences, sizeStyle="small")
-		self.w.axisReset = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.updateUI)
+		self.w.axisReset = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.updateFromButton)
 		linePos += lineHeight + 8
 
 		indent = 45
-		self.w.fittingMethodText = vanilla.TextBox((inset, linePos + 1, indent, 14), "Fitting", sizeStyle="small", selectable=True)
+		self.w.fittingMethodText = vanilla.TextBox((inset, linePos + 3, indent, 14), "Fitting", sizeStyle="small", selectable=True)
 		self.w.fittingMethod = vanilla.PopUpButton((inset + indent, linePos, -inset, 17), self.refittingMethods, sizeStyle="small", callback=self.SavePreferences)
 		linePos += lineHeight
 
@@ -359,7 +359,7 @@ class AddGrade(mekkaObject):
 		font = master.font
 		return ", ".join([f"{a.axisTag}={master.axes[i]}" for i, a in enumerate(font.axes)])
 
-	def updateUI(self, sender=None):
+	def updateFromButton(self, sender=None):
 		font = Glyphs.font
 		if sender == self.w.updateWeight:
 			# get current master:
