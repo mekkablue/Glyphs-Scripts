@@ -1,4 +1,4 @@
-# MenuTitle: Build Asterisk
+# MenuTitle: Build asterisk
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
@@ -76,7 +76,7 @@ class BuildAsterisk(mekkaObject):
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
-			"Build Asterisk",
+			"Build asterisk",
 			autosaveName=self.domain("mainwindow"),  # persists window position
 		)
 
@@ -92,8 +92,8 @@ class BuildAsterisk(mekkaObject):
 		self.w.rays.setToolTip("How many rays the asterisk has. Use the arrow keys to step up and down. The rays are distributed evenly around the circle.")
 
 		self.w.inclinationLabel = vanilla.TextBox("auto", "Inclination:", sizeStyle="small")
-		self.w.inclination = vanilla.EditText("auto", "0", callback=self.SavePreferences, sizeStyle="small")
-		self.w.inclination.setToolTip("Rotation of the first ray in degrees, clockwise. 0 means the first ray points north (up).")
+		self.w.inclination = SteppingEditText("auto", "0", callback=self.SavePreferences, sizeStyle="small")
+		self.w.inclination.setToolTip("Rotation of the first ray in degrees, clockwise. 0 means the first ray points north (up). Use the arrow keys to step.")
 		self.w.inclinationText = vanilla.TextBox("auto", "° clockwise, 0 = north", sizeStyle="small")
 
 		self.w.buttAgainstLabel = vanilla.TextBox("auto", "Butt against:", sizeStyle="small")
@@ -170,7 +170,7 @@ class BuildAsterisk(mekkaObject):
 
 	def build(self, sender=None):
 		self.compose(Glyphs.font, report=True)
-		Glyphs.showNotification("Build Asterisk", "Asterisk built. Details in Macro Window.")
+		Glyphs.showNotification("Build asterisk", "Asterisk built. Details in Macro Window.")
 		self.w.close()
 
 	def settings(self):
@@ -264,7 +264,7 @@ class BuildAsterisk(mekkaObject):
 		asteriskGlyph = font.glyphs[asteriskName]
 		partGlyph = font.glyphs[partName]
 		if report:
-			print("\nBuild Asterisk: %i rays, first ray %s° clockwise from north\n" % (rays, inclination))
+			print("\nBuild asterisk: %i rays, first ray %s° clockwise from north\n" % (rays, inclination))
 
 		# first pass: collect the center of rotation and the vertical offset of each master
 		placements = []
@@ -310,4 +310,4 @@ font = Glyphs.font
 if font:
 	BuildAsterisk()
 else:
-	Message(title="No Font Open", message="Build Asterisk needs a font. Please open one and run the script again.", OKButton=None)
+	Message(title="No Font Open", message="Build asterisk needs a font. Please open one and run the script again.", OKButton=None)
