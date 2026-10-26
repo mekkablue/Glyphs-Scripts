@@ -304,6 +304,8 @@ class BuildAsterisk(mekkaObject):
 			layer.syncMetrics()
 			if report:
 				print("\t✅ %s: %i rays around (%i, %i)" % (master.name, rays, center.x, center.y))
+		if font.currentTab:
+			font.currentTab.redraw()
 
 
 font = Glyphs.font
