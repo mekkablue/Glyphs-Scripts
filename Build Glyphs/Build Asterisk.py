@@ -256,6 +256,7 @@ class BuildAsterisk(mekkaObject):
 			print("\t💾 Backed up previous %s of master %s in background" % (asteriskName, master.name))
 
 	def compose(self, font, report=False):
+		"""Recomposes the asterisk in all masters at once. If any master cannot be done, none is touched, so the masters stay in sync."""
 		values = self.settings()
 		if values is None:
 			return
@@ -265,21 +266,31 @@ class BuildAsterisk(mekkaObject):
 		if report:
 			print("\nBuild Asterisk: %i rays, first ray %s° clockwise from north\n" % (rays, inclination))
 
-		asteriskGlyph.leftMetricsKey = "=50"
-		asteriskGlyph.rightMetricsKey = "=|"
-
+		# first pass: collect the center of rotation and the vertical offset of each master
+		placements = []
+		problems = []
 		for master in font.masters:
 			anchor = partGlyph.layers[master.id].anchors[connectAnchorName]
 			capHeight = metricPosition(font, master, GSMetricsTypeCapHeight)
 			buttHeight = self.buttHeight(font, master)
-			if anchor is None or buttHeight is None:
-				if report:
-					reason = "no %s anchor in %s" % (connectAnchorName, partName) if anchor is None else "no height to butt against"
-					print("\t⚠️ %s: skipped, %s" % (master.name, reason))
-				continue
+			if anchor is None:
+				problems.append("%s: no %s anchor in %s" % (master.name, connectAnchorName, partName))
+			elif capHeight is None or buttHeight is None:
+				problems.append("%s: no height to butt against" % master.name)
+			else:
+				offsetY = buttHeight - capHeight
+				placements.append((master, offsetY, NSPoint(anchor.position.x, anchor.position.y + offsetY)))
+		if problems:
+			if report:
+				for problem in problems:
+					print("\t⚠️ %s" % problem)
+				print("\n\t⚠️ Nothing changed, so that all masters stay in sync.")
+			return
 
-			offsetY = buttHeight - capHeight
-			center = NSPoint(anchor.position.x, anchor.position.y + offsetY)
+		# second pass: draw all masters
+		asteriskGlyph.leftMetricsKey = "=50"
+		asteriskGlyph.rightMetricsKey = "=|"
+		for master, offsetY, center in placements:
 			layer = asteriskGlyph.layers[master.id]
 			layer.shapes = None
 			for rayIndex in range(rays):
