@@ -43,6 +43,16 @@ def convertIntoName(groupOrGlyphID):
 		return thisFont.glyphForId_(groupOrGlyphID).name
 
 
+def nameForKerningKey(kerningKey):
+	"""Turns a glyph ID used in font.kerning into a glyph name; group keys are returned unchanged."""
+	if kerningKey.startswith("@"):
+		return kerningKey
+	glyph = thisFont.glyphForId_(kerningKey)
+	if glyph:
+		return glyph.name
+	return kerningKey
+
+
 deletionCount = 0
 
 
@@ -78,6 +88,7 @@ for thisMaster in thisFont.masters:
 
 	for thisPair in toBeDeleted:
 		leftSide, rightSide = thisPair
-		thisFont.removeKerningForPair(thisMasterID, leftSide, rightSide)
+		# removeKerningForPair expects glyph names (or group keys), not the glyph IDs used in font.kerning
+		thisFont.removeKerningForPair(thisMasterID, nameForKerningKey(leftSide), nameForKerningKey(rightSide))
 
 	print("\tSuccessfully deleted orphaned group kern pairs in master ‘%s’." % thisMaster.name)
