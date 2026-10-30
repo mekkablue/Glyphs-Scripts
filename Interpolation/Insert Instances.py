@@ -936,13 +936,21 @@ class InstanceMakerV4(mekkaObject):
 					setattr(self.w, f"distributionLabel_{safeTag}", distLabel)
 
 					distPicker = vanilla.PopUpButton(
-						(inputX, linePos, 185, 17),
+						(inputX, linePos, 130, 17),
 						list(distributionNames),
 						callback=self.SavePreferences,
 						sizeStyle="small",
 					)
 					distPicker.setToolTip(distributionExplanation)
 					setattr(self.w, "wght_algorithm", distPicker)
+
+					# number of weight particles that will be inserted:
+					self.w.wght_particleCount = vanilla.TextBox(
+						(inputX + 130 + 16, linePos + 2, -inset, 14),
+						"",
+						sizeStyle="small",
+					)
+					self.w.wght_particleCount.setToolTip("Number of weight particles that will be inserted, from First through Last.")
 					linePos += lineHeight
 
 				else:
@@ -1015,6 +1023,13 @@ class InstanceMakerV4(mekkaObject):
 		self.LoadPreferences()
 		self.w.open()
 		self.w.makeKey()
+
+	def updateUI(self, sender=None):
+		if hasattr(self.w, "wght_particleCount"):
+			firstIndex = self.w.wght_firstName.get()
+			lastIndex = self.w.wght_lastName.get()
+			count = abs(lastIndex - firstIndex) + 1
+			self.w.wght_particleCount.set(f"{count} particle{'' if count == 1 else 's'}")
 
 	def resetElidableNames(self, sender=None):
 		self.w.elidableNames.set(self.defaultElidableNames)
