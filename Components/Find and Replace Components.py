@@ -1,6 +1,4 @@
 # MenuTitle: Find and Replace Components
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Find and replace components across the whole font (all glyphs, all masters).
 Handles regular components, cap components (_cap.*), and corner components

@@ -1,6 +1,4 @@
 # MenuTitle: Update Glyph Names in Features
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__="""
 Like Glyph > Update Glyph Info, but in Font Info > Features.
 """

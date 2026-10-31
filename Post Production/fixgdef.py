@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 python3 fixgdef.py -h     ... help
 python3 fixgdef.py *.ttf  ... apply to all TTFs in current dir

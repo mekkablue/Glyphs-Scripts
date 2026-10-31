@@ -1,6 +1,4 @@
 # MenuTitle: Kern String Mixer
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Intersect two sets of glyphs with each other in order to get all possible glyph combinations.
 """

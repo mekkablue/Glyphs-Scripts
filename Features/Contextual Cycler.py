@@ -1,6 +1,4 @@
 # MenuTitle: Contextual Cycler
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Builds contextual alternate (calt) feature code that cycles through numbered glyph alternates, so that repeated glyphs step through their variants (default → .cv01 → .cv02 → … → default), following the cycling technique from https://glyphsapp.com/learn/features-part-3-advanced-contextual-alternates
 Instead of the tutorial’s @Voc/@Con split, glyphs are grouped by how many alternates they have: @One0/@One1 for glyphs with one alternate, @Two0/@Two1/@Two2 for two, and so on; everything else lands in @Etc. The cycle keeps counting across intervening glyphs of other groups, just like in the tutorial.

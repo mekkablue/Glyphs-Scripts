@@ -1,6 +1,4 @@
 # MenuTitle: New Tabs with Palette Colors
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__="""
 Opens new tabs, one each for all layers pertaining to a color index (CPAL/COLR).
 """

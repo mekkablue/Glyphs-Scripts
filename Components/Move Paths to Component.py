@@ -1,6 +1,4 @@
 # MenuTitle: Move Paths to Component
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Moves paths to a separate glyph and insert them as auto-aligned, anchored components in the source glyph. Perfect for making path+component mixtures into pure composites.
 """

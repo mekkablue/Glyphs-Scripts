@@ -1,6 +1,4 @@
 # MenuTitle: Set Label Colors
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Override the label colors for glyphs and layers.
 """

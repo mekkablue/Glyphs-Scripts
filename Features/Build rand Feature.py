@@ -1,6 +1,4 @@
 # MenuTitle: Build rand Feature
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Build rand (random) feature from .cvXX or another (numbered) suffix.
 """

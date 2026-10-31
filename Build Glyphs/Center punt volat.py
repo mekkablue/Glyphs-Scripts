@@ -1,6 +1,4 @@
 # MenuTitle: Center punt volat
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Shifts all periodcentered.loclCAT glyphs horizontally so it fits between two L’s.
 ⚠️ Hold down ⌘ Cmd and ⇧ Shift for processing ALL open fonts.

@@ -1,6 +1,4 @@
 # MenuTitle: Auto Stems
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Derive one H and one V stem value for all your masters by measuring certain shapes in your font.
 """

@@ -1,6 +1,4 @@
 # MenuTitle: Reset Unicode Codepoints Based on GlyphData
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 For selected glyphs, it works like Glyph > Update Glyph Info, but will not change the name, rather reset the Unicode. Will process the built-in GlyphData and GlyphData-XXX.xml in ~/Library/Application Support/Glyphs 3/Info/.
 """

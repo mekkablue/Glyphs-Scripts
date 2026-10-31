@@ -1,6 +1,4 @@
 # MenuTitle: Position Clicker
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Finds all combinations of positional shapes that do not click well. Clicking means sharing two point coordinates when overlapping.
 """

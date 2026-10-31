@@ -1,6 +1,4 @@
 # MenuTitle: Build Positional Feature
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Create or update OpenType feature code for positional forms (isolated, initial, medial and final). Will also add respective OpenType classes.
 """

@@ -1,6 +1,4 @@
 # MenuTitle: Remove Kerning Exceptions
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Removes all kernings glyph-glyph, group-glyph, and glyph-group; only keeps group-group kerning.
 """

@@ -1,6 +1,4 @@
 # MenuTitle: Set Hidden App Preferences
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 GUI for a number of hidden prefs, hard to memorize otherwise.
 """

@@ -1,6 +1,4 @@
 # MenuTitle: Path Problem Finder
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Finds all kinds of potential problems in outlines, and opens a new tab with affected layers.
 """

@@ -1,6 +1,4 @@
 # MenuTitle: Reset Plugin Manager Repo
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__="""
 Deletes the selected Plugin Manager repository. Fixes the dreaded ‘Failed to get HEAD (unborn)’ error in Plugin Manager.
 """

@@ -1,6 +1,4 @@
 # MenuTitle: Set Variable Style Names
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__="""
 Adds Style Names for variable fonts to instances in Font Info > Exports, and makes an informed guess as for their value. Useful if you split your static family in subfamilies (e.g. by optical size or by width), and as a result, you end up with repeating style names (e.g. multiple Mediums).
 """

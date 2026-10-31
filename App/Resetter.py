@@ -1,6 +1,4 @@
 # MenuTitle: Resetter
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Resets Quicklook preview, keyboard shortcuts, and clearing out app prefs, saved app states, autosaves.
 """

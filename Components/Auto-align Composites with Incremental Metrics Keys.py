@@ -1,6 +1,4 @@
 # MenuTitle: Auto-Align Composites with Incremental Metrics Keys
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 For the frontmost font, auto-aligns composites where only the first component’s alignment is disabled. Ignores .tf, .tosf and math operators. Will open a tab with affected glyph layers.
 """

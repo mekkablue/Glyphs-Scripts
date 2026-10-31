@@ -1,6 +1,4 @@
 # MenuTitle: Duplexer
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__="""
 Duplexes all masters according to one master you pick, so all widths are synced across all masters. Great for preparing your font for the Sync Metrics with First Master parameter.
 """

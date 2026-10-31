@@ -1,6 +1,4 @@
 # MenuTitle: Remove Images
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Removes placed images from glyphs. Options: scope (all glyphs in font or selected glyphs only), optional restriction to orphaned images only (source file no longer on disk), and optional glyph-name filter with wildcard support.
 """

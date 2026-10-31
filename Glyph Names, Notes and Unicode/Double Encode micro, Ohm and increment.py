@@ -1,6 +1,4 @@
 # MenuTitle: Double Encode micro, Ohm, increment and florin
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Add Unicodes of mu, Omega and Delta to micro, Ohm and increment, as well as florin (but only if FHook is not present in the font). Hold down COMMAND + SHIFT to apply to ALL open fonts.
 """

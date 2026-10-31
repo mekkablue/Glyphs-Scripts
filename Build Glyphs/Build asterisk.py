@@ -1,6 +1,4 @@
 # MenuTitle: Build asterisk
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Builds the asterisk from rotated components of _part.asterisk (a trapezoid ray with a #connect anchor). Each ray is rotated around the #connect anchor. A live preview updates the asterisk in all masters as you change the values.
 """

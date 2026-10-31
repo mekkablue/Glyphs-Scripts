@@ -1,6 +1,4 @@
 # MenuTitle: Add Metrics Keys for Symmetric Glyphs
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Will add RSB =| if the RSB is the same as the LSB in all masters.
 """

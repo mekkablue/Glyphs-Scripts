@@ -1,6 +1,4 @@
 # MenuTitle: Brace and Bracket Manager
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Find and replace brace and bracket layer coordinates.
 """

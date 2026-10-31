@@ -1,6 +1,4 @@
 # MenuTitle: Batch-Import Masters
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Import many masters at once with the Import Master parameter.
 """

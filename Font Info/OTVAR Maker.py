@@ -1,6 +1,4 @@
 # MenuTitle: OTVAR Maker
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Creates a variable font setting in Font Info > Exports.
 """

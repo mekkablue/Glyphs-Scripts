@@ -1,6 +1,4 @@
 # MenuTitle: Build ellipsis from period Components
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Inserts exit and entry anchors in the period glyph and rebuilds ellipsis with auto-aligned components of period. Hold down OPT+SHIFT to have LSB and RSB exactly like period (otherwise with slight padding).\n\nATTENTION: decomposes all period components used in other glyphs (e.g., colon).
 """

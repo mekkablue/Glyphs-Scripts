@@ -1,6 +1,4 @@
 # MenuTitle: Rounding Protector
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Marks nodes so the Round Corners filter leaves them alone (node.name = "c"), and copies the marks of one master to all compatible layers (other masters, brace and bracket layers).
 """

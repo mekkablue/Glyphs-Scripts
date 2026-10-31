@@ -1,6 +1,4 @@
 # MenuTitle: Center Line
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__="""
 Will create center lines between selected segments and their opposites. Hold down OPTION+SHIFT to put center lines in the background.
 """

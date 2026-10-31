@@ -1,6 +1,4 @@
 # MenuTitle: Set blueFuzz to Zero for Master Instances
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Adds blueFuzz custom parameter with value 0 for instances that are the same as a master.
 """

@@ -1,6 +1,4 @@
 # MenuTitle: Batch-Add Smart Axes
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Will add smart axes and additional smart layers to selected glyphs.
 """

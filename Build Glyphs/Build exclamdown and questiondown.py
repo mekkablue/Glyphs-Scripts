@@ -1,6 +1,4 @@
 # MenuTitle: Build exclamdown and questiondown
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Builds inverted Spanish punctuation ¡¿ for mixed and upper case. Hold down COMMAND and SHIFT for all open fonts.
 """

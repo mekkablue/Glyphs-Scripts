@@ -1,6 +1,4 @@
 # MenuTitle: Convert Cap to Segment Component
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Converts a _cap.xxx glyph into a _segment.xxx glyph. Rotates and repositions
 the cap paths so the connection points (node1/node2 anchors, or path endpoints)

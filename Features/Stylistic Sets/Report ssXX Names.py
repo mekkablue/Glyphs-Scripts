@@ -1,5 +1,4 @@
 # MenuTitle: Report ssXX Names of All Open Fonts
-# -*- coding: utf-8 -*-
 __doc__ = """
 Opens Macro Window with a list of all stylistic set names.
 """

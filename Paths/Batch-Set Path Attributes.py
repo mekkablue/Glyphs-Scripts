@@ -1,6 +1,4 @@
 # MenuTitle: Batch-Set Path Attributes
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Set path attributes of all paths in selected glyphs, the master, the font, etc.
 """

@@ -1,6 +1,4 @@
 # MenuTitle: Filter Manager
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Edit Filter custom parameters as plain text, one filter value string per line, including the optional exclude/include parts. ‘Paste’ reads the parameters plist from the clipboard (as copied from Custom Parameters in Font Info) into the text view (‘Paste & Add’ adds them at the bottom). ‘Copy Parameters’ turns the lines back into a parameters plist on the clipboard, ready to paste into Custom Parameters in Font Info. Disabled filters are prefixed with #.
 """

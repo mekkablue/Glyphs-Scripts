@@ -1,6 +1,4 @@
 # MenuTitle: Snap Anchors to Nearest Metric
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Moves specified anchors to the nearest metric (e.g. x-height, ascender, etc.), within a specified threshold.
 """

@@ -1,6 +1,4 @@
 # MenuTitle: Remove TT Hints
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Deletes a user-specified set of TT instructions throughout the current font, the selected master and/or the selected glyphs.
 """

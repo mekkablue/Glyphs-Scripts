@@ -1,6 +1,4 @@
 # MenuTitle: Mark Mover
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Move marks to their respective heights, e.g. *comb.case to cap height, *comb to x-height, etc.
 """

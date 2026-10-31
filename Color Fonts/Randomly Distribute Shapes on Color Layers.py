@@ -1,6 +1,4 @@
 # MenuTitle: Randomly Distribute Shapes on Color Layers
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Take the shapes of the fallback master layer, and randomly copy them onto the available CPAL/COLR color layers. ⚠️ Will overwrite contents of existing color layers unless you hold down Cmd+Shift.
 """

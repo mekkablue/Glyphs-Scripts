@@ -1,6 +1,4 @@
 # MenuTitle: PS Name Maker
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Creates postscriptFontName entries (Name ID 6) for all instances with options to shorten them.
 """

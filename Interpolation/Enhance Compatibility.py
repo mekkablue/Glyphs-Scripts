@@ -1,6 +1,4 @@
 # MenuTitle: Enhance Compatibility
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Takes the current layer of each selected glyph, and propagates node types, node connections, realigns handles in technically compatible layers of the same glyph. Useful for fixing compatibility of glyphs that are shown to be compatible but still do not export.
 """

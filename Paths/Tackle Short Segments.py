@@ -1,6 +1,4 @@
 # MenuTitle: Tackle Short Segments
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Finds short segments (measuring between the on-curve nodes, ignoring handles) and can remove them, multiply the length of short line segments, or straighten short curve segments.
 """

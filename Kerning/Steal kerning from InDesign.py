@@ -1,6 +1,4 @@
 # MenuTitle: Steal Kerning from InDesign
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Exports the current font's masters as temporary fonts to the Adobe Fonts folder,
 then creates an InDesign document with optical kerning, measures and imports the

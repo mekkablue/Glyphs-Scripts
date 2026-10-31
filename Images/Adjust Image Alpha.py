@@ -1,6 +1,4 @@
 # MenuTitle: Adjust Image Alpha
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Slider for setting the alpha of all images in selected glyphs.
 """

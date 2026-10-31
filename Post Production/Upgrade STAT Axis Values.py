@@ -1,6 +1,4 @@
 # MenuTitle: Upgrade STAT Axis Values from Discrete to Ranges (OTVAR)
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Turns STAT entries of format 1 (discrete) into format 2 (range) for axes with more than one axis value. Run this right after a variable font export.
 """

@@ -1,5 +1,4 @@
 # MenuTitle: Make Components Smart in All Selected Glyphs
-# -*- coding: utf-8 -*-
 __doc__ = """
 Turn the selected components into smart components, based on the axes defined in the font.
 """

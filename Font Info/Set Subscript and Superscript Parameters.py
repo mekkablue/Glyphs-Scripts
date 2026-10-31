@@ -1,6 +1,4 @@
 # MenuTitle: Set Subscript and Superscript Parameters
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Measures your superior and inferior figures and derives subscript/superscript X/Y offset/size parameters.
 """

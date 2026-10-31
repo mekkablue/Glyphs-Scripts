@@ -1,6 +1,4 @@
 # MenuTitle: Copy Download URL for Current App Version
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Puts the download URL of the current Glyphs app version into your clipboard for easy pasting.
 """

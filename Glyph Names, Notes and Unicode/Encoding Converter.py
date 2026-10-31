@@ -1,6 +1,4 @@
 # MenuTitle: Encoding Converter
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Converts old expert 8-bit encodings into Glyphs nice names.
 """

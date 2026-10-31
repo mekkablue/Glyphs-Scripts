@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 python3 fixpsname.py -h     ... help
 python3 fixpsname.py *.ttf  ... apply to all TTFs in current dir

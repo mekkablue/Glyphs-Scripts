@@ -1,6 +1,4 @@
 # MenuTitle: Axis Mapper
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Extracts, resets and inserts an ‘avar’ axis mapping for the Axis Mappings parameter.
 """

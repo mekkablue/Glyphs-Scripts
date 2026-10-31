@@ -1,6 +1,4 @@
 # MenuTitle: Find Close Encounters of Orthogonal Line Segments
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Goes through all vertical and horizontal line segments, and finds pairs that are close, but do not align completely.
 """

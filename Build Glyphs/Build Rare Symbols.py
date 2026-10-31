@@ -1,6 +1,4 @@
 # MenuTitle: Build Rare Symbols
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Builds white and black, small and large, circles, triangles and squares.
 """

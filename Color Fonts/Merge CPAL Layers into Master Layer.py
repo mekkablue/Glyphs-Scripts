@@ -1,6 +1,4 @@
 # MenuTitle: Merge CPAL Layers into Master Layer
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Takes all CPAL/COLR layers and puts copies of their shapes into the master layer.
 """

@@ -1,6 +1,4 @@
 # MenuTitle: Add TTF Autohint Control Instructions for Current Glyph
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 try:
 	from builtins import str
 except Exception as e:  # noqa: F841

@@ -1,6 +1,4 @@
 # MenuTitle: Add Missing Smart Anchors
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Adds all anchors for properties of selected smart glyphs on all their layers. Skips Width and Height anchors.
 """

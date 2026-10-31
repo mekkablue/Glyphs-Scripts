@@ -1,6 +1,4 @@
 # MenuTitle: Fix GDEF Class Definition of Legacy Marks
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Fix GDEF definition of spacing, non-combining marks for all .ttf, .otf, .woff, .woff2 in your current export folders. Will switch to class 1 (‘base glyph’, single character, spacing glyph) if necessary.
 """

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from __future__ import print_function
 from GlyphsApp import Glyphs
 from AppKit import NSNotFound, NSClassFromString

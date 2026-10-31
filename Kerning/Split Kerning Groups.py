@@ -1,6 +1,4 @@
 # MenuTitle: Split Kerning Groups
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__="""
 In existing group kerning, separate some glyphs out of a kerning group, effectively duplicating the kern groups with the new group.
 """
