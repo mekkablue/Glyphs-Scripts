@@ -40,18 +40,23 @@ Some subfolders contain helper modules (not scripts), e.g., `Interpolation/axisM
 
 ## Script File Header
 
-Every script must begin in this exact order:
+Every new script begins like this:
 
 ```python
 # MenuTitle: My Script Name
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Short description of what the script does.
 """
 ```
 
-`# MenuTitle:` **must be the very first line** of every script.
+- `# MenuTitle:` **must be the very first line** of every script.
+- `__doc__` follows directly.
+- **Do not** add `# -*- coding: utf-8 -*-` or `from __future__ import division, print_function, unicode_literals`.
+  In Python 3 they do nothing (UTF-8 source and these behaviors are the default).
+- **Scripts for Glyphs 4** (including everything that requires Glyphs 4 or later, like the HOI scripts): these lines
+  are forbidden. Remove them if you find them.
+- **Other scripts**: keep the lines only where they make sense for Glyphs 2 (Python 2). Where they do not, remove them.
+  Do not add them to a script that has none.
 
 ## Code Conventions
 
@@ -87,8 +92,6 @@ from Foundation import NSPoint
 
 ```python
 # MenuTitle: My Simple Script
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """Description."""
 
 from GlyphsApp import Glyphs
@@ -107,8 +110,6 @@ before it. Bail out with an `if` block, as above, and keep `return` for function
 
 ```python
 # MenuTitle: My GUI Script
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """Description."""
 
 import vanilla
