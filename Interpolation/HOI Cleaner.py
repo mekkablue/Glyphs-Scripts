@@ -1,6 +1,4 @@
 # MenuTitle: HOI Cleaner
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Removes all HOI (higher-order interpolation) attributes from all nodes in all layers of the frontmost font, reports in the Macro Window and opens a tab with the affected glyphs. Requires Glyphs 4 or later and a font with Font Info → Document → File format version 4 or later.
 """
