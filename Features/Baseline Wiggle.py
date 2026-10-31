@@ -1,6 +1,4 @@
 # MenuTitle: Baseline Wiggle
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Add OpenType feature with pseudorandom GPOS baseline shift for all glyphs in a class.
 """

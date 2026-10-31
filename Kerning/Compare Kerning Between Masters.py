@@ -1,6 +1,4 @@
 # MenuTitle: Compare Kerning Between Masters
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Report differences in kerning structures between two masters.
 """

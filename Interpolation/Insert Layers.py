@@ -1,6 +1,4 @@
 # MenuTitle: Insert Layers
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Batch-insert intermediate layers (‘brace layers’) in selected glyphs. (Glyphs 2: Batch-insert brace or bracket layers in selected glyphs.)
 """

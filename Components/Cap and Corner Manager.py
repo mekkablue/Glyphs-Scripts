@@ -1,6 +1,4 @@
 # MenuTitle: Cap and Corner Manager
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Batch-edit settings for cap, corner, brush or segment components throughout all glyphs in the frontmost font.
 """

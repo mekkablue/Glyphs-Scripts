@@ -1,6 +1,4 @@
 # MenuTitle: Replicate Anchors
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Batch-add anchors to selected glyphs. Specify a source glyph to replicate the anchors from.
 """

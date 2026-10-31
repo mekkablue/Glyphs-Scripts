@@ -1,6 +1,4 @@
 # MenuTitle: Convert Master Colors to CPAL Palette
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Will look for ‘Master Color’ parameters in the font masters and then create a ‘Color Palettes’ parameter in Font Info > Font with the same color. Will default to black (for missing Master Color parameters). Will add Dark Mode master colors as second palette.
 """

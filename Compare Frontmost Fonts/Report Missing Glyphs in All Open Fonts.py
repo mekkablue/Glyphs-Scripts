@@ -1,6 +1,4 @@
 # MenuTitle: Report Missing Glyphs for All Open Fonts
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 In Macro window, reports all glyphs that are missing in some of the currently open files, but present in other other fonts.
 """

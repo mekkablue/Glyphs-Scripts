@@ -1,6 +1,4 @@
 # MenuTitle: Add Empty DSIG (OTVAR)
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Run this after you export a Variable Font (TTF) and it will add an empty DSIG table. Necessary to pass the MyFonts onboarding of OTVAR TTFs.
 """

@@ -1,6 +1,4 @@
 # MenuTitle: Remove Detached Corners
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Removes corner components that are not linked to a node from all (selected) glyphs.
 """

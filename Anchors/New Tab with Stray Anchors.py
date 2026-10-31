@@ -1,6 +1,4 @@
 # MenuTitle: New Tab with Stray Anchors
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__="""
 Find all anchors that are not where they are supposed to be.
 """

@@ -1,6 +1,4 @@
 # MenuTitle: Quote Manager
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Build and sync quotes: create single and double quotes with cursive attachment anchors, metrics keys, and kern groups.
 """

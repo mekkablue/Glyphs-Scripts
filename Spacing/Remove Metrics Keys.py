@@ -1,6 +1,4 @@
 # MenuTitle: Remove Metrics Keys
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Remove glyph-wide (=) and/or layer-specific (==) metrics keys. Optionally filter by referenced glyph name, and choose the scope from selected glyphs to all open fonts.
 """

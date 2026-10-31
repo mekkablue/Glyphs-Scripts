@@ -1,6 +1,4 @@
 # MenuTitle: Compatibility Manager 2
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Rebuilds interpolation compatibility between masters: reorders paths and
 components for shortest travel, resets start points, and optionally adds

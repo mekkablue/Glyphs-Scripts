@@ -1,6 +1,4 @@
 # MenuTitle: Reproject Axis
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Rescale (reproject) all design-space values of an axis to a new min/max range. Recalculates master and instance coordinates, name particle values (Glyphs 4), brace (intermediate) and bracket (alternate) layer coordinates, Virtual Master locations, and the axis values in condition feature code.
 """

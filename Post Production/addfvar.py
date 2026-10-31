@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 import argparse, sys, os, glob
 from fontTools.ttLib import TTFont
 from fontTools.ttLib.tables._f_v_a_r import table__f_v_a_r, Axis, NamedInstance

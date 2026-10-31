@@ -1,6 +1,4 @@
 # MenuTitle: Composite Consistencer
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Goes through all glyphs of the frontmost font (or all open fonts), and checks for composites. If dot-suffixed glyph variants are missing them, they are reported in the Macro Window and can optionally be created automatically.
 """

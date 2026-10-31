@@ -1,6 +1,4 @@
 # MenuTitle: Build Dotted Numbers
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Build dotted numbers from your default figures and the period.
 """

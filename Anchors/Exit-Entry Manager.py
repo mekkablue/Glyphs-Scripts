@@ -1,6 +1,4 @@
 # MenuTitle: Exit-Entry Manager
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Toolbox for managing exit/entry and #exit/#entry anchors used for cursive attachment.
 Insert anchors at sidebearings, at selected nodes, or for positional glyphs;

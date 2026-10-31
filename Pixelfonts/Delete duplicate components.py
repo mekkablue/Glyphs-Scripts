@@ -1,5 +1,4 @@
 # MenuTitle: Delete Duplicate Components
-# -*- coding: utf-8 -*-
 __doc__ = """
 Delete components of the same base glyph and in the same position. Useful for accidental double 
 """

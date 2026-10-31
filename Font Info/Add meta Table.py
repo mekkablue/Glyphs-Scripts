@@ -1,6 +1,4 @@
 # MenuTitle: Add meta Table
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__="""
 Adds a meta table entry for the frontmost font in Font Info > Font > Custom Parameters.
 """

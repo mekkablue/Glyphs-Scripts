@@ -1,6 +1,4 @@
 # MenuTitle: Find and Replace in Font Info
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Finds and replaces text in Font Info fields across Font, Masters, and Instances/Exports.
 Covers both general properties (names, designer, etc.) and custom parameters (string values).

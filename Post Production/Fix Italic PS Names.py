@@ -1,6 +1,4 @@
 # MenuTitle: Fix Italic PS Names (OTVAR)
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Fixes double Italic namings in name table entries in the most recent export of the current font. Run this right after a variable font export.
 """

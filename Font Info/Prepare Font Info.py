@@ -1,6 +1,4 @@
 # MenuTitle: Prepare Font Info
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Prepare open fonts for a modern font production and git workflow.
 """

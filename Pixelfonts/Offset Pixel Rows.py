@@ -1,6 +1,4 @@
 # MenuTitle: Offset Pixel Rows
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__="""
 Offsets each row of pixels by a percentage. Rhythm of 2 = every other line offset by half of a pixel’s width; rhythm of 3 = every second line by a third, every third line by two thirds; and so on. Useful for offsetting hexagon-shaped pixels, etc.
 """

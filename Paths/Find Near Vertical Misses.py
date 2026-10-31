@@ -1,6 +1,4 @@
 # MenuTitle: Find Near Vertical Misses
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Finds on-curve nodes that are close but not exactly on any of the layer's vertical metrics.
 Always checks on-curve points only, never removes overlap, always includes non-exporting glyphs,

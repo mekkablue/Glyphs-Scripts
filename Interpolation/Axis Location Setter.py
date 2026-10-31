@@ -1,6 +1,4 @@
 # MenuTitle: Axis Location Setter
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Batch-set axis locations for all instances with a certain name particle. E.g., set an axis location for all Condensed instances.
 """

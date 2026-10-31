@@ -1,6 +1,4 @@
 # MenuTitle: Positional Harmonize
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Establishes G2 continuity between the selected glyphs and behDotless-ar.medi (or another medial glyph) at their connection (clicking) points, by adjusting the one handle of the current glyph that faces the connection. On-curve nodes are never moved.
 

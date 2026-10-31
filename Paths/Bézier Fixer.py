@@ -1,6 +1,4 @@
 # MenuTitle: Bézier Fixer
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Small floating panel combining three curve cleanup steps for the selected glyphs: Tunnify (balances handle distribution), Realign BCPs (fixes out-of-sync handles of smooth nodes), and Harmonize (G2 continuity at smooth nodes). See the tooltips in the UI for details.
 """

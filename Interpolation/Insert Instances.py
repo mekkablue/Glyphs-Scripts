@@ -1,6 +1,4 @@
 # MenuTitle: Insert Instances
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Inserts instances, based on the Luc(as), Pablo, Abraham, Schneider and Maciej algorithms.
 In Glyphs 4+, presents a redesigned UI for inserting axis particles.

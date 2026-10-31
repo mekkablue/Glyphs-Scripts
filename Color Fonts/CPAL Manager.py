@@ -1,6 +1,4 @@
 # MenuTitle: CPAL Manager
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Manage color palette (CPAL) indices in color layers: for specified color indexes, delete, disable, reassign or duplicate color layers.
 """

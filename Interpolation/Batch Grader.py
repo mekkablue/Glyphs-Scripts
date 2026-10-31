@@ -1,6 +1,4 @@
 # MenuTitle: Batch Grader
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 
 __doc__ = """
 Batch-add graded masters to a multiple-master setup.

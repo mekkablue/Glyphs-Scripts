@@ -1,6 +1,4 @@
 # MenuTitle: Propagate Components and Mark Anchoring
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Takes the current master’s component and mark anchoring setup and replicates it in all other (compatible) masters. Useful for complex Arabic ligature marks.
 """

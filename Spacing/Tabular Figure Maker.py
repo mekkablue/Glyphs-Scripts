@@ -1,6 +1,4 @@
 # MenuTitle: Tabular Figure Maker
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Takes existing .tf figures and spaces them tabularly, or creates them from existing default figures.
 """

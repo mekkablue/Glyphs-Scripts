@@ -1,7 +1,5 @@
 # MenuTitle: Snap Selected Points to Nearest Metric in All Masters
-# -*- coding: utf-8 -*-
 
-from __future__ import division, print_function, unicode_literals
 
 __doc__ = """
 Select points and run this script to snap them to the nearest metric in each compatible layer, given they are no more than 2 units away from the metric. Reports in the Macro window.

@@ -1,6 +1,4 @@
 # MenuTitle: Add Missing Brace Layers
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Complete the rectangular setup necessary for OTVAR exports.
 """

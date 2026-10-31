@@ -1,6 +1,4 @@
 # MenuTitle: Insert Brace Layers for Movement along Background Path
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Add a single path in the background and it will be used to create intermediate (brace) layers on the first axis for OTVar animation. Define the frames (per segment) in the respective glyph note after running the script once.
 """

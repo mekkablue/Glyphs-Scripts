@@ -1,6 +1,4 @@
 # MenuTitle: Batch Insert Anchor
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Insert an anchor in all selected glyphs, on all layers, and pick the approximate spot.
 """

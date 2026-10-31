@@ -1,6 +1,4 @@
 # MenuTitle: Anchor Remover
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Remove anchors from glyphs: by anchor name, from suffixed glyphs, or strip non-standard anchors. Consolidates 'Remove Anchors', 'Remove Anchors in Suffixed Glyphs', and 'Remove Non-Standard Anchors from Selected Glyphs'.
 """

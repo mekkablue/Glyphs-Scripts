@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 python3 writeSTATaxisValues.py -h     ... help
 python3 writeSTATaxisValues.py -a "wdth;100.0=Regular*|ital;0.0>1.0=Regular*" *.ttf  ... apply to all TTFs in current dir

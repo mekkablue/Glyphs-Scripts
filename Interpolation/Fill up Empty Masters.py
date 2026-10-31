@@ -1,6 +1,4 @@
 # MenuTitle: Fill Up Empty Masters
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Looks for empty master layers and adds shapes of a preferred master.
 """

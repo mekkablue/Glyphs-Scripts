@@ -1,6 +1,4 @@
 # MenuTitle: New Tab with Uneven Handle Distributions
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Finds glyphs where handle distributions change too much (e.g., from balanced to harmonised).
 """

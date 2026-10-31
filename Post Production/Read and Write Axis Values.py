@@ -1,6 +1,4 @@
 # MenuTitle: Read and Write STAT Axis Values (OTVAR)
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 After an OTVAR export, run once, and it will read STAT.AxisValueArray most recently exported from the current Glyphs file, and add ‘Axis Values’ parameters in your Variable Font Settings.
 

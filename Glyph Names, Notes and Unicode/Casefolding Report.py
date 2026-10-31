@@ -1,7 +1,5 @@
 # MenuTitle: Casefolding Report
-# -*- coding: utf-8 -*-
 
-from __future__ import division, print_function, unicode_literals
 
 __doc__ = """
 Checks if uppercase and lowercase are matching. Opens a new Edit tab containing all glyphs without consistent casefolding. Writes a detailed report in Macro Window.

@@ -1,6 +1,4 @@
 # MenuTitle: Merge Suffixed Glyphs into Color Layers
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Takes the master layer of suffixed glyphs (e.g., x.shadow, x.body, x.front) and turns them in a specified order into CPAL Color layers of the unsuffixed glyph (e.g., Color 1, Color 0, Color 2 of x).
 """

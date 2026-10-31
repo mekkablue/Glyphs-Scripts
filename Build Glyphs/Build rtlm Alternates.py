@@ -1,6 +1,4 @@
 # MenuTitle: Build rtlm Alternates
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Creates horizontally mirrored composite copies for selected glyphs, and updates the rtlm OpenType feature. Auto-aligns the components, also adds metrics keys that kick in in case you decompose.
 """

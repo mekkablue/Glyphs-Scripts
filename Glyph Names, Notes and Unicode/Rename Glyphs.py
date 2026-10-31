@@ -1,6 +1,4 @@
 # MenuTitle: Rename Glyphs
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Takes a list of oldglyphname=newglyphname pairs and renames glyphs in the font accordingly, much like the Rename Glyphs parameter.
 """

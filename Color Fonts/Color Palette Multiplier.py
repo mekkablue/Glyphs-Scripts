@@ -1,6 +1,4 @@
 # MenuTitle: Color Palette Multiplier
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Apply a list of filter parameters to copies of CPAL/COLR layers. This way you can derive a shadow layer from a front layer, for example.
 """

@@ -1,6 +1,4 @@
 # MenuTitle: Remove Custom Parameters
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Removes all parameters of one kind from Font Info > Font, Masters, Instances. Useful if you have many masters or instances.
 """

@@ -1,6 +1,4 @@
 # MenuTitle: Add Grade
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 
 __doc__ = """
 Add Grade axis and/or Grade master, based on your Weight and Width axes.

@@ -1,6 +1,4 @@
 # MenuTitle: Compare Glyph Info
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Compares open fonts and builds a lits of differing glyph info, including Unicode values and categorisation.
 """

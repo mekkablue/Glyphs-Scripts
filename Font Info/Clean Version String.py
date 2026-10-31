@@ -1,6 +1,4 @@
 # MenuTitle: Clean Version String
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 
 __doc__ = """
 Adds a clean versionString parameter, and disables ttfAutohint info in the version string. Hold down OPTION and SHIFT for all masters

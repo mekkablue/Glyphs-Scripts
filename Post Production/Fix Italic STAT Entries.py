@@ -1,6 +1,4 @@
 # MenuTitle: Fix STAT Entries (OTVAR)
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 For every axis, renames normal STAT entries to ‘Regular’ (also makes changes in name table if necessary), and makes them elidable (Flags=2). Typically only necessary in italic OTVAR exports with 2 or more axes. Also, fixes Format1/3 duplicates (if a Format 3 exists, there must be no equivalent Format 1 entry).
 """

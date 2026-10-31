@@ -1,6 +1,4 @@
 # MenuTitle: Add Adobe Symbol Glyphs
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Will add Adobe’s interpolations for a number of symbol glyphs if they are missing from the font: Omega, Delta, Ohm, increment, asciicircum, greaterequal, infinity, partialdiff, lessequal, notequal, product, approxequal, plus, lozenge, integral, summation, radical, daggerdbl, perthousand, logicalnot, plusminus, asciitilde, divide, minus, multiply, dagger, less, equal, greater, literSign, .notdef.
 

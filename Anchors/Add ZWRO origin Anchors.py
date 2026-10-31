@@ -1,6 +1,4 @@
 # MenuTitle: Add ZWRO *origin Anchors
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Insert *origin anchors for ZWRO in all combining marks of specified scripts.
 """

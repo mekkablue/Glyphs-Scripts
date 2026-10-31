@@ -1,6 +1,4 @@
 # MenuTitle: Instance Cooker
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Insert many instances at once with a recipe.
 """
