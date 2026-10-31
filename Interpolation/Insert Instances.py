@@ -1028,7 +1028,20 @@ class InstanceMakerV4(mekkaObject):
 		if hasattr(self.w, "wght_particleCount"):
 			firstIndex = self.w.wght_firstName.get()
 			lastIndex = self.w.wght_lastName.get()
-			count = abs(lastIndex - firstIndex) + 1
+
+			# Last must not come before First:
+			if lastIndex < firstIndex:
+				lastIndex = firstIndex
+				self.w.wght_lastName.set(lastIndex)
+				self.setPref("wght_lastName", lastIndex)
+
+			# grey out the entries of Last that precede First:
+			lastMenu = self.w.wght_lastName.getNSPopUpButton().menu()
+			lastMenu.setAutoenablesItems_(False)
+			for index in range(lastMenu.numberOfItems()):
+				lastMenu.itemAtIndex_(index).setEnabled_(index >= firstIndex)
+
+			count = lastIndex - firstIndex + 1
 			self.w.wght_particleCount.set(f"{count} particle{'' if count == 1 else 's'}")
 
 	def resetElidableNames(self, sender=None):
