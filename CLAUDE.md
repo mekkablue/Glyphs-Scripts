@@ -53,10 +53,13 @@ Short description of what the script does.
 - `__doc__` follows directly.
 - **Do not** add `# -*- coding: utf-8 -*-` or `from __future__ import division, print_function, unicode_literals`.
   In Python 3 they do nothing (UTF-8 source and these behaviors are the default).
-- **Scripts for Glyphs 4** (including everything that requires Glyphs 4 or later, like the HOI scripts): these lines
-  are forbidden. Remove them if you find them.
-- **Other scripts**: keep the lines only where they make sense for Glyphs 2 (Python 2). Where they do not, remove them.
-  Do not add them to a script that has none.
+- **Scripts that clearly require Glyphs 3 or later** (including everything for Glyphs 4, like the HOI scripts): these
+  lines are forbidden. Remove them if you find them. A script is clearly Glyphs 3+ if it cannot run on Python 2
+  anyway: it uses f-strings, annotations or zero-argument `super()`; it imports from `mekkablue` (whose `__init__.py`
+  uses f-strings and annotations); or it states that it requires Glyphs 3 or later.
+- **Other scripts**: leave existing lines alone unless the script is clearly Glyphs 3+. Keep them only where they make
+  sense for Glyphs 2 (Python 2), and do not add them to a script that has none. A `Glyphs.versionNumber < 3` branch
+  means Glyphs 2 is still supported.
 
 ## Code Conventions
 
