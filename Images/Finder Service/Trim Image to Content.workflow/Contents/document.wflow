@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>AMApplicationBuild</key>
+	<string>523</string>
+	<key>AMApplicationVersion</key>
+	<string>2.10</string>
+	<key>AMDocumentVersion</key>
+	<string>2</string>
+	<key>actions</key>
+	<array>
+		<dict>
+			<key>action</key>
+			<dict>
+				<key>AMAccepts</key>
+				<dict>
+					<key>Container</key>
+					<string>List</string>
+					<key>Optional</key>
+					<true/>
+					<key>Types</key>
+					<array>
+						<string>com.apple.cocoa.string</string>
+					</array>
+				</dict>
+				<key>AMActionVersion</key>
+				<string>2.0.3</string>
+				<key>AMApplication</key>
+				<array>
+					<string>Automator</string>
+				</array>
+				<key>AMParameterProperties</key>
+				<dict>
+					<key>COMMAND_STRING</key>
+					<dict/>
+					<key>CheckedForUserDefaultShell</key>
+					<dict/>
+					<key>inputMethod</key>
+					<dict/>
+					<key>shell</key>
+					<dict/>
+					<key>source</key>
+					<dict/>
+				</dict>
+				<key>AMProvides</key>
+				<dict>
+					<key>Container</key>
+					<string>List</string>
+					<key>Types</key>
+					<array>
+						<string>com.apple.cocoa.string</string>
+					</array>
+				</dict>
+				<key>ActionBundlePath</key>
+				<string>/System/Library/Automator/Run Shell Script.action</string>
+				<key>ActionName</key>
+				<string>Run Shell Script</string>
+				<key>ActionParameters</key>
+				<dict>
+					<key>COMMAND_STRING</key>
+					<string>for candidate in /opt/homebrew/bin/python3 /usr/local/bin/python3 /Library/Frameworks/Python.framework/Versions/Current/bin/python3 /usr/bin/python3; do
+	if [ -x "$candidate" ] &amp;&amp; "$candidate" -c "import PIL" 2&gt;/dev/null; then
+		"$candidate" - "$@" &lt;&lt;'TRIM_IMAGE_PYTHON'
+#!/usr/bin/env python3
+"""
+Trims images to their content: the color of the top left pixel counts as
+background, and the smallest rectangle that keeps every pixel of a different
+color is cropped out. The result is saved next to the original as
+“&lt;name&gt; trimmed.&lt;ext&gt;”; the original is never overwritten.
+
+Usage: trim_image.py image1.png image2.jpg ...
+Requires Pillow (pip3 install Pillow).
+"""
+
+import os
+import subprocess
+import sys
+
+from PIL import Image, ImageChops, ImageOps
+
+
+def contentBox(image):
+	"""Returns (left, top, right, bottom) of everything that differs from the top left pixel, or None."""
+	rgba = image.convert("RGBA")
+	cornerColor = rgba.getpixel((0, 0))
+	if cornerColor[3] == 0:
+		# transparent background: all fully transparent pixels count as the same color
+		return rgba.getchannel("A").getbbox()
+	background = Image.new("RGBA", rgba.size, cornerColor)
+	red, green, blue, alpha = ImageChops.difference(rgba, background).split()
+	anyDifference = ImageChops.lighter(ImageChops.lighter(red, green), ImageChops.lighter(blue, alpha))
+	return anyDifference.getbbox()
+
+
+def freePath(path):
+	base, extension = os.path.splitext(path)
+	candidate = f"{base} trimmed{extension}"
+	counter = 2
+	while os.path.exists(candidate):
+		candidate = f"{base} trimmed {counter}{extension}"
+		counter += 1
+	return candidate
+
+
+def trimImage(path):
+	"""Returns a (symbol, message) report line."""
+	name = os.path.basename(path)
+	with Image.open(path) as opened:
+		imageFormat = opened.format
+		if getattr(opened, "n_frames", 1) &gt; 1:
+			return "⚠️", f"{name}: skipped, multiple frames"
+		info = dict(opened.info)
+		image = ImageOps.exif_transpose(opened)  # so the top left is the top left you see
+		image.load()
+	box = contentBox(image)
+	if box is None:
+		return "⚠️", f"{name}: skipped, all pixels have the top left color"
+	if box == (0, 0, image.width, image.height):
+		return "☑️", f"{name}: nothing to trim"
+	saveOptions = {}
+	for key in ("icc_profile", "dpi", "exif"):
+		if key in info:
+			saveOptions[key] = info[key]
+	if imageFormat == "JPEG":
+		saveOptions["quality"] = 95
+	outputPath = freePath(path)
+	image.crop(box).save(outputPath, format=imageFormat, **saveOptions)
+	return "✅", f"{name}: {image.width}×{image.height} → {box[2] - box[0]}×{box[3] - box[1]}, saved as {os.path.basename(outputPath)}"
+
+
+def notify(message):
+	script = f'display notification "{message}" with title "Trim Image to Content"'
+	subprocess.run(["osascript", "-e", script], check=False)
+
+
+def main(paths):
+	reports = []
+	for path in paths:
+		try:
+			reports.append(trimImage(path))
+		except Exception as error:
+			reports.append(("❌", f"{os.path.basename(path)}: {error}"))
+	print("Trim Image to Content\n")
+	for symbol, message in reports:
+		print(f"\t{symbol} {message}")
+	trimmedCount = sum(1 for symbol, _ in reports if symbol == "✅")
+	problemCount = sum(1 for symbol, _ in reports if symbol in ("⚠️", "❌"))
+	summary = f"{trimmedCount} of {len(reports)} trimmed"
+	if problemCount:
+		summary += f", {problemCount} with problems"
+	if sys.platform == "darwin":
+		notify(summary)
+
+
+if __name__ == "__main__":
+	main(sys.argv[1:])
+
+TRIM_IMAGE_PYTHON
+		exit $?
+	fi
+done
+osascript -e 'display notification "Needs Python 3 with Pillow: pip3 install Pillow" with title "Trim Image to Content"'
+</string>
+					<key>CheckedForUserDefaultShell</key>
+					<true/>
+					<key>inputMethod</key>
+					<integer>1</integer>
+					<key>shell</key>
+					<string>/bin/bash</string>
+					<key>source</key>
+					<string></string>
+				</dict>
+				<key>BundleIdentifier</key>
+				<string>com.apple.RunShellScript</string>
+				<key>CFBundleVersion</key>
+				<string>2.0.3</string>
+				<key>CanShowSelectedItemsWhenRun</key>
+				<false/>
+				<key>CanShowWhenRun</key>
+				<true/>
+				<key>Category</key>
+				<array>
+					<string>AMCategoryUtilities</string>
+				</array>
+				<key>Class Name</key>
+				<string>RunShellScriptAction</string>
+				<key>InputUUID</key>
+				<string>A7E87323-1DF4-4326-A558-1AA48423C0E7</string>
+				<key>Keywords</key>
+				<array>
+					<string>Shell</string>
+					<string>Script</string>
+					<string>Command</string>
+					<string>Run</string>
+					<string>Unix</string>
+				</array>
+				<key>OutputUUID</key>
+				<string>193AFFF0-32FC-4E39-B1D6-176EA6A033C5</string>
+				<key>UUID</key>
+				<string>127FE649-E011-4292-8EA9-2A4AD3DE5F47</string>
+				<key>UnlocalizedApplications</key>
+				<array>
+					<string>Automator</string>
+				</array>
+				<key>arguments</key>
+				<dict/>
+				<key>isViewVisible</key>
+				<integer>1</integer>
+				<key>location</key>
+				<string>309.000000:305.000000</string>
+				<key>nibPath</key>
+				<string>/System/Library/Automator/Run Shell Script.action/Contents/Resources/Base.lproj/main.nib</string>
+			</dict>
+		</dict>
+	</array>
+	<key>connectors</key>
+	<dict/>
+	<key>workflowMetaData</key>
+	<dict>
+		<key>applicationBundleIDsByPath</key>
+		<dict/>
+		<key>applicationPaths</key>
+		<array/>
+		<key>inputTypeIdentifier</key>
+		<string>com.apple.Automator.fileSystemObject.image</string>
+		<key>outputTypeIdentifier</key>
+		<string>com.apple.Automator.nothing</string>
+		<key>presentationMode</key>
+		<integer>15</integer>
+		<key>processesInput</key>
+		<integer>0</integer>
+		<key>serviceApplicationBundleID</key>
+		<string>com.apple.finder</string>
+		<key>serviceApplicationPath</key>
+		<string>/System/Library/CoreServices/Finder.app</string>
+		<key>serviceInputTypeIdentifier</key>
+		<string>com.apple.Automator.fileSystemObject.image</string>
+		<key>serviceOutputTypeIdentifier</key>
+		<string>com.apple.Automator.nothing</string>
+		<key>serviceProcessesInput</key>
+		<integer>0</integer>
+		<key>systemImageName</key>
+		<string>NSActionTemplate</string>
+		<key>useAutomaticInputType</key>
+		<integer>0</integer>
+		<key>workflowTypeIdentifier</key>
+		<string>com.apple.Automator.servicesMenu</string>
+	</dict>
+</dict>
+</plist>
