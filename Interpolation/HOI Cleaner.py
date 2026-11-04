@@ -1,6 +1,6 @@
 # MenuTitle: HOI Cleaner
 __doc__ = """
-Removes all HOI (higher-order interpolation) attributes from all nodes in all layers of the frontmost font, reports in the Macro Window and opens a tab with the affected glyphs. Requires Glyphs 4 or later and a font with Font Info → Document → File format version 4 or later.
+Removes all HOI (higher-order interpolation) attributes from all nodes in all layers of the selected glyphs (the parents of the selected layers) in the frontmost font, or of all glyphs if no glyph is selected. Reports in the Macro Window and opens a tab with the affected glyphs. Requires Glyphs 4 or later and a font with Font Info → Document → File format version 4 or later.
 """
 
 from GlyphsApp import Glyphs, Message
@@ -25,10 +25,20 @@ else:
 		Glyphs.showMacroWindow()
 		print("Report for HOI Cleaner\n")
 		print(f"Font: {font.familyName}\n")
+		glyphs = []
+		for selectedLayer in font.selectedLayers:
+			glyph = selectedLayer.parent
+			if glyph is not None and glyph not in glyphs:
+				glyphs.append(glyph)
+		if glyphs:
+			print(f"Cleaning {len(glyphs)} selected glyph{'s' if len(glyphs) != 1 else ''} only.\n")
+		else:
+			glyphs = font.glyphs
+			print("No glyph selection, cleaning all glyphs.\n")
 		totalNodes, scannedNodes, glyphNames = 0, 0, []
 		font.disableUpdateInterface()
 		try:
-			for glyph in font.glyphs:
+			for glyph in glyphs:
 				glyphCount = 0
 				for layer in glyph.layers:
 					for path in layer.paths:
@@ -50,10 +60,10 @@ else:
 			font.newTab("/" + "/".join(glyphNames))
 			Glyphs.showNotification("HOI Cleaner", f"Removed HOI from {totalNodes} nodes. Details in Macro Window.")
 		else:
-			if not len(font.glyphs):
+			if not len(glyphs):
 				reason = "The font has no glyphs."
 			elif not scannedNodes:
-				reason = f"None of the {len(font.glyphs)} glyphs has any nodes in any layer."
+				reason = f"None of the {len(glyphs)} glyphs has any nodes in any layer."
 			else:
-				reason = f"None of the {scannedNodes} nodes in the {len(font.glyphs)} glyphs of the font has HOI attributes."
+				reason = f"None of the {scannedNodes} nodes in the {len(glyphs)} glyphs has HOI attributes."
 			Message(title="HOI Cleaner", message=f"Nothing was removed in font ‘{font.familyName}’. {reason}", OKButton=None)
