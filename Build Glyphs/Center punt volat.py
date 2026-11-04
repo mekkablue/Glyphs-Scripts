@@ -122,7 +122,7 @@ for thisFont in theseFonts:
 
 				if theseLayers:
 					if Glyphs.versionNumber >= 3:
-						thisFont.currentTab.layers.extend(theseLayers)
+						thisFont.currentTab.layers = list(thisFont.currentTab.layers) + theseLayers
 					else:
 						for layer in theseLayers:
 							thisFont.currentTab.layers.append(layer)
