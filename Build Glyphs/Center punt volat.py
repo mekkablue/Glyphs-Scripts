@@ -1,6 +1,7 @@
 # MenuTitle: Center punt volat
 __doc__ = """
-Shifts all periodcentered.loclCAT glyphs horizontally so it fits between two L’s.
+Shifts all periodcentered.loclCAT glyphs horizontally so they fit between two L’s.
+Suffixed variants (e.g. .loclCAT.ss01) are centered between L’s with the same suffix, or between the default L’s if no such L exists.
 ⚠️ Hold down ⌘ Cmd and ⇧ Shift for processing ALL open fonts.
 """
 
@@ -29,24 +30,30 @@ for thisFont in theseFonts:
 		thisFontFileName = "<UNSAVED DOCUMENT>"
 	print(f"\n📄 Preparing {thisFontFileName}...\n🖥️ Path: {thisFontPath}")
 
-	puntVolatDict = {
+	baseDict = {
 		"periodcentered.loclCAT.case": "L",
 		"periodcentered.loclCAT": "l",
 		"periodcentered.loclCAT.sc": "l.sc",
 	}
-
-	puntVolatNames = sorted(puntVolatDict.keys())
 	allGlyphNames = [g.name for g in thisFont.glyphs if g.export]
 
-	for puntVolatName in puntVolatNames:
-		dotNames = [g.name for g in thisFont.glyphs if g.name not in puntVolatNames and g.name.startswith(puntVolatName)]
-		for dotName in dotNames:
-			suffix = dotName[len(puntVolatName):]
-			dotLname = puntVolatDict[puntVolatName] + suffix
-			if dotLname in allGlyphNames:
-				puntVolatDict[dotName] = dotLname
+	# suffixed variants are centered between L’s with the same suffix, or else between the default L’s:
+	puntVolatDict = dict(baseDict)
+	for glyphName in allGlyphNames:
+		if glyphName in baseDict:
+			continue
+		# the longest base name wins, e.g. .loclCAT.sc.ss01 belongs to .loclCAT.sc, not .loclCAT
+		baseNames = [n for n in baseDict if glyphName.startswith(n + ".")]
+		if not baseNames:
+			continue
+		baseName = max(baseNames, key=len)
+		suffix = glyphName[len(baseName):]
+		suffixedLName = baseDict[baseName] + suffix
+		if suffixedLName in allGlyphNames:
+			puntVolatDict[glyphName] = suffixedLName
+		else:
+			puntVolatDict[glyphName] = baseDict[baseName]
 
-	# rescan puntVolatNames (suffixed variants may have been added):
 	puntVolatNames = sorted(puntVolatDict.keys())
 
 	tabText = ""
@@ -94,35 +101,35 @@ for thisFont in theseFonts:
 					puntVolatLayer.reinterpolateMetrics()
 					print(f"✅ Reinterpolated {puntVolatName} on special layer ‘{puntVolatLayer.name}’.")
 
-			if not tabText:
-				Glyphs.showMacroWindow()
+	if not tabText:
+		Glyphs.showMacroWindow()
+	else:
+		print("Preparing report in Edit View...")
+		thisTab = thisFont.currentTab
+		if not thisTab:
+			thisTab = thisFont.newTab()
+		thisTab.text = tabText
+
+		# display line for each master:
+		cutoff = []
+		names = []
+		for i, layer in enumerate(thisTab.layers):
+			if isinstance(layer, GSControlLayer):
+				cutoff.append(i)
 			else:
-				print("Preparing report in Edit View...")
-				thisTab = thisFont.currentTab
-				if not thisTab:
-					thisTab = thisFont.newTab()
-				thisTab.text = tabText
+				if not cutoff:
+					names.append(layer.parent.name)
 
-				# display line for each master:
-				cutoff = []
-				names = []
-				for i, layer in enumerate(thisTab.layers):
-					if isinstance(layer, GSControlLayer):
-						cutoff.append(i)
-					else:
-						if not cutoff:
-							names.append(layer.parent.name)
+		theseLayers = []
+		for m in thisFont.masters:
+			for gname in names:
+				layer = thisFont.glyphs[gname].layers[m.id]
+				theseLayers.append(layer)
+			theseLayers.append(newLineControlLayer())
 
-				theseLayers = []
-				for m in thisFont.masters:
-					for gname in names:
-						layer = thisFont.glyphs[gname].layers[m.id]
-						theseLayers.append(layer)
-					theseLayers.append(newLineControlLayer())
-
-				if theseLayers:
-					if Glyphs.versionNumber >= 3:
-						thisFont.currentTab.layers = list(thisFont.currentTab.layers) + theseLayers
-					else:
-						for layer in theseLayers:
-							thisFont.currentTab.layers.append(layer)
+		if theseLayers:
+			if Glyphs.versionNumber >= 3:
+				thisFont.currentTab.layers = list(thisFont.currentTab.layers) + theseLayers
+			else:
+				for layer in theseLayers:
+					thisFont.currentTab.layers.append(layer)
