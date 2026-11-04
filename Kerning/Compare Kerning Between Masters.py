@@ -301,38 +301,38 @@ class CompareKerningBetweenMasters(mekkaObject):
 
 					if group2groupLayersMissingFirst:
 						addToTab(f"Group-group missing in {firstMaster.name}:")
-						tab.layers.extend(group2groupLayersMissingFirst)
+						tab.layers = list(tab.layers) + group2groupLayersMissingFirst
 						addNewline()
 					if group2groupLayersMissingSecond:
 						addToTab(f"Group-group missing in {secondMaster.name}:", masterID=secondMasterID)
-						tab.layers.extend(group2groupLayersMissingSecond)
+						tab.layers = list(tab.layers) + group2groupLayersMissingSecond
 						addNewline()
 
 					if group2glyphLayersMissingFirst:
 						addToTab(f"Group-glyph missing in {firstMaster.name}:")
-						tab.layers.extend(group2glyphLayersMissingFirst)
+						tab.layers = list(tab.layers) + group2glyphLayersMissingFirst
 						addNewline()
 					if group2glyphLayersMissingSecond:
 						addToTab(f"Group-glyph missing in {secondMaster.name}:", masterID=secondMasterID)
-						tab.layers.extend(group2glyphLayersMissingSecond)
+						tab.layers = list(tab.layers) + group2glyphLayersMissingSecond
 						addNewline()
 
 					if glyph2groupLayersMissingFirst:
 						addToTab(f"Glyph-group missing in {firstMaster.name}:")
-						tab.layers.extend(glyph2groupLayersMissingFirst)
+						tab.layers = list(tab.layers) + glyph2groupLayersMissingFirst
 						addNewline()
 					if glyph2groupLayersMissingSecond:
 						addToTab(f"Glyph-group missing in {secondMaster.name}:", masterID=secondMasterID)
-						tab.layers.extend(glyph2groupLayersMissingSecond)
+						tab.layers = list(tab.layers) + glyph2groupLayersMissingSecond
 						addNewline()
 
 					if glyph2glyphLayersMissingFirst:
 						addToTab(f"Glyph-glyph missing in {firstMaster.name}:")
-						tab.layers.extend(glyph2glyphLayersMissingFirst)
+						tab.layers = list(tab.layers) + glyph2glyphLayersMissingFirst
 						addNewline()
 					if glyph2glyphLayersMissingSecond:
 						addToTab(f"Glyph-glyph missing in {secondMaster.name}:", masterID=secondMasterID)
-						tab.layers.extend(glyph2glyphLayersMissingSecond)
+						tab.layers = list(tab.layers) + glyph2glyphLayersMissingSecond
 						addNewline()
 
 					print(f"\nDone. Found {missingKernCount} cases of misisng kern pairs.")
