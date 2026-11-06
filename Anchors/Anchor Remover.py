@@ -4,6 +4,8 @@ Remove anchors from glyphs: by anchor name, from suffixed glyphs, or strip non-s
 """
 
 import vanilla
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight, NSWindowStyleMaskResizable
+from Foundation import NSSize
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, UpdateButton, match
 
@@ -21,182 +23,135 @@ class AnchorRemover(mekkaObject):
 		"keepNoDefaults": 0,
 		"allGlyphs": 0,
 		"allMasters": 1,
+		"allFonts": 0,
 	}
 
 	def __init__(self):
-		windowWidth = 450
-		windowHeight = 344
-		windowWidthResize = 1000
-		windowHeightResize = 0
+		windowWidth = 520
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Anchor Remover",
-			minSize=(windowWidth, windowHeight),
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),
-			autosaveName=self.domain("mainwindow"),
+			autosaveName=self.domain("mainwindow"),  # stores last window position
 		)
 
-		linePos, inset, lineHeight, lineHeightS = 12, 15, 26, 22
-		tab1 = 150  # controls start here; labels are right-aligned from inset up to tab1-5
+		inset = 15
 
 		# --- Row 1: Remove anchor by name ---
-		self.w.anchorText = vanilla.TextBox(
-			(inset, linePos + 3, tab1 - 5, 17), "Remove anchor:", selectable=True, alignment="right"
-		)
-		self.w.anchorName = vanilla.ComboBox(
-			(inset + tab1, linePos + 1, -(inset + 20 + 5 + 80 + 5), 22),
-			[],
-			callback=self.SavePreferences,
-		)
-		self.w.anchorName.setToolTip(
-			"Anchor name, wildcard pattern (e.g. top*, *viet), or 'All Anchors'. Click the refresh button to populate the dropdown from the current font."
-		)
-		self.w.updateButton = UpdateButton(
-			(-(inset + 80 + 5 + 20), linePos, 20, 20),
-			callback=self.updateAnchorList,
-		)
-		self.w.updateButton.setToolTip(
-			"Scan the frontmost font for all anchor names and update the popup list."
-		)
-		self.w.removeAnchorButton = vanilla.Button(
-			(-(inset + 80), linePos, -inset, 21), "Remove", callback=self.removeByName
-		)
-		self.w.removeAnchorButton.setToolTip(
-			"Remove the selected anchor from glyphs. Scope is determined by the ⚠️ checkboxes below."
-		)
-		linePos += lineHeight + 8
+		anchorTooltip = "Anchor name, wildcard pattern (e.g. top*, *viet), or 'All Anchors'. Click the refresh button to populate the dropdown from the current font."
+		self.w.anchorText = vanilla.TextBox("auto", "Remove anchor:", selectable=True)
+		self.w.anchorText.setToolTip(anchorTooltip)
+		self.w.anchorName = vanilla.ComboBox("auto", [], callback=self.SavePreferences)
+		self.w.anchorName.setToolTip(anchorTooltip)
+		self.w.updateButton = UpdateButton("auto", callback=self.updateAnchorList)
+		self.w.updateButton.setToolTip("Scan the frontmost font for all anchor names and update the popup list.")
+		self.w.removeAnchorButton = vanilla.Button("auto", "Remove", callback=self.removeByName)
+		self.w.removeAnchorButton.setToolTip("Remove the selected anchor from glyphs. Scope is determined by the ⚠️ checkboxes below.")
 
 		# --- Row 2: Remove from suffixed glyphs ---
-		self.w.suffixText = vanilla.TextBox(
-			(inset, linePos + 3, tab1 - 5, 17), "By glyph suffix:", selectable=True, alignment="right"
-		)
-		self.w.suffixList = vanilla.EditText(
-			(inset + tab1, linePos, -(inset + 80 + 5), 22),
-			".sups, .sinf, superior, inferior",
-			callback=self.SavePreferences,
-		)
-		self.w.suffixList.setToolTip(
-			"Comma-separated suffixes. All anchors are removed from every glyph whose name ends in one of these suffixes. Applies font-wide across all layers, ignoring scope settings."
-		)
-		self.w.removeSuffixButton = vanilla.Button(
-			(-(inset + 80), linePos, -inset, 21), "Remove", callback=self.removeBySuffix
-		)
-		self.w.removeSuffixButton.setToolTip(
-			"Remove all anchors from every glyph whose name ends in one of the listed suffixes. Always operates font-wide on all layers."
-		)
-		linePos += lineHeight + 8
+		suffixTooltip = "Comma-separated suffixes. All anchors are removed from every glyph whose name ends in one of these suffixes. Applies font-wide across all layers, ignoring the glyph and master scope settings."
+		self.w.suffixText = vanilla.TextBox("auto", "By glyph suffix:", selectable=True)
+		self.w.suffixText.setToolTip(suffixTooltip)
+		self.w.suffixList = vanilla.EditText("auto", ".sups, .sinf, superior, inferior", callback=self.SavePreferences)
+		self.w.suffixList.setToolTip(suffixTooltip)
+		self.w.removeSuffixButton = vanilla.Button("auto", "Remove", callback=self.removeBySuffix)
+		self.w.removeSuffixButton.setToolTip("Remove all anchors from every glyph whose name ends in one of the listed suffixes. Always operates font-wide on all layers.")
 
 		# --- Row 3: Remove non-standard anchors ---
-		self.w.nonStandardText = vanilla.TextBox(
-			(inset, linePos + 3, tab1 - 5, 17), "Non-standard, keep:", selectable=True, alignment="right"
-		)
-		self.w.exceptAnchors = vanilla.EditText(
-			(inset + tab1, linePos, -(inset + 80 + 5), 22),
-			"",
-			callback=self.SavePreferences,
-		)
-		self.w.exceptAnchors.setToolTip(
-			"Comma-separated anchor names or wildcard patterns to keep even if non-standard (e.g. top_*, caret*). Wildcards: * matches any string, ? matches one character."
-		)
-		self.w.removeNonStandardButton = vanilla.Button(
-			(-(inset + 80), linePos, -inset, 21), "Remove", callback=self.removeNonStandard
-		)
-		self.w.removeNonStandardButton.setToolTip(
-			"Remove anchors not listed as defaults for each glyph by GlyphsApp (e.g. ogonek from J). Respects the ⚠️ checkboxes below."
-		)
-		linePos += lineHeight
+		exceptTooltip = "Comma-separated anchor names or wildcard patterns to keep even if non-standard (e.g. top_*, caret*). Wildcards: * matches any string, ? matches one character."
+		self.w.nonStandardText = vanilla.TextBox("auto", "Non-standard, keep:", selectable=True)
+		self.w.nonStandardText.setToolTip(exceptTooltip)
+		self.w.exceptAnchors = vanilla.EditText("auto", "", callback=self.SavePreferences)
+		self.w.exceptAnchors.setToolTip(exceptTooltip)
+		self.w.removeNonStandardButton = vanilla.Button("auto", "Remove", callback=self.removeNonStandard)
+		self.w.removeNonStandardButton.setToolTip("Remove anchors not listed as defaults for each glyph by GlyphsApp (e.g. ogonek from J). Respects the ⚠️ checkboxes below.")
 
-		# Sub-checkboxes for non-standard section (small, indented)
-		indent = inset + tab1
-		self.w.keepExtensions = vanilla.CheckBox(
-			(indent, linePos + 1, -inset, 18),
-			"Keep underscore variants of standard anchors (e.g. top_low)",
-			value=False,
-			callback=self.SavePreferences,
-			sizeStyle="small",
-		)
-		self.w.keepExtensions.setToolTip(
-			"Keep anchors whose name starts with a standard anchor name followed by an underscore, e.g. keep top_low if top is standard for this glyph."
-		)
-		linePos += lineHeightS
-
-		self.w.keepExitAndEntry = vanilla.CheckBox(
-			(indent, linePos + 1, -inset, 18),
-			"Keep exit and entry anchors",
-			value=False,
-			callback=self.SavePreferences,
-			sizeStyle="small",
-		)
-		self.w.keepExitAndEntry.setToolTip(
-			"Do not remove exit, entry, #exit and #entry anchors (used for cursive attachment features)."
-		)
-		linePos += lineHeightS
-
-		self.w.keepCarets = vanilla.CheckBox(
-			(indent, linePos + 1, -inset, 18),
-			"Keep caret anchors (only in ligatures)",
-			value=True,
-			callback=self.SavePreferences,
-			sizeStyle="small",
-		)
-		self.w.keepCarets.setToolTip(
-			"Keep caret_* anchors in glyphs that are ligatures (subCategory = Ligature or underscore in name)."
-		)
-		linePos += lineHeightS
-
-		self.w.keepNoDefaults = vanilla.CheckBox(
-			(indent, linePos + 1, -inset, 18),
-			"Skip glyphs with no default anchors defined",
-			value=False,
-			callback=self.SavePreferences,
-			sizeStyle="small",
-		)
-		self.w.keepNoDefaults.setToolTip(
-			"If GlyphsApp has no default anchors defined for a glyph, leave all its anchors untouched."
-		)
-		linePos += lineHeightS + 8
+		# Sub-checkboxes for non-standard section
+		self.w.keepExtensions = vanilla.CheckBox("auto", "Keep underscore variants of standard anchors (e.g. top_low)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.keepExtensions.setToolTip("Keep anchors whose name starts with a standard anchor name followed by an underscore, e.g. keep top_low if top is standard for this glyph.")
+		self.w.keepExitAndEntry = vanilla.CheckBox("auto", "Keep exit and entry anchors", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.keepExitAndEntry.setToolTip("Do not remove exit, entry, #exit and #entry anchors (used for cursive attachment features).")
+		self.w.keepCarets = vanilla.CheckBox("auto", "Keep caret anchors (only in ligatures)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.keepCarets.setToolTip("Keep caret_* anchors in glyphs that are ligatures (subCategory = Ligature or underscore in name).")
+		self.w.keepNoDefaults = vanilla.CheckBox("auto", "Skip glyphs with no default anchors defined", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.keepNoDefaults.setToolTip("If GlyphsApp has no default anchors defined for a glyph, leave all its anchors untouched.")
 
 		# --- Row 4: Remove explicit traversing anchors in composites ---
-		self.w.traversingText = vanilla.TextBox(
-			(inset, linePos + 3, -(inset + 80 + 5), 17), "Remove explicit traversing anchors in composites:", selectable=True, alignment="left"
-		)
-		self.w.removeTraversingButton = vanilla.Button(
-			(-(inset + 80), linePos, -inset, 21), "Remove", callback=self.removeExplicitTraversing
-		)
-		self.w.removeTraversingButton.setToolTip(
-			"In composite glyphs, remove explicit anchors that are already provided by traversal from a component. Lets the component's anchors propagate naturally."
-		)
-		linePos += lineHeight + 8
+		traversingTooltip = "In composite glyphs, remove explicit anchors that are already provided by traversal from a component. Lets the component's anchors propagate naturally."
+		self.w.traversingText = vanilla.TextBox("auto", "Remove explicit traversing anchors in composites:", selectable=True)
+		self.w.traversingText.setToolTip(traversingTooltip)
+		self.w.removeTraversingButton = vanilla.Button("auto", "Remove", callback=self.removeExplicitTraversing)
+		self.w.removeTraversingButton.setToolTip(traversingTooltip)
 
-		# Separator
-		self.w.separator = vanilla.HorizontalLine((inset, linePos, -inset, 1))
-		linePos += 10
+		self.w.separator = vanilla.HorizontalLine("auto")
 
-		# Scope checkboxes (regular size, with warning)
-		self.w.allGlyphs = vanilla.CheckBox(
-			(inset, linePos + 1, -inset, 22),
-			"⚠️ Remove in ALL glyphs (otherwise selected glyphs only)",
-			value=False,
-			callback=self.SavePreferences,
-		)
-		self.w.allGlyphs.setToolTip(
-			"When checked, 'Remove anchor' and 'Remove non-standard' operate on every glyph in the font. When unchecked (default), they operate on the current selection only."
-		)
-		linePos += lineHeight
+		# Scope checkboxes (with warning)
+		self.w.allGlyphs = vanilla.CheckBox("auto", "⚠️ Remove in ALL glyphs (otherwise selected glyphs only)", value=False, callback=self.SavePreferences)
+		self.w.allGlyphs.setToolTip("When checked, 'Remove anchor' and 'Remove non-standard' operate on every glyph in the font. When unchecked (default), they operate on the current selection only.")
+		self.w.allMasters = vanilla.CheckBox("auto", "⚠️ Remove on ALL masters (otherwise current master only)", value=True, callback=self.SavePreferences)
+		self.w.allMasters.setToolTip("When checked (default), 'Remove anchor' operates on all master layers. When unchecked, only the layers of the currently selected master are affected.")
+		self.w.allFonts = vanilla.CheckBox("auto", "⚠️ Remove in ALL open fonts (otherwise frontmost font only)", value=False, callback=self.SavePreferences)
+		self.w.allFonts.setToolTip("When checked, all Remove buttons process every open font, each with the glyph and master scope set above. When unchecked (default), only the frontmost font is processed.")
 
-		self.w.allMasters = vanilla.CheckBox(
-			(inset, linePos + 1, -inset, 22),
-			"⚠️ Remove on ALL masters (otherwise current master only)",
-			value=True,
-			callback=self.SavePreferences,
-		)
-		self.w.allMasters.setToolTip(
-			"When checked (default), 'Remove anchor' operates on all master layers. When unchecked, only the layers of the currently selected master are affected."
-		)
-		linePos += lineHeight + 5
+		# checkboxes stretch vertically by default; hug so the window is as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
 
-		# Status line
-		self.w.status = vanilla.TextBox((inset, linePos, -inset, 14), "", sizeStyle="small")
+		# labels in front of fields: right-aligned, all as wide as the widest one
+		labelNames = ("anchorText", "suffixText", "nonStandardText")
+		widestLabel = "nonStandardText"
+		for labelName in labelNames:
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+		widthRules = [
+			{"view1": getattr(self.w, labelName), "attribute1": "width", "view2": getattr(self.w, widestLabel), "attribute2": "width"}
+			for labelName in labelNames if labelName != widestLabel
+		]
+		# all Remove buttons share one width
+		widthRules += [
+			{"view1": getattr(self.w, buttonName), "attribute1": "width", "view2": self.w.removeAnchorButton, "attribute2": "width"}
+			for buttonName in ("removeSuffixButton", "removeNonStandardButton", "removeTraversingButton")
+		]
+		# the checkboxes of the non-standard section line up with its field
+		alignRules = [
+			{"view1": getattr(self.w, checkName), "attribute1": "left", "view2": self.w.exceptAnchors, "attribute2": "left"}
+			for checkName in ("keepExtensions", "keepExitAndEntry", "keepCarets", "keepNoDefaults")
+		]
+		# each row has one view in the vertical chain; the others follow its centerY
+		centerRules = [
+			{"view1": getattr(self.w, followerName), "attribute1": "centerY", "view2": getattr(self.w, leaderName), "attribute2": "centerY"}
+			for followerName, leaderName in (
+				("anchorText", "anchorName"),
+				("updateButton", "anchorName"),
+				("removeAnchorButton", "anchorName"),
+				("suffixText", "suffixList"),
+				("removeSuffixButton", "suffixList"),
+				("nonStandardText", "exceptAnchors"),
+				("removeNonStandardButton", "exceptAnchors"),
+				("traversingText", "removeTraversingButton"),
+			)
+		]
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[anchorText]-gap-[anchorName(>=120)]-gap-[updateButton]-gap-[removeAnchorButton(>=70)]-inset-|",
+				"H:|-inset-[suffixText]-gap-[suffixList]-gap-[removeSuffixButton]-inset-|",
+				"H:|-inset-[nonStandardText]-gap-[exceptAnchors]-gap-[removeNonStandardButton]-inset-|",
+				"H:[keepExtensions]-(>=inset)-|",
+				"H:[keepExitAndEntry]-(>=inset)-|",
+				"H:[keepCarets]-(>=inset)-|",
+				"H:[keepNoDefaults]-(>=inset)-|",
+				"H:|-inset-[traversingText]-(>=gap)-[removeTraversingButton]-inset-|",
+				"H:|-inset-[separator]-inset-|",
+				"H:|-inset-[allGlyphs]-(>=inset)-|",
+				"H:|-inset-[allMasters]-(>=inset)-|",
+				"H:|-inset-[allFonts]-(>=inset)-|",
+				"V:|-gap-[anchorName]-section-[suffixList]-section-[exceptAnchors]-row-[keepExtensions]-checkRow-[keepExitAndEntry]-checkRow-[keepCarets]-checkRow-[keepNoDefaults]-section-[removeTraversingButton]-section-[separator(1)]-row-[allGlyphs]-checkRow-[allMasters]-checkRow-[allFonts]-inset-|",
+			] + widthRules + alignRules + centerRules,
+			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5, "section": 12},
+		)
 
 		self.LoadPreferences()
 		self.updateAnchorList(None)
@@ -204,23 +159,39 @@ class AnchorRemover(mekkaObject):
 		self.w.open()
 		self.w.makeKey()
 
+		# resizable horizontally only: lock the content height Auto Layout arrived at
+		nsWindow = self.w.getNSWindow()
+		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
+		nsWindow.layoutIfNeeded()
+		contentHeight = nsWindow.contentView().frame().size.height
+		nsWindow.setContentMinSize_(NSSize(windowWidth, contentHeight))
+		nsWindow.setContentMaxSize_(NSSize(windowWidth + 1000, contentHeight))
+
 	# -------------------------------------------------------------------------
 
-	def getGlyphs(self):
-		"""Returns glyphs to process: all glyphs or current selection."""
-		font = Glyphs.font
-		if not font:
-			return []
+	def targetFonts(self):
+		"""Returns the fonts to process: all open fonts or the frontmost font."""
+		if self.prefBool("allFonts"):
+			return list(Glyphs.fonts)
+		return [Glyphs.font]
+
+	def getGlyphs(self, font):
+		"""Returns glyphs of the font to process: all glyphs or current selection."""
 		if self.prefBool("allGlyphs"):
 			return list(font.glyphs)
 		return [layer.parent for layer in font.selectedLayers if layer.parent]
 
-	def layersForGlyph(self, glyph):
+	def layersForGlyph(self, font, glyph):
 		"""Returns layers to process: all masters or current master only."""
 		if self.prefBool("allMasters"):
 			return list(glyph.layers)
-		masterId = Glyphs.font.selectedFontMaster.id
-		return [l for l in glyph.layers if l.associatedMasterId == masterId]
+		masterId = font.selectedFontMaster.id
+		return [layer for layer in glyph.layers if layer.associatedMasterId == masterId]
+
+	def printFontHeader(self, font):
+		print("Font: %s" % font.familyName)
+		if font.filepath:
+			print(font.filepath)
 
 	# -------------------------------------------------------------------------
 
@@ -239,10 +210,40 @@ class AnchorRemover(mekkaObject):
 
 	# -------------------------------------------------------------------------
 
+	def runOnFonts(self, title, processFont, summary):
+		"""Runs processFont(font) on all target fonts, which returns (anchorCount, glyphCount); logs and reports the totals."""
+		Glyphs.clearLog()
+		print("Anchor Remover — %s\n" % title)
+		anchorCount = 0
+		glyphCount = 0
+		fonts = self.targetFonts()
+		for font in fonts:
+			self.printFontHeader(font)
+			font.disableUpdateInterface()
+			try:
+				fontAnchors, fontGlyphs = processFont(font)
+			finally:
+				font.enableUpdateInterface()
+			anchorCount += fontAnchors
+			glyphCount += fontGlyphs
+			print()
+
+		msg = summary % (
+			anchorCount,
+			"" if anchorCount == 1 else "s",
+			glyphCount,
+			"" if glyphCount == 1 else "s",
+		)
+		if len(fonts) > 1:
+			msg += " (%i fonts)" % len(fonts)
+		print("🔠 %s Done." % msg)
+		Glyphs.showNotification("Anchor Remover", msg)
+
+	# -------------------------------------------------------------------------
+
 	def removeByName(self, sender=None):
 		"""Remove anchors matching the combo box entry (exact name, wildcard, or All Anchors)."""
-		font = Glyphs.font
-		if not font:
+		if not Glyphs.font:
 			Message("No font open", "Please open a font first.", OKButton=None)
 			return
 
@@ -253,25 +254,16 @@ class AnchorRemover(mekkaObject):
 
 		removeAll = anchorName == allAnchors
 		hasWildcard = not removeAll and ("*" in anchorName or "?" in anchorName)
-		glyphs = self.getGlyphs()
-		if not glyphs:
-			self.w.status.set("No glyphs to process.")
-			return
+		what = "all anchors" if removeAll else "anchors matching '%s'" % anchorName if hasWildcard else "anchor '%s'" % anchorName
 
-		Glyphs.clearLog()
-		print("Anchor Remover — Remove by name\n")
-		print("Font: %s" % font.familyName)
-		if font.filepath:
-			print(font.filepath)
-		print("\nDeleting %s …\n" % ("all anchors" if removeAll else "anchors matching '%s'" % anchorName if hasWildcard else "anchor '%s'" % anchorName))
-
-		anchorCount = 0
-		glyphCount = 0
-		font.disableUpdateInterface()
-		try:
+		def processFont(font):
+			glyphs = self.getGlyphs(font)
+			anchorCount = 0
+			glyphCount = 0
+			print("\nDeleting %s …\n" % what)
 			for glyph in glyphs:
 				deleted = 0
-				for layer in self.layersForGlyph(glyph):
+				for layer in self.layersForGlyph(font, glyph):
 					if removeAll:
 						deleted += len(layer.anchors)
 						layer.anchors = None
@@ -287,25 +279,15 @@ class AnchorRemover(mekkaObject):
 					print("\t✅ %s: deleted %i anchor%s" % (glyph.name, deleted, "" if deleted == 1 else "s"))
 					anchorCount += deleted
 					glyphCount += 1
-		finally:
-			font.enableUpdateInterface()
+			return anchorCount, glyphCount
 
-		msg = "Deleted %i anchor%s in %i glyph%s." % (
-			anchorCount,
-			"" if anchorCount == 1 else "s",
-			glyphCount,
-			"" if glyphCount == 1 else "s",
-		)
-		print("\n🔠 %s Done." % msg)
-		self.w.status.set(msg)
-		Glyphs.showNotification("Anchor Remover", msg)
+		self.runOnFonts("Remove by name", processFont, "Deleted %i anchor%s in %i glyph%s.")
 
 	# -------------------------------------------------------------------------
 
 	def removeBySuffix(self, sender=None):
 		"""Remove all anchors from glyphs whose name ends in any of the listed suffixes."""
-		font = Glyphs.font
-		if not font:
+		if not Glyphs.font:
 			Message("No font open", "Please open a font first.", OKButton=None)
 			return
 
@@ -315,17 +297,10 @@ class AnchorRemover(mekkaObject):
 			Message("No suffixes", "Enter at least one suffix in the field.", OKButton=None)
 			return
 
-		Glyphs.clearLog()
-		print("Anchor Remover — Remove from suffixed glyphs\n")
-		print("Font: %s" % font.familyName)
-		if font.filepath:
-			print(font.filepath)
-		print("\nSuffixes: %s\n" % ", ".join(suffixes))
-
-		anchorCount = 0
-		glyphCount = 0
-		font.disableUpdateInterface()
-		try:
+		def processFont(font):
+			print("\nSuffixes: %s\n" % ", ".join(suffixes))
+			anchorCount = 0
+			glyphCount = 0
 			for glyph in font.glyphs:
 				if not any(glyph.name.endswith(s) or ("%s." % s) in glyph.name for s in suffixes):
 					continue
@@ -337,25 +312,15 @@ class AnchorRemover(mekkaObject):
 					print("\t✅ %s: removed %i anchor%s" % (glyph.name, deleted, "" if deleted == 1 else "s"))
 					anchorCount += deleted
 					glyphCount += 1
-		finally:
-			font.enableUpdateInterface()
+			return anchorCount, glyphCount
 
-		msg = "Removed %i anchor%s from %i glyph%s." % (
-			anchorCount,
-			"" if anchorCount == 1 else "s",
-			glyphCount,
-			"" if glyphCount == 1 else "s",
-		)
-		print("\n🔠 %s Done." % msg)
-		self.w.status.set(msg)
-		Glyphs.showNotification("Anchor Remover", msg)
+		self.runOnFonts("Remove from suffixed glyphs", processFont, "Removed %i anchor%s from %i glyph%s.")
 
 	# -------------------------------------------------------------------------
 
 	def removeNonStandard(self, sender=None):
 		"""Remove anchors not listed as defaults for each glyph, with optional exceptions."""
-		font = Glyphs.font
-		if not font:
+		if not Glyphs.font:
 			Message("No font open", "Please open a font first.", OKButton=None)
 			return
 
@@ -367,35 +332,19 @@ class AnchorRemover(mekkaObject):
 		rawExcept = self.pref("exceptAnchors")
 		exceptPatterns = [p.strip() for p in rawExcept.split(",") if p.strip()]
 
-		glyphs = self.getGlyphs()
-		if not glyphs:
-			self.w.status.set("No glyphs to process.")
-			return
-
-		Glyphs.clearLog()
-		print("Anchor Remover — Remove non-standard anchors\n")
-		print("Font: %s" % font.familyName)
-		if font.filepath:
-			print(font.filepath)
-		if exceptPatterns:
-			print("Keeping: %s\n" % ", ".join(exceptPatterns))
-		print()
-
-		anchorCount = 0
-		glyphCount = 0
-		font.disableUpdateInterface()
-		try:
-			for glyph in glyphs:
+		def processFont(font):
+			if exceptPatterns:
+				print("Keeping: %s\n" % ", ".join(exceptPatterns))
+			anchorCount = 0
+			glyphCount = 0
+			for glyph in self.getGlyphs(font):
 				glyphInfo = glyph.glyphInfo
+				defaultAnchors = []
 				if glyphInfo and glyphInfo.anchors:
-					defaultAnchors = []
-					for a in glyphInfo.anchors:
-						name = a if isinstance(a, str) else a
+					for name in glyphInfo.anchors:
 						if "@" in name:
 							name = name[:name.find("@")]
 						defaultAnchors.append(name)
-				else:
-					defaultAnchors = []
 
 				if not defaultAnchors and keepNoDefaults:
 					continue
@@ -408,7 +357,7 @@ class AnchorRemover(mekkaObject):
 							continue
 						keep = False
 						# User-specified except patterns (wildcards)
-						if any(match(anchorName, p) for p in exceptPatterns):
+						if any(match(anchorName, pattern) for pattern in exceptPatterns):
 							keep = True
 						# Underscore variants (e.g. top_low when top is standard)
 						if keepExtensions and "_" in anchorName:
@@ -431,47 +380,24 @@ class AnchorRemover(mekkaObject):
 				if deleted:
 					anchorCount += deleted
 					glyphCount += 1
-		finally:
-			font.enableUpdateInterface()
+			return anchorCount, glyphCount
 
-		msg = "Removed %i non-standard anchor%s from %i glyph%s." % (
-			anchorCount,
-			"" if anchorCount == 1 else "s",
-			glyphCount,
-			"" if glyphCount == 1 else "s",
-		)
-		print("\n🔠 %s Done." % msg)
-		self.w.status.set(msg)
-		Glyphs.showNotification("Anchor Remover", msg)
+		self.runOnFonts("Remove non-standard anchors", processFont, "Removed %i non-standard anchor%s from %i glyph%s.")
 
 	# -------------------------------------------------------------------------
 
 	def removeExplicitTraversing(self, sender=None):
 		"""In composite layers, remove explicit anchors already provided by traversal from a component."""
-		font = Glyphs.font
-		if not font:
+		if not Glyphs.font:
 			Message("No font open", "Please open a font first.", OKButton=None)
 			return
 
-		glyphs = self.getGlyphs()
-		if not glyphs:
-			self.w.status.set("No glyphs to process.")
-			return
-
-		Glyphs.clearLog()
-		print("Anchor Remover — Remove explicit traversing anchors in composites\n")
-		print("Font: %s" % font.familyName)
-		if font.filepath:
-			print(font.filepath)
-		print()
-
-		anchorCount = 0
-		glyphCount = 0
-		font.disableUpdateInterface()
-		try:
-			for glyph in glyphs:
+		def processFont(font):
+			anchorCount = 0
+			glyphCount = 0
+			for glyph in self.getGlyphs(font):
 				deleted = 0
-				for layer in self.layersForGlyph(glyph):
+				for layer in self.layersForGlyph(font, glyph):
 					if not layer.components:
 						continue
 					# Collect anchor names provided by traversal from all components.
@@ -493,18 +419,9 @@ class AnchorRemover(mekkaObject):
 				if deleted:
 					anchorCount += deleted
 					glyphCount += 1
-		finally:
-			font.enableUpdateInterface()
+			return anchorCount, glyphCount
 
-		msg = "Removed %i explicit traversing anchor%s from %i glyph%s." % (
-			anchorCount,
-			"" if anchorCount == 1 else "s",
-			glyphCount,
-			"" if glyphCount == 1 else "s",
-		)
-		print("\n🔠 %s Done." % msg)
-		self.w.status.set(msg)
-		Glyphs.showNotification("Anchor Remover", msg)
+		self.runOnFonts("Remove explicit traversing anchors in composites", processFont, "Removed %i explicit traversing anchor%s from %i glyph%s.")
 
 
 AnchorRemover()
