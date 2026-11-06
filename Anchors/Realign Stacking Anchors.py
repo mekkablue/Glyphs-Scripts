@@ -3,10 +3,17 @@ __doc__ = """
 On all layers in combining marks, top/_top, bottom/_bottom, etc. anchor pairs are realigned in their italic angle. Only moves anchors horizontally.
 """
 
-from Foundation import NSPoint
 import vanilla
+from AppKit import (
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultLow,
+	NSLayoutPriorityWindowSizeStayPut,
+	NSWindowStyleMaskResizable,
+)
+from Foundation import NSPoint
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, UpdateButton
 from mekkablue.geometry import italicize
 
 
@@ -22,46 +29,64 @@ class RealignStackingAnchors(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 380
-		windowHeight = 230
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Realign Stacking Anchors in Combining Accents",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, lineHeight * 2.5), "Realign stacking anchor pairs to each other (anchors with and without leading underscore, e.g. _top to top) in their respective italic angle, for pairs of these anchors:", sizeStyle='small', selectable=True)
-		linePos += int(lineHeight * 2.4)
+		inset = 15
+		self.w.descriptionText = vanilla.TextBox(
+			"auto",
+			"Realign stacking anchor pairs to each other (anchors with and without leading underscore, e.g. _top to top) in their respective italic angle, for pairs of these anchors:",
+			sizeStyle="small",
+			selectable=True,
+		)
+		# a wrapping block takes the width it is given instead of demanding one long line
+		self.w.descriptionText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
-		self.w.whichAnchorPairs = vanilla.EditText((inset, linePos, -inset, 19), "top, bottom", callback=self.SavePreferences, sizeStyle='small')
-		self.w.whichAnchorPairs.getNSTextField(
-		).setToolTip_("Comma-separated list of anchor names. With or without underscore does not matter. You only need to specify one of both. Example: ‘top, bottom’.")
-		linePos += lineHeight
+		self.w.whichAnchorPairs = vanilla.EditText("auto", "top, bottom", callback=self.SavePreferences, sizeStyle="small")
+		self.w.whichAnchorPairs.setToolTip("Comma-separated list of anchor names. With or without underscore does not matter. You only need to specify one of both. Example: ‘top, bottom’.")
+		self.w.resetButton = UpdateButton("auto", callback=self.resetAnchorPairs)
+		self.w.resetButton.setToolTip("Reset the anchor names to ‘top, bottom’.")
 
-		self.w.allGlyphs = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Include all glyphs in font (i.e., ignore selection, recommended)", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allGlyphs = vanilla.CheckBox("auto", "Include all glyphs in font (i.e., ignore selection, recommended)", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.allGlyphs.setToolTip("If checked, will ignore the current glyph selection, and process all glyphs in the font, minus the glyphs that are excluded by the following two settings.")
-		linePos += lineHeight
 
-		self.w.limitToCombiningMarks = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Limit to combining marks (recommended)", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.limitToCombiningMarks = vanilla.CheckBox("auto", "Limit to combining marks (recommended)", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.limitToCombiningMarks.setToolTip("If checked, among the processed glyphs, will process only glyphs that are categorised as combining marks. Usually this is where you want the realignment if stacking anchors. Uncheck if your accents are not correctly categorised.")
-		linePos += lineHeight
 
-		self.w.includeNonExporting = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Include non-exporting glyphs (recommended)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeNonExporting = vanilla.CheckBox("auto", "Include non-exporting glyphs (recommended)", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.includeNonExporting.setToolTip("If checked, will also process glyphs that are set to not export. Otherwise only exporting glyphs.")
-		linePos += lineHeight
 
-		self.w.allFonts = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "⚠️ Apply to ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allFonts = vanilla.CheckBox("auto", "⚠️ Apply to ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.allFonts.setToolTip("If checked, will apply to ALL fonts currently open in Glyphs. You have been warned.")
-		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Realign", callback=self.RealignStackingAnchorsMain)
+		self.w.runButton = vanilla.Button("auto", "Realign", callback=self.RealignStackingAnchorsMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; hug so the window is as tall as its content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[whichAnchorPairs]-gap-[resetButton(20)]-inset-|",
+				"H:|-inset-[allGlyphs]-(>=inset)-|",
+				"H:|-inset-[limitToCombiningMarks]-(>=inset)-|",
+				"H:|-inset-[includeNonExporting]-(>=inset)-|",
+				"H:|-inset-[allFonts]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[descriptionText(42)]-row-[whichAnchorPairs]-row-[allGlyphs]-checkRow-[limitToCombiningMarks]-checkRow-[includeNonExporting]-checkRow-[allFonts]-inset-[runButton]-inset-|",
+				{"view1": self.w.resetButton, "attribute1": "centerY", "view2": self.w.whichAnchorPairs, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -69,6 +94,17 @@ class RealignStackingAnchors(mekkaObject):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
+
+		# resizable horizontally only: content height stays fixed
+		nsWindow = self.w.getNSWindow()
+		contentHeight = nsWindow.contentRectForFrameRect_(nsWindow.frame()).size.height
+		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
+		nsWindow.setContentMinSize_((windowWidth, contentHeight))
+		nsWindow.setContentMaxSize_((windowWidth + windowWidthResize, contentHeight))
+
+	def resetAnchorPairs(self, sender=None):
+		self.w.whichAnchorPairs.set(self.prefDict["whichAnchorPairs"])
+		self.SavePreferences()
 
 	def RealignStackingAnchorsMain(self, sender):
 		try:
