@@ -3,7 +3,11 @@ __doc__="""
 Find all anchors that are not where they are supposed to be.
 """
 
-import vanilla, sys
+import sys
+import objc
+import vanilla
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight, NSWindowStyleMaskResizable
+from Foundation import NSSize
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, newLineControlLayer, UpdateButton, reportFontName
 
@@ -11,7 +15,7 @@ horizontals = (
 	"LSB",
 	"RSB",
 	"LSB or RSB",
-	"Center (1u tolerance)",
+	"Center (min 1u tolerance)",
 	"Center or LSB or RSB",
 )
 
@@ -22,16 +26,20 @@ verticals = (
 )
 
 
-def anchorIsAstray(thisAnchor, thisLayer, shouldHorizontalAlign, shouldVerticalAlign, horizontalAlignment, verticalAlignment):
+def anchorIsAstray(thisAnchor, thisLayer, shouldHorizontalAlign, shouldVerticalAlign, horizontalAlignment, verticalAlignment, tolerance=0.0):
 	x, y = thisAnchor.position
 
+	def isNotAt(value, target):
+		"""True if value is farther from target than the tolerance."""
+		return target is None or abs(value - target) > tolerance
+
 	if shouldHorizontalAlign:
-		isNotAtLSB = x != 0
-		isNotAtRSB = x != thisLayer.width
-		isNotInCenter = not ((thisLayer.width/2-1) < x < (thisLayer.width/2+1))
-		
+		isNotAtLSB = isNotAt(x, 0)
+		isNotAtRSB = isNotAt(x, thisLayer.width)
+		isNotInCenter = abs(x - thisLayer.width / 2) > max(1, tolerance)
+
 		# none of the positions are taken -> definitely astray
-		if all((isNotAtRSB, isNotAtRSB, isNotInCenter)):
+		if all((isNotAtLSB, isNotAtRSB, isNotInCenter)):
 			return True
 
 		if horizontalAlignment <= 2 and isNotAtLSB and isNotAtRSB:
@@ -45,10 +53,10 @@ def anchorIsAstray(thisAnchor, thisLayer, shouldHorizontalAlign, shouldVerticalA
 		if horizontalAlignment == 1 and isNotAtRSB:
 			return True
 
-		# Center (1u tolerance)
+		# Center (min 1u tolerance)
 		if horizontalAlignment == 3 and isNotInCenter:
 			return True
-		
+
 	if shouldVerticalAlign:
 		xHeight, capHeight = None, None
 		for m in thisLayer.metrics:
@@ -56,12 +64,12 @@ def anchorIsAstray(thisAnchor, thisLayer, shouldHorizontalAlign, shouldVerticalA
 				xHeight = m.position
 			if m.name == "Cap Height":
 				capHeight = m.position
-		
-		isNotAtBaseline = y != 0
-		isNotAtXHeight = y != xHeight
-		isNotAtCapHeight = y != capHeight
-		isNotOnAnyMetric = y not in [m.position for m in thisLayer.metrics]
-		
+
+		isNotAtBaseline = isNotAt(y, 0)
+		isNotAtXHeight = isNotAt(y, xHeight)
+		isNotAtCapHeight = isNotAt(y, capHeight)
+		isNotOnAnyMetric = all(isNotAt(y, m.position) for m in thisLayer.metrics)
+
 		# Any metric line
 		if verticalAlignment == 0 and isNotOnAnyMetric:
 			return True
@@ -77,6 +85,11 @@ def anchorIsAstray(thisAnchor, thisLayer, shouldHorizontalAlign, shouldVerticalA
 	return False
 
 
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
+
+
 class FindStrayAnchors(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
@@ -85,64 +98,121 @@ class FindStrayAnchors(mekkaObject):
 		"horizontalAlignment": 2, # LSB or RSB
 		"verticalAlignment": 0, # Any Metric Line
 		"anchors": "top, bottom, _top, _bottom",
+		"tolerance": 0,
 		"reuseTab": True,
 	}
 
-	def __init__( self ):
+	def __init__(self):
 		# Window 'self.w':
-		windowWidth  = 300
-		windowHeight = 190
-		windowWidthResize  = 1000 # user can resize width by this value
-		windowHeightResize = 0   # user can resize height by this value
+		windowWidth = 320
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Find Stray Anchors", # window title
-			minSize = (windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize = (windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName = self.domain("mainwindow") # stores last window position and size
+			(windowWidth, windowHeight),
+			"Find Stray Anchors",
+			autosaveName=self.domain("mainwindow"),  # stores last window position
 		)
-		
+
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 40), "Open a new tab with glyphs where anchors are not where they are supposed to be:", sizeStyle="small", selectable=True)
-		linePos += int(lineHeight * 1.8)
-		
-		indent = 78
-		tooltip = "All anchors you want to find. Separate multiple names with comma’s, e.g., ‘top, bottom’ or ‘exit, entry’."
-		self.w.anchorsText = vanilla.TextBox((inset, linePos+2, indent, 14), "Find anchors", sizeStyle="small", selectable=True)
-		self.w.anchors = vanilla.EditText((inset+indent, linePos-1, -inset-19, 19), "top, bottom, _top, _bottom", callback=self.SavePreferences, sizeStyle="small")
-		self.w.anchorsText.setToolTip(tooltip)
-		self.w.anchors.setToolTip(tooltip)
-		self.w.updateButton = UpdateButton((-inset - 18, linePos - 3, -inset, 18), callback=self.updateAnchorNames)
+		inset = 15
+		anchorsTooltip = "All anchors you want to find. Separate multiple names with comma’s, e.g., ‘top, bottom’ or ‘exit, entry’."
+
+		self.w.descriptionText = vanilla.TextBox("auto", "Open a new tab with glyphs where anchors are not where they are supposed to be:", sizeStyle="small", selectable=True)
+
+		self.w.anchorsText = vanilla.TextBox("auto", "Find anchors", sizeStyle="small", selectable=True)
+		self.w.anchorsText.setToolTip(anchorsTooltip)
+		self.w.anchors = vanilla.EditText("auto", "top, bottom, _top, _bottom", callback=self.SavePreferences, sizeStyle="small")
+		self.w.anchors.setToolTip(anchorsTooltip)
+		self.w.updateButton = UpdateButton("auto", callback=self.updateAnchorNames)
 		self.w.updateButton.setToolTip("Insert all anchor names of the frontmost font. Resets to default ‘top, bottom, _top, _bottom’ if there is no font open (or no anchors in the frontmost font).")
-		linePos += lineHeight
 
-		indent = 120
-		self.w.shouldHorizontalAlign = vanilla.CheckBox((inset, linePos-1, indent, 20), "Horizontally not on:", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.horizontalAlignment = vanilla.PopUpButton((inset+indent, linePos, -inset, 17), horizontals, sizeStyle="small", callback=self.SavePreferences)
-		linePos += lineHeight
+		self.w.shouldHorizontalAlign = vanilla.CheckBox("auto", "Horizontally not on:", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.shouldHorizontalAlign.setToolTip("Find anchors that are not at the chosen horizontal position.")
+		self.w.horizontalAlignment = vanilla.PopUpButton("auto", horizontals, sizeStyle="small", callback=self.SavePreferences)
+		self.w.horizontalAlignment.setToolTip("Horizontal positions that count as correct. Anchors anywhere else are stray.")
 
-		self.w.shouldVerticalAlign = vanilla.CheckBox((inset, linePos-1, indent, 20), "Vertically not on:", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.verticalAlignment = vanilla.PopUpButton((inset+indent, linePos, -inset, 17), verticals, sizeStyle="small", callback=self.SavePreferences)
-		linePos += lineHeight
-		
-		self.w.reuseTab = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Reuse current tab", value=False, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
-		
+		self.w.shouldVerticalAlign = vanilla.CheckBox("auto", "Vertically not on:", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.shouldVerticalAlign.setToolTip("Find anchors that are not at the chosen vertical position.")
+		self.w.verticalAlignment = vanilla.PopUpButton("auto", verticals, sizeStyle="small", callback=self.SavePreferences)
+		self.w.verticalAlignment.setToolTip("Vertical positions that count as correct. Anchors anywhere else are stray.")
+
+		toleranceTooltip = "Anchors this many units or fewer away from the chosen position still count as being on it. Applies to horizontal and vertical positions."
+		self.w.toleranceText = vanilla.TextBox("auto", "Tolerance:", sizeStyle="small", selectable=True)
+		self.w.toleranceText.setToolTip(toleranceTooltip)
+		self.w.tolerance = SteppingEditText("auto", "0", callback=self.toleranceChanged, sizeStyle="small")
+		self.w.tolerance.setToolTip(toleranceTooltip)
+
+		self.w.reuseTab = vanilla.CheckBox("auto", "Reuse current tab", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.reuseTab.setToolTip("Put the report in the current Edit tab, if there is one, instead of opening a new tab.")
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80-inset, -20-inset, -inset, -inset), "Find", sizeStyle="regular", callback=self.FindStrayAnchorsMain)
+		self.w.runButton = vanilla.Button("auto", "Find", callback=self.FindStrayAnchorsMain)
+		self.w.runButton.setToolTip("Open a tab with the layers that have stray anchors.")
 		self.w.setDefaultButton(self.w.runButton)
-		
+
+		# checkboxes stretch vertically by default; hug so the window is as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# labels keep their text on one line, except for the description, which wraps
+		for labelName in ("anchorsText", "toleranceText"):
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+		# the checkbox titles stay on one line
+		for checkBoxName in ("shouldHorizontalAlign", "shouldVerticalAlign"):
+			getattr(self.w, checkBoxName).getNSButton().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+		self.w.descriptionText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[anchorsText]-gap-[anchors]-gap-[updateButton]-inset-|",
+				"H:|-inset-[shouldHorizontalAlign]-gap-[horizontalAlignment(>=100)]-inset-|",
+				"H:|-inset-[shouldVerticalAlign]-gap-[verticalAlignment]-inset-|",
+				"H:|-inset-[toleranceText]-gap-[tolerance(60)]-(>=inset)-|",
+				"H:|-inset-[reuseTab]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[descriptionText(30)]-row-[anchors]-row-[horizontalAlignment]-row-[verticalAlignment]-row-[tolerance]-row-[reuseTab]-inset-[runButton]-inset-|",
+				# the first column shares one width, so the fields start at one x-position
+				{"view1": self.w.anchorsText, "attribute1": "width", "view2": self.w.shouldHorizontalAlign, "attribute2": "width"},
+				{"view1": self.w.shouldVerticalAlign, "attribute1": "width", "view2": self.w.shouldHorizontalAlign, "attribute2": "width"},
+				{"view1": self.w.verticalAlignment, "attribute1": "width", "view2": self.w.horizontalAlignment, "attribute2": "width"},
+				{"view1": self.w.toleranceText, "attribute1": "width", "view2": self.w.shouldHorizontalAlign, "attribute2": "width"},
+				{"view1": self.w.toleranceText, "attribute1": "centerY", "view2": self.w.tolerance, "attribute2": "centerY"},
+				{"view1": self.w.anchorsText, "attribute1": "centerY", "view2": self.w.anchors, "attribute2": "centerY"},
+				{"view1": self.w.updateButton, "attribute1": "centerY", "view2": self.w.anchors, "attribute2": "centerY"},
+				{"view1": self.w.shouldHorizontalAlign, "attribute1": "centerY", "view2": self.w.horizontalAlignment, "attribute2": "centerY"},
+				{"view1": self.w.shouldVerticalAlign, "attribute1": "centerY", "view2": self.w.verticalAlignment, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6},
+		)
+
 		# Load Settings:
 		if not self.LoadPreferences():
 			print("⚠️ ‘Find Stray Anchors’ could not load preferences. Will resort to defaults.")
-		
+
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
 
+		# resizable horizontally only: lock the content height Auto Layout arrived at
+		nsWindow = self.w.getNSWindow()
+		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
+		nsWindow.layoutIfNeeded()
+		contentHeight = nsWindow.contentView().frame().size.height
+		nsWindow.setContentMinSize_(NSSize(windowWidth, contentHeight))
+		nsWindow.setContentMaxSize_(NSSize(windowWidth + 1000, contentHeight))
 
+	def toleranceChanged(self, sender=None):
+		"""Tolerance cannot be negative: resets the field to 0 when stepped or typed below 0."""
+		try:
+			isNegative = float(self.w.tolerance.get()) < 0
+		except ValueError:
+			isNegative = False
+		if isNegative:
+			self.w.tolerance.set("0")
+		self.SavePreferences(sender)
 
 	def updateAnchorNames(self, sender=None):
 		anchorText = self.collectAnchors()
@@ -218,6 +288,7 @@ class FindStrayAnchors(mekkaObject):
 				shouldVerticalAlign = self.pref("shouldVerticalAlign")
 				horizontalAlignment = self.pref("horizontalAlignment")
 				verticalAlignment = self.pref("verticalAlignment")
+				tolerance = max(0.0, self.prefFloat("tolerance"))
 
 				report = {}
 				anchorNames = [a.strip() for a in anchors.split(",")]
@@ -234,7 +305,7 @@ class FindStrayAnchors(mekkaObject):
 							if not thisAnchor.name in anchorNames:
 								continue
 
-							if anchorIsAstray(thisAnchor, thisLayer, shouldHorizontalAlign, shouldVerticalAlign, horizontalAlignment, verticalAlignment):
+							if anchorIsAstray(thisAnchor, thisLayer, shouldHorizontalAlign, shouldVerticalAlign, horizontalAlignment, verticalAlignment, tolerance):
 								report[thisAnchor.name].append(thisLayer)
 								thisLayer.selection.append(thisAnchor)
 
