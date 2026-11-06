@@ -81,11 +81,13 @@ class Bumper(mekkaObject):
 	}
 
 	def __init__(self):
-		# register prefs if run for the first time:
+		# state for Undo (None as long as there is nothing to undo):
+		self.originalKerning = None
+		self.originalKerningFont = None
 
 		# Window 'self.w':
 		windowWidth = 500
-		windowHeight = 365
+		windowHeight = 389
 		windowWidthResize = 500  # user can resize width by this value
 		windowHeightResize = 500  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -188,6 +190,10 @@ class Bumper(mekkaObject):
 		self.w.bar = vanilla.ProgressBar((inset, linePos, -inset, 16))
 		linePos += lineHeight
 
+		# Status line:
+		self.w.status = vanilla.TextBox((inset, linePos, -inset, 14), "Ready.", sizeStyle="small", selectable=True)
+		linePos += lineHeight
+
 		# (Hidden) Preferences Kern Strings:
 		self.w.kernStrings = vanilla.TextEditor((1, linePos, -1, -45), callback=self.SavePreferences)
 		self.w.kernStrings.setToolTip("Add your default kern strings here. They will show up in the left/right dropdowns at the top. Everything after a hashtag (#) is ignored. Use blank lines for structuring.")
@@ -198,11 +204,14 @@ class Bumper(mekkaObject):
 		# Buttons:
 		self.w.nextButton = vanilla.Button((-inset - 210, -20 - inset, -inset - 100, -inset), "Next Master", callback=self.masterSwitch)
 
+		self.w.undoButton = vanilla.Button((inset, -20 - inset, inset + 80, -inset), "Undo", callback=self.undo)
+		self.w.undoButton.setToolTip("Restores the kerning as it was before the last time you pressed Kern. Available only after kerning was added.")
+		self.w.undoButton.enable(False)
+
 		# Run Button:
 		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Kern", callback=self.BumperMain)
 		self.w.setDefaultButton(self.w.runButton)
 
-		self.w.status = vanilla.TextBox((inset, -28 - inset, -inset - 210, 14), "Ready.", sizeStyle="small", selectable=True)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -297,6 +306,23 @@ class Bumper(mekkaObject):
 				if shouldReportInMacroWindow:
 					print("- %s %s: %i" % (leftSide, rightSide, newKernValue))
 				return True  # increase kern count
+
+	@staticmethod
+	def deepCopyOfDict(dictionary):
+		# kerning is nested: {masterID: {leftKey: {rightKey: value}}}
+		if hasattr(dictionary, "keys"):
+			return {key: Bumper.deepCopyOfDict(dictionary[key]) for key in dictionary.keys()}
+		return dictionary
+
+	def undo(self, sender=None):
+		if self.originalKerning is None:
+			return
+		font = self.originalKerningFont
+		font.kerning = self.originalKerning
+		self.originalKerning = None
+		self.originalKerningFont = None
+		self.w.undoButton.enable(False)
+		self.w.status.set("↩️ Kerning restored.")
 
 	def BumperMain(self, sender):
 		try:
@@ -402,6 +428,11 @@ class Bumper(mekkaObject):
 					print("➡️ R glyphs:\n%s\n" % ", ".join([g.name for g in secondGlyphList]))
 
 				# CREATE KERNING DATA:
+
+				# remember the prior state for Undo:
+				self.originalKerning = self.deepCopyOfDict(thisFont.kerning)
+				self.originalKerningFont = thisFont
+				self.w.undoButton.enable(True)
 
 				# precompute bubble layers if requested (avoids recomputing per pair):
 				if useBubble:
