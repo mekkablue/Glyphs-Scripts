@@ -6,6 +6,7 @@ add or remove the # prefix; swap or delete anchors — all from one place.
 """
 
 import vanilla
+from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 from mekkablue import mekkaObject, newAnchorWithName
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSAnchor, GSPath, GSNode, GSOFFCURVE, GSBIDI, GSLTR, GSRTL
@@ -22,99 +23,82 @@ class ExitEntryManager(mekkaObject):
 
 	def __init__(self):
 		windowWidth = 405
-		windowHeight = 367
-		windowWidthResize = 100
-		windowHeightResize = 0
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Exit-Entry Manager",
-			minSize=(windowWidth, windowHeight),
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),
-			autosaveName=self.domain("mainwindow"),
+			autosaveName=self.domain("mainwindow"),  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		buttonWidth = 90
-		buttonX = -(inset + buttonWidth)
+		inset = 15
 
-		# ── Insert section ──────────────────────────────────────────────────────
-		self.w.insertSideText = vanilla.TextBox((inset, linePos + 2, buttonX - 5, 14), "Insert at sidebearings:", sizeStyle="small", selectable=True)
-		self.w.insertSideButton = vanilla.Button((buttonX, linePos, -inset, 20), "Insert", callback=self.insertAtSidebearings, sizeStyle="small")
+		self.w.insertSideText = vanilla.TextBox("auto", "Insert at sidebearings:", sizeStyle="small", selectable=True)
+		self.w.insertSideButton = vanilla.Button("auto", "Insert", callback=self.insertAtSidebearings, sizeStyle="small")
+		self.w.insertNodeText = vanilla.TextBox("auto", "Insert at outermost selected nodes:", sizeStyle="small", selectable=True)
+		self.w.insertNodeButton = vanilla.Button("auto", "Insert", callback=self.insertAtSelectedNodes, sizeStyle="small")
+		self.w.insertPositionalText = vanilla.TextBox("auto", "Insert for positional glyphs:", sizeStyle="small", selectable=True)
+		self.w.insertPositionalButton = vanilla.Button("auto", "Insert", callback=self.insertForPositionalGlyphs, sizeStyle="small")
+		self.w.addHashText = vanilla.TextBox("auto", "Add # prefix: exit → #exit, entry → #entry:", sizeStyle="small", selectable=True)
+		self.w.addHashButton = vanilla.Button("auto", "Add #", callback=self.addHashPrefix, sizeStyle="small")
+		self.w.removeHashText = vanilla.TextBox("auto", "Remove # prefix: #exit → exit, #entry → entry:", sizeStyle="small", selectable=True)
+		self.w.removeHashButton = vanilla.Button("auto", "Remove #", callback=self.removeHashPrefix, sizeStyle="small")
+		self.w.swapText = vanilla.TextBox("auto", "Swap exit ↔ entry anchor positions:", sizeStyle="small", selectable=True)
+		self.w.swapButton = vanilla.Button("auto", "Swap", callback=self.swapExitEntry, sizeStyle="small")
+		self.w.removeAnchorText = vanilla.TextBox("auto", "Remove all exit/entry anchors (with and without #):", sizeStyle="small", selectable=True)
+		self.w.removeAnchorButton = vanilla.Button("auto", "Remove", callback=self.removeAnchors, sizeStyle="small")
+		self.w.useHashtag = vanilla.CheckBox("auto", "Use # prefix for insert operations (#exit, #entry)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.assumeBidiLTR = vanilla.CheckBox("auto", "Assume bidirectional glyphs as LTR", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.overwriteExisting = vanilla.CheckBox("auto", "Overwrite existing exit/entry anchors", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allLayers = vanilla.CheckBox("auto", "All masters and special layers (otherwise current master only)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.applyFontWide = vanilla.CheckBox("auto", "⚠️ Apply to ALL glyphs (otherwise selected glyphs only)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.separator1 = vanilla.HorizontalLine("auto")
+		self.w.separator2 = vanilla.HorizontalLine("auto")
+		self.w.separator3 = vanilla.HorizontalLine("auto")
+
 		self.w.insertSideText.setToolTip("LTR: entry@LSB, exit@RSB; RTL: vice versa. LTR glyphs: entry at x=0 (LSB), exit at x=width (RSB). RTL glyphs: exit at x=0, entry at x=width. Respects '# prefix' and 'Overwrite' checkboxes.")
 		self.w.insertSideButton.setToolTip("Insert entry/exit anchors at sidebearings, direction-aware.")
-		linePos += lineHeight
-
-		self.w.insertNodeText = vanilla.TextBox((inset, linePos + 2, buttonX - 5, 14), "Insert at outermost selected nodes:", sizeStyle="small", selectable=True)
-		self.w.insertNodeButton = vanilla.Button((buttonX, linePos, -inset, 20), "Insert", callback=self.insertAtSelectedNodes, sizeStyle="small")
 		self.w.insertNodeText.setToolTip("y=0, direction-aware. Uses x of outermost selected nodes to place entry/exit at y=0. LTR: entry left, exit right. RTL: exit left, entry right. Always uses the current selection; ignores 'Apply to ALL glyphs'.")
 		self.w.insertNodeButton.setToolTip("Place entry/exit anchors at x of outermost selected nodes, y=0, direction-aware.")
-		linePos += lineHeight
-
-		self.w.insertPositionalText = vanilla.TextBox((inset, linePos + 2, buttonX - 5, 14), "Insert for positional glyphs:", sizeStyle="small", selectable=True)
-		self.w.insertPositionalButton = vanilla.Button((buttonX, linePos, -inset, 20), "Insert", callback=self.insertForPositionalGlyphs, sizeStyle="small")
 		self.w.insertPositionalText.setToolTip(".init/.medi/.fina, direction-aware. RTL (.init/.medi): exit at x=0; (.medi/.fina): entry at rightmost oncurve. LTR (.init/.medi): exit at rightmost oncurve; (.medi/.fina): entry at leftmost oncurve. Skips non-positional glyphs.")
 		self.w.insertPositionalButton.setToolTip("Insert exit/entry anchors for positional glyphs (.init/.medi/.fina), direction-aware.")
-		linePos += lineHeight + 4
-
-		self.w.separator1 = vanilla.HorizontalLine((inset, linePos, -inset, 1))
-		linePos += 10
-
-		# ── Prefix section ──────────────────────────────────────────────────────
-		self.w.addHashText = vanilla.TextBox((inset, linePos + 2, buttonX - 5, 14), "Add # prefix: exit → #exit, entry → #entry:", sizeStyle="small", selectable=True)
-		self.w.addHashButton = vanilla.Button((buttonX, linePos, -inset, 20), "Add #", callback=self.addHashPrefix, sizeStyle="small")
 		self.w.addHashText.setToolTip("Renames 'exit' to '#exit' and 'entry' to '#entry' in selected (or all) glyphs. The '#' prefix disables automatic curs feature generation by Glyphs.")
 		self.w.addHashButton.setToolTip("Add # prefix to all exit/entry anchors (disables curs feature generation).")
-		linePos += lineHeight
-
-		self.w.removeHashText = vanilla.TextBox((inset, linePos + 2, buttonX - 5, 14), "Remove # prefix: #exit → exit, #entry → entry:", sizeStyle="small", selectable=True)
-		self.w.removeHashButton = vanilla.Button((buttonX, linePos, -inset, 20), "Remove #", callback=self.removeHashPrefix, sizeStyle="small")
 		self.w.removeHashText.setToolTip("Renames '#exit' to 'exit' and '#entry' to 'entry' in selected (or all) glyphs. This re-enables automatic curs feature generation.")
 		self.w.removeHashButton.setToolTip("Remove # prefix from all #exit/#entry anchors (enables curs feature generation).")
-		linePos += lineHeight + 4
-
-		self.w.separator2 = vanilla.HorizontalLine((inset, linePos, -inset, 1))
-		linePos += 10
-
-		# ── Utility section ─────────────────────────────────────────────────────
-		self.w.swapText = vanilla.TextBox((inset, linePos + 2, buttonX - 5, 14), "Swap exit ↔ entry anchor positions:", sizeStyle="small", selectable=True)
-		self.w.swapButton = vanilla.Button((buttonX, linePos, -inset, 20), "Swap", callback=self.swapExitEntry, sizeStyle="small")
 		self.w.swapText.setToolTip("Exchanges the x/y positions of exit and entry anchors (both with and without # prefix). Useful when converting between LTR and RTL layouts.")
 		self.w.swapButton.setToolTip("Swap positions of exit and entry anchors in selected (or all) glyphs.")
-		linePos += lineHeight
-
-		self.w.removeAnchorText = vanilla.TextBox((inset, linePos + 2, buttonX - 5, 14), "Remove all exit/entry anchors (with and without #):", sizeStyle="small", selectable=True)
-		self.w.removeAnchorButton = vanilla.Button((buttonX, linePos, -inset, 20), "Remove", callback=self.removeAnchors, sizeStyle="small")
 		self.w.removeAnchorText.setToolTip("Deletes all exit, entry, #exit, and #entry anchors from selected (or all) glyphs, in all processed layers.")
 		self.w.removeAnchorButton.setToolTip("Delete all exit/entry anchors (with or without # prefix) from selected glyphs.")
-		linePos += lineHeight + 4
-
-		self.w.separator3 = vanilla.HorizontalLine((inset, linePos, -inset, 1))
-		linePos += 10
-
-		# ── Options ─────────────────────────────────────────────────────────────
-		self.w.useHashtag = vanilla.CheckBox((inset, linePos, -inset, 20), "Use # prefix for insert operations (#exit, #entry)", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.useHashtag.setToolTip("When inserting anchors, use '#exit'/'#entry' (checked) or 'exit'/'entry' (unchecked). Applies to all three Insert operations above.")
-		linePos += lineHeight
-
-		self.w.assumeBidiLTR = vanilla.CheckBox((inset, linePos, -inset, 20), "Assume bidirectional glyphs as LTR", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.assumeBidiLTR.setToolTip("If checked, bidirectional glyphs (e.g. punctuation) will be treated as left-to-right, i.e., the entry anchor will be added on the left, exit on the right.")
-		linePos += lineHeight
-
-		self.w.overwriteExisting = vanilla.CheckBox((inset, linePos, -inset, 20), "Overwrite existing exit/entry anchors", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.overwriteExisting.setToolTip("If checked, existing exit/entry anchors are replaced. If unchecked, existing anchors are kept and only missing ones are added.")
-		linePos += lineHeight
-
-		self.w.allLayers = vanilla.CheckBox((inset, linePos, -inset, 20), "All masters and special layers (otherwise current master only)", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.allLayers.setToolTip("Process all master layers and special layers (brace/bracket layers). Unchecked: only layers associated with the currently active master.")
-		linePos += lineHeight
-
-		self.w.applyFontWide = vanilla.CheckBox((inset, linePos, -inset, 20), "⚠️ Apply to ALL glyphs (otherwise selected glyphs only)", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.applyFontWide.setToolTip("Process every glyph in the font. Unchecked: only the currently selected glyphs.")
-		linePos += lineHeight + 5
 
-		self.w.status = vanilla.TextBox((inset, linePos, -inset, 14), "", sizeStyle="small")
-		linePos += lineHeight
+		# checkboxes stretch vertically by default; hug so the window is as tall as its content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		buttonNames = ('insertSideButton', 'insertNodeButton', 'insertPositionalButton', 'addHashButton', 'removeHashButton', 'swapButton', 'removeAnchorButton')
+		rules = [
+			"H:|-inset-[separator1]-inset-|",
+			"H:|-inset-[separator2]-inset-|",
+			"H:|-inset-[separator3]-inset-|",
+		]
+		for rowName in ('insertSide', 'insertNode', 'insertPositional', 'addHash', 'removeHash', 'swap', 'removeAnchor'):
+			rules.append(f"H:|-inset-[{rowName}Text]-gap-[{rowName}Button(>=90)]-inset-|")
+			rules.append({"view1": getattr(self.w, f"{rowName}Text"), "attribute1": "centerY", "view2": getattr(self.w, f"{rowName}Button"), "attribute2": "centerY"})
+		rules += [{"view1": getattr(self.w, name), "attribute1": "width", "view2": self.w.insertSideButton, "attribute2": "width"} for name in buttonNames[1:]]
+		for checkName in ('useHashtag', 'assumeBidiLTR', 'overwriteExisting', 'allLayers', 'applyFontWide'):
+			rules.append(f"H:|-inset-[{checkName}]-(>=inset)-|")
+		rules += [
+			"V:|-gap-[insertSideButton]-row-[insertNodeButton]-row-[insertPositionalButton]-section-[separator1(1)]-section-"
+			"[addHashButton]-row-[removeHashButton]-section-[separator2(1)]-section-"
+			"[swapButton]-row-[removeAnchorButton]-section-[separator3(1)]-section-"
+			"[useHashtag]-checkRow-[assumeBidiLTR]-checkRow-[overwriteExisting]-checkRow-[allLayers]-checkRow-[applyFontWide]-inset-|",
+		]
+		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "row": 6, "section": 8, "checkRow": 5})
 
 		self.LoadPreferences()
 		self.w.open()
@@ -180,7 +164,7 @@ class ExitEntryManager(mekkaObject):
 		self.w.insertNodeButton.enable(not self.prefBool("applyFontWide"))
 
 	def setStatus(self, msg):
-		self.w.status.set(msg)
+		Glyphs.showNotification("Exit-Entry Manager", msg)
 
 	# ── Insert operations ────────────────────────────────────────────────────────
 
