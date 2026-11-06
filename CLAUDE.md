@@ -229,6 +229,32 @@ self.w.bar      = vanilla.ProgressBar("auto")
 self.w.status   = vanilla.TextBox("auto", "", sizeStyle="small")
 ```
 
+### Integer fields — always stepping fields
+
+**Every new integer field is a stepping field**, so arrow keys (and Shift/Option modifiers) step the value as in
+Glyphs’ own numeric fields. Subclass `vanilla.EditText` with Glyphs’ `GSSteppingTextField` and limit the input with an
+`NSNumberFormatter` passed as `formatter=`:
+
+```python
+import objc
+from Foundation import NSNumberFormatter
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
+
+# in __init__:
+formatter = NSNumberFormatter.alloc().init()
+formatter.setAllowsFloats_(False)  # integers only; leave out for decimals
+formatter.setMinimum_(0)  # optional; also setMaximum_()
+self.w.threshold = SteppingEditText("auto", "30", callback=self.SavePreferences, sizeStyle="small", formatter=formatter)
+```
+
+The formatter enforces the range, including while stepping. **Do not** write your own callback that checks the value
+and resets it (e.g., “below 0 → set 0”); use the formatter’s `setMinimum_()`/`setMaximum_()` instead, and let
+`SavePreferences` be the callback. Read the value with `self.prefInt()`.
+
 ### Tooltips
 
 Use vanilla's `.setToolTip()` directly on the element — this is the preferred modern approach:

@@ -5,7 +5,7 @@ Moves specified anchors to the nearest metric (e.g. x-height, ascender, etc.), w
 
 import objc
 import vanilla
-from Foundation import NSPoint
+from Foundation import NSNumberFormatter, NSPoint
 from AppKit import (
 	NSAffineTransform,
 	NSLayoutConstraintOrientationVertical,
@@ -67,7 +67,10 @@ class SnapAnchorsToNearestMetric(mekkaObject):
 
 		tooltipText = "Anchors further away from the nearest metric than this value are not moved."
 		self.w.thresholdText = vanilla.TextBox("auto", "Max vertical move:", sizeStyle="small", selectable=True)
-		self.w.threshold = SteppingEditText("auto", "30", callback=self.thresholdChanged, sizeStyle="small")
+		thresholdFormatter = NSNumberFormatter.alloc().init()
+		thresholdFormatter.setAllowsFloats_(False)
+		thresholdFormatter.setMinimum_(0)
+		self.w.threshold = SteppingEditText("auto", "30", callback=self.SavePreferences, sizeStyle="small", formatter=thresholdFormatter)
 		self.w.thresholdText.setToolTip(tooltipText)
 		self.w.threshold.setToolTip(tooltipText)
 
@@ -116,16 +119,6 @@ class SnapAnchorsToNearestMetric(mekkaObject):
 		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
 		nsWindow.setContentMinSize_((windowWidth, contentHeight))
 		nsWindow.setContentMaxSize_((windowWidth + 500, contentHeight))
-
-	def thresholdChanged(self, sender=None):
-		"""Threshold cannot be negative: resets the field to 0 when stepped or typed below 0."""
-		try:
-			isNegative = float(self.w.threshold.get()) < 0
-		except ValueError:
-			isNegative = False
-		if isNegative:
-			self.w.threshold.set("0")
-		self.SavePreferences(sender)
 
 	def allAnchorNamesInFrontmostFont(self, sender=None):
 		font = Glyphs.font
