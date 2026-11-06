@@ -3,12 +3,23 @@ __doc__ = """
 Moves specified anchors to the nearest metric (e.g. x-height, ascender, etc.), within a specified threshold.
 """
 
+import objc
 import vanilla
 from Foundation import NSPoint
-from AppKit import NSAffineTransform
+from AppKit import (
+	NSAffineTransform,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityWindowSizeStayPut,
+	NSWindowStyleMaskResizable,
+)
 from GlyphsApp import Glyphs, Message, addPoints
 from mekkablue import mekkaObject, match, UpdateButton, reportFontName
 from mekkablue.geometry import italicize
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 def closestMetric(position, metrics):
@@ -36,49 +47,61 @@ class SnapAnchorsToNearestMetric(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 330
-		windowHeight = 202
-		windowWidthResize = 500  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Snap Anchors to Nearest Metric",  # window title
-			minSize=(windowWidth, windowHeight + 19),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize + 19),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Move these anchors to the nearest vertical metric line:", sizeStyle="small", selectable=True)
-		linePos += lineHeight
+		inset = 15
+		self.w.descriptionText = vanilla.TextBox("auto", "Move these anchors to the nearest vertical metric line:", sizeStyle="small", selectable=True)
 
-		# self.w.anchorNames = vanilla.EditText((inset, linePos, -inset-20, 19), "_top, _bottom, top, bottom, ogonek, _ogonek", callback=self.SavePreferences, sizeStyle="small")
-		self.w.anchorNames = vanilla.ComboBox((inset, linePos-1, -inset-20, 19), self.allAnchorNamesInFrontmostFont(), sizeStyle="small", callback=self.SavePreferences)
-		self.w.anchorNames.tooltip = "You can use wildcards * and ?, and add multiple anchor names with commas."
-		self.w.anchorNamesUpdate = UpdateButton((-inset-16, linePos-3, -inset, 19), callback=self.updateUI)
-		linePos += lineHeight
+		self.w.anchorNames = vanilla.ComboBox("auto", self.allAnchorNamesInFrontmostFont(), sizeStyle="small", callback=self.SavePreferences)
+		self.w.anchorNames.setToolTip("You can use wildcards * and ?, and add multiple anchor names with commas.")
+		self.w.anchorNamesUpdate = UpdateButton("auto", callback=self.updateUI)
+		self.w.anchorNamesUpdate.setToolTip("Reload the anchor names of the frontmost font.")
 
-		self.w.anchorNamesDescription = vanilla.TextBox((inset, linePos + 2, -inset, 14), "For mark anchors (like _top), will shift complete glyph.", sizeStyle="small", selectable=True)
-		linePos += lineHeight
+		self.w.anchorNamesDescription = vanilla.TextBox("auto", "For mark anchors (like _top), will shift complete glyph.", sizeStyle="small", selectable=True)
 
-		self.w.thresholdText = vanilla.TextBox((inset, linePos + 3, 110, 14), "Max vertical move:", sizeStyle="small", selectable=True)
-		self.w.threshold = vanilla.EditText((inset + 110, linePos, 50, 19), "30", callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
+		tooltipText = "Anchors further away from the nearest metric than this value are not moved."
+		self.w.thresholdText = vanilla.TextBox("auto", "Max vertical move:", sizeStyle="small", selectable=True)
+		self.w.threshold = SteppingEditText("auto", "30", callback=self.thresholdChanged, sizeStyle="small")
+		self.w.thresholdText.setToolTip(tooltipText)
+		self.w.threshold.setToolTip(tooltipText)
 
-		self.w.respectItalic = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Respect italic angle (otherwise always vertical)", value=True, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
-
-		self.w.focusOnMarkAnchorsInMarks = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "In marks, ignore non-underscore anchors", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.respectItalic = vanilla.CheckBox("auto", "Respect italic angle (otherwise always vertical)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.focusOnMarkAnchorsInMarks = vanilla.CheckBox("auto", "In marks, ignore non-underscore anchors", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.focusOnMarkAnchorsInMarks.setToolTip("Will look only for _xxx anchors in marks (i.e., with an underscore), and ignore those not starting with an underscore.")
-		linePos += lineHeight
-
-		self.w.allFonts = vanilla.CheckBox((inset + 2, linePos - 1, 150, 20), "Apply to ⚠️ ALL fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.verbose = vanilla.CheckBox((inset + 150, linePos - 1, -inset, 20), "Verbose reporting", value=False, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
+		self.w.allFonts = vanilla.CheckBox("auto", "Apply to ⚠️ ALL fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.verbose = vanilla.CheckBox("auto", "Verbose reporting", value=False, callback=self.SavePreferences, sizeStyle="small")
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Snap", callback=self.SnapAnchorsToNearestMetricMain)
+		self.w.runButton = vanilla.Button("auto", "Snap", callback=self.SnapAnchorsToNearestMetricMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; hug so the window is as tall as its content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[anchorNames]-gap-[anchorNamesUpdate(20)]-inset-|",
+				"H:|-inset-[anchorNamesDescription]-inset-|",
+				"H:|-inset-[thresholdText]-gap-[threshold(50)]-(>=inset)-|",
+				"H:|-inset-[respectItalic]-(>=inset)-|",
+				"H:|-inset-[focusOnMarkAnchorsInMarks]-(>=inset)-|",
+				"H:|-inset-[allFonts]-gap-[verbose]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[descriptionText]-row-[anchorNames]-row-[anchorNamesDescription]-row-[threshold]-row-[respectItalic]-checkRow-[focusOnMarkAnchorsInMarks]-checkRow-[allFonts]-inset-[runButton]-inset-|",
+				{"view1": self.w.anchorNamesUpdate, "attribute1": "centerY", "view2": self.w.anchorNames, "attribute2": "centerY"},
+				{"view1": self.w.thresholdText, "attribute1": "centerY", "view2": self.w.threshold, "attribute2": "centerY"},
+				{"view1": self.w.verbose, "attribute1": "centerY", "view2": self.w.allFonts, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -87,6 +110,22 @@ class SnapAnchorsToNearestMetric(mekkaObject):
 		self.w.open()
 		self.w.makeKey()
 
+		# resizable horizontally only: content height stays fixed
+		nsWindow = self.w.getNSWindow()
+		contentHeight = nsWindow.contentRectForFrameRect_(nsWindow.frame()).size.height
+		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
+		nsWindow.setContentMinSize_((windowWidth, contentHeight))
+		nsWindow.setContentMaxSize_((windowWidth + 500, contentHeight))
+
+	def thresholdChanged(self, sender=None):
+		"""Threshold cannot be negative: resets the field to 0 when stepped or typed below 0."""
+		try:
+			isNegative = float(self.w.threshold.get()) < 0
+		except ValueError:
+			isNegative = False
+		if isNegative:
+			self.w.threshold.set("0")
+		self.SavePreferences(sender)
 
 	def allAnchorNamesInFrontmostFont(self, sender=None):
 		font = Glyphs.font
