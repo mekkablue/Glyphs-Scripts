@@ -271,7 +271,7 @@ self.w.addAutoPosSizeRules(
 		"V:[checkAllButton]-inset-|",
 		{"view1": self.w.label, "attribute1": "centerY", "view2": self.w.field, "attribute2": "centerY"},
 	],
-	metrics={"inset": 15, "gap": 8, "row": 8},
+	metrics={"inset": 15, "gap": 8, "row": 6},
 )
 ```
 
@@ -329,7 +329,7 @@ Rules for rows with a label, learned from converting `Kerning/KernCrasher.py`:
   `-(>=inset)-|`; end a row whose field should stretch with `-inset-|`.
 - **Controls in different rows that should look alike get an equal-width rule** (`popupSpeed` = `popupScript`).
 - **Name the spacing.** Use metrics (`row`, `headlineGap`, `barGap`) for the gaps between sections instead of
-  scattering numbers through the chain. A stack of checkboxes can sit tighter than rows of fields.
+  scattering numbers through the chain. A stack of checkboxes sits tighter than rows of fields: a `checkRow` metric of 5 between checkboxes, against 6 for `row`.
 - **Window width:** all labels take the width of the widest one, so make `windowWidth` large enough for that label
   plus a usable field (KernCrasher grew from 410 to 470).
 - **`ProgressBar` needs a height in the rule:** `[bar(16)]`.
