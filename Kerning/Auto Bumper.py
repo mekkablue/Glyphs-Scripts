@@ -199,7 +199,7 @@ class Bumper(mekkaObject):
 		self.w.kernStrings.setToolTip("Add your default kern strings here. They will show up in the left/right dropdowns at the top. Everything after a hashtag (#) is ignored. Use blank lines for structuring.")
 
 		self.w.text_kernStrings = vanilla.TextBox("auto", "Expand window below to access default strings.", sizeStyle='small')
-		self.w.text_kernStrings.getNSTextField().setTextColor_(NSColor.colorWithRed_green_blue_alpha_(0, 0, 0, 0.2))
+		self.w.text_kernStrings.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
 
 		# Buttons:
 		self.w.nextButton = vanilla.Button("auto", "Next Master", callback=self.masterSwitch)
