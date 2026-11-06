@@ -5,6 +5,7 @@ Opens a new tab with Kerning Combos that crash in the current fontmaster.
 
 import vanilla
 from timeit import default_timer as timer
+from AppKit import NSTextAlignmentRight, NSWindowStyleMaskResizable, NSSize, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from Foundation import NSNotFound
 from kernanalysis import intervalList, categoryList, sortedIntervalsFromString, effectiveKerning, minDistanceBetweenTwoLayers, distanceFromEntry
 from GlyphsApp import Glyphs, Message
@@ -32,122 +33,174 @@ class KernCrasher(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 410
-		windowHeight = 355
-		windowWidthResize = 800  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 470
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"KernCrasher",  # window title
-			minSize=(windowWidth, windowHeight + 19),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize + 19),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 16, 22
+		inset = 16
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Open tab with kern collisions in current master", sizeStyle='small')
-		linePos += lineHeight
+		self.w.descriptionText = vanilla.TextBox("auto", "Open tab with kern collisions in current master", sizeStyle='small')
 
-		self.w.textScript = vanilla.TextBox((inset, linePos + 2, 42, 14), "Script", sizeStyle='small')
-		self.w.popupScript = vanilla.ComboBox((inset + 40, linePos - 2, 125, 19), ("latin", "cyrillic", "greek"), callback=self.SavePreferences, sizeStyle='small')
+		self.w.textScript = vanilla.TextBox("auto", "Script", sizeStyle='small')
+		self.w.popupScript = vanilla.ComboBox("auto", ("latin", "cyrillic", "greek"), callback=self.SavePreferences, sizeStyle='small')
 		self.w.popupScript.setToolTip("Limits the kerning pairs only to glyphs of this script, and those of no script.")
-		self.w.updateScriptsButton = UpdateButton((inset + 170, linePos - 2, 20, 18), callback=self.update)
+		self.w.updateScriptsButton = UpdateButton("auto", callback=self.update)
 		self.w.updateScriptsButton.setToolTip("Scans the frontost font for the scripts of all its glyphs (Latin, Greek, Cyrillic, Hebrew, Arabic, Thai, ...) and lists only those in the combo box.")
-		self.w.textDistance = vanilla.TextBox((inset + 192, linePos + 2, 100, 14), "Min distance", sizeStyle='small')
-		self.w.minDistance = vanilla.EditText((inset + 265, linePos - 1, 50, 19), "10", sizeStyle='small')
+		self.w.textDistance = vanilla.TextBox("auto", "Min distance", sizeStyle='small')
+		self.w.minDistance = vanilla.EditText("auto", "10", sizeStyle='small')
 		tooltipText = "Minimum distance required between glyphs in any given pairing with the current setup. Measured in units."
 		self.w.textDistance.setToolTip(tooltipText)
 		self.w.minDistance.setToolTip(tooltipText)
-		linePos += lineHeight
 
-		self.w.textSpeed = vanilla.TextBox((inset, linePos + 2, 42, 14), "Speed", sizeStyle='small')
-		self.w.popupSpeed = vanilla.PopUpButton((inset + 40, linePos - 1, 126, 19), ("very slow", "slow", "medium", "fast", "very fast"), callback=self.popupSpeedAction, sizeStyle='small')
+		self.w.textSpeed = vanilla.TextBox("auto", "Speed", sizeStyle='small')
+		self.w.popupSpeed = vanilla.PopUpButton("auto", ("very slow", "slow", "medium", "fast", "very fast"), callback=self.popupSpeedAction, sizeStyle='small')
 		intervalIndex = self.pref("popupSpeed")
 		if intervalIndex is None:
 			intervalIndex = 0
-		self.w.text_speedExplanation = vanilla.TextBox((inset + 170, linePos + 2, -inset, 14), "Measuring every %i units." % intervalList[intervalIndex], sizeStyle='small')
+		self.w.text_speedExplanation = vanilla.TextBox("auto", "Measuring every %i units." % intervalList[intervalIndex], sizeStyle='small')
 		tooltipText = "The distances within every glyph pair will be measured from top to bottom. This setting determines how many measurements are taken. Higher speed means less measurements and thus less accuracy. Many measurements are more accurate, but also slow down the script significantly."
 		self.w.textSpeed.setToolTip(tooltipText)
 		self.w.popupSpeed.setToolTip(tooltipText)
 		self.w.text_speedExplanation.setToolTip(tooltipText)
-		linePos += lineHeight
 
-		self.w.text_popupLeftCat = vanilla.TextBox((inset, linePos + 2, 90, 14), "Left Category", sizeStyle='small')
-		self.w.popupLeftCat = vanilla.PopUpButton((inset + 90, linePos, -inset, 17), categoryList, callback=self.SavePreferences, sizeStyle='small')
+		self.w.text_popupLeftCat = vanilla.TextBox("auto", "Left Category", sizeStyle='small')
+		self.w.popupLeftCat = vanilla.PopUpButton("auto", categoryList, callback=self.SavePreferences, sizeStyle='small')
 		tooltipText = "The category for the glyph on the LEFT side of the kerning pair. In ‘AV’, that would be ‘A’."
 		self.w.text_popupLeftCat.setToolTip(tooltipText)
 		self.w.popupLeftCat.setToolTip(tooltipText)
-		linePos += lineHeight
 
-		self.w.text_popupRightCat = vanilla.TextBox((inset, linePos + 2, 90, 14), "Right Category", sizeStyle='small')
-		self.w.popupRightCat = vanilla.PopUpButton((inset + 90, linePos, -inset, 17), categoryList, callback=self.SavePreferences, sizeStyle='small')
+		self.w.text_popupRightCat = vanilla.TextBox("auto", "Right Category", sizeStyle='small')
+		self.w.popupRightCat = vanilla.PopUpButton("auto", categoryList, callback=self.SavePreferences, sizeStyle='small')
 		tooltipText = "The category for the glyph on the RIGHT side of the kerning pair. In ‘AV’, that would be ‘V’."
 		self.w.text_popupRightCat.setToolTip(tooltipText)
 		self.w.popupRightCat.setToolTip(tooltipText)
-		linePos += lineHeight
-		column = 142
-		self.w.text_limitLeftSuffixes = vanilla.TextBox((inset, linePos + 2, 160, 14), "Left glyph must contain", sizeStyle='small')
-		self.w.limitLeftSuffixes = vanilla.EditText((inset + column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
+
+		self.w.text_limitLeftSuffixes = vanilla.TextBox("auto", "Left glyph must contain", sizeStyle='small')
+		self.w.limitLeftSuffixes = vanilla.EditText("auto", "", callback=self.SavePreferences, sizeStyle='small')
 		self.w.limitLeftSuffixes.getNSTextField().setPlaceholderString_("tilde, macron, dieresis, circumflex, caron")
 		tooltipText = "Only glyphs with these parts in their glyph names will be considered for the LEFT side. Comma-separated list. Usually not necessary, but useful for tracking down problems with wide diacritics."
 		self.w.text_limitLeftSuffixes.setToolTip(tooltipText)
 		self.w.limitLeftSuffixes.setToolTip(tooltipText)
-		linePos += lineHeight
 
-		self.w.text_limitRightSuffixes = vanilla.TextBox((inset, linePos + 2, 160, 14), "Right glyph must contain", sizeStyle='small')
-		self.w.limitRightSuffixes = vanilla.EditText((inset + column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
+		self.w.text_limitRightSuffixes = vanilla.TextBox("auto", "Right glyph must contain", sizeStyle='small')
+		self.w.limitRightSuffixes = vanilla.EditText("auto", "", callback=self.SavePreferences, sizeStyle='small')
 		self.w.limitRightSuffixes.getNSTextField().setPlaceholderString_("tilde, macron, dieresis, circumflex, caron")
 		tooltipText = "Only glyphs with these parts in their glyph names will be considered for the RIGHT side. Comma-separated list. Usually not necessary, but useful for tracking down problems with wide diacritics."
 		self.w.text_limitRightSuffixes.setToolTip(tooltipText)
 		self.w.limitRightSuffixes.setToolTip(tooltipText)
-		linePos += lineHeight
 
-		self.w.text_excludeSuffixes = vanilla.TextBox((inset, linePos + 2, 160, 14), "Exclude glyphs containing", sizeStyle='small')
-		self.w.excludeSuffixes = vanilla.EditText((inset + column, linePos, -inset, 19), ".locl, .alt, .sups, .sinf, .tf, .tosf, Ldot, ldot, Jacute, jacute", callback=self.SavePreferences, sizeStyle='small')
+		self.w.text_excludeSuffixes = vanilla.TextBox("auto", "Exclude glyphs containing", sizeStyle='small')
+		self.w.excludeSuffixes = vanilla.EditText("auto", ".locl, .alt, .sups, .sinf, .tf, .tosf, Ldot, ldot, Jacute, jacute", callback=self.SavePreferences, sizeStyle='small')
 		tooltipText = "Glyphs with these particles in their glyph names will be ignored. Comma-separated list. Useful for excluding impossible pairings, like ldot (can only appear before l) and jacute (can only appear after iacute), or OpenType variants."
 		self.w.text_excludeSuffixes.setToolTip(tooltipText)
 		self.w.excludeSuffixes.setToolTip(tooltipText)
-		linePos += lineHeight
 
-		self.w.text_ignoreIntervals = vanilla.TextBox((inset, linePos + 2, 160, 14), "Ignore height intervals", sizeStyle='small')
-		self.w.ignoreIntervals = vanilla.EditText((inset + column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
+		self.w.text_ignoreIntervals = vanilla.TextBox("auto", "Ignore height intervals", sizeStyle='small')
+		self.w.ignoreIntervals = vanilla.EditText("auto", "", callback=self.SavePreferences, sizeStyle='small')
 		self.w.ignoreIntervals.getNSTextField().setPlaceholderString_("200:300, 400:370, -200:-150")
 		tooltipText = "Will not measure between the specified heights. Useful for excluding connectors of connecting script typefaces or rekha lines like in Devanagari, where an overlap is intended by design. Specify two numbers separated by a colon, e.g., 200:300, and it will only measure until y=200 and start measuring again at y=300, skipping everything in between. If you specify multiple ranges, separate them with commas. You can also specify glyph names, e.g. x:o (from bottom of x to top of o)."
 		self.w.text_ignoreIntervals.setToolTip(tooltipText)
 		self.w.ignoreIntervals.setToolTip(tooltipText)
-		linePos += lineHeight
 
-		self.w.pathGlyphsOnly = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Limit to glyphs containing paths (i.e., exclude composites)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.pathGlyphsOnly = vanilla.CheckBox("auto", "Limit to glyphs containing paths (i.e., exclude composites)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.pathGlyphsOnly.setToolTip("If enabled, will ignore glyphs that do not have paths. Useful for focusing on the base shapes (before you deal with the specific problems of composite diacritics).")
-		linePos += lineHeight
 
-		self.w.excludeNonExporting = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Exclude non-exporting glyphs", value=True, sizeStyle='small', callback=self.SavePreferences)
+		self.w.excludeNonExporting = vanilla.CheckBox("auto", "Exclude non-exporting glyphs", value=True, sizeStyle='small', callback=self.SavePreferences)
 		self.w.excludeNonExporting.setToolTip("If enabled, will ignore glyphs that are set to not export. Recommended, otherwise you may get a lot of false positives.")
-		linePos += lineHeight
 
-		self.w.directionSensitive = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Auto-detect writing direction (LTR vs. RTL)", value=True, sizeStyle='small', callback=self.SavePreferences)
+		self.w.directionSensitive = vanilla.CheckBox("auto", "Auto-detect writing direction (LTR vs. RTL)", value=True, sizeStyle='small', callback=self.SavePreferences)
 		self.w.directionSensitive.setToolTip("If enabled, will determine writing direction based on settings in current tab. If disabled, LTR will be used")
-		linePos += lineHeight
 
-		self.w.reportCrashesInMacroWindow = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Verbose report in Macro Window", value=False, sizeStyle='small', callback=self.SavePreferences)
+		self.w.reportCrashesInMacroWindow = vanilla.CheckBox("auto", "Verbose report in Macro Window", value=False, sizeStyle='small', callback=self.SavePreferences)
 		self.w.reportCrashesInMacroWindow.setToolTip("Will output a detailed report of the kern crashing in Window > Macro Panel. Will slow down the script a bit. Usually not necessary, but can be useful for checking if a certain pairing has been taken care of or not.")
-		self.w.reuseCurrentTab = vanilla.CheckBox((inset + 200, linePos, -inset, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reuseCurrentTab = vanilla.CheckBox("auto", "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reuseCurrentTab.setToolTip("If enabled, will not open a new tab with newly added kern pairs, but reuse the current Edit tab. Will open an Edit tab if none is open.")
-		linePos += lineHeight
 
 		# Percentage:
-		self.w.bar = vanilla.ProgressBar((inset, linePos, -inset, 16))
-
-		# self.w.percentage = vanilla.TextBox((15 - 1, -30, -100 - 15, -15), "", sizeStyle='small')
+		self.w.bar = vanilla.ProgressBar("auto")
 
 		# Buttons:
-		self.w.nextButton = vanilla.Button((-inset - 210, -20 - inset, -inset - 110, -inset), "Next Master", callback=self.masterSwitch)
+		self.w.nextButton = vanilla.Button("auto", "Next Master", callback=self.masterSwitch)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Open Tab", callback=self.KernCrasherMain)
+		self.w.runButton = vanilla.Button("auto", "Open Tab", callback=self.KernCrasherMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# labels hug their text, and resist compression, so the fields take the leftover width:
+		labelNames = (
+			"textScript",
+			"textSpeed",
+			"text_popupLeftCat",
+			"text_popupRightCat",
+			"text_limitLeftSuffixes",
+			"text_limitRightSuffixes",
+			"text_excludeSuffixes",
+			"text_ignoreIntervals",
+		)
+		for labelName in labelNames:
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		# all labels share the width of the widest one, so the fields line up:
+		widthRules = [
+			{
+				"view1": getattr(self.w, labelName),
+				"attribute1": "width",
+				"view2": self.w.text_excludeSuffixes,
+				"attribute2": "width",
+			} for labelName in labelNames if labelName != "text_excludeSuffixes"
+		]
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[textScript]-gap-[popupScript(>=110)]-gap-[updateScriptsButton]-gap-[textDistance]-gap-[minDistance(50)]-inset-|",
+				"H:|-inset-[textSpeed]-gap-[popupSpeed]-gap-[text_speedExplanation]-(>=inset)-|",
+				"H:|-inset-[text_popupLeftCat]-gap-[popupLeftCat]-inset-|",
+				"H:|-inset-[text_popupRightCat]-gap-[popupRightCat]-inset-|",
+				"H:|-inset-[text_limitLeftSuffixes]-gap-[limitLeftSuffixes]-inset-|",
+				"H:|-inset-[text_limitRightSuffixes]-gap-[limitRightSuffixes]-inset-|",
+				"H:|-inset-[text_excludeSuffixes]-gap-[excludeSuffixes]-inset-|",
+				"H:|-inset-[text_ignoreIntervals]-gap-[ignoreIntervals]-inset-|",
+				"H:|-inset-[pathGlyphsOnly]-(>=inset)-|",
+				"H:|-inset-[excludeNonExporting]-(>=inset)-|",
+				"H:|-inset-[directionSensitive]-(>=inset)-|",
+				"H:|-inset-[reportCrashesInMacroWindow]-gap-[reuseCurrentTab]-(>=inset)-|",
+				"H:|-inset-[bar]-inset-|",
+				"H:|-(>=inset)-[nextButton(>=70)]-gap-[runButton(>=70)]-inset-|",
+				"V:|-inset-[descriptionText]-headlineGap-[popupScript]-row-[popupSpeed]-row-[popupLeftCat]-row-[popupRightCat]-row-[limitLeftSuffixes]-row-[limitRightSuffixes]-row-[excludeSuffixes]-row-[ignoreIntervals]-row-[pathGlyphsOnly]-5-[excludeNonExporting]-5-[directionSensitive]-5-[reportCrashesInMacroWindow]-barGap-[bar(16)]-inset-[runButton]-inset-|",
+				"V:[nextButton]-inset-|",
+				# one baseline per row:
+				{"view1": self.w.textScript, "attribute1": "centerY", "view2": self.w.popupScript, "attribute2": "centerY"},
+				{"view1": self.w.updateScriptsButton, "attribute1": "centerY", "view2": self.w.popupScript, "attribute2": "centerY"},
+				{"view1": self.w.textDistance, "attribute1": "centerY", "view2": self.w.popupScript, "attribute2": "centerY"},
+				{"view1": self.w.minDistance, "attribute1": "centerY", "view2": self.w.popupScript, "attribute2": "centerY"},
+				{"view1": self.w.textSpeed, "attribute1": "centerY", "view2": self.w.popupSpeed, "attribute2": "centerY"},
+				{"view1": self.w.text_speedExplanation, "attribute1": "centerY", "view2": self.w.popupSpeed, "attribute2": "centerY"},
+				{"view1": self.w.text_popupLeftCat, "attribute1": "centerY", "view2": self.w.popupLeftCat, "attribute2": "centerY"},
+				{"view1": self.w.text_popupRightCat, "attribute1": "centerY", "view2": self.w.popupRightCat, "attribute2": "centerY"},
+				{"view1": self.w.text_limitLeftSuffixes, "attribute1": "centerY", "view2": self.w.limitLeftSuffixes, "attribute2": "centerY"},
+				{"view1": self.w.text_limitRightSuffixes, "attribute1": "centerY", "view2": self.w.limitRightSuffixes, "attribute2": "centerY"},
+				{"view1": self.w.text_excludeSuffixes, "attribute1": "centerY", "view2": self.w.excludeSuffixes, "attribute2": "centerY"},
+				{"view1": self.w.text_ignoreIntervals, "attribute1": "centerY", "view2": self.w.ignoreIntervals, "attribute2": "centerY"},
+				{"view1": self.w.reuseCurrentTab, "attribute1": "centerY", "view2": self.w.reportCrashesInMacroWindow, "attribute2": "centerY"},
+				# the speed popup is as wide as the script combo box:
+				{"view1": self.w.popupSpeed, "attribute1": "width", "view2": self.w.popupScript, "attribute2": "width"},
+			] + widthRules,
+			metrics={"inset": inset, "gap": 8, "row": 5, "headlineGap": 14, "barGap": 14},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -155,6 +208,14 @@ class KernCrasher(mekkaObject):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
+
+		# make the window horizontally resizable, but keep the height that Auto Layout determined.
+		# (Content sizes set directly on the NSWindow, so the title bar is not counted twice.)
+		nsWindow = self.w.getNSWindow()
+		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
+		contentHeight = nsWindow.contentView().frame().size.height
+		nsWindow.setContentMinSize_(NSSize(windowWidth, contentHeight))
+		nsWindow.setContentMaxSize_(NSSize(windowWidth + 1000, contentHeight))
 
 	def update(self, sender=None):
 		if sender == self.w.updateScriptsButton and Glyphs.font:
