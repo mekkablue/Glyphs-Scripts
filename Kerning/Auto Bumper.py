@@ -8,7 +8,6 @@ from mekkablue import mekkaObject, reportTimeInNaturalLanguage
 from timeit import default_timer as timer
 from kernanalysis import intervalList, minDistanceBetweenTwoLayers, sortedIntervalsFromString, stringToListOfGlyphsForFont, effectiveKerning, distanceFromEntry, bubbleLayer
 from AppKit import NSColor
-from Foundation import NSMutableDictionary
 from GlyphsApp import Glyphs, Message
 
 defaultStrings = """
@@ -82,9 +81,9 @@ class Bumper(mekkaObject):
 	}
 
 	def __init__(self):
-		# state for Undo (None as long as there is nothing to undo):
-		self.originalKerning = None
-		self.originalKerningFont = None
+		# state for Undo (None as long as there is nothing to undo; otherwise a list of the pairs we touched):
+		self.undoSteps = None
+		self.undoFont = None
 
 		# Window 'self.w':
 		windowWidth = 500
@@ -316,30 +315,34 @@ class Bumper(mekkaObject):
 					print("- %s %s: keeps existing %i (instead of new %i)." % (leftSide, rightSide, existingKerning, newKernValue))
 				return False  # do not increase kern count
 			else:
+				self.rememberPair(thisFont, thisMasterID, leftSide, rightSide)
 				thisFont.setKerningForPair(thisMasterID, leftSide, rightSide, newKernValue)
 				if shouldReportInMacroWindow:
 					print("- %s %s: %i" % (leftSide, rightSide, newKernValue))
 				return True  # increase kern count
 
-	@staticmethod
-	def deepCopyOfDict(dictionary):
-		# kerning is nested: {masterID: {leftKey: {rightKey: value}}}
-		# Copy into NSMutableDictionary objects, not Python dicts: a Python dict assigned back to
-		# font.kerning ends up in Glyphs as OC_BuiltinPythonDictionary, which breaks setKerningForPair().
-		if hasattr(dictionary, "keys"):
-			copied = NSMutableDictionary.alloc().init()
-			for key in dictionary.keys():
-				copied[key] = Bumper.deepCopyOfDict(dictionary[key])
-			return copied
-		return dictionary
+	def rememberPair(self, font, masterID, leftKey, rightKey):
+		# Records the current value of a kern pair (or None if there is none), before we change it.
+		# Undo replays these in reverse order. Assigning a saved copy of font.kerning back to the font
+		# does not work: Glyphs then fails in setKerningForPair() (sortUsingFunction:context:).
+		if self.undoSteps is None:
+			return
+		previous = font.kerningForPair(masterID, leftKey, rightKey)
+		if previous is None or previous >= 1000000:  # None (Glyphs 3) or NSNotFound (Glyphs 2): no such pair
+			previous = None
+		self.undoSteps.append((masterID, leftKey, rightKey, previous))
 
 	def undo(self, sender=None):
-		if self.originalKerning is None:
+		if self.undoSteps is None:
 			return
-		font = self.originalKerningFont
-		font.kerning = self.originalKerning
-		self.originalKerning = None
-		self.originalKerningFont = None
+		font = self.undoFont
+		for masterID, leftKey, rightKey, previous in reversed(self.undoSteps):
+			if previous is None:
+				font.removeKerningForPair(masterID, leftKey, rightKey)
+			else:
+				font.setKerningForPair(masterID, leftKey, rightKey, previous)
+		self.undoSteps = None
+		self.undoFont = None
 		self.w.undoButton.enable(False)
 		self.w.status.set("↩️ Kerning restored.")
 
@@ -449,8 +452,8 @@ class Bumper(mekkaObject):
 				# CREATE KERNING DATA:
 
 				# remember the prior state for Undo:
-				self.originalKerning = self.deepCopyOfDict(thisFont.kerning)
-				self.originalKerningFont = thisFont
+				self.undoSteps = []
+				self.undoFont = thisFont
 				self.w.undoButton.enable(True)
 
 				# precompute bubble layers if requested (avoids recomputing per pair):
@@ -496,10 +499,13 @@ class Bumper(mekkaObject):
 							if rightSide:
 								if resetExceptionsForGroups:
 									if leftIsGroups and thisFont.kerningForPair(thisMasterID, leftGlyph.name, rightSide) is not None:
+										self.rememberPair(thisFont, thisMasterID, leftGlyph.name, rightSide)
 										thisFont.removeKerningForPair(thisMasterID, leftGlyph.name, rightSide)
 									if rightIsGroups and thisFont.kerningForPair(thisMasterID, leftSide, rightGlyph.name) is not None:
+										self.rememberPair(thisFont, thisMasterID, leftSide, rightGlyph.name)
 										thisFont.removeKerningForPair(thisMasterID, leftSide, rightGlyph.name)
 									if (leftIsGroups and rightIsGroups) and thisFont.kerningForPair(thisMasterID, leftGlyph.name, rightGlyph.name) is not None:
+										self.rememberPair(thisFont, thisMasterID, leftGlyph.name, rightGlyph.name)
 										thisFont.removeKerningForPair(thisMasterID, leftGlyph.name, rightGlyph.name)
 
 								kerning = effectiveKerning(leftGlyph.name, rightGlyph.name, thisFont, thisMasterID)
