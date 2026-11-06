@@ -233,6 +233,9 @@ def minDistanceBetweenTwoLayers(leftLayer, rightLayer, interval=5.0, kerning=0.0
 	topY = min(leftBounds.origin.y + leftBounds.size.height, rightBounds.origin.y + rightBounds.size.height)
 	bottomY = max(leftBounds.origin.y, rightBounds.origin.y)
 	distance = topY - bottomY
+	if not math.isfinite(distance):
+		# a layer without usable bounds (e.g., empty or with infinite bounds) cannot be measured
+		return None
 	minDist = None
 	for i in range(int(distance / interval)):
 		height = bottomY + i * interval
