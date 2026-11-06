@@ -5,7 +5,9 @@ Batch-process anchor positions in selected glyphs (GUI).
 
 import vanilla
 import math
-from Foundation import NSPoint
+import objc
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSWindowStyleMaskResizable
+from Foundation import NSPoint, NSSize
 from GlyphsApp import Glyphs, GSOFFCURVE, Message, GSMetricsTypexHeight, GSMetricsTypeItalicAngle, GSMetricsTypeAscender, GSMetricsTypeCapHeight, GSMetricsTypeDescender, GSMetricsTypeMidHeight, GSMetricsTypeBodyHeight, GSMetricsTypeSlantHeight, GSMetricsTypeBaseline
 from mekkablue import mekkaObject, UpdateButton
 from mekkablue.geometry import transform, italicize
@@ -86,6 +88,11 @@ listVertical = (
 )
 
 
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
+
+
 def italicSkew(x, y, angle=10.0):
 	"""Skews x/y along the x-axis and returns skewed x value."""
 	newAngle = (angle / 180.0) * math.pi
@@ -105,55 +112,107 @@ class AnchorMover2(mekkaObject):
 	}
 
 	def __init__(self):
-		windowWidth = 500
-		windowHeight = 200
-		windowWidthResize = 700  # user can resize width by this value
+		windowWidth = 380
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight),  # default window size
-			"Anchor Mover",  # window title
-			minSize=(windowWidth - 130, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			(windowWidth, windowHeight),
+			"Anchor Mover",
+			autosaveName=self.domain("mainwindow"),  # stores last window position
 		)
 
-		linePos, inset, lineHeight = 12, 15, 22
+		inset = 15
+		anchorTooltip = "Name of the anchor to move, e.g. top or bottom. The menu lists the anchors of the selected glyphs; click the refresh button to update it."
+		horizontalTooltip = "Horizontal target position of the anchor, before the offset in the field to the right is added."
+		verticalTooltip = "Vertical target position of the anchor, before the offset in the field to the right is added."
+		offsetTooltip = "Offset added to the target position (units). Can be negative."
 
-		self.w.text_1 = vanilla.TextBox((inset, linePos + 1, inset + 60, 14), "Move anchor", sizeStyle='small')
-		self.w.anchorName = vanilla.ComboBox((inset + 75, linePos - 2, -105 - inset - 25, 18), self.GetAnchorNames(), sizeStyle='small', callback=self.SavePreferences)
-		self.w.button = UpdateButton((-105 - inset - 16, linePos - 3, -110 - inset, 16), callback=self.SetAnchorNames)
-		self.w.text_2 = vanilla.TextBox((-105 - 12, linePos + 1, -inset, 14), "in selected glyphs", sizeStyle='small')
-		linePos += lineHeight
+		self.w.text_1 = vanilla.TextBox("auto", "Move anchor", sizeStyle="small")
+		self.w.text_1.setToolTip(anchorTooltip)
+		self.w.anchorName = vanilla.ComboBox("auto", self.GetAnchorNames(), sizeStyle="small", callback=self.SavePreferences)
+		self.w.anchorName.setToolTip(anchorTooltip)
+		self.w.button = UpdateButton("auto", callback=self.SetAnchorNames)
+		self.w.button.setToolTip("Refresh the anchor names from the selected glyphs.")
+		self.w.text_2 = vanilla.TextBox("auto", "in selected glyphs", sizeStyle="small")
 
-		self.w.hText_1 = vanilla.TextBox((inset - 2, linePos, 20, 14), "↔")
-		self.w.hText_2 = vanilla.TextBox((inset + 20, linePos + 2, 20, 14), "to", sizeStyle='small')
-		self.w.hTarget = vanilla.PopUpButton((inset + 40, linePos, -50 - 15 - 15 - inset, 17), [x[0] for x in listHorizontal], sizeStyle='small', callback=self.SavePreferences)
-		self.w.hText_3 = vanilla.TextBox((-60 - 15 - 15, linePos + 2, -50 - inset, 14), "+", sizeStyle='small')
-		self.w.hChange = vanilla.EditText((-60 - 15, linePos, -inset, 19), "0.0", sizeStyle='small', callback=self.SavePreferences)
-		linePos += lineHeight
+		self.w.hText_1 = vanilla.TextBox("auto", "↔")
+		self.w.hText_2 = vanilla.TextBox("auto", "to", sizeStyle="small")
+		self.w.hTarget = vanilla.PopUpButton("auto", [x[0] for x in listHorizontal], sizeStyle="small", callback=self.SavePreferences)
+		self.w.hTarget.setToolTip(horizontalTooltip)
+		self.w.hText_3 = vanilla.TextBox("auto", "+", sizeStyle="small")
+		self.w.hChange = SteppingEditText("auto", "0.0", sizeStyle="small", callback=self.SavePreferences)
+		self.w.hChange.setToolTip(offsetTooltip)
 
-		self.w.vText_1 = vanilla.TextBox((inset, linePos, 20, 14), "↕")
-		self.w.vText_2 = vanilla.TextBox((inset + 20, linePos + 2, 20, 14), "to", sizeStyle='small')
-		self.w.vTarget = vanilla.PopUpButton((inset + 40, linePos, -50 - 15 - 15 - inset, 17), [y[0] for y in listVertical], sizeStyle='small', callback=self.SavePreferences)
-		self.w.vText_3 = vanilla.TextBox((-60 - 15 - 15, linePos + 2, -50 - inset, 14), "+", sizeStyle='small')
-		self.w.vChange = vanilla.EditText((-60 - 15, linePos, -inset, 19), "0.0", sizeStyle='small', callback=self.SavePreferences)
-		linePos += lineHeight
+		self.w.vText_1 = vanilla.TextBox("auto", "↕")
+		self.w.vText_2 = vanilla.TextBox("auto", "to", sizeStyle="small")
+		self.w.vTarget = vanilla.PopUpButton("auto", [y[0] for y in listVertical], sizeStyle="small", callback=self.SavePreferences)
+		self.w.vTarget.setToolTip(verticalTooltip)
+		self.w.vText_3 = vanilla.TextBox("auto", "+", sizeStyle="small")
+		self.w.vChange = SteppingEditText("auto", "0.0", sizeStyle="small", callback=self.SavePreferences)
+		self.w.vChange.setToolTip(offsetTooltip)
 
-		self.w.italic = vanilla.CheckBox((inset + 2, linePos, -inset, 18), "Respect italic angle", value=True, sizeStyle='small', callback=self.SavePreferences)
-		linePos += lineHeight
+		self.w.italic = vanilla.CheckBox("auto", "Respect italic angle", value=True, sizeStyle="small", callback=self.SavePreferences)
+		self.w.italic.setToolTip("Measure positions along the italic angle of the layer, so the anchor keeps its slant.")
+		self.w.allMasters = vanilla.CheckBox("auto", "All masters and special layers", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allMasters.setToolTip("Otherwise only the current masters (the selected layers) are processed.")
+		self.w.verbose = vanilla.CheckBox("auto", "Log in Macro window", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.verbose.setToolTip("Reports every step in the Macro window. Slow, use for tracking errors.")
 
-		self.w.allMasters = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "All masters and special layers (otherwise only current masters)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
-
-		self.w.verbose = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Log in Macro window (slow, use for tracking errors)", value=False, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
-
-		self.w.moveButton = vanilla.Button((-80 - 15, -20 - 15, -15, -15), "Move", callback=self.MoveCallback)
+		self.w.moveButton = vanilla.Button("auto", "Move", callback=self.MoveCallback)
+		self.w.moveButton.setToolTip("Move the anchors in the selected glyphs.")
 		self.w.setDefaultButton(self.w.moveButton)
+
+		# checkboxes stretch vertically by default; hug so the window is as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# labels hug their text, flexible controls take the leftover width
+		for labelName in ("text_1", "text_2", "hText_1", "hText_2", "hText_3", "vText_1", "vText_2", "vText_3"):
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		# popups may shrink below the width of their longest item
+		for popupName in ("hTarget", "vTarget"):
+			getattr(self.w, popupName).getNSPopUpButton().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[text_1]-gap-[anchorName(>=75)]-gap-[button]-gap-[text_2]-inset-|",
+				"H:|-inset-[hText_1]-gap-[hText_2]-gap-[hTarget(>=67)]-gap-[hText_3]-gap-[hChange(48)]-inset-|",
+				"H:|-inset-[vText_1]-gap-[vText_2]-gap-[vTarget(>=67)]-gap-[vText_3]-gap-[vChange(48)]-inset-|",
+				"H:|-inset-[italic]-(>=inset)-|",
+				"H:|-inset-[allMasters]-(>=inset)-|",
+				"H:|-inset-[verbose]-(>=inset)-|",
+				"H:|-(>=inset)-[moveButton(>=70)]-inset-|",
+				"V:|-gap-[anchorName]-row-[hTarget]-row-[vTarget]-row-[italic]-checkRow-[allMasters]-checkRow-[verbose]-inset-[moveButton]-inset-|",
+				{"view1": self.w.text_1, "attribute1": "centerY", "view2": self.w.anchorName, "attribute2": "centerY"},
+				{"view1": self.w.button, "attribute1": "centerY", "view2": self.w.anchorName, "attribute2": "centerY"},
+				{"view1": self.w.text_2, "attribute1": "centerY", "view2": self.w.anchorName, "attribute2": "centerY"},
+				{"view1": self.w.hText_1, "attribute1": "centerY", "view2": self.w.hTarget, "attribute2": "centerY"},
+				{"view1": self.w.hText_2, "attribute1": "centerY", "view2": self.w.hTarget, "attribute2": "centerY"},
+				{"view1": self.w.hText_3, "attribute1": "centerY", "view2": self.w.hTarget, "attribute2": "centerY"},
+				{"view1": self.w.hChange, "attribute1": "centerY", "view2": self.w.hTarget, "attribute2": "centerY"},
+				{"view1": self.w.vText_1, "attribute1": "centerY", "view2": self.w.vTarget, "attribute2": "centerY"},
+				{"view1": self.w.vText_2, "attribute1": "centerY", "view2": self.w.vTarget, "attribute2": "centerY"},
+				{"view1": self.w.vText_3, "attribute1": "centerY", "view2": self.w.vTarget, "attribute2": "centerY"},
+				{"view1": self.w.vChange, "attribute1": "centerY", "view2": self.w.vTarget, "attribute2": "centerY"},
+				{"view1": self.w.vText_1, "attribute1": "width", "view2": self.w.hText_1, "attribute2": "width"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
+		)
 
 		self.LoadPreferences()
 
 		self.w.open()
 		self.w.makeKey()
+
+		# resizable horizontally only: lock the content height Auto Layout arrived at
+		nsWindow = self.w.getNSWindow()
+		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
+		nsWindow.layoutIfNeeded()
+		contentHeight = nsWindow.contentView().frame().size.height
+		nsWindow.setContentMinSize_(NSSize(220, contentHeight))
+		nsWindow.setContentMaxSize_(NSSize(900, contentHeight))
 
 	def MoveCallback(self, sender):
 		# brings macro window to front and clears its log:
