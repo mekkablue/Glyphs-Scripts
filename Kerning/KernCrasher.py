@@ -263,6 +263,7 @@ class KernCrasher(mekkaObject):
 			thisFont = Glyphs.font
 			thisFontMaster = thisFont.selectedFontMaster
 			thisFontMasterID = thisFontMaster.id
+			thisFontMasterIndex = thisFont.masterIndex
 
 			# reset progress bar:
 			self.w.bar.set(0)
@@ -376,9 +377,12 @@ class KernCrasher(mekkaObject):
 					Glyphs.defaults["visibleReporters"] = None
 				report = f'{crashCount} kerning crashes have been found. Time elapsed: {timereport}.'
 				if self.pref("reuseCurrentTab") and thisFont.currentTab:
-					thisFont.currentTab.text = tabString
+					tab = thisFont.currentTab
+					tab.text = tabString
 				else:
-					thisFont.newTab(tabString)
+					tab = thisFont.newTab(tabString)
+				# the tab has its own master; make it show the master that was checked:
+				tab.masterIndex = thisFontMasterIndex
 			# or report that nothing was found:
 			else:
 				report = 'No collisions found. Time elapsed: %s. Congrats!' % timereport
