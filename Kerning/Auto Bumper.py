@@ -8,6 +8,7 @@ from mekkablue import mekkaObject, reportTimeInNaturalLanguage
 from timeit import default_timer as timer
 from kernanalysis import intervalList, minDistanceBetweenTwoLayers, sortedIntervalsFromString, stringToListOfGlyphsForFont, effectiveKerning, distanceFromEntry, bubbleLayer
 from AppKit import NSColor
+from Foundation import NSMutableDictionary
 from GlyphsApp import Glyphs, Message
 
 defaultStrings = """
@@ -323,8 +324,13 @@ class Bumper(mekkaObject):
 	@staticmethod
 	def deepCopyOfDict(dictionary):
 		# kerning is nested: {masterID: {leftKey: {rightKey: value}}}
+		# Copy into NSMutableDictionary objects, not Python dicts: a Python dict assigned back to
+		# font.kerning ends up in Glyphs as OC_BuiltinPythonDictionary, which breaks setKerningForPair().
 		if hasattr(dictionary, "keys"):
-			return {key: Bumper.deepCopyOfDict(dictionary[key]) for key in dictionary.keys()}
+			copied = NSMutableDictionary.alloc().init()
+			for key in dictionary.keys():
+				copied[key] = Bumper.deepCopyOfDict(dictionary[key])
+			return copied
 		return dictionary
 
 	def undo(self, sender=None):
