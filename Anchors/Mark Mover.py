@@ -4,6 +4,7 @@ Move marks to their respective heights, e.g. *comb.case to cap height, *comb to 
 """
 
 import vanilla
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject
@@ -121,50 +122,79 @@ class MarkMover(mekkaObject):
 		"reuseTab": 1,
 	}
 
-
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 310
-		windowHeight = 224
+		windowWidth = 330
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight),  # default window size
-			"Mark Mover",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			(windowWidth, windowHeight),
+			"Mark Mover",
+			autosaveName=self.domain("mainwindow"),  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Move connecting anchors on metric line", sizeStyle='small')
-		linePos += lineHeight
+		inset = 15
+		metricsKeysTooltip = "Sets the metrics keys of the marks, so their sidebearings follow the keys: LSB for the left, RSB for the right sidebearing."
 
-		self.w.arabicMarks = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Move Arabic marks to Alef Height", value=True, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.descriptionText = vanilla.TextBox("auto", "Move connecting anchors on metric line", sizeStyle="small")
+		self.w.arabicMarks = vanilla.CheckBox("auto", "Move Arabic marks to Alef Height", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.arabicMarks.setToolTip("Moves marks in Arabic script to the metric called Alef Height.")
+		self.w.lowercaseMarks = vanilla.CheckBox("auto", "Move …comb marks to x-height", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.lowercaseMarks.setToolTip("Moves nonspacing marks (e.g. acutecomb) to x-height, by their _top anchor, or by their _bottom anchor onto the baseline.")
+		self.w.uppercaseMarks = vanilla.CheckBox("auto", "Move …comb.case marks to cap height", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.uppercaseMarks.setToolTip("Moves marks with the .case or .uc suffix (e.g. acutecomb.case) to cap height.")
+		self.w.smallcapMarks = vanilla.CheckBox("auto", "Move …comb.sc to smallcap height", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.smallcapMarks.setToolTip("Moves marks with the .sc, .smcp, .c2sc or .small suffix to the smallCapHeight master parameter.")
 
-		self.w.lowercaseMarks = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Move …comb marks to x-height", value=True, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.setMetricsKeys = vanilla.CheckBox("auto", "Set metrics keys, LSB", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.setMetricsKeys.setToolTip(metricsKeysTooltip)
+		self.w.leftMetricsKey = vanilla.EditText("auto", "=40", callback=self.SavePreferences, sizeStyle="small")
+		self.w.leftMetricsKey.setToolTip("Left metrics key for the marks, e.g. =40")
+		self.w.rightMetricsKeyText = vanilla.TextBox("auto", "RSB", sizeStyle="small")
+		self.w.rightMetricsKeyText.setToolTip(metricsKeysTooltip)
+		self.w.rightMetricsKey = vanilla.EditText("auto", "=|", callback=self.SavePreferences, sizeStyle="small")
+		self.w.rightMetricsKey.setToolTip("Right metrics key for the marks, e.g. =|")
 
-		self.w.uppercaseMarks = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Move …comb.case marks to cap height", value=True, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
-
-		self.w.smallcapMarks = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Move …comb.sc to smallcap height", value=False, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
-
-		self.w.setMetricsKeys = vanilla.CheckBox((inset + 2, linePos - 1, 140, 20), "Set metrics keys, LSB", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.leftMetricsKey = vanilla.EditText((inset + 135, linePos - 1, 55, 19), "=40", callback=self.SavePreferences, sizeStyle='small')
-		self.w.rightMetricsKeyText = vanilla.TextBox((inset + 195, linePos + 2, 30, 14), "RSB", sizeStyle='small')
-		self.w.rightMetricsKey = vanilla.EditText((inset + 225, linePos - 1, 55, 19), "=|", callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
-
-		self.w.includeAllGlyphs = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include all glyphs in font (otherwise just selection)", value=True, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
-
-		self.w.newTab = vanilla.CheckBox((inset + 2, linePos - 1, 140, 20), "Open tab with marks", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reuseTab = vanilla.CheckBox((inset + 140, linePos - 1, -inset, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.includeAllGlyphs = vanilla.CheckBox("auto", "Include all glyphs in font (otherwise just selection)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.includeAllGlyphs.setToolTip("Processes all mark glyphs in the font. Otherwise only the selected glyphs.")
+		self.w.newTab = vanilla.CheckBox("auto", "Open tab with marks", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.newTab.setToolTip("Opens an Edit tab with the processed marks.")
+		self.w.reuseTab = vanilla.CheckBox("auto", "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.reuseTab.setToolTip("Puts the marks in the current Edit tab, if there is one, instead of opening a new tab.")
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Move", callback=self.MarkMoverMain)
+		self.w.runButton = vanilla.Button("auto", "Move", callback=self.MarkMoverMain)
+		self.w.runButton.setToolTip("Move the marks.")
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; hug so the window is as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# the RSB label hugs its text
+		nsLabel = self.w.rightMetricsKeyText.getNSTextField()
+		nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[arabicMarks]-(>=inset)-|",
+				"H:|-inset-[lowercaseMarks]-(>=inset)-|",
+				"H:|-inset-[uppercaseMarks]-(>=inset)-|",
+				"H:|-inset-[smallcapMarks]-(>=inset)-|",
+				"H:|-inset-[setMetricsKeys]-gap-[leftMetricsKey(55)]-gap-[rightMetricsKeyText]-gap-[rightMetricsKey(55)]-(>=inset)-|",
+				"H:|-inset-[includeAllGlyphs]-(>=inset)-|",
+				"H:|-inset-[newTab]-gap-[reuseTab]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[descriptionText]-row-[arabicMarks]-checkRow-[lowercaseMarks]-checkRow-[uppercaseMarks]-checkRow-[smallcapMarks]-row-[leftMetricsKey]-row-[includeAllGlyphs]-checkRow-[newTab]-inset-[runButton]-inset-|",
+				{"view1": self.w.setMetricsKeys, "attribute1": "centerY", "view2": self.w.leftMetricsKey, "attribute2": "centerY"},
+				{"view1": self.w.rightMetricsKeyText, "attribute1": "centerY", "view2": self.w.leftMetricsKey, "attribute2": "centerY"},
+				{"view1": self.w.rightMetricsKey, "attribute1": "centerY", "view2": self.w.leftMetricsKey, "attribute2": "centerY"},
+				{"view1": self.w.reuseTab, "attribute1": "centerY", "view2": self.w.newTab, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -173,7 +203,6 @@ class MarkMover(mekkaObject):
 		self.w.open()
 		self.w.makeKey()
 
-
 	def updateUI(self, sender=None):
 		onOff = self.w.lowercaseMarks.get() or self.w.uppercaseMarks.get() or self.w.smallcapMarks.get() or self.w.arabicMarks.get()
 		self.w.runButton.enable(onOff)
@@ -181,7 +210,6 @@ class MarkMover(mekkaObject):
 		onOff = self.w.setMetricsKeys.get()
 		self.w.leftMetricsKey.enable(onOff)
 		self.w.rightMetricsKey.enable(onOff)
-
 
 	def MarkMoverMain(self, sender=None):
 		try:
@@ -201,7 +229,6 @@ class MarkMover(mekkaObject):
 				else:
 					print("⚠️ The font file has not been saved yet.")
 
-				descriptionText = self.pref("descriptionText")
 				lowercaseMarks = self.pref("lowercaseMarks")
 				uppercaseMarks = self.pref("uppercaseMarks")
 				smallcapMarks = self.pref("smallcapMarks")
