@@ -246,6 +246,10 @@ self.w.myList.getNSTableView().setToolTip_("Tooltip on the table view.")
 
 ### Window layout — use Auto Layout
 
+**Every new UI script is built with `vanilla` and Auto Layout.** Create every control with `"auto"` instead of a
+`posSize` tuple and place them with `addAutoPosSizeRules()`. No hand-computed frames, no running `linePos`, no
+`minSize`/`maxSize`, no other UI toolkit. Reworking an existing window follows the same rules.
+
 Do **not** compute `posSize` frames by hand. Vanilla's frame-based layout inflates a control's
 `posSize` by its `frameAdjustments` — for a push button `(-6, -8, 12, 12)`, hardcoded for the
 classic Aqua bezel. On macOS 26 and later, buttons no longer draw that way, so hardcoded rows
@@ -290,6 +294,53 @@ columnRules = [
 	for cell in gridCheckBoxes[1:]
 ]
 ```
+
+**Labels in front of fields.** When several rows start with a label (`Script`, `Speed`, `Left Category`, …),
+**right-align the label text and give all labels the same width.** The labels then end at one x-position, the fields
+start at one x-position, and neither depends on how long a label text is. Measure every label against the one with
+the longest text:
+
+```python
+labelNames = ("textScript", "textSpeed", "text_popupLeftCat", "text_excludeSuffixes")
+widestLabel = "text_excludeSuffixes"  # the label with the longest text
+
+for labelName in labelNames:
+	nsLabel = getattr(self.w, labelName).getNSTextField()
+	nsLabel.setAlignment_(NSTextAlignmentRight)
+	nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+	nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+widthRules = [
+	{"view1": getattr(self.w, labelName), "attribute1": "width", "view2": getattr(self.w, widestLabel), "attribute2": "width"}
+	for labelName in labelNames if labelName != widestLabel
+]
+# then: "H:|-inset-[label]-gap-[field]-inset-|" per row, a centerY rule per label,
+# and `+ widthRules` appended to the rules list
+```
+
+Rules for rows with a label, learned from converting `Kerning/KernCrasher.py`:
+
+- **One view per row in the vertical chain.** Put the control with the intrinsic height (popup, combo box, edit
+  field) into the `V:` rule, and tie every other view of that row to it with a `centerY` dict rule. Listing all
+  controls of a row in the `V:` chain would stack them.
+- **A row can hold several controls.** Chain them horizontally, e.g.
+  `[textScript]-gap-[popupScript(>=110)]-gap-[updateScriptsButton]-gap-[textDistance]-gap-[minDistance(50)]-inset-|`.
+  Give a flexible control a minimum width and a small numeric field a fixed one. End a short row with
+  `-(>=inset)-|`; end a row whose field should stretch with `-inset-|`.
+- **Controls in different rows that should look alike get an equal-width rule** (`popupSpeed` = `popupScript`).
+- **Name the spacing.** Use metrics (`row`, `headlineGap`, `barGap`) for the gaps between sections instead of
+  scattering numbers through the chain. A stack of checkboxes can sit tighter than rows of fields.
+- **Window width:** all labels take the width of the widest one, so make `windowWidth` large enough for that label
+  plus a usable field (KernCrasher grew from 410 to 470).
+- **`ProgressBar` needs a height in the rule:** `[bar(16)]`.
+- **Bottom buttons:** the main chain ends with `[runButton]-inset-|`. A second button in that row gets its own
+  `"V:[nextButton]-inset-|"` and joins the row horizontally: `|-(>=inset)-[nextButton(>=70)]-gap-[runButton(>=70)]-inset-|`.
+- **Window position only:** drop `windowHeightResize`, `minSize` and `maxSize`, and say “stores last window position”
+  (not “and size”) next to `autosaveName`.
+- **Give the label and its field the same tooltip** (one `tooltipText` variable, set on both).
+- **Example input as a placeholder:** `field.getNSTextField().setPlaceholderString_("200:300, 400:370")`.
+- **Secondary info text** takes a semantic color, `NSColor.tertiaryLabelColor()`, never hard-coded RGBA, so it
+  survives dark mode.
 
 **Hugging and compression.** A label next to a flexible control should hug its text, so the
 field or popup takes the leftover width. Where two labels share a width, also make them resist
@@ -344,7 +395,7 @@ linePos += lineHeight
 ```
 
 Negative coordinates are measured from the right/bottom edge (`-inset` = inset from right).
-Read it, but prefer Auto Layout for new windows and when reworking an existing one.
+Read it to understand existing scripts. Never use it for a new window, and convert a window to Auto Layout when you rework it.
 
 ## Shared Utility Functions (`__init__.py`)
 
