@@ -87,7 +87,7 @@ class Bumper(mekkaObject):
 
 		# Window 'self.w':
 		windowWidth = 500
-		windowHeight = 365
+		windowHeight = 389
 		windowWidthResize = 500  # user can resize width by this value
 		windowHeightResize = 500  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -190,6 +190,10 @@ class Bumper(mekkaObject):
 		self.w.bar = vanilla.ProgressBar((inset, linePos, -inset, 16))
 		linePos += lineHeight
 
+		# Status line:
+		self.w.status = vanilla.TextBox((inset, linePos, -inset, 14), "Ready.", sizeStyle="small", selectable=True)
+		linePos += lineHeight
+
 		# (Hidden) Preferences Kern Strings:
 		self.w.kernStrings = vanilla.TextEditor((1, linePos, -1, -45), callback=self.SavePreferences)
 		self.w.kernStrings.setToolTip("Add your default kern strings here. They will show up in the left/right dropdowns at the top. Everything after a hashtag (#) is ignored. Use blank lines for structuring.")
@@ -200,7 +204,7 @@ class Bumper(mekkaObject):
 		# Buttons:
 		self.w.nextButton = vanilla.Button((-inset - 210, -20 - inset, -inset - 100, -inset), "Next Master", callback=self.masterSwitch)
 
-		self.w.undoButton = vanilla.Button((-inset - 300, -20 - inset, -inset - 220, -inset), "Undo", callback=self.undo)
+		self.w.undoButton = vanilla.Button((inset, -20 - inset, inset + 80, -inset), "Undo", callback=self.undo)
 		self.w.undoButton.setToolTip("Restores the kerning as it was before the last time you pressed Kern. Available only after kerning was added.")
 		self.w.undoButton.enable(False)
 
@@ -208,7 +212,6 @@ class Bumper(mekkaObject):
 		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Kern", callback=self.BumperMain)
 		self.w.setDefaultButton(self.w.runButton)
 
-		self.w.status = vanilla.TextBox((inset, -28 - inset, -inset - 310, 14), "Ready.", sizeStyle="small", selectable=True)
 
 		# Load Settings:
 		self.LoadPreferences()
