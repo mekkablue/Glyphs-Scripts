@@ -87,7 +87,7 @@ class Bumper(mekkaObject):
 
 		# Window 'self.w':
 		windowWidth = 500
-		windowHeight = 389
+		windowHeight = 404
 		windowWidthResize = 500  # user can resize width by this value
 		windowHeightResize = 500  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
@@ -195,10 +195,10 @@ class Bumper(mekkaObject):
 		linePos += lineHeight
 
 		# (Hidden) Preferences Kern Strings:
-		self.w.kernStrings = vanilla.TextEditor((1, linePos, -1, -45), callback=self.SavePreferences)
+		self.w.kernStrings = vanilla.TextEditor((1, linePos, -1, -62), callback=self.SavePreferences)
 		self.w.kernStrings.setToolTip("Add your default kern strings here. They will show up in the left/right dropdowns at the top. Everything after a hashtag (#) is ignored. Use blank lines for structuring.")
 
-		self.w.text_kernStrings = vanilla.TextBox((inset, -14 - inset, -100 - inset, -inset), "Expand window below to access default strings.", sizeStyle='small')
+		self.w.text_kernStrings = vanilla.TextBox((inset, -50 - inset, -inset, -36 - inset), "Expand window below to access default strings.", sizeStyle='small')
 		self.w.text_kernStrings.getNSTextField().setTextColor_(NSColor.colorWithRed_green_blue_alpha_(0, 0, 0, 0.2))
 
 		# Buttons:
