@@ -4,6 +4,7 @@ Prepare open fonts for a modern font production and git workflow.
 """
 
 import vanilla
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject
 
@@ -14,6 +15,7 @@ class PrepareFontforGit(mekkaObject):
 		"preventTimeStamps": False,
 		"preventMacName": False,
 		"fileFormat": False,
+		"fileFormatVersion": 0,  # 0 = Glyphs version 3, 1 = Glyphs version 4
 		"useExtensionKerning": False,
 		"removeGlyphOrder": False,
 		"applyToFonts": False,
@@ -31,56 +33,77 @@ class PrepareFontforGit(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 360
-		windowHeight = 272
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 400
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight),  # default window size
-			"Prepare File",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			(windowWidth, windowHeight),
+			"Prepare File",
+			autosaveName=self.domain("mainwindow"),  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Make the font git-ready with these custom parameters:", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		inset = 15
+		checkBoxNames = (
+			"preventDisplayStrings",
+			"preventTimeStamps",
+			"preventMacName",
+			"fileFormat",
+			"useExtensionKerning",
+			"removeGlyphOrder",
+			"disablesNiceNames",
+			"disablesAutomaticAlignment",
+		)
 
-		self.w.preventDisplayStrings = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Prevent storing of tab contents (Write DisplayStrings = OFF)", value=True, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.descriptionText = vanilla.TextBox("auto", "Make the font git-ready with these custom parameters:", sizeStyle="small", selectable=True)
 
-		self.w.preventTimeStamps = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Prevent storing of time stamps (Write lastChange = OFF)", value=True, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.preventDisplayStrings = vanilla.CheckBox("auto", "Prevent storing of tab contents (Write DisplayStrings = OFF)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.preventTimeStamps = vanilla.CheckBox("auto", "Prevent storing of time stamps (Write lastChange = OFF)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.preventMacName = vanilla.CheckBox("auto", "Prevent export of Mac entries in name table", value=True, callback=self.SavePreferences, sizeStyle="small")
 
-		self.w.preventMacName = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Prevent export of Mac entries in name table", value=True, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		fileFormatTooltip = "Sets Font Info > Other > File Format to the chosen Glyphs version."
+		self.w.fileFormat = vanilla.CheckBox("auto", "Set File Format to", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.fileFormat.setToolTip(fileFormatTooltip)
+		self.w.fileFormatVersion = vanilla.PopUpButton("auto", ("Glyphs version 3", "Glyphs version 4"), callback=self.SavePreferences, sizeStyle="small")
+		self.w.fileFormatVersion.setToolTip(fileFormatTooltip)
 
-		self.w.fileFormat = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Set File Format to Glyphs version 3", value=True, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
-
-		self.w.useExtensionKerning = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Add Use Extension Kerning parameter", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.useExtensionKerning = vanilla.CheckBox("auto", "Add Use Extension Kerning parameter", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.useExtensionKerning.setToolTip("Adds the ‘Use Extension Kerning’ custom parameter, which makes the exported kern feature use the GPOS Extension lookup type. Useful for large kerning tables.")
-		linePos += lineHeight
-
-		self.w.removeGlyphOrder = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Remove glyphOrder", value=False, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
-
-		self.w.disablesNiceNames = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Turn off Font Info > Other > Use Custom Naming", value=False, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
-
-		self.w.disablesAutomaticAlignment = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Turn off Font Info > Other > Disable Auto Alignment", value=False, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
+		self.w.removeGlyphOrder = vanilla.CheckBox("auto", "Remove glyphOrder", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.disablesNiceNames = vanilla.CheckBox("auto", "Turn off Font Info > Other > Use Custom Naming", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.disablesAutomaticAlignment = vanilla.CheckBox("auto", "Turn off Font Info > Other > Disable Auto Alignment", value=False, callback=self.SavePreferences, sizeStyle="small")
 
 		# Apply Scope:
-		self.w.applyToFontsText = vanilla.TextBox((inset, -18 - inset + 2, 60, 14), "Apply to:", sizeStyle='small', selectable=True)
-		self.w.applyToFonts = vanilla.PopUpButton((inset + 60, -18 - inset, -120 - inset, 17), ("frontmost font only", "⚠️ ALL open fonts"), sizeStyle='small', callback=self.SavePreferences)
-		linePos += lineHeight
+		self.w.applyToFontsText = vanilla.TextBox("auto", "Apply to:", sizeStyle="small", selectable=True)
+		self.w.applyToFonts = vanilla.PopUpButton("auto", ("frontmost font only", "⚠️ ALL open fonts"), sizeStyle="small", callback=self.SavePreferences)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Apply", callback=self.PrepareFontforGitMain)
+		self.w.runButton = vanilla.Button("auto", "Apply", callback=self.PrepareFontforGitMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging,
+		# the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.applyToFontsText.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+
+		rules = ["H:|-inset-[descriptionText]-(>=inset)-|"]
+		rules += [f"H:|-inset-[{name}]-(>=inset)-|" for name in checkBoxNames if name != "fileFormat"]
+		rules += [
+			"H:|-inset-[fileFormat]-gap-[fileFormatVersion]-(>=inset)-|",
+			"H:|-inset-[applyToFontsText]-gap-[applyToFonts]-gap-[runButton(>=70)]-inset-|",
+		]
+		verticalChain = "V:|-gap-[descriptionText]"
+		for name in checkBoxNames:
+			verticalChain += f"-checkRow-[{name}]"
+		verticalChain += "-inset-[applyToFonts]-inset-|"
+		rules.append(verticalChain)
+		rules += [
+			{"view1": self.w.fileFormatVersion, "attribute1": "centerY", "view2": self.w.fileFormat, "attribute2": "centerY"},
+			{"view1": self.w.applyToFontsText, "attribute1": "centerY", "view2": self.w.applyToFonts, "attribute2": "centerY"},
+			{"view1": self.w.runButton, "attribute1": "centerY", "view2": self.w.applyToFonts, "attribute2": "centerY"},
+		]
+		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "checkRow": 5})
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -90,9 +113,11 @@ class PrepareFontforGit(mekkaObject):
 		self.w.makeKey()
 
 	def updateUI(self, sender=None):
-		onOff = any([self.pref(prefName) for prefName in self.prefDict.keys()])
+		optionNames = [prefName for prefName in self.prefDict.keys() if prefName not in ("applyToFonts", "fileFormatVersion")]
+		onOff = any([self.pref(prefName) for prefName in optionNames])
 		self.w.applyToFonts.enable(onOff)
 		self.w.runButton.enable(onOff)
+		self.w.fileFormatVersion.enable(self.pref("fileFormat"))
 
 	def setParameterForFont(self, font, parameterName, parameterValue=0, remove=False):
 		while font.customParameters[parameterName]:
@@ -147,11 +172,12 @@ class PrepareFontforGit(mekkaObject):
 
 					# set file format:
 					if self.pref("fileFormat"):
-						if thisFont.formatVersion != 3:
-							thisFont.formatVersion = 3
-							print("✅ Font Info > Other > File Format: 3")
+						targetVersion = 3 + self.prefInt("fileFormatVersion")
+						if thisFont.formatVersion != targetVersion:
+							thisFont.formatVersion = targetVersion
+							print(f"✅ Font Info > Other > File Format: {targetVersion}")
 						else:
-							print("😮‍💨 Font Info > Other > File Format was already 3")
+							print(f"😮‍💨 Font Info > Other > File Format was already {targetVersion}")
 
 					print()
 
