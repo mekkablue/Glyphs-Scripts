@@ -12,6 +12,7 @@ from AppKit import (
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
 	NSTextAlignmentCenter,
+	NSTextAlignmentRight,
 )
 from Foundation import NSColor, NSArchiver, NSUnarchiver, NSMutableArray, NSNumberFormatter
 from GlyphsApp import Glyphs, Message
@@ -59,6 +60,7 @@ class SetLabelColors(mekkaObject):
 			dot.setToolTip(f"Preview of label color {i}.")
 			for name, _ in components:
 				field = SteppingEditText("auto", "50", sizeStyle="small", callback=self.textFieldAction, formatter=formatter)
+				field.getNSTextField().setAlignment_(NSTextAlignmentRight)
 				field.setToolTip(f"{name.capitalize()} of label color {i}, from 0 to 100.")
 				setattr(self.w, f"{name}{i:02d}", field)
 
