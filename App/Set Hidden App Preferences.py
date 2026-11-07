@@ -11,7 +11,9 @@ from AppKit import (
 	NSLayoutConstraintOrientationVertical,
 	NSLayoutPriorityDefaultLow,
 	NSLayoutPriorityWindowSizeStayPut,
+	NSWindowStyleMaskResizable,
 )
+from Foundation import NSSize
 from GlyphsApp import Glyphs
 from mekkablue import mekkaObject
 
@@ -75,11 +77,12 @@ class SetHiddenAppPreferences(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 470
+		windowWidthResize = 800  # user can widen the window by this value
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Set Hidden App Preferences",
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and size
 		)
 
 		# UI elements:
@@ -127,6 +130,14 @@ class SetHiddenAppPreferences(mekkaObject):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
+
+		# Resizable in width only. Vanilla's minSize/maxSize would count the title bar twice,
+		# so set the limits on the NSWindow, in content sizes, with the height Auto Layout asks for:
+		nsWindow = self.w.getNSWindow()
+		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
+		contentHeight = nsWindow.contentView().fittingSize().height
+		nsWindow.setContentMinSize_(NSSize(windowWidth, contentHeight))
+		nsWindow.setContentMaxSize_(NSSize(windowWidth + windowWidthResize, contentHeight))
 
 	def updateUI(self, sender=None):
 		prefName = self.w.pref.get()
