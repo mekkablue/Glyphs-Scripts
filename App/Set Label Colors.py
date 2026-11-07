@@ -11,7 +11,6 @@ from AppKit import (
 	NSLayoutPriorityDefaultHigh,
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
-	NSTextAlignmentCenter,
 	NSTextAlignmentRight,
 )
 from Foundation import NSColor, NSArchiver, NSUnarchiver, NSMutableArray, NSNumberFormatter
@@ -48,7 +47,7 @@ class SetLabelColors(mekkaObject):
 		# column headers:
 		for name, letter in components:
 			header = vanilla.TextBox("auto", letter, sizeStyle="small", selectable=False)
-			header.getNSTextField().setAlignment_(NSTextAlignmentCenter)
+			header.getNSTextField().setAlignment_(NSTextAlignmentRight)
 			setattr(self.w, f"{name}Text", header)
 
 		# one row per label color: color dot and four fields
@@ -68,9 +67,9 @@ class SetLabelColors(mekkaObject):
 			for viewName in (f"color{i:02d}", f"green{i:02d}", f"blue{i:02d}", f"alpha{i:02d}"):
 				rules.append({"view1": getattr(self.w, viewName), "attribute1": "centerY", "view2": getattr(self.w, f"red{i:02d}"), "attribute2": "centerY"})
 
-		# headers sit above their columns:
+		# headers sit above their columns, right-aligned like the numbers:
 		for name, _ in components:
-			rules.append({"view1": getattr(self.w, f"{name}Text"), "attribute1": "centerX", "view2": getattr(self.w, f"{name}01"), "attribute2": "centerX"})
+			rules.append({"view1": getattr(self.w, f"{name}Text"), "attribute1": "right", "view2": getattr(self.w, f"{name}01"), "attribute2": "right"})
 
 		# buttons that apply the value of the last line to all lines:
 		tooltip = "Type in a value in the LAST line and click this button to apply it to all lines."
