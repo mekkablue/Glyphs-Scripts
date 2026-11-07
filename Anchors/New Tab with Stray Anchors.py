@@ -7,7 +7,7 @@ import sys
 import objc
 import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight, NSWindowStyleMaskResizable
-from Foundation import NSSize
+from Foundation import NSNumberFormatter, NSSize
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, newLineControlLayer, UpdateButton, reportFontName
 
@@ -138,7 +138,10 @@ class FindStrayAnchors(mekkaObject):
 		toleranceTooltip = "Anchors this many units or fewer away from the chosen position still count as being on it. Applies to horizontal and vertical positions."
 		self.w.toleranceText = vanilla.TextBox("auto", "Tolerance:", sizeStyle="small", selectable=True)
 		self.w.toleranceText.setToolTip(toleranceTooltip)
-		self.w.tolerance = SteppingEditText("auto", "0", callback=self.toleranceChanged, sizeStyle="small")
+		toleranceFormatter = NSNumberFormatter.alloc().init()
+		toleranceFormatter.setAllowsFloats_(False)
+		toleranceFormatter.setMinimum_(0)
+		self.w.tolerance = SteppingEditText("auto", "0", callback=self.SavePreferences, sizeStyle="small", formatter=toleranceFormatter)
 		self.w.tolerance.setToolTip(toleranceTooltip)
 
 		self.w.reuseTab = vanilla.CheckBox("auto", "Reuse current tab", value=False, callback=self.SavePreferences, sizeStyle="small")
@@ -203,16 +206,6 @@ class FindStrayAnchors(mekkaObject):
 		contentHeight = nsWindow.contentView().frame().size.height
 		nsWindow.setContentMinSize_(NSSize(windowWidth, contentHeight))
 		nsWindow.setContentMaxSize_(NSSize(windowWidth + 1000, contentHeight))
-
-	def toleranceChanged(self, sender=None):
-		"""Tolerance cannot be negative: resets the field to 0 when stepped or typed below 0."""
-		try:
-			isNegative = float(self.w.tolerance.get()) < 0
-		except ValueError:
-			isNegative = False
-		if isNegative:
-			self.w.tolerance.set("0")
-		self.SavePreferences(sender)
 
 	def updateAnchorNames(self, sender=None):
 		anchorText = self.collectAnchors()
