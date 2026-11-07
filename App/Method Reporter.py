@@ -4,8 +4,8 @@ Searches in PyObjC method names of a chosen object.
 """
 
 import vanilla
-from AppKit import NSObject, NSPasteboard, NSStringPboardType
-# from pydoc import help
+from AppKit import NSObject, NSWindowStyleMaskResizable
+from Foundation import NSSize
 from GlyphsApp import Glyphs
 from mekkablue import setClipboard, mekkaObject
 
@@ -17,6 +17,8 @@ class MethodReporter(mekkaObject):
 	}
 
 	def __init__(self):
+		self.methodCache = {}  # listing the methods of a big class takes a while, so do it only once
+
 		if Glyphs.versionNumber < 4.0:
 			infoValueObjects = ("GSFontInfoValue", "GSFontInfoValueLocalized")
 		else:
@@ -89,76 +91,77 @@ class MethodReporter(mekkaObject):
 		)
 
 		# Window 'self.w':
-		windowWidth = 250
-		windowHeight = 200
+		windowWidth = 320
+		windowHeight = 260
 		windowWidthResize = 1000  # user can resize width by this value
 		windowHeightResize = 850  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight),  # default window size
-			"Method Reporter",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			(windowWidth, windowHeight),
+			"Method Reporter",
+			autosaveName=self.domain("mainwindow"),  # stores last window position and size
 		)
 
 		# UI ELEMENTS:
+		inset = 8
 
 		# Method Picker:
-		self.w.objectPicker = vanilla.ComboBox((3, 2, 133, 24), self.mostImportantObjects, completes=True, continuous=False, callback=self.MethodReporterMain)
-		self.w.objectPicker.set("GSLayer")
+		self.w.objectPicker = vanilla.ComboBox("auto", self.mostImportantObjects, completes=True, continuous=False, callback=self.MethodReporterMain, sizeStyle="small")
 		self.w.objectPicker.setToolTip("Type a class name here. Names will autocomplete.")
 
 		# Filter:
-		self.w.textFilter = vanilla.TextBox((140, 6, 35, 14), "Find:", sizeStyle='small')
-		self.w.filter = vanilla.EditText((173, 1, -1, 24), "", callback=self.MethodReporterMain)
+		self.w.textFilter = vanilla.TextBox("auto", "Find:", sizeStyle="small")
+		self.w.filter = vanilla.EditText("auto", "", callback=self.MethodReporterMain, sizeStyle="small")
 		self.w.filter.setToolTip("Type one or more (space-separated) search terms here. Case is ignored. Use * as wildcard at beginning, middle or end of term. Multiple search terms are AND-concatenated.\n\nIf one of the search terms is ‘_*’, it will display methods that start with underscores. They are otherwise left out to reduce clutter.")
 
 		# Listing of methods:
-		self.w.methodList = vanilla.List((0, 26, -0, -0), self.methodList("GSLayer"), autohidesScrollers=False, drawVerticalLines=True, doubleClickCallback=self.copySelection, rowHeight=19)
+		self.w.methodList = vanilla.List("auto", [], autohidesScrollers=False, drawVerticalLines=True, doubleClickCallback=self.copySelection, rowHeight=19)
 		self.w.methodList.getNSTableView().tableColumns()[0].setWidth_(501)
 		self.w.methodList.getNSTableView().setToolTip_("Double click an entry to copy it to the clipboard and display its help() in Macro Window.")
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[objectPicker(150)]-gap-[textFilter]-gap-[filter]-inset-|",
+				"H:|[methodList]|",
+				"V:|-inset-[objectPicker]-inset-[methodList(>=100)]|",
+				{"view1": self.w.textFilter, "attribute1": "centerY", "view2": self.w.objectPicker, "attribute2": "centerY"},
+				{"view1": self.w.filter, "attribute1": "centerY", "view2": self.w.objectPicker, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 6},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
 
 		# Open window and focus on it:
-		self.w.bind("resize", self.adjustGUIObjects)
 		self.w.open()
 		self.w.makeKey()
-		self.adjustGUIObjects()
+
+		# Resizable in both directions. Vanilla's minSize/maxSize would count the title bar twice,
+		# so set the limits on the NSWindow, in content sizes:
+		nsWindow = self.w.getNSWindow()
+		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
+		nsWindow.setContentMinSize_(NSSize(windowWidth, windowHeight))
+		nsWindow.setContentMaxSize_(NSSize(windowWidth + windowWidthResize, windowHeight + windowHeightResize))
+
 		self.MethodReporterMain(None)
-
-	def adjustGUIObjects(self, sender=None):
-		windowLeft, windowTop, windowWidth, windowHeight = self.w.getPosSize()
-		comboWidth = max(100, int(windowWidth / 3))
-
-		posSizeObjectPicker = list(self.w.objectPicker.getPosSize())
-		posSizeObjectPicker[2] = comboWidth - 7
-		self.w.objectPicker.setPosSize(posSizeObjectPicker)
-
-		posSizeTextFilter = list(self.w.textFilter.getPosSize())
-		posSizeTextFilter[0] = comboWidth
-		self.w.textFilter.setPosSize(posSizeTextFilter)
-
-		posSizeFilter = list(self.w.filter.getPosSize())
-		posSizeFilter[0] = comboWidth + 33
-		self.w.filter.setPosSize(posSizeFilter)
 
 	def copySelection(self, sender):
 		try:
-			index = self.w.methodList.getSelection()[0]
-			methodName = self.w.methodList[index]
+			selection = self.w.methodList.getSelection()
+			if not selection:
+				return
+			methodName = self.w.methodList[selection[0]]
 			className = self.w.objectPicker.get()
-			method = "%s.%s" % (className, methodName)
+			method = f"{className}.{methodName}"
 
 			# help in macro window:
 			self.outputHelpForMethod(method)
 
 			# puts method in clipboard:
 			if not setClipboard(method):
-				print("Warning: could not set clipboard.")
+				print("⚠️ Warning: could not set clipboard.")
 			else:
-				print("\n%s copied in clipboard, ready for pasting." % method)
+				print(f"\n{method} copied in clipboard, ready for pasting.")
 
 		except Exception as e:
 			print(e)
@@ -174,10 +177,10 @@ class MethodReporter(mekkaObject):
 		# brings macro window to front, clears its log, outputs help for method:
 		Glyphs.clearLog()
 		try:
-			helpStatement = "help(%s)" % method
-			print("%s\n" % helpStatement)
+			helpStatement = f"help({method})"
+			print(f"{helpStatement}\n")
 			eval(helpStatement)
-		except:
+		except Exception:
 			if "." in method:
 				dotIndex = method.find(".")
 				firstPart = method[:dotIndex]
@@ -185,8 +188,8 @@ class MethodReporter(mekkaObject):
 			else:
 				firstPart = method
 				secondPart = ""
-			helpStatement = "help(NSClassFromString('%s')%s)" % (firstPart, secondPart)
-			print("%s\n" % helpStatement)
+			helpStatement = f"help(NSClassFromString('{firstPart}'){secondPart})"
+			print(f"{helpStatement}\n")
 			eval(helpStatement)
 		Glyphs.showMacroWindow()
 
@@ -194,58 +197,66 @@ class MethodReporter(mekkaObject):
 		"""
 		Adds () if necessary.
 		"""
-		method = "%s.%s" % (className, methodName)
-		methodType = type(eval(method))
-		typeString = methodType.__name__
-		if typeString != "property":
+		try:
+			methodType = type(eval(f"{className}.{methodName}"))
+		except Exception:
+			# a single attribute that cannot be evaluated must not spoil the whole listing
+			return methodName
+		if methodType.__name__ != "property":
 			methodName += "()"
 		return methodName
 
 	def methodList(self, className, allowUnderscored=False):
+		cacheKey = (className, allowUnderscored)
+		if cacheKey in self.methodCache:
+			return self.methodCache[cacheKey]
+
 		elidableMethods = [method for method in dir(NSObject) if not method.startswith("__")]
 		if className == "NSObject":
-			return [
-				self.fullMethodName(className, method) for method in elidableMethods if not method.startswith(".") and not method.startswith("_") and not method.startswith("SCN_")
+			methods = [
+				self.fullMethodName(className, method) for method in elidableMethods
+				if not method.startswith(".") and not method.startswith("_") and not method.startswith("SCN_")
 			]
 		else:
 			try:
 				actualClass = eval(className)
-			except:
+			except Exception:
 				newClassName = f"NSClassFromString('{className}')"
 				actualClass = eval(newClassName)
 				className = newClassName
 
-			shortenedMethods = [
+			methods = [
 				self.fullMethodName(className, method) for method in dir(actualClass)
 				if method not in elidableMethods and not method.startswith(".")
 				and (allowUnderscored or not method.startswith("_"))
 			]
-			return shortenedMethods
+		self.methodCache[cacheKey] = methods
+		return methods
 
 	def MethodReporterMain(self, sender):
 		try:
-			className = self.w.objectPicker.get()
-			filterStringEntry = self.w.filter.get().strip()
-			filterStrings = filterStringEntry.split(" ")
+			className = self.w.objectPicker.get().strip()
+			filterStrings = self.w.filter.get().strip().split(" ")
 
 			try:
 				shouldAllowUnderscored = "_*" in filterStrings
 				methods = self.methodList(className, allowUnderscored=shouldAllowUnderscored)  # fails for NSMutableArray
-				methods = set(methods)
-				methodList = sorted(methods)
+				methodList = sorted(set(methods))
 				for filterString in filterStrings:
+					filterString = filterString.lower()
 					if "*" not in filterString:
-						methodList = [f for f in methodList if filterString.lower() in f.lower()]
+						methodList = [f for f in methodList if filterString in f.lower()]
 					elif filterString.startswith("*"):
-						methodList = [f for f in methodList if f.lower().endswith(filterString.lower()[1:])]
+						methodList = [f for f in methodList if f.lower().endswith(filterString[1:])]
 					elif filterString.endswith("*"):
-						methodList = [f for f in methodList if f.lower().startswith(filterString.lower()[:-1])]
+						methodList = [f for f in methodList if f.lower().startswith(filterString[:-1])]
 					else:
 						asteriskPos = filterString.find("*")
-						beginning = filterString[:asteriskPos].lower()
-						ending = filterString[asteriskPos + 1:].lower()
+						beginning = filterString[:asteriskPos]
+						ending = filterString[asteriskPos + 1:]
 						methodList = [f for f in methodList if f.lower().startswith(beginning) and f.lower().endswith(ending)]
-			except:
+			except Exception:
+				# an unknown class name (e.g., while typing) simply gives an empty list
 				methodList = []
 
 			self.w.methodList.set(methodList)
@@ -255,7 +266,7 @@ class MethodReporter(mekkaObject):
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print("Method Reporter Error: %s" % e)
+			print(f"Method Reporter Error: {e}")
 
 
 MethodReporter()
