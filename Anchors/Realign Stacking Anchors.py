@@ -67,6 +67,7 @@ class RealignStackingAnchors(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Realign", callback=self.RealignStackingAnchorsMain)
+		self.w.runButton.setToolTip("Realign the stacking anchors.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; hug so the window is as tall as its content
