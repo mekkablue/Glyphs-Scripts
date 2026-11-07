@@ -1,6 +1,6 @@
 # MenuTitle: Set Tool Shortcuts
 __doc__ = """
-Set Shortcuts for tools in toolbar.
+Set Shortcuts for tools in toolbar. For Glyphs 3 only; in Glyphs 4, set shortcuts in Glyphs → Settings → Shortcuts.
 """
 
 import vanilla
@@ -12,7 +12,7 @@ from AppKit import (
 	NSLayoutPriorityWindowSizeStayPut,
 	NSTextAlignmentRight,
 )
-from GlyphsApp import Glyphs
+from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject
 
 shortcuts = {
@@ -129,4 +129,11 @@ class SetToolShortcuts(mekkaObject):
 			print(traceback.format_exc())
 
 
-SetToolShortcuts()
+if Glyphs.versionNumber >= 4.0:
+	Message(
+		title="Script for Glyphs 3",
+		message="Cannot set shortcuts here. In Glyphs 4, set shortcuts through Glyphs → Settings → Shortcuts.",
+		OKButton=None,
+	)
+else:
+	SetToolShortcuts()
