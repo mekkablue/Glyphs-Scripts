@@ -4,7 +4,14 @@ GUI for a number of hidden prefs, hard to memorize otherwise.
 """
 
 import vanilla
-from AppKit import NSFont
+from ast import literal_eval
+from AppKit import (
+	NSFont,
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultLow,
+	NSLayoutPriorityWindowSizeStayPut,
+)
 from GlyphsApp import Glyphs
 from mekkablue import mekkaObject
 
@@ -52,7 +59,6 @@ class SetHiddenAppPreferences(mekkaObject):
 		"GSFontViewDarkMode",
 		"GSEditViewDarkMode",
 		"UFOWriteSparseInfo",
-		"GSAlwayShowExportNotification",
 		"com.mekkablue.KernIndicator.offset",
 		"com.mekkablue.ShowFilledPreview.opacity",
 		"com.mekkablue.ShowGlyphFocus.color",
@@ -68,38 +74,52 @@ class SetHiddenAppPreferences(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 350
-		windowHeight = 91
-		windowWidthResize = 500  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 470
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight),  # default window size
-			"Set Hidden App Preferences",  # window title
-			minSize=(windowWidth, windowHeight + 19),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize + 19),  # maximum size (for resizing)
-			autosaveName="com.mekkablue.SetHiddenAppPreferences.mainwindow"  # stores last window position and size
+			(windowWidth, windowHeight),
+			"Set Hidden App Preferences",
+			autosaveName=self.domain("mainwindow"),  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 8, 12, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Choose and apply the app defaults:", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		inset = 15
+		self.w.descriptionText = vanilla.TextBox("auto", "Choose and apply the app defaults:", sizeStyle="small", selectable=True)
 
-		self.w.pref = vanilla.ComboBox((inset, linePos - 2, -inset - 100, 25), self.prefs, callback=self.SavePreferences)
+		self.w.pref = vanilla.ComboBox("auto", self.prefs, callback=self.SavePreferences, sizeStyle="small")
 		self.w.pref.getNSComboBox().setFont_(NSFont.userFixedPitchFontOfSize_(11))
-		self.w.pref.setToolTip("Pick an app default from the list, or type in an identifier.")
 		self.w.pref.getNSComboBox().setNumberOfVisibleItems_(20)
-		self.w.prefValue = vanilla.EditText((-inset - 90, linePos, -inset, 21), "")
-		self.w.prefValue.setToolTip("Enter a value for the chosen app default.")
-		linePos += lineHeight
+		self.w.pref.setToolTip("Pick an app default from the list, or type in an identifier.")
+
+		self.w.prefValue = vanilla.EditText("auto", "", sizeStyle="small")
+		self.w.prefValue.getNSTextField().setPlaceholderString_("value, e.g. True, 42 or 'text'")
+		self.w.prefValue.setToolTip("Enter a value for the chosen app default: a number, True or False, or text in quotes (also lists and dictionaries).")
 
 		# Run Button:
-		self.w.delButton = vanilla.Button((-170 - inset, -20 - inset, -90 - inset, -inset), "Reset", callback=self.SetHiddenAppPreferencesMain)
+		self.w.delButton = vanilla.Button("auto", "Reset", callback=self.SetHiddenAppPreferencesMain)
 		self.w.delButton.setToolTip("Will delete the setting, effectively resetting it to its default.")
 
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Apply", callback=self.SetHiddenAppPreferencesMain)
+		self.w.runButton = vanilla.Button("auto", "Apply", callback=self.SetHiddenAppPreferencesMain)
 		self.w.runButton.setToolTip("Sets the entered value for the chosen app default.")
 		self.w.setDefaultButton(self.w.runButton)
+
+		# the long identifiers must not widen the window; the combo box takes the leftover width:
+		self.w.pref.getNSComboBox().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[pref]-gap-[prefValue(150)]-inset-|",
+				"H:|-(>=inset)-[delButton(>=70)]-gap-[runButton(>=70)]-inset-|",
+				"V:|-gap-[descriptionText]-row-[pref]-inset-[runButton]-inset-|",
+				"V:[delButton]-inset-|",
+				{"view1": self.w.prefValue, "attribute1": "centerY", "view2": self.w.pref, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -109,39 +129,47 @@ class SetHiddenAppPreferences(mekkaObject):
 		self.w.makeKey()
 
 	def updateUI(self, sender=None):
-		value = Glyphs.defaults[self.w.pref.get()]
-		value = str(value)
-		value = value.replace("\n", "")
-		while "  " in value:
-			value = value.replace("  ", " ")
+		prefName = self.w.pref.get()
+		value = Glyphs.defaults[prefName] if prefName else None
+		if isinstance(value, str):
+			# show text in quotes, so it can be applied again as it is:
+			value = repr(str(value))
+		else:
+			value = str(value) if value is not None else ""
+			value = value.replace("\n", "")
+			while "  " in value:
+				value = value.replace("  ", " ")
 		self.w.prefValue.set(value)
 
 	def SetHiddenAppPreferencesMain(self, sender):
 		try:
+			prefName = self.w.pref.get().strip()
+			if not prefName:
+				Glyphs.showNotification("Set Hidden App Preferences", "Please choose or enter an app default first.")
+				return
+
 			if sender == self.w.delButton:
-				del Glyphs.defaults[self.w.pref.get()]
-				self.w.prefValue.set(None)
-				print("Deleted pref: %s" % self.w.pref.get())
+				del Glyphs.defaults[prefName]
+				self.w.prefValue.set("")
+				print(f"🗑️ Deleted pref: {prefName}")
 
 			elif sender == self.w.runButton:
-				prefName = self.w.pref.get()
-				value = eval(self.w.prefValue.get())
-				# if prefName in ["com.mekkablue.ShowGlyphFocus.color", "com.mekkablue.ShowGlyphFocus.colorDarkMode"]:
-				#
-				# 	value = value.strip("(")
-				# 	value = value.strip(")")
-				# 	value = value.replace('"', '')
-				# 	value = value.split(',')
-				# 	value = [float(v) for v in value]
-				# 	value = tuple(value)
+				try:
+					value = literal_eval(self.w.prefValue.get().strip())
+				except (ValueError, SyntaxError):
+					# literal_eval, because the field content should never be executed as code
+					Glyphs.showMacroWindow()
+					print(f"❌ Could not read the value ‘{self.w.prefValue.get()}’ for {prefName}.")
+					print("Enter a number, True or False, text in quotes (e.g. 'text'), or a list or dictionary of these.")
+					return
 				Glyphs.defaults[prefName] = value
-				print("\nSet pref: %s --> %s" % (prefName, value))
-				print("Glyphs.defaults['%s'] = %s" % (prefName, value))
+				print(f"\n✅ Set pref: {prefName} --> {value}")
+				print(f"Glyphs.defaults['{prefName}'] = {value!r}")
 
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print("Set Hidden App Preferences Error: %s" % e)
+			print(f"Set Hidden App Preferences Error: {e}")
 			import traceback
 			print(traceback.format_exc())
 
