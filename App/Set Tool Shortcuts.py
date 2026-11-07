@@ -68,6 +68,9 @@ class SetToolShortcuts(mekkaObject):
 			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
 			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 			field = vanilla.EditText("auto", displayedShortcut(shortcut), sizeStyle="small", callback=self.changeShortcut)
+			tooltip = f"Shortcut key for the {toolName}. Delete it to restore the default."
+			label.setToolTip(tooltip)
+			field.setToolTip(tooltip)
 			setattr(self.w, f"text_{toolName}", label)
 			setattr(self.w, f"edit_{toolName}", field)
 			self.fields[toolName] = field

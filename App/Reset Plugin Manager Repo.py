@@ -78,6 +78,7 @@ class ResetPluginManagerRepo(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Zap", callback=self.ResetPluginManagerRepoMain)
+		self.w.runButton.setToolTip("Deletes the selected repository folder.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		for view in self.w.getNSWindow().contentView().subviews():

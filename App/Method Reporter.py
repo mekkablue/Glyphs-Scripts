@@ -111,7 +111,9 @@ class MethodReporter(mekkaObject):
 		# Filter:
 		self.w.textFilter = vanilla.TextBox("auto", "Find:", sizeStyle="small")
 		self.w.filter = vanilla.EditText("auto", "", callback=self.MethodReporterMain, sizeStyle="small")
-		self.w.filter.setToolTip("Type one or more (space-separated) search terms here. Case is ignored. Use * as wildcard at beginning, middle or end of term. Multiple search terms are AND-concatenated.\n\nIf one of the search terms is ‘_*’, it will display methods that start with underscores. They are otherwise left out to reduce clutter.")
+		tooltip = "Type one or more (space-separated) search terms here. Case is ignored. Use * as wildcard at beginning, middle or end of term. Multiple search terms are AND-concatenated.\n\nIf one of the search terms is ‘_*’, it will display methods that start with underscores. They are otherwise left out to reduce clutter."
+		self.w.textFilter.setToolTip(tooltip)
+		self.w.filter.setToolTip(tooltip)
 
 		# Listing of methods:
 		self.w.methodList = vanilla.List("auto", [], autohidesScrollers=False, drawVerticalLines=True, doubleClickCallback=self.copySelection, rowHeight=19)

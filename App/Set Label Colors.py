@@ -46,8 +46,11 @@ class SetLabelColors(mekkaObject):
 			dot.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
 			dot.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 			setattr(self.w, f"color{i:02d}", dot)
+			dot.setToolTip(f"Preview of label color {i}.")
 			for name, _ in components:
-				setattr(self.w, f"{name}{i:02d}", vanilla.EditText("auto", "0.5", sizeStyle="small", callback=self.textFieldAction))
+				field = vanilla.EditText("auto", "0.5", sizeStyle="small", callback=self.textFieldAction)
+				field.setToolTip(f"{name.capitalize()} of label color {i}, from 0 to 1.")
+				setattr(self.w, f"{name}{i:02d}", field)
 
 			rules.append(f"H:|-inset-[color{i:02d}]-gap-[red{i:02d}(48)]-gap-[green{i:02d}(48)]-gap-[blue{i:02d}(48)]-gap-[alpha{i:02d}(48)]-inset-|")
 			for viewName in (f"color{i:02d}", f"green{i:02d}", f"blue{i:02d}", f"alpha{i:02d}"):
@@ -72,6 +75,7 @@ class SetLabelColors(mekkaObject):
 		self.w.resetButton = vanilla.Button("auto", "Reset", callback=self.resetColors)
 		self.w.resetButton.setToolTip("Restores the default label colors.")
 		self.w.runButton = vanilla.Button("auto", "Set", callback=self.SetLabelColorsMain)
+		self.w.runButton.setToolTip("Applies the colors. Glyphs needs a restart for them to take effect.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		for view in self.w.getNSWindow().contentView().subviews():

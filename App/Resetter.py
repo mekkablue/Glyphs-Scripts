@@ -65,6 +65,7 @@ class Resetter(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Reset", callback=self.ResetterMain)
+		self.w.runButton.setToolTip("Performs the checked resets.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; let every control hug so the window fits the content:
