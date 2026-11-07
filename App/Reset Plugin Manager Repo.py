@@ -9,6 +9,8 @@ from AppKit import (
 	NSLayoutConstraintOrientationVertical,
 	NSLayoutPriorityDefaultLow,
 	NSLayoutPriorityWindowSizeStayPut,
+	NSLineBreakByTruncatingTail,
+	NSColor,
 )
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, UpdateButton
@@ -55,7 +57,7 @@ class ResetPluginManagerRepo(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 400
+		windowWidth = 320
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
@@ -68,13 +70,21 @@ class ResetPluginManagerRepo(mekkaObject):
 		self.w.descriptionText = vanilla.TextBox("auto", "Delete a repository, then try again in Plugin Manager:", sizeStyle="small", selectable=True)
 
 		repositories = listSubfolders(self.repoFolder)
-		self.w.repositoryIndex = vanilla.PopUpButton("auto", repositories, sizeStyle="small", callback=self.SavePreferences)
+		self.w.repositoryIndex = vanilla.PopUpButton("auto", repositories, sizeStyle="regular", callback=self.SavePreferences)
 		self.w.repositoryIndex.setToolTip("Select the repository that gave you the error in Plugin Manager and delete it with the Zap button. Then reopen Plugin Manager and try installing it again.")
 		# long repository names truncate instead of widening the window:
 		self.w.repositoryIndex.getNSPopUpButton().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		self.w.repositoryUpdate = UpdateButton("auto", callback=self.reloadRepositories)
 		self.w.repositoryUpdate.setToolTip("Click to reload the contents of the Repositories folder. Useful if you made manual changes and the contents of the pop-up menu do not yet reflect the state of the Repositories folder.")
+
+		# Status line, on the height of the Run button:
+		self.w.statusText = vanilla.TextBox("auto", "", sizeStyle="small")
+		nsStatus = self.w.statusText.getNSTextField()
+		nsStatus.setTextColor_(NSColor.tertiaryLabelColor())
+		nsStatus.setLineBreakMode_(NSLineBreakByTruncatingTail)
+		# a long message truncates instead of widening the window:
+		nsStatus.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Zap", callback=self.ResetPluginManagerRepoMain)
@@ -87,10 +97,11 @@ class ResetPluginManagerRepo(mekkaObject):
 		self.w.addAutoPosSizeRules(
 			[
 				"H:|-inset-[descriptionText]-inset-|",
-				"H:|-inset-[repositoryIndex]-gap-[repositoryUpdate(>=20)]-inset-|",
-				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"H:|-inset-[repositoryIndex]-gap-[repositoryUpdate(24)]-inset-|",
+				"H:|-inset-[statusText]-gap-[runButton(>=70)]-inset-|",
 				"V:|-gap-[descriptionText]-row-[repositoryIndex]-inset-[runButton]-inset-|",
 				{"view1": self.w.repositoryUpdate, "attribute1": "centerY", "view2": self.w.repositoryIndex, "attribute2": "centerY"},
+				{"view1": self.w.statusText, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 			],
 			metrics={"inset": inset, "gap": 8, "row": 6},
 		)
@@ -108,6 +119,10 @@ class ResetPluginManagerRepo(mekkaObject):
 
 	def updateUI(self, sender=None):
 		self.w.runButton.enable(bool(self.w.repositoryIndex.getItems()))
+
+	def setStatus(self, message):
+		self.w.statusText.set(message)
+		self.w.statusText.setToolTip(message)
 
 	def reloadRepositories(self, sender=None):
 		repositories = listSubfolders(self.repoFolder)
@@ -129,6 +144,7 @@ class ResetPluginManagerRepo(mekkaObject):
 			repos = self.w.repositoryIndex.getItems()
 			if not repos:
 				print(f"⚠️ No repositories found in {self.repoFolder}")
+				self.setStatus("⚠️ No repositories found")
 				return
 			repoName = repos[self.w.repositoryIndex.get()]
 			print(f"Removing repository ‘{repoName}’...")
@@ -136,9 +152,11 @@ class ResetPluginManagerRepo(mekkaObject):
 			success = removeFolder(self.repoFolder, repoName)
 			if success:
 				print(f"\t✅ Successfully removed ‘{repoName}’")
+				self.setStatus(f"✅ Removed ‘{repoName}’")
 				Glyphs.showNotification("Reset Plugin Manager Repo", f"Removed ‘{repoName}’. Reopen Plugin Manager and try again.")
 			else:
 				print(f"\t❌ Error: could not delete ‘{repoName}’.")
+				self.setStatus(f"❌ Could not delete ‘{repoName}’")
 				Message(
 					title="Could not remove folder",
 					message=f"Something went wrong, and apparently ‘{repoName}’ was not deleted. Open the repo folder and inspect yourself.",
