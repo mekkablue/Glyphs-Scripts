@@ -75,13 +75,17 @@ class SnapAnchorsToNearestMetric(mekkaObject):
 		self.w.threshold.setToolTip(tooltipText)
 
 		self.w.respectItalic = vanilla.CheckBox("auto", "Respect italic angle (otherwise always vertical)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.respectItalic.setToolTip("If off, anchors move strictly vertically.")
 		self.w.focusOnMarkAnchorsInMarks = vanilla.CheckBox("auto", "In marks, ignore non-underscore anchors", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.focusOnMarkAnchorsInMarks.setToolTip("Will look only for _xxx anchors in marks (i.e., with an underscore), and ignore those not starting with an underscore.")
 		self.w.allFonts = vanilla.CheckBox("auto", "Apply to ⚠️ ALL fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allFonts.setToolTip("Process all open fonts, not only the frontmost.")
 		self.w.verbose = vanilla.CheckBox("auto", "Verbose reporting", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.verbose.setToolTip("Report details in the Macro Window.")
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Snap", callback=self.SnapAnchorsToNearestMetricMain)
+		self.w.runButton.setToolTip("Snap the anchors to the nearest metric line.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; hug so the window is as tall as its content

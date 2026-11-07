@@ -74,6 +74,7 @@ class BatchInsertAnchor(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Insert", callback=self.BatchInsertAnchorMain)
+		self.w.runButton.setToolTip("Insert the anchor in the selected glyphs.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# labels: right-aligned, same width, hugging their text
