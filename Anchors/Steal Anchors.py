@@ -38,7 +38,7 @@ class StealAnchors(mekkaObject):
 		self.orderedFonts = list(Glyphs.fonts)
 
 		# Window 'self.w':
-		windowWidth = 470
+		windowWidth = 540
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
@@ -101,9 +101,17 @@ class StealAnchors(mekkaObject):
 			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
 			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 
-		# the master popups list long IDs: let them truncate instead of widening the window
-		for popupName in ("originFont", "originMaster", "targetFont", "targetMaster"):
-			getattr(self.w, popupName).getNSPopUpButton().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		# the font popups keep the width of their longest family name:
+		for popupName in ("originFont", "targetFont"):
+			nsPopup = getattr(self.w, popupName).getNSPopUpButton()
+			nsPopup.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsPopup.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		# the master popups list long IDs: they take the leftover width and truncate instead of widening the window
+		for popupName in ("originMaster", "targetMaster"):
+			nsPopup = getattr(self.w, popupName).getNSPopUpButton()
+			nsPopup.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+			nsPopup.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		for view in self.w.getNSWindow().contentView().subviews():
 			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
