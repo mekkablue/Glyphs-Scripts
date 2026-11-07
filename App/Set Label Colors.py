@@ -3,6 +3,7 @@ __doc__ = """
 Override the label colors for glyphs and layers.
 """
 
+import objc
 import vanilla
 from AppKit import (
 	NSLayoutConstraintOrientationHorizontal,
@@ -12,9 +13,14 @@ from AppKit import (
 	NSLayoutPriorityWindowSizeStayPut,
 	NSTextAlignmentCenter,
 )
-from Foundation import NSColor, NSArchiver, NSUnarchiver, NSMutableArray
+from Foundation import NSColor, NSArchiver, NSUnarchiver, NSMutableArray, NSNumberFormatter
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 class SetLabelColors(mekkaObject):
@@ -32,6 +38,10 @@ class SetLabelColors(mekkaObject):
 		# UI elements:
 		inset = 15
 		components = (("red", "R"), ("green", "G"), ("blue", "B"), ("alpha", "A"))
+		formatter = NSNumberFormatter.alloc().init()
+		formatter.setAllowsFloats_(False)  # integers only
+		formatter.setMinimum_(0)
+		formatter.setMaximum_(100)
 		rules = []
 
 		# column headers:
@@ -48,8 +58,8 @@ class SetLabelColors(mekkaObject):
 			setattr(self.w, f"color{i:02d}", dot)
 			dot.setToolTip(f"Preview of label color {i}.")
 			for name, _ in components:
-				field = vanilla.EditText("auto", "0.5", sizeStyle="small", callback=self.textFieldAction)
-				field.setToolTip(f"{name.capitalize()} of label color {i}, from 0 to 1.")
+				field = SteppingEditText("auto", "50", sizeStyle="small", callback=self.textFieldAction, formatter=formatter)
+				field.setToolTip(f"{name.capitalize()} of label color {i}, from 0 to 100.")
 				setattr(self.w, f"{name}{i:02d}", field)
 
 			rules.append(f"H:|-inset-[color{i:02d}]-gap-[red{i:02d}(48)]-gap-[green{i:02d}(48)]-gap-[blue{i:02d}(48)]-gap-[alpha{i:02d}(48)]-inset-|")
@@ -169,7 +179,8 @@ class SetLabelColors(mekkaObject):
 		"""Returns the NSColor entered in the UI, or None if one of the four values is not a number."""
 		_, rName, gName, bName, aName = self.uiAttributeKeys(idx)
 		try:
-			red, green, blue, alpha = (max(0.0, min(1.0, float(getattr(self.w, name).get().replace(",", ".")))) for name in (rName, gName, bName, aName))
+			# the fields hold integers from 0 to 100, the color components are floats from 0.0 to 1.0:
+			red, green, blue, alpha = (max(0, min(100, int(float(str(getattr(self.w, name).get()))))) / 100.0 for name in (rName, gName, bName, aName))
 		except ValueError:
 			return None
 		return NSColor.colorWithDeviceRed_green_blue_alpha_(red, green, blue, alpha)
@@ -185,21 +196,24 @@ class SetLabelColors(mekkaObject):
 			labelColors.addObject_(colorData)
 		return labelColors
 
+	def integerValue(self, value):
+		"""Converts a stored component to an integer from 0 to 100. Floats from 0.0 to 1.0 are scaled up."""
+		if isinstance(value, float) and 0.0 <= value <= 1.0:
+			return int(round(value * 100))
+		return max(0, min(100, int(round(value))))
+
+	def updateValues(self):
+		labelColors = self.currentlyStoredColors()
+		for i, color in enumerate(labelColors):
+			colorName, rName, gName, bName, aName = self.uiAttributeKeys(i)
+			components = (color.redComponent(), color.greenComponent(), color.blueComponent(), color.alphaComponent())
+			for fieldName, component in zip((rName, gName, bName, aName), components):
+				getattr(self.w, fieldName).set(self.integerValue(component))
+			getattr(self.w, colorName).getNSTextField().setTextColor_(color)
+
 	def LoadPreferences(self):
 		try:
-			labelColors = self.currentlyStoredColors()
-			for i, color in enumerate(labelColors):
-				r = color.redComponent()
-				g = color.greenComponent()
-				b = color.blueComponent()
-				a = color.alphaComponent()
-
-				colorName, rName, gName, bName, aName = self.uiAttributeKeys(i)
-				getattr(self.w, rName).set("%.2f" % r)
-				getattr(self.w, gName).set("%.2f" % g)
-				getattr(self.w, bName).set("%.2f" % b)
-				getattr(self.w, aName).set("%.2f" % a)
-				getattr(self.w, colorName).getNSTextField().setTextColor_(color)
+			self.updateValues()
 			return True
 		except Exception:
 			import traceback
@@ -214,7 +228,7 @@ class SetLabelColors(mekkaObject):
 			# update settings to the latest user input:
 			labelColors = self.labelColorArchivesFromUI()
 			if labelColors is None:
-				Message(title="Invalid Color Value", message="⚠️ All fields must contain numbers between 0 and 1.", OKButton=None)
+				Message(title="Invalid Color Value", message="⚠️ All fields must contain whole numbers between 0 and 100.", OKButton=None)
 				return
 			Glyphs.defaults["LabelColors"] = labelColors
 
