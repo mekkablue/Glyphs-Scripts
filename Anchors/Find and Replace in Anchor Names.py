@@ -4,7 +4,16 @@ Replaces strings in anchor names of all selected glyphs.
 """
 
 import vanilla
-from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
+from AppKit import (
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityRequired,
+	NSLayoutPriorityWindowSizeStayPut,
+	NSTextAlignmentRight,
+	NSWindowStyleMaskResizable,
+)
+from Foundation import NSSize
 from GlyphsApp import Glyphs
 from mekkablue import mekkaObject
 
@@ -16,7 +25,8 @@ class SearchAndReplaceInAnchorNames(mekkaObject):
 	}
 
 	def __init__(self):
-		windowWidth = 520
+		windowWidth = 200
+		windowWidthResize = 800  # user can widen the window by this value
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
@@ -37,20 +47,27 @@ class SearchAndReplaceInAnchorNames(mekkaObject):
 		self.w.replaceButton = vanilla.Button("auto", "Replace", callback=self.SearchAndReplaceInAnchorNamesMain)
 		self.w.setDefaultButton(self.w.replaceButton)
 
+		# right-align the labels, give them one width, and let them hug their text:
+		for labelName in ("textSearch", "textReplace"):
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
 		for view in self.w.getNSWindow().contentView().subviews():
 			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
 
 		self.w.addAutoPosSizeRules(
 			[
-				"H:|-inset-[textSearch]-gap-[searchFor]-gap-[textReplace]-gap-[replaceBy]-gap-[replaceButton(>=70)]-inset-|",
-				"V:|-inset-[replaceButton]-inset-|",
-				{"view1": self.w.searchFor, "attribute1": "width", "view2": self.w.replaceBy, "attribute2": "width"},
-				{"view1": self.w.textSearch, "attribute1": "centerY", "view2": self.w.replaceButton, "attribute2": "centerY"},
-				{"view1": self.w.searchFor, "attribute1": "centerY", "view2": self.w.replaceButton, "attribute2": "centerY"},
-				{"view1": self.w.textReplace, "attribute1": "centerY", "view2": self.w.replaceButton, "attribute2": "centerY"},
-				{"view1": self.w.replaceBy, "attribute1": "centerY", "view2": self.w.replaceButton, "attribute2": "centerY"},
+				"H:|-inset-[textSearch]-gap-[searchFor(>=60)]-inset-|",
+				"H:|-inset-[textReplace]-gap-[replaceBy(>=60)]-inset-|",
+				"H:|-(>=inset)-[replaceButton(>=70)]-inset-|",
+				"V:|-inset-[searchFor]-row-[replaceBy]-inset-[replaceButton]-inset-|",
+				{"view1": self.w.textReplace, "attribute1": "width", "view2": self.w.textSearch, "attribute2": "width"},
+				{"view1": self.w.textSearch, "attribute1": "centerY", "view2": self.w.searchFor, "attribute2": "centerY"},
+				{"view1": self.w.textReplace, "attribute1": "centerY", "view2": self.w.replaceBy, "attribute2": "centerY"},
 			],
-			metrics={"inset": inset, "gap": 8},
+			metrics={"inset": inset, "gap": 8, "row": 6},
 		)
 
 		# Load Settings:
@@ -59,6 +76,14 @@ class SearchAndReplaceInAnchorNames(mekkaObject):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
+
+		# Resizable in width only. Vanilla's minSize/maxSize would count the title bar twice,
+		# so set the limits on the NSWindow, in content sizes, with the height Auto Layout asks for:
+		nsWindow = self.w.getNSWindow()
+		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
+		contentHeight = nsWindow.contentView().fittingSize().height
+		nsWindow.setContentMinSize_(NSSize(windowWidth, contentHeight))
+		nsWindow.setContentMaxSize_(NSSize(windowWidth + windowWidthResize, contentHeight))
 
 	def SearchAndReplaceInAnchorNamesMain(self, sender):
 		self.SavePreferences()
