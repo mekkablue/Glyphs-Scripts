@@ -38,13 +38,20 @@ class SearchAndReplaceInAnchorNames(mekkaObject):
 		inset = 15
 		self.w.textSearch = vanilla.TextBox("auto", "Search", sizeStyle="small")
 		self.w.searchFor = vanilla.EditText("auto", "", callback=self.SavePreferences, sizeStyle="small")
+		tooltip = "The text to look for in anchor names."
+		self.w.textSearch.setToolTip(tooltip)
+		self.w.searchFor.setToolTip(tooltip)
 		self.w.searchFor.getNSTextField().setPlaceholderString_("tip")
 
 		self.w.textReplace = vanilla.TextBox("auto", "Replace", sizeStyle="small")
 		self.w.replaceBy = vanilla.EditText("auto", "", callback=self.SavePreferences, sizeStyle="small")
+		tooltip = "The text that replaces it. Leave empty to delete the search text."
+		self.w.textReplace.setToolTip(tooltip)
+		self.w.replaceBy.setToolTip(tooltip)
 		self.w.replaceBy.getNSTextField().setPlaceholderString_("top")
 
 		self.w.replaceButton = vanilla.Button("auto", "Replace", callback=self.SearchAndReplaceInAnchorNamesMain)
+		self.w.replaceButton.setToolTip("Replace in the anchor names of all selected glyphs, on all layers.")
 		self.w.setDefaultButton(self.w.replaceButton)
 
 		# right-align the labels, give them one width, and let them hug their text:

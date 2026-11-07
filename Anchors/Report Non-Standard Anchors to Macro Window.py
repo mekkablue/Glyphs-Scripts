@@ -37,11 +37,15 @@ class ReportNonStandardAnchorsInMacroWindow(mekkaObject):
 		# a wrapping block takes the width it is given instead of demanding one long line:
 		self.w.text_1.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 		self.w.includeNonExporting = vanilla.CheckBox("auto", "Include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.includeNonExporting.setToolTip("Also check glyphs that are set to not export.")
 		self.w.reportExitEntry = vanilla.CheckBox("auto", "Report exit and entry anchors", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.reportExitEntry.setToolTip("Also list exit and entry anchors, which are normally skipped.")
 		self.w.reportCarets = vanilla.CheckBox("auto", "Report ligature caret anchors", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.reportCarets.setToolTip("Also list caret anchors in ligatures, which are normally skipped.")
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Report", callback=self.ReportNonStandardAnchorsInMacroWindowMain)
+		self.w.runButton.setToolTip("Report the unusual anchors in the Macro Window.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		for view in self.w.getNSWindow().contentView().subviews():

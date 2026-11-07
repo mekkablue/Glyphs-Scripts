@@ -91,6 +91,7 @@ class StealAnchors(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Steal", callback=self.StealAnchorsMain)
+		self.w.runButton.setToolTip("Copy the anchors from the origin to the target.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# right-align the row labels and let them hug their text:

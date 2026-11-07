@@ -30,13 +30,19 @@ class NewTabWithAnchor(mekkaObject):
 		inset = 15
 		self.w.text_1 = vanilla.TextBox("auto", "Look for anchor", sizeStyle="small")
 		self.w.anchorName = vanilla.EditText("auto", "ogonek", callback=self.SavePreferences, sizeStyle="small")
+		tooltip = "The name of the anchor to look for."
+		self.w.text_1.setToolTip(tooltip)
+		self.w.anchorName.setToolTip(tooltip)
 		self.w.text_2 = vanilla.TextBox("auto", "and open a tab with all glyphs containing it.", sizeStyle="small")
 
 		self.w.allLayers = vanilla.CheckBox("auto", "Look on all layers (otherwise only on current master)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allLayers.setToolTip("If off, only the layers of the current master are checked.")
 		self.w.keepWindowOpen = vanilla.CheckBox("auto", "Keep window open", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.keepWindowOpen.setToolTip("Keep this window open after opening the tab.")
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Open Tab", callback=self.NewTabWithAnchorMain)
+		self.w.runButton.setToolTip("Open a tab with all glyphs containing the anchor.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		for view in self.w.getNSWindow().contentView().subviews():

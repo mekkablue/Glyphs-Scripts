@@ -93,6 +93,7 @@ class AddZWROOriginAnchors(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Add Anchors", callback=self.AddZWROOriginAnchorsMain)
+		self.w.runButton.setToolTip("Add the *origin anchors to the combining marks.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Labels: right-aligned, all as wide as the widest one
