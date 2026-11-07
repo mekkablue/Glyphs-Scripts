@@ -7,9 +7,16 @@ from AppKit import (
 	NSPoint, NSTextAlignmentRight, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut,
 	NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical,
 )
+import objc
 import vanilla
+from Foundation import NSNumberFormatter
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, newAnchorWithName, UpdateButton, reportFontName, setMacroDivider
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 def moveMacroWindowSeparator(pos=20):
@@ -57,7 +64,9 @@ class AddZWROOriginAnchors(mekkaObject):
 		self.w.where.setToolTip(tooltip)
 
 		self.w.offsetText = vanilla.TextBox("auto", "Horizontal offset", sizeStyle="small", selectable=True)
-		self.w.offset = vanilla.EditText("auto", "0", callback=self.SavePreferences, sizeStyle="small")
+		offsetFormatter = NSNumberFormatter.alloc().init()
+		offsetFormatter.setAllowsFloats_(False)  # integers only; negative values are allowed
+		self.w.offset = SteppingEditText("auto", "0", callback=self.SavePreferences, sizeStyle="small", formatter=offsetFormatter)
 		tooltip = "The number entered here will be added to the calculated position. Negative numbers for moving to the left, positive numbers for moving the anchor further to the right."
 		self.w.offsetText.setToolTip(tooltip)
 		self.w.offset.setToolTip(tooltip)
