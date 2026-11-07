@@ -27,7 +27,7 @@ class ReportNonStandardAnchorsInMacroWindow(mekkaObject):
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
-			"Report Non-Standard Anchors to Macro Window",
+			"Report Non-Standard Anchors",
 			autosaveName=self.domain("mainwindow"),  # stores last window position
 		)
 
@@ -76,6 +76,7 @@ class ReportNonStandardAnchorsInMacroWindow(mekkaObject):
 			Glyphs.clearLog()
 			thisFont = Glyphs.font
 			if not thisFont:
+				Glyphs.showMacroWindow()
 				print("⚠️ No font open.")
 				return
 
@@ -84,8 +85,10 @@ class ReportNonStandardAnchorsInMacroWindow(mekkaObject):
 			reportExitEntry = self.prefBool("reportExitEntry")
 			reportCarets = self.prefBool("reportCarets")
 
-			print(f"Unusual anchors in {thisFont.familyName}")
-			print(f"File: {thisFont.filepath}\n")
+			print(f"Reporting non-standard anchors in {thisFont.familyName}")
+			if thisFont.filepath:
+				print(thisFont.filepath)
+			print()
 
 			for thisGlyph in thisFont.glyphs:
 				if thisGlyph.export or includeNonExporting:
@@ -120,6 +123,7 @@ class ReportNonStandardAnchorsInMacroWindow(mekkaObject):
 							print(f"/{thisGlyph.name} : {', '.join(unusualAnchors)}")
 
 			print("\n(Hint: Lines can be copied and pasted in Edit view.)")
+			print("\n✅ Done.")
 			Glyphs.showMacroWindow()
 
 			self.w.close()  # delete if you want window to stay open
