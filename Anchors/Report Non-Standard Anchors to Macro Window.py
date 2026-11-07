@@ -23,7 +23,7 @@ class ReportNonStandardAnchorsInMacroWindow(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 340
+		windowWidth = 255
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
@@ -58,7 +58,7 @@ class ReportNonStandardAnchorsInMacroWindow(mekkaObject):
 				"H:|-inset-[reportExitEntry]-(>=inset)-|",
 				"H:|-inset-[reportCarets]-(>=inset)-|",
 				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
-				"V:|-gap-[text_1(42)]-row-[includeNonExporting]-checkRow-[reportExitEntry]-checkRow-[reportCarets]-inset-[runButton]-inset-|",
+				"V:|-gap-[text_1(56)]-row-[includeNonExporting]-checkRow-[reportExitEntry]-checkRow-[reportCarets]-inset-[runButton]-inset-|",
 			],
 			metrics={"inset": inset, "gap": 10, "row": 6, "checkRow": 5},
 		)
