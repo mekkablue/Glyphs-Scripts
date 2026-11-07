@@ -4,9 +4,25 @@ Resets Quicklook preview, keyboard shortcuts, and clearing out app prefs, saved 
 """
 
 import vanilla
-from os import system
+from glob import glob
+from os import path, remove
+from shutil import rmtree
+from subprocess import run
+from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs
 from mekkablue import mekkaObject
+
+
+def removePaths(pattern):
+	"""Deletes all files and folders matching the glob pattern. Returns the number of removed items."""
+	count = 0
+	for itemPath in glob(path.expanduser(pattern)):
+		if path.isdir(itemPath):
+			rmtree(itemPath)
+		else:
+			remove(itemPath)
+		count += 1
+	return count
 
 
 class Resetter(mekkaObject):
@@ -20,42 +36,55 @@ class Resetter(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 230
-		windowHeight = 186
+		windowWidth = 270
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight),  # default window size
-			"Resetter",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			(windowWidth, windowHeight),
+			"Resetter",
+			autosaveName=self.domain("mainwindow"),  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Fix problems by resetting prefs:", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		inset = 15
+		self.w.descriptionText = vanilla.TextBox("auto", "Fix problems by resetting prefs:", sizeStyle="small", selectable=True)
 
-		self.w.quicklook = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Reset QuickLook previews in Finder", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.quicklook = vanilla.CheckBox("auto", "Reset QuickLook previews in Finder", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.quicklook.setToolTip("Will reset the QuickLook server, perhaps effective only after logging out and back in again.")
-		linePos += lineHeight
 
-		self.w.shortcuts = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Reset keyboard shortcuts", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.shortcuts = vanilla.CheckBox("auto", "Reset keyboard shortcuts", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.shortcuts.setToolTip("Warning: will delete all your keyboard shortcuts.")
-		linePos += lineHeight
 
-		self.w.autosaves = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Delete autosave information", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.autosaves = vanilla.CheckBox("auto", "Delete autosave information", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.autosaves.setToolTip("Removes all Glyphs files from ~/Library/Autosave Information/")
-		linePos += lineHeight
 
-		self.w.savedAppState = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Delete saved application state", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.savedAppState = vanilla.CheckBox("auto", "Delete saved application state", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.savedAppState.setToolTip("Removes all Glyphs files from ~/Library/Saved Application State/")
-		linePos += lineHeight
 
-		self.w.preferences = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Delete app preferences", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.preferences = vanilla.CheckBox("auto", "Delete app preferences", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.preferences.setToolTip("Warning: also deletes the content of your Macro window tabs.")
-		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Reset", callback=self.ResetterMain)
+		self.w.runButton = vanilla.Button("auto", "Reset", callback=self.ResetterMain)
+		self.w.runButton.setToolTip("Performs the checked resets.")
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; let every control hug so the window fits the content:
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[quicklook]-(>=inset)-|",
+				"H:|-inset-[shortcuts]-(>=inset)-|",
+				"H:|-inset-[autosaves]-(>=inset)-|",
+				"H:|-inset-[savedAppState]-(>=inset)-|",
+				"H:|-inset-[preferences]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[descriptionText]-row-[quicklook]-checkRow-[shortcuts]-checkRow-[autosaves]-checkRow-[savedAppState]-checkRow-[preferences]-inset-[runButton]-inset-|",
+			],
+			metrics={"inset": inset, "gap": 12, "row": 6, "checkRow": 5},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -65,41 +94,41 @@ class Resetter(mekkaObject):
 		self.w.makeKey()
 
 	def updateUI(self, sender=None):
-		isAnyThingSelected = any([self.pref(prefName) for prefName in self.prefDict.keys()])
+		isAnyThingSelected = any(self.prefBool(prefName) for prefName in self.prefDict.keys())
 		self.w.runButton.enable(isAnyThingSelected)
 
-	def terminalCommand(self, input):
-		status = system(input)
-		if status == "0":
-			return "OK"
-		return status
-
-	def reset_quicklook(self):
-		# reset Finder previews
+	def resetQuicklook(self):
 		print("👩🏻‍💻 Resetting QuickLook Manager")
-		return self.terminalCommand("qlmanage -r")
+		return run(["qlmanage", "-r"]).returncode == 0
 
-	def reset_shortcuts(self):
-		# reset shortcuts
+	def resetShortcuts(self):
 		print("👩🏻‍💻 Resetting keyboard shortcuts")
 		Glyphs.defaults["GSCommandKeyEquivalents"] = {}
 		Glyphs.defaults["NSUserKeyEquivalents"] = None
-		return "OK"
+		return True
 
-	def reset_autosaves(self):
+	def resetAutosaves(self):
 		print("👩🏻‍💻 Resetting autosaves")
-		dir = "~/Library/Autosave Information"  # system() expects backslash-escaped spaces
-		return self.terminalCommand('rm -f %s/com.GeorgSeifert*;rm -f %s/*.glyphs;rm -f %s/*.glyphsproject' % (dir, dir, dir))
+		folder = "~/Library/Autosave Information"
+		count = removePaths(f"{folder}/com.GeorgSeifert*")
+		count += removePaths(f"{folder}/*.glyphs")
+		count += removePaths(f"{folder}/*.glyphsproject")
+		print(f"\tremoved {count} item{'' if count == 1 else 's'}")
+		return True
 
-	def reset_savedAppState(self):
+	def resetSavedAppState(self):
 		print("👩🏻‍💻 Resetting saved app states")
-		dir = "~/Library/Saved Application State"
-		return self.terminalCommand('rm -rf %s/com.GeorgSeifert*' % dir)
+		count = removePaths("~/Library/Saved Application State/com.GeorgSeifert*")
+		print(f"\tremoved {count} item{'' if count == 1 else 's'}")
+		return True
 
-	def reset_preferences(self):
+	def resetPreferences(self):
 		print("👩🏻‍💻 Resetting app preferences")
-		dir = "~/Library/Preferences"
-		return self.terminalCommand('rm -f %s/com.GeorgSeifert*;rm -f %s/com.schriftgestaltung*' % (dir, dir))
+		folder = "~/Library/Preferences"
+		count = removePaths(f"{folder}/com.GeorgSeifert*")
+		count += removePaths(f"{folder}/com.schriftgestaltung*")
+		print(f"\tremoved {count} item{'' if count == 1 else 's'}")
+		return True
 
 	def ResetterMain(self, sender=None):
 		try:
@@ -110,19 +139,22 @@ class Resetter(mekkaObject):
 			# update settings to the latest user input:
 			self.SavePreferences()
 
-			for prefName in self.prefs:
-				if self.pref(prefName):
-					status = getattr(self, "reset_%s" % prefName)()
-					if not status:
-						status = "no response from system"
-					print("💬 Status: %s\n" % status)
+			print("Report for Resetter\n")
+			for prefName in self.prefDict.keys():
+				if self.prefBool(prefName):
+					resetMethod = getattr(self, f"reset{prefName[0].upper()}{prefName[1:]}")
+					if resetMethod():
+						print("\t✅ OK\n")
+					else:
+						print("\t❌ Failed\n")
 
 			print("Done.")
+			Glyphs.showNotification("Resetter", "Done! Details in Macro Window.")
 
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print("Resetter Error: %s" % e)
+			print(f"Resetter Error: {e}")
 			import traceback
 			print(traceback.format_exc())
 

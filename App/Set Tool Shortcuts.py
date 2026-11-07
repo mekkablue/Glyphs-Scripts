@@ -1,10 +1,18 @@
 # MenuTitle: Set Tool Shortcuts
 __doc__ = """
-Set Shortcuts for tools in toolbar.
+Set Shortcuts for tools in toolbar. For Glyphs 3 only; in Glyphs 4, set shortcuts in Glyphs → Settings → Shortcuts.
 """
 
 import vanilla
-from GlyphsApp import Glyphs
+from AppKit import (
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityRequired,
+	NSLayoutPriorityWindowSizeStayPut,
+	NSTextAlignmentRight,
+)
+from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject
 
 shortcuts = {
@@ -25,60 +33,107 @@ shortcuts = {
 }
 
 
+def displayedShortcut(shortcut):
+	"""Shortcuts are shown capitalized, except ß, because ß.upper() would be SS (and the SF font is buggy)."""
+	return shortcut if shortcut == "ß" else shortcut.upper()
+
+
 class SetToolShortcuts(mekkaObject):
 
 	def __init__(self):
-		position = 14
-		lineheight = 23
-
 		# Window 'self.w':
-		windowWidth = 200
-		windowHeight = lineheight * len(shortcuts) + 20
+		windowWidth = 250
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight),  # default window size
-			"Set Tool Shortcuts",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			(windowWidth, windowHeight),
+			"Set Tool Shortcuts",
+			autosaveName=self.domain("mainwindow"),  # stores last window position
 		)
 
 		# UI elements:
-		for tool in sorted(shortcuts.keys()):
-			shortcut = Glyphs.defaults["%s.Hotkey" % tool]
+		inset = 15
+		toolNames = sorted(shortcuts.keys())
+		widestLabel = max(toolNames, key=len)
+		self.fields = {}
+		rules = []
+		widthRules = []
+		for toolName in toolNames:
+			shortcut = Glyphs.defaults[f"{toolName}.Hotkey"]
 			if not shortcut:
-				shortcut = shortcuts[tool]
-			setattr(self.w, "text_%s" % tool, vanilla.TextBox((15, position + 2, 115, 14), tool, sizeStyle='small'))
-			shortcut = shortcut.upper() if shortcut != "ß" else shortcut  # do not capitalize ß because SF font is buggy
-			setattr(self.w, "edit_%s" % tool, vanilla.EditText((15 + 115 + 15, position - 1, -15, 20), shortcut, sizeStyle='small', callback=self.changeShortcut))
-			exec("self.w.edit_%s.setPlaceholder('%s')" % (tool, tool))
-			position += lineheight
+				shortcut = shortcuts[toolName]
+
+			label = vanilla.TextBox("auto", toolName, sizeStyle="small")
+			nsLabel = label.getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+			field = vanilla.EditText("auto", displayedShortcut(shortcut), sizeStyle="small", callback=self.changeShortcut)
+			tooltip = f"Shortcut key for the {toolName}. Delete it to restore the default."
+			label.setToolTip(tooltip)
+			field.setToolTip(tooltip)
+			setattr(self.w, f"text_{toolName}", label)
+			setattr(self.w, f"edit_{toolName}", field)
+			self.fields[toolName] = field
+
+			rules.append(f"H:|-inset-[text_{toolName}]-gap-[edit_{toolName}(>=40)]-inset-|")
+			rules.append({"view1": label, "attribute1": "centerY", "view2": field, "attribute2": "centerY"})
+
+		# all labels get the width of the widest one:
+		for toolName in toolNames:
+			if toolName != widestLabel:
+				widthRules.append({"view1": getattr(self.w, f"text_{toolName}"), "attribute1": "width", "view2": getattr(self.w, f"text_{widestLabel}"), "attribute2": "width"})
+
+		# one vertical chain, one field per row:
+		chain = "-row-".join(f"[edit_{toolName}]" for toolName in toolNames)
+		rules.append(f"V:|-inset-{chain}-inset-|")
+
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(rules + widthRules, metrics={"inset": inset, "gap": 8, "row": 6})
 
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
 
+	def toolNameForField(self, field):
+		for toolName, toolField in self.fields.items():
+			if toolField is field:
+				return toolName
+		return None
 
 	def changeShortcut(self, sender):
 		try:
-			tool = sender.getPlaceholder()
+			toolName = self.toolNameForField(sender)
+			if toolName is None:
+				return
 			newShortcut = sender.get()
-			print("%s: '%s'" % (tool, sender.get()))
-			if len(newShortcut) > 0:
-				if newShortcut:
-					sender.set(newShortcut[-1].upper())
-					newShortcut = newShortcut[-1].lower()
-					Glyphs.defaults["%s.Hotkey" % tool] = newShortcut
-					print("New Shortcut for %s: %s" % (tool, newShortcut))
-					sender.selectAll()
+			if newShortcut:
+				# only the last typed character counts:
+				newShortcut = newShortcut[-1].lower()
+				sender.set(displayedShortcut(newShortcut))
+				Glyphs.defaults[f"{toolName}.Hotkey"] = newShortcut
+				print(f"New Shortcut for {toolName}: {newShortcut}")
+				sender.selectAll()
 			else:
-				print("Resetting Shortcut for %s: %s" % (tool, newShortcut))
-				del Glyphs.defaults["%s.Hotkey" % tool]
-				sender.set(shortcuts[tool].upper())
+				defaultShortcut = shortcuts[toolName]
+				print(f"Resetting Shortcut for {toolName}: {defaultShortcut}")
+				del Glyphs.defaults[f"{toolName}.Hotkey"]
+				sender.set(displayedShortcut(defaultShortcut))
 
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print("Set Tool Shortcuts Error: %s" % e)
+			print(f"Set Tool Shortcuts Error: {e}")
 			import traceback
 			print(traceback.format_exc())
 
 
-SetToolShortcuts()
+if Glyphs.versionNumber >= 4.0:
+	Message(
+		title="Script for Glyphs 3",
+		message="Cannot set shortcuts here. In Glyphs 4, set shortcuts through Glyphs → Settings → Shortcuts.",
+		OKButton=None,
+	)
+else:
+	SetToolShortcuts()

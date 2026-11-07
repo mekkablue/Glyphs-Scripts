@@ -3,133 +3,106 @@ __doc__ = """
 Override the label colors for glyphs and layers.
 """
 
+import objc
 import vanilla
-from Foundation import NSColor, NSArchiver, NSUnarchiver, NSMutableArray
+from AppKit import (
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityRequired,
+	NSLayoutPriorityWindowSizeStayPut,
+	NSTextAlignmentRight,
+)
+from Foundation import NSColor, NSArchiver, NSUnarchiver, NSMutableArray, NSNumberFormatter
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 class SetLabelColors(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 210
-		windowHeight = 356
+		windowWidth = 280
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight),  # default window size
-			"Set Glyph Label Colors",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			(windowWidth, windowHeight),
+			"Set Glyph Label Colors",
+			autosaveName=self.domain("mainwindow"),  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 8, 15, 22
+		inset = 15
+		components = (("red", "R"), ("green", "G"), ("blue", "B"), ("alpha", "A"))
+		formatter = NSNumberFormatter.alloc().init()
+		formatter.setAllowsFloats_(False)  # integers only
+		formatter.setMinimum_(0)
+		formatter.setMaximum_(100)
+		rules = []
 
-		self.w.redText = vanilla.TextBox((inset + 21, linePos, 35, 19), "R", selectable=False)
-		self.w.greenText = vanilla.TextBox((inset + 61, linePos, 35, 19), "G", selectable=False)
-		self.w.blueText = vanilla.TextBox((inset + 101, linePos, 35, 19), "B", selectable=False)
-		self.w.alphaText = vanilla.TextBox((inset + 141, linePos, 35, 19), "A", selectable=False)
-		linePos += 19
+		# column headers:
+		for name, letter in components:
+			header = vanilla.TextBox("auto", letter, sizeStyle="small", selectable=False)
+			header.getNSTextField().setAlignment_(NSTextAlignmentRight)
+			setattr(self.w, f"{name}Text", header)
 
-		self.w.color01 = vanilla.TextBox((inset - 1, linePos + 2, 14, 14), "◼︎", sizeStyle='small')
-		self.w.red01 = vanilla.EditText((inset + 20, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.green01 = vanilla.EditText((inset + 60, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.blue01 = vanilla.EditText((inset + 100, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.alpha01 = vanilla.EditText((inset + 140, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		linePos += lineHeight
+		# one row per label color: color dot and four fields
+		for i in range(1, 13):
+			dot = vanilla.TextBox("auto", "◼︎", sizeStyle="small")
+			dot.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			dot.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+			setattr(self.w, f"color{i:02d}", dot)
+			dot.setToolTip(f"Preview of label color {i}.")
+			for name, _ in components:
+				field = SteppingEditText("auto", "50", sizeStyle="small", callback=self.textFieldAction, formatter=formatter)
+				field.getNSTextField().setAlignment_(NSTextAlignmentRight)
+				field.setToolTip(f"{name.capitalize()} of label color {i}, from 0 to 100.")
+				setattr(self.w, f"{name}{i:02d}", field)
 
-		self.w.color02 = vanilla.TextBox((inset - 1, linePos + 2, 14, 14), "◼︎", sizeStyle='small')
-		self.w.red02 = vanilla.EditText((inset + 20, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.green02 = vanilla.EditText((inset + 60, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.blue02 = vanilla.EditText((inset + 100, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.alpha02 = vanilla.EditText((inset + 140, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		linePos += lineHeight
+			rules.append(f"H:|-inset-[color{i:02d}]-gap-[red{i:02d}(48)]-gap-[green{i:02d}(48)]-gap-[blue{i:02d}(48)]-gap-[alpha{i:02d}(48)]-inset-|")
+			for viewName in (f"color{i:02d}", f"green{i:02d}", f"blue{i:02d}", f"alpha{i:02d}"):
+				rules.append({"view1": getattr(self.w, viewName), "attribute1": "centerY", "view2": getattr(self.w, f"red{i:02d}"), "attribute2": "centerY"})
 
-		self.w.color03 = vanilla.TextBox((inset - 1, linePos + 2, 14, 14), "◼︎", sizeStyle='small')
-		self.w.red03 = vanilla.EditText((inset + 20, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.green03 = vanilla.EditText((inset + 60, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.blue03 = vanilla.EditText((inset + 100, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.alpha03 = vanilla.EditText((inset + 140, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		linePos += lineHeight
+		# headers sit above their columns, right-aligned like the numbers:
+		for name, _ in components:
+			rules.append({"view1": getattr(self.w, f"{name}Text"), "attribute1": "right", "view2": getattr(self.w, f"{name}01"), "attribute2": "right"})
 
-		self.w.color04 = vanilla.TextBox((inset - 1, linePos + 2, 14, 14), "◼︎", sizeStyle='small')
-		self.w.red04 = vanilla.EditText((inset + 20, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.green04 = vanilla.EditText((inset + 60, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.blue04 = vanilla.EditText((inset + 100, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.alpha04 = vanilla.EditText((inset + 140, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		linePos += lineHeight
-
-		self.w.color05 = vanilla.TextBox((inset - 1, linePos + 2, 14, 14), "◼︎", sizeStyle='small')
-		self.w.red05 = vanilla.EditText((inset + 20, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.green05 = vanilla.EditText((inset + 60, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.blue05 = vanilla.EditText((inset + 100, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.alpha05 = vanilla.EditText((inset + 140, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		linePos += lineHeight
-
-		self.w.color06 = vanilla.TextBox((inset - 1, linePos + 2, 14, 14), "◼︎", sizeStyle='small')
-		self.w.red06 = vanilla.EditText((inset + 20, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.green06 = vanilla.EditText((inset + 60, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.blue06 = vanilla.EditText((inset + 100, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.alpha06 = vanilla.EditText((inset + 140, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		linePos += lineHeight
-
-		self.w.color07 = vanilla.TextBox((inset - 1, linePos + 2, 14, 14), "◼︎", sizeStyle='small')
-		self.w.red07 = vanilla.EditText((inset + 20, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.green07 = vanilla.EditText((inset + 60, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.blue07 = vanilla.EditText((inset + 100, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.alpha07 = vanilla.EditText((inset + 140, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		linePos += lineHeight
-
-		self.w.color08 = vanilla.TextBox((inset - 1, linePos + 2, 14, 14), "◼︎", sizeStyle='small')
-		self.w.red08 = vanilla.EditText((inset + 20, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.green08 = vanilla.EditText((inset + 60, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.blue08 = vanilla.EditText((inset + 100, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.alpha08 = vanilla.EditText((inset + 140, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		linePos += lineHeight
-
-		self.w.color09 = vanilla.TextBox((inset - 1, linePos + 2, 14, 14), "◼︎", sizeStyle='small')
-		self.w.red09 = vanilla.EditText((inset + 20, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.green09 = vanilla.EditText((inset + 60, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.blue09 = vanilla.EditText((inset + 100, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.alpha09 = vanilla.EditText((inset + 140, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		linePos += lineHeight
-
-		self.w.color10 = vanilla.TextBox((inset - 1, linePos + 2, 14, 14), "◼︎", sizeStyle='small')
-		self.w.red10 = vanilla.EditText((inset + 20, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.green10 = vanilla.EditText((inset + 60, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.blue10 = vanilla.EditText((inset + 100, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.alpha10 = vanilla.EditText((inset + 140, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		linePos += lineHeight
-
-		self.w.color11 = vanilla.TextBox((inset - 1, linePos + 2, 14, 14), "◼︎", sizeStyle='small')
-		self.w.red11 = vanilla.EditText((inset + 20, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.green11 = vanilla.EditText((inset + 60, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.blue11 = vanilla.EditText((inset + 100, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.alpha11 = vanilla.EditText((inset + 140, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		linePos += lineHeight
-
-		self.w.color12 = vanilla.TextBox((inset - 1, linePos + 2, 14, 14), "◼︎", sizeStyle='small')
-		self.w.red12 = vanilla.EditText((inset + 20, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.green12 = vanilla.EditText((inset + 60, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.blue12 = vanilla.EditText((inset + 100, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		self.w.alpha12 = vanilla.EditText((inset + 140, linePos, 35, 19), "0.5", sizeStyle='small', callback=self.textFieldAction)
-		linePos += lineHeight + 2
-
-		self.w.rAll = vanilla.SquareButton((inset + 20, linePos, 35, 16), "↑ ALL", sizeStyle='mini', callback=self.setAll)
-		self.w.gAll = vanilla.SquareButton((inset + 60, linePos, 35, 16), "↑ ALL", sizeStyle='mini', callback=self.setAll)
-		self.w.bAll = vanilla.SquareButton((inset + 100, linePos, 35, 16), "↑ ALL", sizeStyle='mini', callback=self.setAll)
-		self.w.aAll = vanilla.SquareButton((inset + 140, linePos, 35, 16), "↑ ALL", sizeStyle='mini', callback=self.setAll)
+		# buttons that apply the value of the last line to all lines:
 		tooltip = "Type in a value in the LAST line and click this button to apply it to all lines."
-		self.w.rAll.setToolTip(tooltip)
-		self.w.gAll.setToolTip(tooltip)
-		self.w.bAll.setToolTip(tooltip)
-		self.w.aAll.setToolTip(tooltip)
-		linePos += lineHeight
+		for name, _ in components:
+			button = vanilla.SquareButton("auto", "↑ ALL", sizeStyle="mini", callback=self.setAll)
+			button.setToolTip(tooltip)
+			setattr(self.w, f"{name[0]}All", button)
+			rules.append({"view1": button, "attribute1": "left", "view2": getattr(self.w, f"{name}12"), "attribute2": "left"})
+			rules.append({"view1": button, "attribute1": "width", "view2": getattr(self.w, f"{name}12"), "attribute2": "width"})
+			if name != "red":
+				rules.append({"view1": button, "attribute1": "centerY", "view2": self.w.rAll, "attribute2": "centerY"})
 
 		# Run Button:
-		# self.w.getButton = vanilla.Button((-70 - 80 * 2 - inset, -20 - inset, -80 * 2 - inset, -inset), "Current", sizeStyle='regular', callback=self.SetLabelColorsMain)
-		self.w.resetButton = vanilla.Button((-70 - 80 - inset, -20 - inset, -80 - inset, -inset), "Reset", sizeStyle='regular', callback=self.resetColors)
-		self.w.runButton = vanilla.Button((-70 - inset, -20 - inset, -inset, -inset), "Set", sizeStyle='regular', callback=self.SetLabelColorsMain)
+		self.w.resetButton = vanilla.Button("auto", "Reset", callback=self.resetColors)
+		self.w.resetButton.setToolTip("Restores the default label colors.")
+		self.w.runButton = vanilla.Button("auto", "Set", callback=self.SetLabelColorsMain)
+		self.w.runButton.setToolTip("Applies the colors. Glyphs needs a restart for them to take effect.")
 		self.w.setDefaultButton(self.w.runButton)
+
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# one vertical chain, with the red column as its backbone:
+		redFields = "-row-".join(f"[red{i:02d}]" for i in range(1, 13))
+		rules += [
+			"H:|-(>=inset)-[resetButton(>=70)]-gap-[runButton(>=70)]-inset-|",
+			f"V:|-gap-[redText]-headerGap-{redFields}-allGap-[rAll]-inset-[runButton]-inset-|",
+			"V:[resetButton]-inset-|",
+		]
+		for name, _ in components[1:]:
+			rules.append({"view1": getattr(self.w, f"{name}Text"), "attribute1": "centerY", "view2": self.w.redText, "attribute2": "centerY"})
+
+		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "row": 3, "headerGap": 4, "allGap": 6})
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -141,6 +114,7 @@ class SetLabelColors(mekkaObject):
 	def resetColors(self, sender=None):
 		Glyphs.defaults["LabelColors"] = None
 		self.LoadPreferences()
+		Glyphs.showNotification("Set Label Colors", "Label colors reset. Glyphs needs a restart for changes to take effect.")
 
 	def currentlyStoredColors(self, sender=None):
 		# reset to defaults if nothing stored:
@@ -169,29 +143,17 @@ class SetLabelColors(mekkaObject):
 		return labelColors
 
 	def setAll(self, sender=None):
-		try:
-			name = None
-			if sender == self.w.rAll:
-				name = "red"
-			elif sender == self.w.gAll:
-				name = "green"
-			elif sender == self.w.bAll:
-				name = "blue"
-			elif sender == self.w.aAll:
-				name = "alpha"
-
-			if name:
-				originalTextFieldName = "%s12" % name
-				originalTextField = getattr(self.w, originalTextFieldName)
-				originalValue = originalTextField.get()
-				for i in range(1, 12):
-					textFieldName = "%s%02i" % (name, i)
-					textField = getattr(self.w, textFieldName)
-					textField.set(originalValue)
-		except:
-			import traceback
-			print(traceback.format_exc())
-
+		names = {
+			self.w.rAll: "red",
+			self.w.gAll: "green",
+			self.w.bAll: "blue",
+			self.w.aAll: "alpha",
+		}
+		name = names.get(sender)
+		if name:
+			originalValue = getattr(self.w, f"{name}12").get()
+			for i in range(1, 12):
+				getattr(self.w, f"{name}{i:02d}").set(originalValue)
 		self.updateColorDots()
 
 	def textFieldAction(self, sender=None):
@@ -200,55 +162,61 @@ class SetLabelColors(mekkaObject):
 	def updateColorDots(self):
 		# sets the dots
 		for i in range(12):
-			color = "color%02i" % (i + 1)
 			labelColor = self.labelColorFromUIAtIndex(i)
-			print("__labelColor", labelColor)
-			getattr(self.w, color).getNSTextField().setTextColor_(labelColor)
+			if labelColor is None:
+				continue  # incomplete input while typing: keep the dot as it is
+			getattr(self.w, f"color{i + 1:02d}").getNSTextField().setTextColor_(labelColor)
 
 	def uiAttributeKeys(self, index):
 		index += 1  # the labels start at 1
-		color = "color%02i" % index
-		r = "red%02i" % index
-		g = "green%02i" % index
-		b = "blue%02i" % index
-		a = "alpha%02i" % index
+		color = f"color{index:02d}"
+		r = f"red{index:02d}"
+		g = f"green{index:02d}"
+		b = f"blue{index:02d}"
+		a = f"alpha{index:02d}"
 		return color, r, g, b, a
 
 	def labelColorFromUIAtIndex(self, idx):
+		"""Returns the NSColor entered in the UI, or None if one of the four values is not a number."""
 		_, rName, gName, bName, aName = self.uiAttributeKeys(idx)
-		color = NSColor.colorWithDeviceRed_green_blue_alpha_(
-			min(1.0, abs(float(getattr(self.w, rName).get()))),
-			min(1.0, abs(float(getattr(self.w, gName).get()))),
-			min(1.0, abs(float(getattr(self.w, bName).get()))),
-			min(1.0, abs(float(getattr(self.w, aName).get()))),
-		)
-		return color
+		try:
+			# the fields hold integers from 0 to 100, the color components are floats from 0.0 to 1.0:
+			red, green, blue, alpha = (max(0, min(100, int(float(str(getattr(self.w, name).get()))))) / 100.0 for name in (rName, gName, bName, aName))
+		except ValueError:
+			return None
+		return NSColor.colorWithDeviceRed_green_blue_alpha_(red, green, blue, alpha)
 
 	def labelColorArchivesFromUI(self):
+		"""Returns the archived colors from the UI, or None if any of the 12 colors is incomplete."""
 		labelColors = NSMutableArray.new()
 		for i in range(12):
 			labelColor = self.labelColorFromUIAtIndex(i)
+			if labelColor is None:
+				return None
 			colorData = NSArchiver.archivedDataWithRootObject_(labelColor)
 			labelColors.addObject_(colorData)
 		return labelColors
 
+	def integerValue(self, value):
+		"""Converts a stored component to an integer from 0 to 100. Floats from 0.0 to 1.0 are scaled up."""
+		if isinstance(value, float) and 0.0 <= value <= 1.0:
+			return int(round(value * 100))
+		return max(0, min(100, int(round(value))))
+
+	def updateValues(self):
+		labelColors = self.currentlyStoredColors()
+		for i, color in enumerate(labelColors):
+			colorName, rName, gName, bName, aName = self.uiAttributeKeys(i)
+			components = (color.redComponent(), color.greenComponent(), color.blueComponent(), color.alphaComponent())
+			for fieldName, component in zip((rName, gName, bName, aName), components):
+				getattr(self.w, fieldName).set(self.integerValue(component))
+			getattr(self.w, colorName).getNSTextField().setTextColor_(color)
+
 	def LoadPreferences(self):
 		try:
-			labelColors = self.currentlyStoredColors()
-			for i, color in enumerate(labelColors):
-				r = color.redComponent()
-				g = color.greenComponent()
-				b = color.blueComponent()
-				a = color.alphaComponent()
-
-				colorName, rName, gName, bName, aName = self.uiAttributeKeys(i)
-				getattr(self.w, rName).set("%.2f" % r)
-				getattr(self.w, gName).set("%.2f" % g)
-				getattr(self.w, bName).set("%.2f" % b)
-				getattr(self.w, aName).set("%.2f" % a)
-				getattr(self.w, colorName).getNSTextField().setTextColor_(color)
+			self.updateValues()
 			return True
-		except:
+		except Exception:
 			import traceback
 			print(traceback.format_exc())
 			return False
@@ -259,14 +227,17 @@ class SetLabelColors(mekkaObject):
 			Glyphs.clearLog()
 
 			# update settings to the latest user input:
-
-			Glyphs.defaults["LabelColors"] = self.labelColorArchivesFromUI()
+			labelColors = self.labelColorArchivesFromUI()
+			if labelColors is None:
+				Message(title="Invalid Color Value", message="⚠️ All fields must contain whole numbers between 0 and 100.", OKButton=None)
+				return
+			Glyphs.defaults["LabelColors"] = labelColors
 
 			Message(title="New Label Colors Set", message="✅ The new label colors have been set.\n⚠️ Glyphs needs a restart for changes to take effect.", OKButton=None)
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print("Set Label Colors Error: %s" % e)
+			print(f"Set Label Colors Error: {e}")
 			import traceback
 			print(traceback.format_exc())
 
