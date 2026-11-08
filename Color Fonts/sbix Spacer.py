@@ -3,10 +3,36 @@ __doc__ = """
 Batch-set sbix positions and glyph widths.
 """
 
+import objc
 import vanilla
-from AppKit import NSRect, NSPoint, NSSize, NSAffineTransform
-from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject
+from GlyphsApp import Glyphs, Message
+from AppKit import (
+	NSAffineTransform,
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityRequired,
+	NSLayoutPriorityWindowSizeStayPut,
+	NSRect,
+	NSSize,
+)
+from Foundation import NSNumberFormatter, NSPoint
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
+
+
+def integerFormatter(minimum=None, maximum=None):
+	formatter = NSNumberFormatter.alloc().init()
+	formatter.setAllowsFloats_(False)
+	if minimum is not None:
+		formatter.setMinimum_(minimum)
+	if maximum is not None:
+		formatter.setMaximum_(maximum)
+	return formatter
 
 
 class sbixSpacer(mekkaObject):
@@ -23,42 +49,66 @@ class sbixSpacer(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 340
-		windowHeight = 182
+		windowWidth = 360
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"sbix Spacer",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		inset = 15
 
-		self.w.insertMarkers = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Reset master layer and insert markers for sbix bounds", value=True, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.insertMarkers = vanilla.CheckBox("auto", "Reset master layer and insert markers for sbix bounds", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.resetWidths = vanilla.CheckBox("auto", "Reset sidebearings to image widths", value=True, callback=self.SavePreferences, sizeStyle='small')
 
-		self.w.resetWidths = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Reset sidebearings to image widths", value=True, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		tooltipText = "Size of the iColor layer (e.g. 128 for ‘iColor 128’) used as reference for the width."
+		self.w.preferredSizeForWidthText = vanilla.TextBox("auto", "Preferred iColor size for width reference", sizeStyle='small', selectable=True)
+		self.w.preferredSizeForWidth = SteppingEditText("auto", "128", callback=self.SavePreferences, sizeStyle='small', formatter=integerFormatter(minimum=1))
+		self.w.preferredSizeForWidthText.setToolTip(tooltipText)
+		self.w.preferredSizeForWidth.setToolTip(tooltipText)
 
-		self.w.preferredSizeForWidthText = vanilla.TextBox((inset, linePos, 235, 14), " Preferred iColor size for width reference", sizeStyle='small', selectable=True)
-		self.w.preferredSizeForWidth = vanilla.EditText((inset + 229, linePos - 3, 55, 19), "128", callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		tooltipText = "Shift the master layer vertically by this many units."
+		self.w.verticalShift = vanilla.CheckBox("auto", "Vertical sbix shift", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.verticalShiftValue = SteppingEditText("auto", "-100", callback=self.SavePreferences, sizeStyle='small', formatter=integerFormatter())
+		self.w.verticalShift.setToolTip(tooltipText)
+		self.w.verticalShiftValue.setToolTip(tooltipText)
 
-		self.w.verticalShift = vanilla.CheckBox((inset + 2, linePos - 1, 120, 20), "Vertical sbix shift", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.verticalShiftValue = vanilla.EditText((inset + 111, linePos - 1, 55, 19), "-100", callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
-
-		self.w.allGlyphs = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include all iColor glyphs in font (ignore glyph selection)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
-
-		self.w.allMasters = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include all masters (otherwise only current master)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.allGlyphs = vanilla.CheckBox("auto", "Include all iColor glyphs in font (ignore glyph selection)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allMasters = vanilla.CheckBox("auto", "Include all masters (otherwise only current master)", value=False, callback=self.SavePreferences, sizeStyle='small')
 
 		# Buttons:
-		self.w.help = vanilla.HelpButton((inset, -20 - inset, 22, 22), callback=self.openURL)
+		self.w.help = vanilla.HelpButton("auto", callback=self.openURL)
 
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Apply", callback=self.sbixSpacerMain)
+		self.w.runButton = vanilla.Button("auto", "Apply", callback=self.sbixSpacerMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; hug so the window is as tall as its content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		nsLabel = self.w.preferredSizeForWidthText.getNSTextField()
+		nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[insertMarkers]-(>=inset)-|",
+				"H:|-inset-[resetWidths]-(>=inset)-|",
+				"H:|-inset-[preferredSizeForWidthText]-gap-[preferredSizeForWidth(60)]-(>=inset)-|",
+				"H:|-inset-[verticalShift]-(>=gap)-[verticalShiftValue(60)]-(>=inset)-|",
+				"H:|-inset-[allGlyphs]-(>=inset)-|",
+				"H:|-inset-[allMasters]-(>=inset)-|",
+				"H:|-inset-[help]-(>=gap)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[insertMarkers]-checkRow-[resetWidths]-row-[preferredSizeForWidth]-row-[verticalShiftValue]-row-[allGlyphs]-checkRow-[allMasters]-inset-[runButton]-inset-|",
+				"V:[help]-inset-|",
+				{"view1": self.w.preferredSizeForWidthText, "attribute1": "centerY", "view2": self.w.preferredSizeForWidth, "attribute2": "centerY"},
+				{"view1": self.w.verticalShift, "attribute1": "centerY", "view2": self.w.verticalShiftValue, "attribute2": "centerY"},
+				{"view1": self.w.verticalShiftValue, "attribute1": "leading", "view2": self.w.preferredSizeForWidth, "attribute2": "leading"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()

@@ -4,8 +4,9 @@ Batch-edit settings for cap, corner, brush or segment components throughout all 
 """
 
 import vanilla
-from GlyphsApp import Glyphs, Message, CORNER, CAP
 from mekkablue import mekkaObject, UpdateButton
+from GlyphsApp import Glyphs, Message, CORNER, CAP
+from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 
 # alignment constants:
 LEFT = 0  # bit 0
@@ -59,56 +60,72 @@ class CapAndCornerManager(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 200
-		windowHeight = 172
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 300
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Cap and Corner Manager",  # window title
-			minSize=(windowWidth, windowHeight + 19),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize + 19),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight, tab = 12, 15, 22, 60
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Batch-edit in frontmost font", sizeStyle="small", selectable=True)
-		linePos += lineHeight
+		self.w.descriptionText = vanilla.TextBox("auto", "Batch-edit in frontmost font", sizeStyle="small", selectable=True)
 
-		self.w.componentName = vanilla.ComboBox((inset, linePos, -inset - 25, 18), self.cornersOfFrontmostFont(), sizeStyle="small", callback=self.SavePreferences)
+		self.w.componentName = vanilla.ComboBox("auto", self.cornersOfFrontmostFont(), sizeStyle="small", callback=self.SavePreferences)
 		self.w.componentName.setToolTip("Batch-edit all instances of this special component. Can be a Brush, Segment, Cap and Corner component.")
-		self.w.updateComponentNames = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.updateUI)
+		self.w.updateComponentNames = UpdateButton("auto", callback=self.updateUI)
 		self.w.updateComponentNames.setToolTip("Update the list of available components for the frontmost font.")
-		linePos += lineHeight + 5
 
-		self.w.shouldAlign = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Align", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.alignment = vanilla.PopUpButton((inset + tab, linePos, -inset, 17), alignmentOptions, sizeStyle="small", callback=self.SavePreferences)
+		self.w.shouldAlign = vanilla.CheckBox("auto", "Align", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.alignment = vanilla.PopUpButton("auto", alignmentOptions, sizeStyle="small", callback=self.SavePreferences)
 		tooltip = "Alignment options for Cap and Corner components."
 		self.w.shouldAlign.setToolTip(tooltip)
 		self.w.alignment.setToolTip(tooltip)
-		linePos += lineHeight
 
-		self.w.shouldFit = vanilla.CheckBox((inset + 2, linePos - 1, tab, 20), "Fit Cap", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.fit = vanilla.PopUpButton((inset + tab, linePos, -inset, 17), ("Off (don’t fit)", "On (do fit)"), sizeStyle="small", callback=self.SavePreferences)
+		self.w.shouldFit = vanilla.CheckBox("auto", "Fit Cap", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.fit = vanilla.PopUpButton("auto", ("Off (don’t fit)", "On (do fit)"), sizeStyle="small", callback=self.SavePreferences)
 		tooltip = "Fit option for Cap components."
 		self.w.shouldFit.setToolTip(tooltip)
 		self.w.fit.setToolTip(tooltip)
-		linePos += lineHeight
 
-		self.w.shouldScale = vanilla.CheckBox((inset + 2, linePos, tab, 20), "Scale", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.scaleH = vanilla.EditText((inset + tab, linePos, 40, 19), "100", callback=self.SavePreferences, sizeStyle="small")
+		self.w.shouldScale = vanilla.CheckBox("auto", "Scale", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.scaleH = vanilla.EditText("auto", "100", callback=self.SavePreferences, sizeStyle="small")
 		self.w.scaleH.setToolTip("Horizontal scale for components in percent. 100 means unscaled.")
-		self.w.scaleV = vanilla.EditText((inset + tab + 45, linePos, 40, 19), "100", callback=self.SavePreferences, sizeStyle="small")
+		self.w.scaleV = vanilla.EditText("auto", "100", callback=self.SavePreferences, sizeStyle="small")
 		self.w.scaleV.setToolTip("Vertical scale for components in percent. 100 means unscaled.")
-		self.w.resetScale = UpdateButton((-inset - 18, linePos - 2, -inset, 18), callback=self.updateUI)
+		self.w.resetScale = UpdateButton("auto", callback=self.updateUI)
 		self.w.resetScale.setToolTip("Resets the scale to 100% horizontal, 100% vertical.")
-		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Apply", callback=self.CapAndCornerManagerMain)
+		self.w.runButton = vanilla.Button("auto", "Apply", callback=self.CapAndCornerManagerMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; hug so the window is as tall as its content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[componentName]-gap-[updateComponentNames(20)]-inset-|",
+				"H:|-inset-[shouldAlign]-gap-[alignment]-inset-|",
+				"H:|-inset-[shouldFit]-gap-[fit]-inset-|",
+				"H:|-inset-[shouldScale]-gap-[scaleH(50)]-gap-[scaleV(50)]-gap-[resetScale(20)]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[descriptionText]-row-[componentName]-row-[alignment]-row-[fit]-row-[scaleH]-inset-[runButton]-inset-|",
+				{"view1": self.w.updateComponentNames, "attribute1": "centerY", "view2": self.w.componentName, "attribute2": "centerY"},
+				{"view1": self.w.shouldAlign, "attribute1": "centerY", "view2": self.w.alignment, "attribute2": "centerY"},
+				{"view1": self.w.shouldFit, "attribute1": "centerY", "view2": self.w.fit, "attribute2": "centerY"},
+				{"view1": self.w.shouldScale, "attribute1": "centerY", "view2": self.w.scaleH, "attribute2": "centerY"},
+				{"view1": self.w.scaleV, "attribute1": "centerY", "view2": self.w.scaleH, "attribute2": "centerY"},
+				{"view1": self.w.resetScale, "attribute1": "centerY", "view2": self.w.scaleH, "attribute2": "centerY"},
+				{"view1": self.w.shouldAlign, "attribute1": "width", "view2": self.w.shouldFit, "attribute2": "width"},
+				{"view1": self.w.shouldScale, "attribute1": "width", "view2": self.w.shouldFit, "attribute2": "width"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
