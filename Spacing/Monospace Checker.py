@@ -137,7 +137,7 @@ class MonospaceChecker(mekkaObject):
 			else:
 				# Floating notification:
 				Glyphs.showNotification(
-					+"🥇 %s has consistent widths" % (thisFont.familyName),
+					"🥇 %s has consistent widths" % (thisFont.familyName),
 					"All glyph widths are monospaced. Congrats!",
 				)
 
