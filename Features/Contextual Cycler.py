@@ -5,6 +5,7 @@ Instead of the tutorial’s @Voc/@Con split, glyphs are grouped by how many alte
 """
 
 import vanilla
+from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, GSFeature, GSClass, Message
 from mekkablue import mekkaObject, UpdateButton, reportFontName
 
@@ -132,56 +133,88 @@ class ContextualCycler(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 360
-		windowHeight = 197
-		windowWidthResize = 400  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 400
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Contextual Cycler",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow"),  # stores last window position and size
+			autosaveName=self.domain("mainwindow"),  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight, tabIndent = 12, 15, 22, 130
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 28), "Build cycling contextual alternates: repeated glyphs step through their numbered alternates.", sizeStyle="small", selectable=True)
-		linePos += lineHeight + 12
+		self.w.descriptionText = vanilla.TextBox("auto", "Build cycling contextual alternates: repeated glyphs step through their numbered alternates.", sizeStyle="small", selectable=True)
+		# a block that wraps takes the width it is given instead of demanding one long line:
+		self.w.descriptionText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
-		self.w.suffixesText = vanilla.TextBox((inset, linePos + 3, tabIndent, 14), "Numbered suffixes:", sizeStyle="small", selectable=True)
-		self.w.suffixes = vanilla.EditText((inset + tabIndent, linePos, -inset - 22, 19), ".cv, .ss", callback=self.SavePreferences, sizeStyle="small")
-		tooltip = "Comma-separated list of numbered suffix stems that mark the alternates, e.g. ‘.cv, .ss’ matches s.cv01, s.cv02, s.ss01, … The trailing number determines the cycle order."
-		self.w.suffixes.setToolTip(tooltip)
-		self.w.suffixesText.setToolTip(tooltip)
-		self.w.suffixesUpdate = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
+		self.w.suffixesText = vanilla.TextBox("auto", "Numbered suffixes:", sizeStyle="small", selectable=True)
+		self.w.suffixes = vanilla.EditText("auto", ".cv, .ss", callback=self.SavePreferences, sizeStyle="small")
+		tooltipText = "Comma-separated list of numbered suffix stems that mark the alternates, e.g. ‘.cv, .ss’ matches s.cv01, s.cv02, s.ss01, … The trailing number determines the cycle order."
+		self.w.suffixes.setToolTip(tooltipText)
+		self.w.suffixesText.setToolTip(tooltipText)
+		self.w.suffixesUpdate = UpdateButton("auto", callback=self.update)
 		self.w.suffixesUpdate.setToolTip("Reset to defaults: ‘.cv, .ss’")
-		linePos += lineHeight
 
-		self.w.targetFeatureText = vanilla.TextBox((inset, linePos + 3, tabIndent, 14), "Target feature (tag):", sizeStyle="small", selectable=True)
-		self.w.targetFeature = vanilla.EditText((inset + tabIndent, linePos, -inset - 22, 19), "calt", callback=self.SavePreferences, sizeStyle="small")
-		tooltip = "Feature tag for the OpenType feature that receives the cycling code. Contextual alternates (calt) are on by default in most apps."
-		self.w.targetFeature.setToolTip(tooltip)
-		self.w.targetFeatureText.setToolTip(tooltip)
-		self.w.targetFeatureUpdate = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
+		self.w.targetFeatureText = vanilla.TextBox("auto", "Target feature (tag):", sizeStyle="small", selectable=True)
+		self.w.targetFeature = vanilla.EditText("auto", "calt", callback=self.SavePreferences, sizeStyle="small")
+		tooltipText = "Feature tag for the OpenType feature that receives the cycling code. Contextual alternates (calt) are on by default in most apps."
+		self.w.targetFeature.setToolTip(tooltipText)
+		self.w.targetFeatureText.setToolTip(tooltipText)
+		self.w.targetFeatureUpdate = UpdateButton("auto", callback=self.update)
 		self.w.targetFeatureUpdate.setToolTip("Reset to defaults: ‘calt’")
-		linePos += lineHeight
 
-		self.w.maxInterveningText = vanilla.TextBox((inset, linePos + 3, tabIndent, 14), "Cycle across up to:", sizeStyle="small", selectable=True)
-		self.w.maxIntervening = vanilla.PopUpButton((inset + tabIndent, linePos, 130, 18), ["0 other glyphs", "1 other glyph", "2 other glyphs", "3 other glyphs", "4 other glyphs"], callback=self.SavePreferences, sizeStyle="small")
-		tooltip = "How many glyphs of other groups may sit between two cycling glyphs while the cycle keeps counting. As in the tutorial, the default of 2 covers direct pairs, one intervening glyph (e.g. a vowel between two consonants), and two intervening glyphs."
-		self.w.maxIntervening.setToolTip(tooltip)
-		self.w.maxInterveningText.setToolTip(tooltip)
-		linePos += lineHeight
+		self.w.maxInterveningText = vanilla.TextBox("auto", "Cycle across up to:", sizeStyle="small", selectable=True)
+		self.w.maxIntervening = vanilla.PopUpButton("auto", ["0 other glyphs", "1 other glyph", "2 other glyphs", "3 other glyphs", "4 other glyphs"], callback=self.SavePreferences, sizeStyle="small")
+		tooltipText = "How many glyphs of other groups may sit between two cycling glyphs while the cycle keeps counting. As in the tutorial, the default of 2 covers direct pairs, one intervening glyph (e.g. a vowel between two consonants), and two intervening glyphs."
+		self.w.maxIntervening.setToolTip(tooltipText)
+		self.w.maxInterveningText.setToolTip(tooltipText)
 
-		self.w.separateFeatureEntry = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Separate feature entry (i.e. do not reuse existing feature)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.separateFeatureEntry = vanilla.CheckBox("auto", "Separate feature entry (i.e. do not reuse existing feature)", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.separateFeatureEntry.setToolTip("If enabled and the target feature already exists in Font Info → Features, creates a new entry with the same tag rather than appending the code to an existing feature entry.")
-		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Build", callback=self.ContextualCyclerMain)
+		self.w.runButton = vanilla.Button("auto", "Build", callback=self.ContextualCyclerMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# labels hug their text, and resist compression, so the fields take the leftover width:
+		labelNames = ("suffixesText", "targetFeatureText", "maxInterveningText")
+		widestLabel = "targetFeatureText"  # the label with the longest text
+		for labelName in labelNames:
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		# all labels share the width of the widest one, so the fields line up:
+		widthRules = [
+			{"view1": getattr(self.w, labelName), "attribute1": "width", "view2": getattr(self.w, widestLabel), "attribute2": "width"}
+			for labelName in labelNames if labelName != widestLabel
+		]
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[suffixesText]-gap-[suffixes]-gap-[suffixesUpdate(18)]-inset-|",
+				"H:|-inset-[targetFeatureText]-gap-[targetFeature]-gap-[targetFeatureUpdate(18)]-inset-|",
+				"H:|-inset-[maxInterveningText]-gap-[maxIntervening]-(>=inset)-|",
+				"H:|-inset-[separateFeatureEntry]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-inset-[descriptionText(28)]-headlineGap-[suffixes]-row-[targetFeature]-row-[maxIntervening]-row-[separateFeatureEntry]-inset-[runButton]-inset-|",
+				# one baseline per row:
+				{"view1": self.w.suffixesText, "attribute1": "centerY", "view2": self.w.suffixes, "attribute2": "centerY"},
+				{"view1": self.w.suffixesUpdate, "attribute1": "centerY", "view2": self.w.suffixes, "attribute2": "centerY"},
+				{"view1": self.w.targetFeatureText, "attribute1": "centerY", "view2": self.w.targetFeature, "attribute2": "centerY"},
+				{"view1": self.w.targetFeatureUpdate, "attribute1": "centerY", "view2": self.w.targetFeature, "attribute2": "centerY"},
+				{"view1": self.w.maxInterveningText, "attribute1": "centerY", "view2": self.w.maxIntervening, "attribute2": "centerY"},
+			] + widthRules,
+			metrics={"inset": inset, "gap": 8, "row": 6, "headlineGap": 12},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -217,7 +250,7 @@ class ContextualCycler(mekkaObject):
 		Scans the font for base glyphs and their numbered alternates.
 		Returns (groups, usedNames):
 		- groups: dict mapping alternate-count → list of cycle sequences,
-		  each sequence being [baseName, alt1Name, alt2Name, …] in cycle order.
+			each sequence being [baseName, alt1Name, alt2Name, …] in cycle order.
 		- usedNames: set of every glyph name that ended up in a cycle.
 		"""
 		# collect alternates per base glyph: baseName → list of (sortKey, altName)

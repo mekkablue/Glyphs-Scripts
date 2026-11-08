@@ -2,11 +2,18 @@
 __doc__ = """
 Batch-apply Font Info > Font settings to open fonts: designer, designer URL, manufacturer, manufacturer URL, license, license URL, copyright, trademark, vendor ID, description, sample text, version number, and date/time. Useful for syncing Font Info settings across many fonts.
 """
-import vanilla
 import datetime
-import AppKit
-from GlyphsApp import Glyphs, Message
+import objc
+import vanilla
 from mekkablue import mekkaObject
+from GlyphsApp import Glyphs, Message
+from AppKit import NSDate, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
+from Foundation import NSNumberFormatter
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 def addPropertyToFont(font, key, value):
@@ -55,161 +62,222 @@ class FontInfoBatchSetter(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 350
-		windowHeight = 420
-		windowWidthResize = 1000  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 450
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Font Info Batch Setter",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow"),  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		column = 100
+		inset = 15
 
-		self.w.explanatoryText = vanilla.TextBox((inset, linePos+2, -inset, 14), "Batch-set Font Info > Font of open fonts with these values:", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		self.w.explanatoryText = vanilla.TextBox("auto", "Batch-set Font Info > Font of open fonts with these values:", sizeStyle="small", selectable=True)
 
 		# DESIGNER
-		self.w.setDesigner = vanilla.CheckBox((inset+2, linePos, column, 20), "Designer:", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.designer = vanilla.EditText((inset+column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
-		tooltip = "Designer, name ID 9: Name of the designer of the typeface."
-		self.w.setDesigner.setToolTip(tooltip)
-		self.w.designer.setToolTip(tooltip)
-		linePos += lineHeight
-		
-		self.w.setDesignerURL = vanilla.CheckBox((inset+2, linePos, column, 20), "Designer URL:", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.designerURL = vanilla.EditText((inset+column, linePos, -inset, 19), "https://", callback=self.SavePreferences, sizeStyle='small')
-		tooltip = "Designer URL, name ID 12: URL of Designer. URL of typeface designer (with protocol, e.g., http://, ftp://)."
-		self.w.setDesignerURL.setToolTip(tooltip)
-		self.w.designerURL.setToolTip(tooltip)
-		linePos += lineHeight
+		self.w.setDesigner = vanilla.CheckBox("auto", "Designer:", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.designer = vanilla.EditText("auto", "", callback=self.SavePreferences, sizeStyle="small")
+		tooltipText = "Designer, name ID 9: Name of the designer of the typeface."
+		self.w.setDesigner.setToolTip(tooltipText)
+		self.w.designer.setToolTip(tooltipText)
+
+		self.w.setDesignerURL = vanilla.CheckBox("auto", "Designer URL:", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.designerURL = vanilla.EditText("auto", "https://", callback=self.SavePreferences, sizeStyle="small")
+		tooltipText = "Designer URL, name ID 12: URL of Designer. URL of typeface designer (with protocol, e.g., http://, ftp://)."
+		self.w.setDesignerURL.setToolTip(tooltipText)
+		self.w.designerURL.setToolTip(tooltipText)
 
 		# MANUFACTURER
-		self.w.setManufacturer = vanilla.CheckBox((inset+2, linePos, column, 20), "Manufacturer:", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.manufacturer = vanilla.EditText((inset+column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
-		tooltip = "Manufacturer Name, name ID 8."
-		self.w.setManufacturer.setToolTip(tooltip)
-		self.w.manufacturer.setToolTip(tooltip)
-		linePos += lineHeight
-		
-		self.w.setManufacturerURL = vanilla.CheckBox((inset+2, linePos, column, 20), "Manufact.URL:", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.manufacturerURL = vanilla.EditText((inset+column, linePos, -inset, 19), "https://", callback=self.SavePreferences, sizeStyle='small')
-		tooltip = "Manufacturer URL, name ID 11: URL of Vendor. URL of font vendor (with protocol, e.g., http://, ftp://). If a unique serial number is embedded in the URL, it can be used to register the font."
-		self.w.setManufacturerURL.setToolTip(tooltip)
-		self.w.manufacturerURL.setToolTip(tooltip)
-		linePos += lineHeight
+		self.w.setManufacturer = vanilla.CheckBox("auto", "Manufacturer:", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.manufacturer = vanilla.EditText("auto", "", callback=self.SavePreferences, sizeStyle="small")
+		tooltipText = "Manufacturer Name, name ID 8."
+		self.w.setManufacturer.setToolTip(tooltipText)
+		self.w.manufacturer.setToolTip(tooltipText)
+
+		self.w.setManufacturerURL = vanilla.CheckBox("auto", "Manufact.URL:", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.manufacturerURL = vanilla.EditText("auto", "https://", callback=self.SavePreferences, sizeStyle="small")
+		tooltipText = "Manufacturer URL, name ID 11: URL of Vendor. URL of font vendor (with protocol, e.g., http://, ftp://). If a unique serial number is embedded in the URL, it can be used to register the font."
+		self.w.setManufacturerURL.setToolTip(tooltipText)
+		self.w.manufacturerURL.setToolTip(tooltipText)
 
 		# LICENSE
-		self.w.setLicense = vanilla.CheckBox((inset+2, linePos, column, 20), "License:", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.license = vanilla.EditText((inset+column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
-		tooltip = "License, name ID 13: License Description. Description of the license or licenses under which the font is provided. This could be a reference to a named license agreement (e.g., a common open source licenses), identification of a software-use license under which a font is bundled, information about where to locate an external license (see also name ID 14), a summary of permitted uses, or the full legal text of a license agreement. It is prudent to seek legal advice on the content of this name ID to avoid possible conflict of interpretation between it and the license(s)."
-		self.w.setLicense.setToolTip(tooltip)
-		self.w.license.setToolTip(tooltip)
-		linePos += lineHeight
-		
-		self.w.setLicenseURL = vanilla.CheckBox((inset+2, linePos, column, 20), "License URL:", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.licenseURL = vanilla.EditText((inset+column, linePos, -inset, 19), "https://", callback=self.SavePreferences, sizeStyle='small')
-		tooltip = "License URL, name ID 14: License Info URL. URL where additional licensing information can be found."
-		self.w.setLicenseURL.setToolTip(tooltip)
-		self.w.licenseURL.setToolTip(tooltip)
-		linePos += lineHeight
+		self.w.setLicense = vanilla.CheckBox("auto", "License:", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.license = vanilla.EditText("auto", "", callback=self.SavePreferences, sizeStyle="small")
+		tooltipText = "License, name ID 13: License Description. Description of the license or licenses under which the font is provided. This could be a reference to a named license agreement (e.g., a common open source licenses), identification of a software-use license under which a font is bundled, information about where to locate an external license (see also name ID 14), a summary of permitted uses, or the full legal text of a license agreement. It is prudent to seek legal advice on the content of this name ID to avoid possible conflict of interpretation between it and the license(s)."
+		self.w.setLicense.setToolTip(tooltipText)
+		self.w.license.setToolTip(tooltipText)
+
+		self.w.setLicenseURL = vanilla.CheckBox("auto", "License URL:", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.licenseURL = vanilla.EditText("auto", "https://", callback=self.SavePreferences, sizeStyle="small")
+		tooltipText = "License URL, name ID 14: License Info URL. URL where additional licensing information can be found."
+		self.w.setLicenseURL.setToolTip(tooltipText)
+		self.w.licenseURL.setToolTip(tooltipText)
 
 		# COPYRIGHT
-		self.w.setCopyright = vanilla.CheckBox((inset+2, linePos, column, 20), "Copyright:", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.copyright = vanilla.EditText((inset+column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
-		tooltip = f"Copyright, name ID 0: Copyright notice."
-		self.w.setCopyright.setToolTip(tooltip)
-		self.w.copyright.setToolTip(tooltip)
-		linePos += lineHeight
+		self.w.setCopyright = vanilla.CheckBox("auto", "Copyright:", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.copyright = vanilla.EditText("auto", "", callback=self.SavePreferences, sizeStyle="small")
+		tooltipText = "Copyright, name ID 0: Copyright notice."
+		self.w.setCopyright.setToolTip(tooltipText)
+		self.w.copyright.setToolTip(tooltipText)
 
 		# TRADEMARK
-		self.w.setTrademark = vanilla.CheckBox((inset+2, linePos, column, 20), "Trademark:", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.trademark = vanilla.EditText((inset+column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
-		tooltip = f"Trademark, name ID 7: This is used to save any trademark notice/information for this font. Such information should be based on legal advice. This is distinctly separate from the copyright. Use {self.placeholderFamilyName} as placeholder for the current family name."
-		self.w.setTrademark.setToolTip(tooltip)
-		self.w.trademark.setToolTip(tooltip)
-		linePos += lineHeight
+		self.w.setTrademark = vanilla.CheckBox("auto", "Trademark:", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.trademark = vanilla.EditText("auto", "", callback=self.SavePreferences, sizeStyle="small")
+		tooltipText = f"Trademark, name ID 7: This is used to save any trademark notice/information for this font. Such information should be based on legal advice. This is distinctly separate from the copyright. Use {self.placeholderFamilyName} as placeholder for the current family name."
+		self.w.setTrademark.setToolTip(tooltipText)
+		self.w.trademark.setToolTip(tooltipText)
 
 		# DESCRIPTION
-		self.w.setFontDescription = vanilla.CheckBox((inset+2, linePos, column, 20), "Description:", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.fontDescription = vanilla.EditText((inset+column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle="small")
-		tooltip = f"Description, name ID 10: Description of the typeface. Can contain revision information, usage recommendations, history, features, etc. Use {self.placeholderFamilyName} as placeholder for the current family name."
-		self.w.setFontDescription.setToolTip(tooltip)
-		self.w.fontDescription.setToolTip(tooltip)
-		linePos += lineHeight
-		
+		self.w.setFontDescription = vanilla.CheckBox("auto", "Description:", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.fontDescription = vanilla.EditText("auto", "", callback=self.SavePreferences, sizeStyle="small")
+		tooltipText = f"Description, name ID 10: Description of the typeface. Can contain revision information, usage recommendations, history, features, etc. Use {self.placeholderFamilyName} as placeholder for the current family name."
+		self.w.setFontDescription.setToolTip(tooltipText)
+		self.w.fontDescription.setToolTip(tooltipText)
+
 		# SAMPLE TEXT
-		self.w.setSampleText = vanilla.CheckBox((inset+2, linePos, column, 20), "Sample text:", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.sampleText = vanilla.EditText((inset+column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle="small")
-		tooltip = f"Sample text, name ID 19: Sample text. This can be the font name, or any other text that the designer thinks is the best sample to display the font in. Use {self.placeholderFamilyName} as placeholder for the current family name."
-		self.w.setSampleText.setToolTip(tooltip)
-		self.w.sampleText.setToolTip(tooltip)
-		linePos += lineHeight
-		
+		self.w.setSampleText = vanilla.CheckBox("auto", "Sample text:", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.sampleText = vanilla.EditText("auto", "", callback=self.SavePreferences, sizeStyle="small")
+		tooltipText = f"Sample text, name ID 19: Sample text. This can be the font name, or any other text that the designer thinks is the best sample to display the font in. Use {self.placeholderFamilyName} as placeholder for the current family name."
+		self.w.setSampleText.setToolTip(tooltipText)
+		self.w.sampleText.setToolTip(tooltipText)
+
 		# VENDOR ID
-		self.w.setVendorID = vanilla.CheckBox((inset+2, linePos, column, 20), "Vendor ID:", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.vendorID = vanilla.EditText((inset+column, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.setVendorID = vanilla.CheckBox("auto", "Vendor ID:", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.vendorID = vanilla.EditText("auto", "", callback=self.SavePreferences, sizeStyle="small")
 
 		# VERSION NUMBER
-		self.w.setVersion = vanilla.CheckBox((inset+2, linePos, column, 20), "Version:", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.versionMajor = vanilla.EditText((inset+column, linePos, 50, 19), "1", callback=self.SavePreferences, sizeStyle='small')
-		self.w.versionDot = vanilla.TextBox((inset+151, linePos+2, 8, 18), ".", selectable=True)
-		self.w.versionMinor = vanilla.EditText((inset+160, linePos, -inset-113, 19), "005", callback=self.SavePreferences, sizeStyle='small')
-		tooltip = "Version, used for building name ID 5: Version string. Should begin with the pattern “Version <number>.<number>” (upper case, lower case, or mixed, with a space between “Version” and the number). The string must contain a version number of the following form: one or more digits (0-9) of value less than 65,535, followed by a period, followed by one or more digits of value less than 65,535. Any character other than a digit will terminate the minor number."
-		self.w.setVersion.setToolTip(tooltip)
-		self.w.versionMajor.setToolTip(tooltip)
-		self.w.versionMinor.setToolTip(tooltip)
-		
-		self.w.versionMinorDecrease = vanilla.SquareButton((-inset-110, linePos, -inset-90, 19), "−", sizeStyle='small', callback=self.changeMinVersion)
+		self.w.setVersion = vanilla.CheckBox("auto", "Version:", value=True, callback=self.SavePreferences, sizeStyle="small")
+		versionFormatter = NSNumberFormatter.alloc().init()
+		versionFormatter.setAllowsFloats_(False)  # integers only
+		versionFormatter.setMinimum_(0)
+		versionFormatter.setMaximum_(65535)  # the 16-bit limit of the version number
+		self.w.versionMajor = SteppingEditText("auto", "1", callback=self.SavePreferences, sizeStyle="small", formatter=versionFormatter)
+		self.w.versionDot = vanilla.TextBox("auto", ".", sizeStyle="small", selectable=True)
+		self.w.versionMinor = vanilla.EditText("auto", "005", callback=self.SavePreferences, sizeStyle="small")
+		tooltipText = "Version, used for building name ID 5: Version string. Should begin with the pattern “Version <number>.<number>” (upper case, lower case, or mixed, with a space between “Version” and the number). The string must contain a version number of the following form: one or more digits (0-9) of value less than 65,535, followed by a period, followed by one or more digits of value less than 65,535. Any character other than a digit will terminate the minor number."
+		self.w.setVersion.setToolTip(tooltipText)
+		self.w.versionMajor.setToolTip(tooltipText)
+		self.w.versionMinor.setToolTip(tooltipText)
+
+		self.w.versionMinorDecrease = vanilla.SquareButton("auto", "−", sizeStyle="small", callback=self.changeMinVersion)
 		self.w.versionMinorDecrease.setToolTip("Decrease the version number by 0.001.")
-		self.w.versionMinorIncrease = vanilla.SquareButton((-inset-91, linePos, -inset-71, 19), "+", sizeStyle='small', callback=self.changeMinVersion)
+		self.w.versionMinorIncrease = vanilla.SquareButton("auto", "+", sizeStyle="small", callback=self.changeMinVersion)
 		self.w.versionMinorIncrease.setToolTip("Increase the version number by 0.001.")
-		self.w.minVersionButton = vanilla.SquareButton((-inset-60, linePos, -inset, 18), "↻ 1.005", sizeStyle='small', callback=self.setVersion1005)
+		self.w.minVersionButton = vanilla.SquareButton("auto", "↻ 1.005", sizeStyle="small", callback=self.setVersion1005)
 		self.w.minVersionButton.setToolTip("Resets the version to 1.005. Some (old?) Microsoft apps may consider fonts with smaller versions as unfinished and not display them in their font menu.")
-		linePos += lineHeight
 
 		# DATE AND TIME
-		self.w.setDate = vanilla.CheckBox((inset+2, linePos, column, 20), "Date and time:", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.setDate = vanilla.CheckBox("auto", "Date and time:", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.datePicker = vanilla.DatePicker(
-			(inset+column, linePos-3, -inset-70, 22),
-			date=AppKit.NSDate.alloc().init(),
+			"auto",
+			date=NSDate.alloc().init(),
 			minDate=None,
 			maxDate=None,
 			showStepper=True,
-			mode='text',
-			timeDisplay='hourMinuteSecond',
-			dateDisplay='yearMonthDay',
+			mode="text",
+			timeDisplay="hourMinuteSecond",
+			dateDisplay="yearMonthDay",
 			callback=None,
-			sizeStyle='small'
+			sizeStyle="small",
 		)
-		self.w.noonButton = vanilla.SquareButton((-inset-60, linePos, -inset, 18), "🕛 Today", sizeStyle='small', callback=self.setNoon)
+		self.w.noonButton = vanilla.SquareButton("auto", "🕛 Today", sizeStyle="small", callback=self.setNoon)
 		self.w.noonButton.setToolTip("Resets the date to today 12:00 noon.")
-		linePos += lineHeight
 
 		# SEPARATOR
-		self.w.separator = vanilla.HorizontalLine((inset, linePos+int(lineHeight * 0.5) - 1, -inset, 1))
-		linePos += lineHeight
+		self.w.separator = vanilla.HorizontalLine("auto")
 
 		# APPLY TO FONTS
-		self.w.finger = vanilla.TextBox((inset-5, linePos, 22, 22), "👉 ", selectable=True)
-		self.w.applyText = vanilla.TextBox((inset+17, linePos+2, 70, 14), "Apply to", sizeStyle='small', selectable=True)
-		self.w.applyPopup = vanilla.PopUpButton((inset+70, linePos, 150, 17), ("ALL open fonts", "open fonts containing"), sizeStyle='small', callback=self.SavePreferences)
-		self.w.applyContaining = vanilla.EditText((inset+70+150+10, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small', placeholder="enter part of family name here")
+		self.w.finger = vanilla.TextBox("auto", "👉", selectable=True)
+		self.w.applyText = vanilla.TextBox("auto", "Apply to", sizeStyle="small", selectable=True)
+		self.w.applyPopup = vanilla.PopUpButton("auto", ("ALL open fonts", "open fonts containing"), sizeStyle="small", callback=self.SavePreferences)
+		self.w.applyContaining = vanilla.EditText("auto", "", callback=self.SavePreferences, sizeStyle="small", placeholder="enter part of family name here")
 		self.w.applyContaining.setToolTip("Only applies the settings to fonts that contain this in Font Info > Font > Family Name.")
-		linePos += lineHeight
 
 		# Buttons:
-		self.w.extractButton = vanilla.Button((-270-inset, -20-inset, -130-inset, -inset), "Extract from Font", callback=self.ExtractFontInfoFromFrontmostFont)
+		self.w.extractButton = vanilla.Button("auto", "Extract from Font", callback=self.ExtractFontInfoFromFrontmostFont)
 		self.w.extractButton.setToolTip("Extracts the settings from the frontmost font and fills the UI with it.")
-		self.w.runButton = vanilla.Button((-120-inset, -20-inset, -inset, -inset), "Apply to Fonts", callback=self.FontInfoBatchSetterMain)
+		self.w.runButton = vanilla.Button("auto", "Apply to Fonts", callback=self.FontInfoBatchSetterMain)
 		self.w.runButton.setToolTip("Applies the checked settings above to all fonts indicated in the ‘Apply to’ option.")
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes and square buttons stretch vertically by default; with everything
+		# hugging, the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# the checkboxes in front of the fields share the width of the widest one, so the fields line up:
+		checkBoxNames = (
+			"setDesigner", "setDesignerURL", "setManufacturer", "setManufacturerURL", "setLicense", "setLicenseURL",
+			"setCopyright", "setTrademark", "setFontDescription", "setSampleText", "setVendorID", "setVersion", "setDate",
+		)
+		for checkBoxName in checkBoxNames:
+			nsCheckBox = getattr(self.w, checkBoxName).getNSButton()
+			nsCheckBox.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsCheckBox.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+		widestCheckBox = "setManufacturerURL"  # the checkbox with the longest title
+		widthRules = [
+			{"view1": getattr(self.w, checkBoxName), "attribute1": "width", "view2": getattr(self.w, widestCheckBox), "attribute2": "width"}
+			for checkBoxName in checkBoxNames if checkBoxName != widestCheckBox
+		]
+
+		# every row has one view in the vertical chain; the others share its centerY:
+		centerRules = [
+			{"view1": getattr(self.w, viewName), "attribute1": "centerY", "view2": getattr(self.w, rowViewName), "attribute2": "centerY"}
+			for viewName, rowViewName in (
+				("setDesigner", "designer"),
+				("setDesignerURL", "designerURL"),
+				("setManufacturer", "manufacturer"),
+				("setManufacturerURL", "manufacturerURL"),
+				("setLicense", "license"),
+				("setLicenseURL", "licenseURL"),
+				("setCopyright", "copyright"),
+				("setTrademark", "trademark"),
+				("setFontDescription", "fontDescription"),
+				("setSampleText", "sampleText"),
+				("setVendorID", "vendorID"),
+				("setVersion", "versionMajor"),
+				("versionDot", "versionMajor"),
+				("versionMinor", "versionMajor"),
+				("versionMinorDecrease", "versionMajor"),
+				("versionMinorIncrease", "versionMajor"),
+				("minVersionButton", "versionMajor"),
+				("setDate", "datePicker"),
+				("noonButton", "datePicker"),
+				("finger", "applyPopup"),
+				("applyText", "applyPopup"),
+				("applyContaining", "applyPopup"),
+			)
+		]
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[explanatoryText]-inset-|",
+				"H:|-inset-[setDesigner]-gap-[designer]-inset-|",
+				"H:|-inset-[setDesignerURL]-gap-[designerURL]-inset-|",
+				"H:|-inset-[setManufacturer]-gap-[manufacturer]-inset-|",
+				"H:|-inset-[setManufacturerURL]-gap-[manufacturerURL]-inset-|",
+				"H:|-inset-[setLicense]-gap-[license]-inset-|",
+				"H:|-inset-[setLicenseURL]-gap-[licenseURL]-inset-|",
+				"H:|-inset-[setCopyright]-gap-[copyright]-inset-|",
+				"H:|-inset-[setTrademark]-gap-[trademark]-inset-|",
+				"H:|-inset-[setFontDescription]-gap-[fontDescription]-inset-|",
+				"H:|-inset-[setSampleText]-gap-[sampleText]-inset-|",
+				"H:|-inset-[setVendorID]-gap-[vendorID]-inset-|",
+				"H:|-inset-[setVersion]-gap-[versionMajor(50)]-dot-[versionDot]-dot-[versionMinor(60)]-gap-[versionMinorDecrease(24)]-dot-[versionMinorIncrease(24)]-gap-[minVersionButton(>=70)]-(>=inset)-|",
+				"H:|-inset-[setDate]-gap-[datePicker]-gap-[noonButton(>=70)]-(>=inset)-|",
+				"H:|-inset-[separator]-inset-|",
+				"H:|-inset-[finger]-dot-[applyText]-gap-[applyPopup]-gap-[applyContaining(>=150)]-inset-|",
+				"H:|-(>=inset)-[extractButton(>=70)]-gap-[runButton(>=70)]-inset-|",
+				"V:|-inset-[explanatoryText]-headlineGap-[designer]-row-[designerURL]-row-[manufacturer]-row-[manufacturerURL]-row-[license]-row-[licenseURL]-row-[copyright]-row-[trademark]-row-[fontDescription]-row-[sampleText]-row-[vendorID]-row-[versionMajor]-row-[datePicker]-row-[separator(1)]-row-[applyPopup]-inset-[runButton]-inset-|",
+				"V:[extractButton]-inset-|",
+				"V:[versionMinorDecrease(20)]",
+				"V:[versionMinorIncrease(20)]",
+				"V:[minVersionButton(20)]",
+				"V:[noonButton(20)]",
+			] + centerRules + widthRules,
+			metrics={"inset": inset, "gap": 8, "row": 6, "headlineGap": 12, "dot": 4},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -300,7 +368,7 @@ class FontInfoBatchSetter(mekkaObject):
 			# update prefs:
 			self.w.datePicker.set(thisFont.date)
 			Glyphs.defaults[self.domain("versionMinor")] = f"{thisFont.versionMinor:03}"
-			Glyphs.defaults[self.domain("versionMajor")] = thisFont.versionMajor
+			Glyphs.defaults[self.domain("versionMajor")] = str(thisFont.versionMajor)
 			Glyphs.defaults[self.domain("copyright")] = thisFont.copyright
 			if thisFont.trademark:
 				Glyphs.defaults[self.domain("trademark")] = thisFont.trademark.replace(thisFont.familyName, self.placeholderFamilyName)
