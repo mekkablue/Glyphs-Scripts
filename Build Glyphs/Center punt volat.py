@@ -2,16 +2,99 @@
 __doc__ = """
 Shifts all periodcentered.loclCAT glyphs horizontally so they fit between two L’s.
 Suffixed variants (e.g. .loclCAT.ss01) are centered between L’s with the same suffix, or between the default L’s if no such L exists.
+If one of periodcentered.loclCAT, .loclCAT.case and .loclCAT.sc does not exist, it is built from period first: 92% size, centered at 45% of the ascender (lowercase) or 62% of the cap height or small cap height.
 ⚠️ Hold down ⌘ Cmd and ⇧ Shift for processing ALL open fonts.
 """
 
-from AppKit import NSMidY, NSAffineTransform, NSEvent, NSCommandKeyMask, NSShiftKeyMask
-from GlyphsApp import Glyphs, GSControlLayer
-from mekkablue import newLineControlLayer
+from AppKit import NSMidX, NSMidY, NSAffineTransform, NSEvent, NSEventModifierFlagCommand, NSEventModifierFlagShift
+from GlyphsApp import Glyphs, GSControlLayer, Message
+from mekkablue import newLineControlLayer, newGlyphWithName
+from mekkablue.geometry import transform
+
+PUNT_VOLAT_SCALE = 0.92
+LOWERCASE_HEIGHT_FACTOR = 0.45  # of the ascender
+CAPS_HEIGHT_FACTOR = 0.62  # of cap height or small cap height
+
+
+def smallCapHeightOfMaster(thisFont, thisMaster):
+	"""The small cap height parameter of the master, else the height of H.sc, else the x-height."""
+	smallCapHeight = thisMaster.customParameters["smallCapHeight"]
+	if smallCapHeight:
+		return float(smallCapHeight)
+	hsc = thisFont.glyphs["H.sc"]
+	if hsc:
+		hscBounds = hsc.layers[thisMaster.id].bounds
+		if hscBounds is not None:
+			return hscBounds.origin.y + hscBounds.size.height
+	return thisMaster.xHeight
+
+
+def buildPuntVolat(thisFont, puntVolatName):
+	"""
+	Builds a missing periodcentered.loclCAT glyph from period: decomposed copy at 92% size,
+	vertically centered at 45% of the ascender (lowercase), or at 62% of the cap height (.case) or small cap height (.sc).
+	Lowercase: LSB is half the LSB of period, rounded by 5u, RSB is =|.
+	Uppercase and small cap variants: width is the LSB of period, but at least 0.
+	"""
+	period = thisFont.glyphs["period"]
+	if not period:
+		print(f"❌ Cannot build {puntVolatName}: no period in ‘{thisFont.familyName}’.")
+		return False
+	if not all(layer.shapes for layer in period.layers if layer.isMasterLayer):
+		print(f"🚫 Cannot build {puntVolatName}: period is empty on a master.")
+		return False
+
+	puntVolatGlyph = newGlyphWithName(puntVolatName)
+	thisFont.glyphs.append(puntVolatGlyph)
+	puntVolatGlyph.updateGlyphInfo()
+	isLowercase = puntVolatName == "periodcentered.loclCAT"
+	isSmallCap = puntVolatName.endswith(".sc")
+
+	for master in thisFont.masters:
+		periodLayer = period.layers[master.id]
+		puntVolatLayer = puntVolatGlyph.layers[master.id]
+		puntVolatLayer.clear()
+		for shape in periodLayer.copyDecomposedLayer().shapes:
+			puntVolatLayer.shapes.append(shape.copy())
+
+		# scale down around its own center:
+		bounds = puntVolatLayer.bounds
+		centerX, centerY = NSMidX(bounds), NSMidY(bounds)
+		if isLowercase:
+			targetY = master.ascender * LOWERCASE_HEIGHT_FACTOR
+		elif isSmallCap:
+			targetY = smallCapHeightOfMaster(thisFont, master) * CAPS_HEIGHT_FACTOR
+		else:
+			targetY = master.capHeight * CAPS_HEIGHT_FACTOR
+		for matrix in (
+			transform(shiftX=-centerX, shiftY=-centerY),
+			transform(scale=PUNT_VOLAT_SCALE),
+			transform(shiftX=centerX, shiftY=targetY),
+		):
+			puntVolatLayer.applyTransform(matrix.transformStruct())
+
+		periodLSB = periodLayer.LSB
+		if isLowercase:
+			# LSB is half of period’s, rounded by 5u; RSB follows through the metrics key:
+			targetLSB = 5 * round(periodLSB * 0.5 / 5)
+			shiftX = targetLSB - puntVolatLayer.bounds.origin.x
+			puntVolatLayer.applyTransform(transform(shiftX=shiftX).transformStruct())
+		else:
+			puntVolatLayer.width = max(0, round(periodLSB))
+
+	if isLowercase:
+		puntVolatGlyph.leftMetricsKey = None
+		puntVolatGlyph.rightMetricsKey = "=|"
+		for layer in puntVolatGlyph.layers:
+			if layer.isMasterLayer:
+				layer.syncMetrics()
+	print(f"🔨 Built {puntVolatName} from period.")
+	return True
+
 
 keysPressed = NSEvent.modifierFlags()
-commandKeyPressed = (keysPressed & NSCommandKeyMask) == NSCommandKeyMask
-shiftKeyPressed = (keysPressed & NSShiftKeyMask) == NSShiftKeyMask
+commandKeyPressed = (keysPressed & NSEventModifierFlagCommand) == NSEventModifierFlagCommand
+shiftKeyPressed = (keysPressed & NSEventModifierFlagShift) == NSEventModifierFlagShift
 
 Glyphs.clearLog()  # clears log in Macro window
 print("Report for ‘Center punt volat’")
@@ -22,12 +105,16 @@ if commandKeyPressed and shiftKeyPressed:
 else:
 	theseFonts = [Glyphs.font]
 
+if None in theseFonts:
+	Message(title="No Font Open", message="This script requires a font. Open a font source and try again.", OKButton=None)
+	raise SystemExit
+
 for thisFont in theseFonts:
 	thisFontPath = thisFont.filepath
 	if thisFontPath:
 		thisFontFileName = thisFontPath.lastPathComponent()
 	else:
-		thisFontFileName = "<UNSAVED DOCUMENT>"
+		thisFontFileName = f"{thisFont.familyName} (unsaved)"
 	print(f"\n📄 Preparing {thisFontFileName}...\n🖥️ Path: {thisFontPath}")
 
 	baseDict = {
@@ -35,6 +122,12 @@ for thisFont in theseFonts:
 		"periodcentered.loclCAT": "l",
 		"periodcentered.loclCAT.sc": "l.sc",
 	}
+
+	# build missing punt volat glyphs from period:
+	for baseName in baseDict:
+		if not thisFont.glyphs[baseName]:
+			buildPuntVolat(thisFont, baseName)
+
 	allGlyphNames = [g.name for g in thisFont.glyphs if g.export]
 
 	# suffixed variants are centered between L’s with the same suffix, or else between the default L’s:

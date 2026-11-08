@@ -3,15 +3,15 @@ __doc__ = """
 Creates parenthesized letters and numbers: one.paren, two.paren, three.paren, four.paren, five.paren, six.paren, seven.paren, eight.paren, nine.paren, one_zero.paren, one_one.paren, one_two.paren, one_three.paren, one_four.paren, one_five.paren, one_six.paren, one_seven.paren, one_eight.paren, one_nine.paren, two_zero.paren, a.paren, b.paren, c.paren, d.paren, e.paren, f.paren, g.paren, h.paren, i.paren, j.paren, k.paren, l.paren, m.paren, n.paren, o.paren, p.paren, q.paren, r.paren, s.paren, t.paren, u.paren, v.paren, w.paren, x.paren, y.paren, z.paren.
 """
 
+import traceback
 from Foundation import NSPoint
-from GlyphsApp import Glyphs, GSGlyph, GSComponent
+from GlyphsApp import Glyphs, GSComponent, Message
+from mekkablue import newGlyphWithName
 from mekkablue.geometry import transform
 
 distanceBetweenComponents = 95.0
 parenShiftForLetters = 40.0
 
-thisFont = Glyphs.font  # frontmost font
-selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
 parenGlyphs = [
 	"one.paren", "two.paren", "three.paren", "four.paren", "five.paren", "six.paren", "seven.paren", "eight.paren", "nine.paren", "one_zero.paren", "one_one.paren",
 	"one_two.paren", "one_three.paren", "one_four.paren", "one_five.paren", "one_six.paren", "one_seven.paren", "one_eight.paren", "one_nine.paren", "two_zero.paren", "a.paren",
@@ -22,25 +22,18 @@ parenGlyphs = [
 
 def measureLayerAtHeightFromLeftOrRight(thisLayer, height, leftSide=True):
 	thisLayer = thisLayer.copyDecomposedLayer()
-	try:
-		leftX = thisLayer.bounds.origin.x
-		rightX = leftX + thisLayer.bounds.size.width
-		y = height
-		returnIndex = 1
-		if not leftSide:
-			returnIndex = -2
-		measurements = thisLayer.intersectionsBetweenPoints(NSPoint(leftX, y), NSPoint(rightX, y))
-		if len(measurements) > 2:
-			measurement = measurements[returnIndex].pointValue().x
-			if leftSide:
-				distance = measurement - leftX
-			else:
-				distance = rightX - measurement
-			return distance
-		else:
-			return None
-	except:
+	if thisLayer.bounds is None:  # empty layer
 		return None
+	leftX = thisLayer.bounds.origin.x
+	rightX = leftX + thisLayer.bounds.size.width
+	returnIndex = 1 if leftSide else -2
+	measurements = thisLayer.intersectionsBetweenPoints(NSPoint(leftX, height), NSPoint(rightX, height))
+	if len(measurements) > 2:
+		measurement = measurements[returnIndex].pointValue().x
+		if leftSide:
+			return measurement - leftX
+		return rightX - measurement
+	return None
 
 
 def minDistanceBetweenTwoLayers(comp1, comp2, interval=5.0):
@@ -52,13 +45,11 @@ def minDistanceBetweenTwoLayers(comp1, comp2, interval=5.0):
 		height = bottomY + i * interval
 		left = measureLayerAtHeightFromLeftOrRight(comp1, height, leftSide=False)
 		right = measureLayerAtHeightFromLeftOrRight(comp2, height, leftSide=True)
-		try:  # avoid gaps like in i or j
-			total = left + right
-			if minDist is None or minDist > total:
-				minDist = total
-		except:
-			print("None!", minDist, height, comp1.parent.name, left, comp2.parent.name, right)
-			pass
+		if left is None or right is None:  # avoid gaps like in i or j
+			continue
+		total = left + right
+		if minDist is None or minDist > total:
+			minDist = total
 	return minDist
 
 
@@ -86,12 +77,11 @@ def process(thisGlyph):
 	maxWidth = thisFont.upm
 	thisGlyph.leftMetricsKey = None
 	thisGlyph.rightMetricsKey = None
-	print("-".join(parts))
 	for thisLayer in thisGlyph.layers:
 		thisLayer.clear()
 		for i, part in enumerate(parts):
-			ucName = "%s.case" % part
-			lfName = "%s.lf" % part
+			ucName = f"{part}.case"
+			lfName = f"{part}.lf"
 			if thisGlyph.glyphInfo.subCategory == "Uppercase" or thisGlyph.glyphInfo.category == "Number":
 				if thisFont.glyphs[ucName]:
 					part = ucName
@@ -102,16 +92,12 @@ def process(thisGlyph):
 			if i > 0:
 				placeComponentsAtDistance(thisLayer, thisLayer.components[i - 1], comp, distance=distanceBetweenComponents)
 
-		# thisLayer.decomposeComponents()
 		maxWidth = max(thisLayer.bounds.size.width * 0.97, maxWidth)
 	return maxWidth
 
 
 def postprocess(thisGlyph, scale, shiftUp):
 	for thisLayer in thisGlyph.layers:
-		# thisLayer.decomposeComponents()
-		# for thisComp in thisLayer.components:
-		# 	thisComp.makeDisableAlignment()
 		scaleDown = transform(scale=scale).transformStruct()
 		thisLayer.applyTransform(scaleDown)
 		thisLayer.applyTransform(shiftUp)
@@ -124,37 +110,34 @@ def postprocess(thisGlyph, scale, shiftUp):
 			thisLayer.components[2].x += parenShiftForLetters
 
 
-thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
-try:
-	maxWidth = 0.0
-	for name in parenGlyphs:
-		thisGlyph = thisFont.glyphs[name]
-		if not thisGlyph:
-			thisGlyph = GSGlyph()
-			thisGlyph.name = name
-			thisFont.glyphs.append(thisGlyph)
+thisFont = Glyphs.font  # frontmost font
+if thisFont is None:
+	Message(title="No font open", message="This script requires a font open in Glyphs.", OKButton=None)
+else:
+	thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
+	try:
+		maxWidth = 0.0
+		for name in parenGlyphs:
+			thisGlyph = thisFont.glyphs[name]
+			if not thisGlyph:
+				thisGlyph = newGlyphWithName(name)
+				thisFont.glyphs.append(thisGlyph)
 
-		print("Processing %s" % thisGlyph.name)
-		# thisGlyph.beginUndo()  # undo grouping causes crashes
-		maxWidth = max(maxWidth, process(thisGlyph))
+			print(f"Processing {thisGlyph.name}")
+			# undo grouping (beginUndo/endUndo) causes crashes
+			maxWidth = max(maxWidth, process(thisGlyph))
+
 		print(maxWidth)
-		# thisGlyph.endUndo()  # undo grouping causes crashes
+		scale = (thisFont.upm / maxWidth) * 0.95
+		yShift = transform(shiftY=thisFont.upm * 0.08).transformStruct()
 
-	print(maxWidth)
-	scale = (thisFont.upm / maxWidth) * 0.95
-	yShift = transform(shiftY=thisFont.upm * 0.08).transformStruct()
+		for name in parenGlyphs:
+			postprocess(thisFont.glyphs[name], scale, yShift)
 
-	for name in parenGlyphs:
-		thisGlyph = thisFont.glyphs[name]
-		# print "Post-processing %s" % thisGlyph.name
-		postprocess(thisGlyph, scale, yShift)
-
-except Exception as e:
-	Glyphs.showMacroWindow()
-	print("\n⚠️ Script Error:\n")
-	import traceback
-	print(traceback.format_exc())
-	print()
-	raise e
-finally:
-	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
+	except Exception:
+		Glyphs.showMacroWindow()
+		print("\n⚠️ Script Error:\n")
+		print(traceback.format_exc())
+		raise
+	finally:
+		thisFont.enableUpdateInterface()  # re-enables UI updates in Font View

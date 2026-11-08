@@ -1,13 +1,15 @@
 # MenuTitle: Build Rare Symbols
 __doc__ = """
-Builds white and black, small and large, circles, triangles and squares.
+Builds white and black, small and large, circles, diamonds, triangles, arrowheads and squares, plus the propeller (Cmd), option and shift key symbols, the viewdata square, servicemark, telephone, careof and cadauna.
 """
 
+import objc
 import vanilla
-from GlyphsApp import Glyphs, GSGlyph, GSLayer, GSComponent, Message
+import traceback
+from GlyphsApp import Glyphs, GSLayer, GSComponent, Message
 from mekkablue import mekkaObject, newGlyphWithName
 from mekkablue.geometry import transform, offsetLayer
-from Foundation import NSPoint
+from Foundation import NSNumberFormatter, NSPoint
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 
 
@@ -44,12 +46,11 @@ def createGlyph(
 	glyph = None
 	if thisFont.glyphs[glyphName]:
 		if overwrite:
-			print("🔣 %s: exists. Overwriting." % glyphName)
+			print(f"🔣 {glyphName}: exists. Overwriting.")
 			glyph = thisFont.glyphs[glyphName]
 	else:
-		print("🔣 %s created." % glyphName)
-		glyph = GSGlyph()
-		glyph.name = glyphName
+		print(f"🔣 {glyphName} created.")
+		glyph = newGlyphWithName(glyphName)
 		thisFont.glyphs.append(glyph)
 		glyph.updateGlyphInfo()
 
@@ -59,7 +60,6 @@ def createGlyph(
 		originalHeight = originalLayer.fastBounds().size.height  # FIX 3.2
 
 		# scale:
-
 		if fill:
 			scaleCorrection = 0
 		else:
@@ -67,7 +67,7 @@ def createGlyph(
 		scaleToHeight = originalHeight * scaleFactor - scaleCorrection
 		currentHeight = originalLayer.fastBounds().size.height  # TEMP FIX 3.2
 		if not currentHeight:
-			print("❌ ERROR: No content (height=0) for %s." % glyphName)
+			print(f"❌ ERROR: No content (height=0) for {glyphName}.")
 			return
 		else:
 			scaleFactor = scaleToHeight / currentHeight
@@ -131,10 +131,10 @@ def createGlyph(
 					thisLayer.updateMetrics()
 					thisLayer.syncMetrics()
 
-				print("\t✅ Layer: %s" % thisLayer.name)
+				print(f"\t✅ Layer: {thisLayer.name}")
 		return True
 	else:
-		print("⚠️ %s: already exists. Skipping." % glyphName)
+		print(f"⚠️ {glyphName}: already exists. Skipping.")
 		return False
 
 
@@ -150,6 +150,123 @@ def specialTreatmentOf3DArrows(thisLayer, glyphName):
 		elif "TopLighted" in glyphName:
 			nodeIndex = sorted(smallestPath.nodes, key=lambda node: node.y)[0].index
 			del smallestPath.nodes[nodeIndex]
+
+
+def measureCareofLayerAtHeight(thisLayer, height, leftSide=True, transformStruct=None):
+	thisLayer = thisLayer.copyDecomposedLayer()
+	if transformStruct is not None:
+		thisLayer.applyTransform(transformStruct)
+	if thisLayer.bounds is None:  # empty layer
+		return None
+	leftX = thisLayer.bounds.origin.x
+	rightX = leftX + thisLayer.bounds.size.width
+	returnIndex = 1 if leftSide else -2
+	measurements = thisLayer.intersectionsBetweenPoints(NSPoint(leftX, height), NSPoint(rightX, height))
+	if len(measurements) > 2:
+		measurement = measurements[returnIndex].pointValue().x
+		if leftSide:
+			return measurement - leftX
+		return rightX - measurement
+	return None
+
+
+def minDistanceBetweenCareofLayers(comp1, comp2, interval=5.0, transformStruct1=None, transformStruct2=None):
+	if transformStruct1:
+		comp1 = comp1.copyDecomposedLayer()
+		comp1.applyTransform(transformStruct1)
+	if transformStruct2:
+		comp2 = comp2.copyDecomposedLayer()
+		comp2.applyTransform(transformStruct2)
+	topY = min(comp1.bounds.origin.y + comp1.bounds.size.height, comp2.bounds.origin.y + comp2.bounds.size.height)
+	bottomY = max(comp1.bounds.origin.y, comp2.bounds.origin.y)
+	distance = topY - bottomY
+	minDist = None
+	for i in range(int(distance / interval)):
+		height = bottomY + i * interval
+		left = measureCareofLayerAtHeight(comp1, height, leftSide=False, transformStruct=None)
+		right = measureCareofLayerAtHeight(comp2, height, leftSide=True, transformStruct=None)
+		if left is None or right is None:  # avoid gaps like in i or j
+			continue
+		total = left + right
+		if minDist is None or minDist > total:
+			minDist = total
+	return minDist
+
+
+def placeCareofComponentsAtDistance(thisLayer, comp1, comp2, interval=5.0, distance=10.0):
+	thisMaster = thisLayer.associatedFontMaster()
+	masterID = thisMaster.id
+	original1 = comp1.component.layers[masterID]
+	original2 = comp2.component.layers[masterID]
+	minDist = minDistanceBetweenCareofLayers(original1, original2, interval=interval, transformStruct1=comp1.transformStruct(), transformStruct2=comp2.transformStruct())
+	if minDist is not None:
+		comp2shift = distance - minDist
+		comp2.x = comp1.bounds.origin.x + comp1.bounds.size.width + comp2shift - (comp2.bounds.origin.x - comp2.x)
+
+
+def getDenominatorZeroGlyph(thisFont):
+	"""The zero used for measuring the height of c, o and u: zero.dnom or zero.subs."""
+	zeroGlyph = thisFont.glyphs["zero.dnom"]
+	if not zeroGlyph:
+		zeroGlyph = thisFont.glyphs["zero.subs"]
+	return zeroGlyph
+
+
+def buildCareofCadauna(thisFont, overwrite=False, distanceBetweenComponents=80):
+	"""Builds cadauna and careof from c, u or o, and fraction. Returns the names of the glyphs it built."""
+	newGlyphs = {
+		"cadauna": ("c", "u"),
+		"careof": ("c", "o"),
+	}
+
+	missingGlyphNames = [name for name in ("c", "u", "o", "fraction", "zero.numr") if not thisFont.glyphs[name]]
+	if not getDenominatorZeroGlyph(thisFont):
+		missingGlyphNames.append("zero.dnom or zero.subs")
+	if missingGlyphNames:
+		print(f"⚠️ careof/cadauna: requires these glyphs in the font: {', '.join(missingGlyphNames)}")
+		return []
+
+	builtGlyphNames = []
+	for newGlyphName, (firstCompName, lastCompName) in newGlyphs.items():
+		thisGlyph = thisFont.glyphs[newGlyphName]
+		if thisGlyph and not overwrite:
+			print(f"⚠️ {newGlyphName}: already exists. Skipping.")
+			continue
+		if not thisGlyph:
+			thisGlyph = newGlyphWithName(newGlyphName)
+			thisFont.glyphs.append(thisGlyph)
+			thisGlyph.updateGlyphInfo()
+			print(f"🔣 {newGlyphName} created.")
+		else:
+			print(f"🔣 {newGlyphName}: exists. Overwriting.")
+
+		for thisLayer in thisGlyph.layers:
+			thisLayer.clear()
+		for i, compName in enumerate((firstCompName, "fraction", lastCompName)):
+			for thisMaster in thisFont.masters:
+				thisLayer = thisGlyph.layers[thisMaster.id]
+				newComponent = GSComponent(compName)
+				thisLayer.shapes.append(newComponent)
+				newComponent.disableAlignment = True
+
+				if i in (0, 2):
+					zero = getDenominatorZeroGlyph(thisFont).layers[thisMaster.id]
+					scale = zero.bounds.size.height / newComponent.bounds.size.height
+					newComponent.applyTransform(transform(scale=scale).transformStruct())
+				if i == 0:
+					zero = thisFont.glyphs["zero.numr"].layers[thisMaster.id]
+					zeroTop = zero.bounds.origin.y + zero.bounds.size.height
+					compTop = newComponent.bounds.origin.y + newComponent.bounds.size.height
+					newComponent.applyTransform(transform(shiftY=(zeroTop - compTop)).transformStruct())
+				if i > 0:
+					previousComponent = thisLayer.shapes[i - 1]
+					placeCareofComponentsAtDistance(thisLayer, previousComponent, newComponent, interval=3.0, distance=distanceBetweenComponents)
+
+				if i == 2:
+					thisLayer.LSB = thisLayer.shapes[0].component.layers[thisMaster.id].LSB
+					thisLayer.RSB = thisLayer.shapes[2].component.layers[thisMaster.id].RSB
+		builtGlyphNames.append(newGlyphName)
+	return builtGlyphNames
 
 
 def hashtagCoordsForHeight(s):
@@ -355,15 +472,30 @@ def drawPenDataInLayer(thisLayer, penData, closePath=True):
 			elif len(thisSegment) == 3:  # curveto (3 x/y tuples)
 				pen.curveTo(thisSegment[0], thisSegment[1], thisSegment[2])
 			else:
-				print("Path drawing error. Could not process this segment: %s\n" % thisSegment)
+				print(f"Path drawing error. Could not process this segment: {thisSegment}\n")
 		if closePath:
 			pen.closePath()
 		pen.endPath()
 
 	# clean up:
-	# thisLayer.correctPathDirection()
 	thisLayer.cleanUpPaths()
 	return thisLayer
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
+
+
+def integerFormatter(minimum=None, maximum=None):
+	"""Number formatter that only accepts integers, optionally within a range."""
+	formatter = NSNumberFormatter.alloc().init()
+	formatter.setAllowsFloats_(False)
+	if minimum is not None:
+		formatter.setMinimum_(minimum)
+	if maximum is not None:
+		formatter.setMaximum_(maximum)
+	return formatter
 
 
 class BuildCirclesSquaresTriangles(mekkaObject):
@@ -379,6 +511,7 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 		"propellor": 0,
 		"viewdataSquare": 0,
 		"servicemarkTel": 0,
+		"careofCadauna": 0,
 
 		"stroke": 50,
 		"height": 700,
@@ -397,7 +530,7 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Build Rare Symbols",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
@@ -433,26 +566,29 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 		self.w.servicemarkTel = vanilla.CheckBox("auto", "SM and TEL \u2120\u2121", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.servicemarkTel.setToolTip("Will create servicemark, telephone. Requires M and trademark glyphs in the font.")
 
+		self.w.careofCadauna = vanilla.CheckBox("auto", "careof and cadauna \u2105\u2106", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.careofCadauna.setToolTip("Will create careof and cadauna from c, o, u and fraction. Requires zero.numr and zero.dnom (or zero.subs) in the font.")
+
 		self.w.line = vanilla.HorizontalLine("auto")
 
 		self.w.strokeText = vanilla.TextBox("auto", "Stroke width:", sizeStyle='small', selectable=True)
-		self.w.stroke = vanilla.EditText("auto", "50", callback=self.SavePreferences, sizeStyle='small')
+		self.w.stroke = SteppingEditText("auto", "50", formatter=integerFormatter(1), callback=self.SavePreferences, sizeStyle='small')
 		tooltip = "Uniform stroke width for icons. Does not apply to filled (\u2018black\u2019) shapes."
 		self.w.strokeText.setToolTip(tooltip)
 		self.w.stroke.setToolTip(tooltip)
 		self.w.heightText = vanilla.TextBox("auto", "Symbol size:", sizeStyle='small', selectable=True)
-		self.w.height = vanilla.EditText("auto", "700", callback=self.SavePreferences, sizeStyle='small')
+		self.w.height = SteppingEditText("auto", "700", formatter=integerFormatter(1), callback=self.SavePreferences, sizeStyle='small')
 		tooltip = "Reference height for symbols. Each symbol has an individual scale factor. This reference height times the symbol\u2019s scale factor will yield the actual size of each symbol."
 		self.w.heightText.setToolTip(tooltip)
 		self.w.height.setToolTip(tooltip)
 
 		self.w.sidebearingText = vanilla.TextBox("auto", "Sidebearings:", sizeStyle='small', selectable=True)
-		self.w.sidebearing = vanilla.EditText("auto", "50", callback=self.SavePreferences, sizeStyle='small')
+		self.w.sidebearing = SteppingEditText("auto", "50", formatter=integerFormatter(), callback=self.SavePreferences, sizeStyle='small')
 		tooltip = "Will be used for both LSB and RSB, effectively centering the shape in its width. Unless the Disrespect Italic Angle option is used, will insert it as metrics keys (e.g., LSB \u201860\u2019, RSB \u2018=|\u2019) for the glyph."
 		self.w.sidebearingText.setToolTip(tooltip)
 		self.w.sidebearing.setToolTip(tooltip)
 		self.w.belowBaseText = vanilla.TextBox("auto", "% below base:", sizeStyle='small', selectable=True)
-		self.w.belowBase = vanilla.EditText("auto", "10", callback=self.SavePreferences, sizeStyle='small')
+		self.w.belowBase = SteppingEditText("auto", "10", formatter=integerFormatter(0, 100), callback=self.SavePreferences, sizeStyle='small')
 		tooltip = "Determines the vertical position. This percentage of the symbol size will be below, the rest above the baseline."
 		self.w.belowBaseText.setToolTip(tooltip)
 		self.w.belowBase.setToolTip(tooltip)
@@ -486,8 +622,8 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 
 		# one shared width per column, so the two columns line up throughout the window:
 		gridCheckBoxes = (
-			self.w.whiteTriangles, self.w.blackArrowheads, self.w.whiteShapes, self.w.whiteLargeSquare, self.w.propellor, self.w.openTab,
-			self.w.blackTriangles, self.w.black3DArrowheads, self.w.blackShapes, self.w.blackLargeSquare, self.w.viewdataSquare, self.w.reuseTab,
+			self.w.whiteTriangles, self.w.blackArrowheads, self.w.whiteShapes, self.w.whiteLargeSquare, self.w.propellor, self.w.servicemarkTel, self.w.openTab,
+			self.w.blackTriangles, self.w.black3DArrowheads, self.w.blackShapes, self.w.blackLargeSquare, self.w.viewdataSquare, self.w.careofCadauna, self.w.reuseTab,
 		)
 		labelColumn = (self.w.strokeText, self.w.sidebearingText)
 		rightLabelColumn = (self.w.heightText, self.w.belowBaseText)
@@ -517,17 +653,17 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 				"H:|-inset-[whiteShapes]-gap-[blackShapes]-(>=inset)-|",
 				"H:|-inset-[whiteLargeSquare]-gap-[blackLargeSquare]-(>=inset)-|",
 				"H:|-inset-[propellor]-gap-[viewdataSquare]-(>=inset)-|",
-				"H:|-inset-[servicemarkTel]-(>=inset)-|",
+				"H:|-inset-[servicemarkTel]-gap-[careofCadauna]-(>=inset)-|",
 				"H:|-inset-[line]-inset-|",
 				"H:|-inset-[strokeText]-gap-[stroke]-gap-[heightText]-gap-[height]-inset-|",
 				"H:|-inset-[sidebearingText]-gap-[sidebearing]-gap-[belowBaseText]-gap-[belowBase]-inset-|",
 				"H:|-inset-[disrespectItalicAngle]-(>=inset)-|",
 				"H:|-inset-[overwriteExistingGlyphs]-(>=inset)-|",
 				"H:|-inset-[openTab]-gap-[reuseTab]-(>=inset)-|",
-				"H:|-(>=inset)-[uncheckAllButton(>=70)]-gap-[checkAllButton(>=70)]-gap-[runButton(>=70)]-inset-|",
+				"H:|-inset-[uncheckAllButton(>=70)]-gap-[checkAllButton(>=70)]-(>=gap)-[runButton(>=70)]-inset-|",
 				# one vertical chain per column; equal row heights keep the rows aligned
 				"V:|-gap-[descriptionText]-row-[whiteTriangles]-row-[blackArrowheads]-row-[whiteShapes]-row-[whiteLargeSquare]-row-[propellor]-row-[servicemarkTel]-gap-[line(1)]-gap-[stroke]-row-[sidebearing]-row-[disrespectItalicAngle]-row-[overwriteExistingGlyphs]-row-[openTab]-inset-[runButton]-inset-|",
-				"V:[descriptionText]-row-[blackTriangles]-row-[black3DArrowheads]-row-[blackShapes]-row-[blackLargeSquare]-row-[viewdataSquare]",
+				"V:[descriptionText]-row-[blackTriangles]-row-[black3DArrowheads]-row-[blackShapes]-row-[blackLargeSquare]-row-[viewdataSquare]-row-[careofCadauna]",
 				"V:[uncheckAllButton]-inset-|",
 				"V:[checkAllButton]-inset-|",
 				{"view1": self.w.height, "attribute1": "centerY", "view2": self.w.stroke, "attribute2": "centerY"},
@@ -561,13 +697,14 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 		self.w.propellor.set(toggle)
 		self.w.viewdataSquare.set(toggle)
 		self.w.servicemarkTel.set(toggle)
+		self.w.careofCadauna.set(toggle)
 		self.SavePreferences()
 
 	def updateUI(self, sender=None):
 		toggle = (
 			self.w.whiteTriangles.get() or self.w.blackTriangles.get() or self.w.black3DArrowheads.get() or self.w.blackArrowheads.get() or self.w.whiteShapes.get()
 			or self.w.blackShapes.get() or self.w.whiteLargeSquare.get() or self.w.blackLargeSquare.get() or self.w.propellor.get() or self.w.viewdataSquare.get()
-			or self.w.servicemarkTel.get()
+			or self.w.servicemarkTel.get() or self.w.careofCadauna.get()
 		)
 		self.w.runButton.enable(toggle)
 		self.w.reuseTab.enable(self.w.openTab.get())
@@ -584,7 +721,7 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
-				print("Build Rare Symbols Report for %s" % thisFont.familyName)
+				print(f"Build Rare Symbols Report for {thisFont.familyName}")
 				if thisFont.filepath:
 					print(thisFont.filepath)
 				else:
@@ -602,11 +739,12 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 				propellor = self.pref("propellor")
 				viewdataSquare = self.pref("viewdataSquare")
 				servicemarkTel = self.pref("servicemarkTel")
+				careofCadauna = self.pref("careofCadauna")
 
-				stroke = self.prefFloat("stroke")
-				height = self.prefFloat("height")
-				belowBase = self.prefFloat("belowBase") / 100.0
-				sidebearing = self.prefFloat("sidebearing")
+				stroke = self.prefInt("stroke")
+				height = self.prefInt("height")
+				belowBase = self.prefInt("belowBase") / 100.0
+				sidebearing = self.prefInt("sidebearing")
 
 				disrespectItalicAngle = self.pref("disrespectItalicAngle")
 				overwriteExistingGlyphs = self.pref("overwriteExistingGlyphs")
@@ -642,7 +780,7 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 						},
 						{
 							"name": "leftWhiteTriangle",
-							"rotation": +90
+							"rotation": 90
 						},
 					)
 					for shape in triangleInfo:
@@ -679,7 +817,7 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 						},
 						{
 							"name": "leftBlackTriangle",
-							"rotation": +90
+							"rotation": 90
 						},
 					)
 					for shape in triangleInfo:
@@ -715,7 +853,7 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 						},
 						{
 							"name": "blackLeftEquilateralArrowhead",
-							"rotation": +90
+							"rotation": 90
 						},
 					)
 					for shape in triangleInfo:
@@ -751,7 +889,7 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 						},
 						{
 							"name": "threeDTopLightedLeftEquilateralArrowhead",
-							"rotation": +90
+							"rotation": 90
 						},
 					)
 					for shape in triangleInfo:
@@ -760,7 +898,7 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 						if createGlyph(
 							thisFont,
 							glyphName,
-							arrowheadPath,
+							arrowhead3DPath,
 							scaleFactor=0.95,
 							rotation=rotation,
 							overwrite=overwriteExistingGlyphs,
@@ -772,89 +910,43 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 							processedGlyphs.append(glyphName)
 
 				if whiteShapes:
-					glyphName = "whiteSquare"
-					if createGlyph(
-						thisFont,
-						glyphName,
-						squarePath,
-						scaleFactor=0.78,
-						overwrite=overwriteExistingGlyphs,
-						fill=False,
-						stroke=stroke,
-						belowBase=belowBase,
-						sidebearing=sidebearing,
-						setMetricsKeys=(not disrespectItalicAngle)
+					for glyphName, shapePath, shapeScale in (
+						("whiteSquare", squarePath, 0.78),
+						("whiteDiamond", diamondPath, 0.93),
+						("whiteCircle", circlePath, 0.87),
 					):
-						processedGlyphs.append(glyphName)
-						glyphName = "whiteDiamond"
-					if createGlyph(
-						thisFont,
-						glyphName,
-						diamondPath,
-						scaleFactor=0.93,
-						overwrite=overwriteExistingGlyphs,
-						fill=False,
-						stroke=stroke,
-						belowBase=belowBase,
-						sidebearing=sidebearing,
-						setMetricsKeys=(not disrespectItalicAngle)
-					):
-						processedGlyphs.append(glyphName)
-						glyphName = "whiteCircle"
-					if createGlyph(
-						thisFont,
-						glyphName,
-						circlePath,
-						scaleFactor=0.87,
-						overwrite=overwriteExistingGlyphs,
-						fill=False,
-						stroke=stroke,
-						belowBase=belowBase,
-						sidebearing=sidebearing,
-						setMetricsKeys=(not disrespectItalicAngle)
-					):
-						processedGlyphs.append(glyphName)
+						if createGlyph(
+							thisFont,
+							glyphName,
+							shapePath,
+							scaleFactor=shapeScale,
+							overwrite=overwriteExistingGlyphs,
+							fill=False,
+							stroke=stroke,
+							belowBase=belowBase,
+							sidebearing=sidebearing,
+							setMetricsKeys=(not disrespectItalicAngle)
+						):
+							processedGlyphs.append(glyphName)
 
 				if blackShapes:
-					glyphName = "blackSquare"
-					if createGlyph(
-						thisFont,
-						glyphName,
-						squarePath,
-						scaleFactor=0.78,
-						overwrite=overwriteExistingGlyphs,
-						fill=True,
-						belowBase=belowBase,
-						sidebearing=sidebearing,
-						setMetricsKeys=(not disrespectItalicAngle)
+					for glyphName, shapePath, shapeScale in (
+						("blackSquare", squarePath, 0.78),
+						("blackDiamond", diamondPath, 0.93),
+						("blackCircle", circlePath, 0.87),
 					):
-						processedGlyphs.append(glyphName)
-						glyphName = "blackDiamond"
-					if createGlyph(
-						thisFont,
-						glyphName,
-						diamondPath,
-						scaleFactor=0.93,
-						overwrite=overwriteExistingGlyphs,
-						fill=True,
-						belowBase=belowBase,
-						sidebearing=sidebearing,
-						setMetricsKeys=(not disrespectItalicAngle)
-					):
-						processedGlyphs.append(glyphName)
-						glyphName = "blackCircle"
-					if createGlyph(
-						thisFont,
-						glyphName,
-						circlePath,
-						scaleFactor=0.87,
-						overwrite=overwriteExistingGlyphs,
-						fill=True,
-						belowBase=belowBase,
-						sidebearing=sidebearing,
-						setMetricsKeys=(not disrespectItalicAngle)
-					):
-						processedGlyphs.append(glyphName)
+						if createGlyph(
+							thisFont,
+							glyphName,
+							shapePath,
+							scaleFactor=shapeScale,
+							overwrite=overwriteExistingGlyphs,
+							fill=True,
+							belowBase=belowBase,
+							sidebearing=sidebearing,
+							setMetricsKeys=(not disrespectItalicAngle)
+						):
+							processedGlyphs.append(glyphName)
 
 				if whiteLargeSquare:
 					glyphName = "whiteLargeSquare"
@@ -959,7 +1051,7 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 						glyphsToBuild = {}
 						for newGlyphName, letters in smtelGlyphs.items():
 							if thisFont.glyphs[newGlyphName] and not overwriteExistingGlyphs:
-								print("⚠️ %s: already exists. Skipping." % newGlyphName)
+								print(f"⚠️ {newGlyphName}: already exists. Skipping.")
 							else:
 								glyphsToBuild[newGlyphName] = letters
 						if glyphsToBuild:
@@ -970,9 +1062,9 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 									if not newGlyph:
 										newGlyph = newGlyphWithName(newGlyphName)
 										thisFont.glyphs.append(newGlyph)
-										print("🔣 %s created." % newGlyphName)
+										print(f"🔣 {newGlyphName} created.")
 									else:
-										print("🔣 %s: exists. Overwriting." % newGlyphName)
+										print(f"🔣 {newGlyphName}: exists. Overwriting.")
 									newGlyph.leftKerningGroup = trademarkGlyph.leftKerningGroup
 									newGlyph.rightKerningGroup = trademarkGlyph.rightKerningGroup
 									processedGlyphs.append(newGlyphName)
@@ -1008,19 +1100,21 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 										offsetLayer(newLayer, expansion)
 										newLayer.LSB = tmLayer.LSB
 										newLayer.RSB = tmLayer.RSB
-										print("\t✅ Layer: %s" % thisMaster.name)
+										print(f"\t✅ Layer: {thisMaster.name}")
 							finally:
 								thisFont.enableUpdateInterface()
 
-				# self.w.close()  # delete if you want window to stay open
+				if careofCadauna:
+					thisFont.disableUpdateInterface()
+					try:
+						processedGlyphs.extend(buildCareofCadauna(thisFont, overwrite=overwriteExistingGlyphs))
+					finally:
+						thisFont.enableUpdateInterface()
 
 				# Final report:
 				Glyphs.showNotification(
-					"%s: Done" % (thisFont.familyName),
-					"Build Rare Symbols: (re)created %i glyph%s. Details in Macro Window" % (
-						len(processedGlyphs),
-						"" if len(processedGlyphs) == 1 else "s",
-					),
+					f"{thisFont.familyName}: Done",
+					f"Build Rare Symbols: (re)created {len(processedGlyphs)} glyph{'' if len(processedGlyphs) == 1 else 's'}. Details in Macro Window.",
 				)
 				print("\nDone.")
 
@@ -1035,8 +1129,7 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print("Build Rare Symbols Error: %s" % e)
-			import traceback
+			print(f"Build Rare Symbols Error: {e}")
 			print(traceback.format_exc())
 
 

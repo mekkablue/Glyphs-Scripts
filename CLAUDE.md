@@ -17,7 +17,7 @@ Python scripts for the [Glyphs font editor](http://glyphsapp.com/). Scripts run 
 |---|---|
 | `Anchors/` | Anchor management & positioning (29 scripts) |
 | `App/` | Application-level utilities, navigation (10 scripts) |
-| `Build Glyphs/` | Font build utilities (3 scripts) |
+| `Build Glyphs/` | Font build utilities (18 scripts) |
 | `Color Fonts/` | COLR/CBDT color font handling (4 scripts) |
 | `Compare Frontmost Fonts/` | Multi-font comparison (4 scripts) |
 | `Components/` | Component generation, alignment, flattening (13 scripts) |
@@ -564,6 +564,13 @@ Glyphs.showNotification("My Script", "Brief summary. Details in Macro Window.")
 - Use emojis (`⚠️ ✅ ❌ ☑️ 💾 ↔️ 🔠`) and indentation for scannability.
 - **Do not** open the Macro Window automatically unless reporting is the script's entire purpose.
 - Notify the user via `Glyphs.showNotification()` for completion messages.
+- **Name unsaved fonts by their family name.** A font without a file path has no file name to report. Print
+  `f"{font.familyName} (unsaved)"` instead, never a placeholder like `<UNSAVED DOCUMENT>`:
+
+  ```python
+  fileName = font.filepath.lastPathComponent() if font.filepath else f"{font.familyName} (unsaved)"
+  print(f"📄 {fileName}")
+  ```
 
 ## Formatting Tools
 
