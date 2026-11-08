@@ -15,8 +15,10 @@ from AppKit import (
 	NSLayoutConstraintOrientationHorizontal,
 	NSLayoutConstraintOrientationVertical,
 	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityDefaultLow,
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
+	NSWindowStyleMaskResizable,
 	NSTextAlignmentRight,
 )
 from Foundation import NSNumberFormatter
@@ -103,7 +105,7 @@ class MetricsKeyManager(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 620
-		windowHeight = 1  # Auto Layout grows the window to the height the content needs
+		windowHeight = 400  # starting height; the three editors take up any extra height when resizing
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Metrics Key Manager",  # window title
@@ -165,9 +167,15 @@ class MetricsKeyManager(mekkaObject):
 			for labelName in labelNames if labelName != widestLabel
 		]
 
-		# keep every control at its natural height, so the window is as tall as its content
+		# every control keeps its natural height, except the three editors: they take up the extra height
+		editors = (self.w.LeftMetricsKeys, self.w.RightMetricsKeys, self.w.WidthMetricsKeys)
+		editorViews = [editor.getNSScrollView() for editor in editors]
 		for view in self.w.getNSWindow().contentView().subviews():
-			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+			if any(view is editorView for editorView in editorViews):
+				priority = NSLayoutPriorityDefaultLow
+			else:
+				priority = NSLayoutPriorityWindowSizeStayPut
+			view.setContentHuggingPriority_forOrientation_(priority, NSLayoutConstraintOrientationVertical)
 
 		self.w.addAutoPosSizeRules(
 			[
@@ -175,7 +183,10 @@ class MetricsKeyManager(mekkaObject):
 				"H:|-inset-[RightMetricsKeysText]-gap-[RightMetricsKeys]-inset-|",
 				"H:|-inset-[WidthMetricsKeysText]-gap-[WidthMetricsKeys]-inset-|",
 				"H:|-inset-[symmetricButton(>=70)]-gap-[symmetricThreshold(40)]-gap-[symmetricThresholdText]-gap-[deleteAllButton(>=70)]-(>=gap)-[resetButton(>=70)]-gap-[scanButton(>=70)]-gap-[runButton(>=70)]-inset-|",
-				"V:|-gap-[LeftMetricsKeys(boxHeight)]-boxGap-[RightMetricsKeys(boxHeight)]-boxGap-[WidthMetricsKeys(boxHeight)]-inset-[runButton]-inset-|",
+				"V:|-gap-[LeftMetricsKeys(>=minBoxHeight)]-boxGap-[RightMetricsKeys]-boxGap-[WidthMetricsKeys]-inset-[runButton]-inset-|",
+				# the three editors always have the same height:
+				{"view1": self.w.RightMetricsKeys, "attribute1": "height", "view2": self.w.LeftMetricsKeys, "attribute2": "height"},
+				{"view1": self.w.WidthMetricsKeys, "attribute1": "height", "view2": self.w.LeftMetricsKeys, "attribute2": "height"},
 				# labels sit at the top of their editors:
 				{"view1": self.w.LeftMetricsKeysText, "attribute1": "top", "view2": self.w.LeftMetricsKeys, "attribute2": "top"},
 				{"view1": self.w.RightMetricsKeysText, "attribute1": "top", "view2": self.w.RightMetricsKeys, "attribute2": "top"},
@@ -188,7 +199,7 @@ class MetricsKeyManager(mekkaObject):
 				{"view1": self.w.resetButton, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 				{"view1": self.w.scanButton, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 			] + widthRules,
-			metrics={"inset": inset, "gap": 8, "boxGap": 10, "boxHeight": 80},
+			metrics={"inset": inset, "gap": 8, "boxGap": 10, "minBoxHeight": 50},
 		)
 
 		# Load Settings:
@@ -197,6 +208,11 @@ class MetricsKeyManager(mekkaObject):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
+
+		# resizable horizontally and vertically, no maximum size; the minimum is what the content needs
+		nsWindow = self.w.getNSWindow()
+		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
+		nsWindow.setContentMinSize_(nsWindow.contentView().fittingSize())
 
 	def SetDefaults(self, sender=None):
 		self.w.RightMetricsKeys.set(RightKeys.strip())
