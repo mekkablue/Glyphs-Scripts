@@ -3,9 +3,11 @@ __doc__ = """
 Turn font masters into brace layers of certain glyphs. A.k.a. Sparsify.
 """
 
-import vanilla
-from AppKit import NSFont
 from copy import copy as copy
+import objc
+import vanilla
+from AppKit import NSFont, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
+from Foundation import NSNumberFormatter
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, reportFontName, UpdateButton
 
@@ -80,6 +82,11 @@ def masterList(font):
 	return listOfMasters
 
 
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
+
+
 class Bracify(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
@@ -91,40 +98,36 @@ class Bracify(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 420
-		windowHeight = 300
-		windowWidthResize = 500  # user can resize width by this value
-		windowHeightResize = 500  # user can resize height by this value
+		windowWidth = 460
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Bracify",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow"),  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		inset = 15
 
-		indent = 130
-		self.w.masterToRemoveText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Remove font master:", sizeStyle="small", selectable=True)
-		self.w.masterToRemove = vanilla.PopUpButton((inset + indent, linePos, -inset, 17), masterList(Glyphs.font), sizeStyle="small", callback=self.SavePreferences)
-		linePos += lineHeight
+		self.w.masterToRemoveText = vanilla.TextBox("auto", "Remove font master:", sizeStyle="small", selectable=True)
+		self.w.masterToRemove = vanilla.PopUpButton("auto", masterList(Glyphs.font), sizeStyle="small", callback=self.SavePreferences)
 
-		self.w.associateMasterText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Associate with master:", sizeStyle="small", selectable=True)
-		self.w.associateMaster = vanilla.PopUpButton((inset + indent, linePos, -inset - 20, 17), masterList(Glyphs.font), sizeStyle="small", callback=self.SavePreferences)
-		self.w.updateButton = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.UpdateForCurrentFont)
-		linePos += lineHeight
+		self.w.associateMasterText = vanilla.TextBox("auto", "Associate with master:", sizeStyle="small", selectable=True)
+		self.w.associateMaster = vanilla.PopUpButton("auto", masterList(Glyphs.font), sizeStyle="small", callback=self.SavePreferences)
+		self.w.updateButton = UpdateButton("auto", callback=self.UpdateForCurrentFont)
 
-		indent = 190
-		self.w.thresholdText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Coordinate threshold for guessing:", sizeStyle="small", selectable=True)
-		self.w.threshold = vanilla.EditText((inset + indent, linePos, 50, 19), "3", callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
+		tooltipText = "Used by the Guess button: a glyph is added to the list if removing the master would move its points, anchors or width by more than this many units."
+		self.w.thresholdText = vanilla.TextBox("auto", "Coordinate threshold for guessing:", sizeStyle="small", selectable=True)
+		self.w.thresholdText.setToolTip(tooltipText)
+		thresholdFormatter = NSNumberFormatter.alloc().init()
+		thresholdFormatter.setAllowsFloats_(False)
+		thresholdFormatter.setMinimum_(0)
+		self.w.threshold = SteppingEditText("auto", "3", callback=self.SavePreferences, sizeStyle="small", formatter=thresholdFormatter)
+		self.w.threshold.setToolTip(tooltipText)
 
-		self.w.braceGlyphsText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Add master layer as brace layer to these glyphs:", sizeStyle="small", selectable=True)
-		linePos += lineHeight
+		self.w.braceGlyphsText = vanilla.TextBox("auto", "Add master layer as brace layer to these glyphs:", sizeStyle="small", selectable=True)
 
-		self.w.braceGlyphs = vanilla.TextEditor((1, linePos, -1, -inset * 3), text="", callback=self.SavePreferences, checksSpelling=False)
+		self.w.braceGlyphs = vanilla.TextEditor("auto", text="", callback=self.SavePreferences, checksSpelling=False)
 		self.w.braceGlyphs.setToolTip("Comma-separated list of glyph names. Use the Guess button to add the glyphs that would change too much (more than the threshold) if they didn’t keep a brace layer after master removal.")
 		self.w.braceGlyphs.getNSScrollView().setHasVerticalScroller_(1)
 		self.w.braceGlyphs.getNSScrollView().setHasHorizontalScroller_(0)
@@ -140,12 +143,48 @@ class Bracify(mekkaObject):
 		textSize = textView.minSize()
 		textView.setMinSize_(textSize)
 
-		self.w.guessButton = vanilla.Button((inset, -20 - inset, 80, -inset), "Guess", callback=self.BracifyGuess)
-		self.w.openTabButton = vanilla.Button((inset + 90, -20 - inset, 80, -inset), "Open Tab", callback=self.OpenTab)
+		self.w.guessButton = vanilla.Button("auto", "Guess", callback=self.BracifyGuess)
+		self.w.openTabButton = vanilla.Button("auto", "Open Tab", callback=self.OpenTab)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Remove Master", callback=self.BracifyMain)
+		self.w.runButton = vanilla.Button("auto", "Remove Master", callback=self.BracifyMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# labels: right-aligned, all with the width of the widest one
+		labelNames = ("masterToRemoveText", "associateMasterText", "thresholdText")
+		widestLabel = "thresholdText"  # the label with the longest text
+		for labelName in labelNames:
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		# checkboxes and square buttons stretch vertically by default; with everything
+		# hugging, the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		def sameAttribute(attribute, viewName, referenceName):
+			return {"view1": getattr(self.w, viewName), "attribute1": attribute, "view2": getattr(self.w, referenceName), "attribute2": attribute}
+
+		rules = [
+			"H:|-inset-[masterToRemoveText]-gap-[masterToRemove]-inset-|",
+			"H:|-inset-[associateMasterText]-gap-[associateMaster]-gap-[updateButton(24)]-inset-|",
+			"H:|-inset-[thresholdText]-gap-[threshold(50)]-(>=inset)-|",
+			"H:|-inset-[braceGlyphsText]-inset-|",
+			"H:|-inset-[braceGlyphs]-inset-|",
+			"H:|-inset-[guessButton(>=70)]-gap-[openTabButton(>=70)]-(>=gap)-[runButton(>=70)]-inset-|",
+			"V:|-inset-[masterToRemove]-row-[associateMaster]-row-[threshold]-section-[braceGlyphsText]-gap-[braceGlyphs(140)]-inset-[runButton]-inset-|",
+			"V:[guessButton]-inset-|",
+			"V:[openTabButton]-inset-|",
+			sameAttribute("centerY", "masterToRemoveText", "masterToRemove"),
+			sameAttribute("centerY", "associateMasterText", "associateMaster"),
+			sameAttribute("centerY", "updateButton", "associateMaster"),
+			sameAttribute("centerY", "thresholdText", "threshold"),
+		] + [
+			sameAttribute("width", labelName, widestLabel) for labelName in labelNames if labelName != widestLabel
+		]
+		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "row": 6, "section": 12})
 
 		# Load Settings:
 		self.LoadPreferences()

@@ -4,12 +4,13 @@ __doc__ = """
 Batch-add graded masters to a multiple-master setup.
 """
 
-import vanilla
 import time
 import datetime
 from copy import copy
-from Foundation import NSPoint, NSAutoreleasePool
-from AppKit import NSFont
+import objc
+import vanilla
+from Foundation import NSPoint, NSAutoreleasePool, NSNumberFormatter
+from AppKit import NSFont, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
 from GlyphsApp import Glyphs, GSLayer, GSAxis, GSInstance, GSCustomParameter, GSSMOOTH, GSOFFCURVE, Message
 from mekkablue import mekkaObject, UpdateButton, reportFontName
 
@@ -212,6 +213,11 @@ def straightenBCPs(layer):
 			# 	)
 
 
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
+
+
 class BatchGrader(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
@@ -232,90 +238,75 @@ class BatchGrader(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 390
-		windowHeight = 260
-		windowWidthResize = 1000  # user can resize width by this value
-		windowHeightResize = 1000  # user can resize height by this value
+		windowWidth = 480
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Batch Grader",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow"),  # stores last window position and size
+			autosaveName=self.domain("mainwindow"),  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-
-		indent = 65
+		inset = 15
 
 		tooltipText = "The Grade value. Should roughly correspnd to the weight value. E.g., Grade 100 means that the shapes appear to be of the weight that is 100 above the current weight."
-		self.w.gradeText = vanilla.TextBox((inset, linePos + 3, indent, 14), "Add grade", sizeStyle="small")
+		self.w.gradeText = vanilla.TextBox("auto", "Add grade", sizeStyle="small")
 		self.w.gradeText.setToolTip(tooltipText)
-		self.w.grade = vanilla.ComboBox((inset + indent, linePos - 1, 55, 19), ("-100", "-50", "50", "100"), sizeStyle="small", callback=self.SavePreferences)
+		self.w.grade = vanilla.ComboBox("auto", ("-100", "-50", "50", "100"), sizeStyle="small", callback=self.SavePreferences)
 		self.w.grade.setToolTip(tooltipText)
 
 		tooltipText = "The Grade axis. Specify a four-letter axis tag (default ‘GRAD’) and a human-readable name (default ‘Grade’). Use all-caps letters for the axis tag as long as Grade is not a registered axis in the OpenType spec. The update button will insert the current convention: tag ‘GRAD’ and name ‘Grade’."
-		self.w.gradeAxisTagText = vanilla.TextBox((inset + indent + 65, linePos + 3, 100, 14), "Axis tag & name", sizeStyle="small")
+		self.w.gradeAxisTagText = vanilla.TextBox("auto", "Axis tag & name", sizeStyle="small")
 		self.w.gradeAxisTagText.setToolTip(tooltipText)
-		self.w.gradeAxisTag = vanilla.EditText((inset + indent + 100 + 60, linePos, 45, 19), "GRAD", callback=self.SavePreferences, sizeStyle="small")
+		self.w.gradeAxisTag = vanilla.EditText("auto", "GRAD", callback=self.SavePreferences, sizeStyle="small")
 		self.w.gradeAxisTag.setToolTip(tooltipText)
-		self.w.axisName = vanilla.EditText((inset + indent + 100 + 110, linePos, -inset - 22, 19), "Grade", callback=self.SavePreferences, sizeStyle="small")
+		self.w.axisName = vanilla.EditText("auto", "Grade", callback=self.SavePreferences, sizeStyle="small")
 		self.w.axisName.setToolTip(tooltipText)
-		self.w.axisReset = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.updateUI)
+		self.w.axisReset = UpdateButton("auto", callback=self.updateUI)
 		self.w.axisReset.setToolTip(tooltipText)
-		linePos += lineHeight
-
-		indent = 110
 
 		tooltipText = "Renaming for the newly added graded masters. You can search and replace in the name of the base master, the result will be used as name for the graded master. Leave the ‘Search for’ field empty if you want to just add a particle to the end of the master name, e.g. ‘Graded’ only in the ‘Replace with’ field."
-		self.w.searchForText = vanilla.TextBox((inset, linePos + 3, indent, 14), "In name, search for", sizeStyle="small")
+		self.w.searchForText = vanilla.TextBox("auto", "In name, search for", sizeStyle="small")
 		self.w.searchForText.setToolTip(tooltipText)
-		self.w.searchFor = vanilla.EditText((inset + indent, linePos, 60, 19), self.pref("searchFor"), callback=self.SavePreferences, sizeStyle="small")
+		self.w.searchFor = vanilla.EditText("auto", self.pref("searchFor"), callback=self.SavePreferences, sizeStyle="small")
 		self.w.searchFor.setToolTip(tooltipText)
-		self.w.replaceWithText = vanilla.TextBox((inset + indent + 65, linePos + 3, 100, 14), "and replace with", sizeStyle="small")
+		self.w.replaceWithText = vanilla.TextBox("auto", "and replace with", sizeStyle="small")
 		self.w.replaceWithText.setToolTip(tooltipText)
-		self.w.replaceWith = vanilla.EditText((inset + indent + 165, linePos, -inset, 19), self.pref("replaceWith"), callback=self.SavePreferences, sizeStyle="small")
+		self.w.replaceWith = vanilla.EditText("auto", self.pref("replaceWith"), callback=self.SavePreferences, sizeStyle="small")
 		self.w.replaceWith.setToolTip(tooltipText)
-		linePos += lineHeight
 
-		indent = 150
 		tooltipText = "Specify which masters are ignored for (a) interpolating the graded masters and (b) resetting the recipe. Add comma-separated name particles. All masters containing these particles will be ignored."
-		self.w.excludeFromInterpolationText = vanilla.TextBox((inset, linePos + 3, -inset, 14), "Ignore masters containing", sizeStyle="small")
+		self.w.excludeFromInterpolationText = vanilla.TextBox("auto", "Ignore masters containing", sizeStyle="small")
 		self.w.excludeFromInterpolationText.setToolTip(tooltipText)
-		self.w.excludeFromInterpolation = vanilla.EditText((inset + indent, linePos, -inset - 22, 19), self.prefDict["excludeFromInterpolation"], callback=self.SavePreferences, sizeStyle="small")
+		self.w.excludeFromInterpolation = vanilla.EditText("auto", self.prefDict["excludeFromInterpolation"], callback=self.SavePreferences, sizeStyle="small")
 		self.w.excludeFromInterpolation.setToolTip(tooltipText)
-		self.w.ignoreReset = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.updateUI)
+		self.w.ignoreReset = UpdateButton("auto", callback=self.updateUI)
 		self.w.ignoreReset.setToolTip(tooltipText)
-		linePos += lineHeight
 
-		self.w.addGradedBraceLayers = vanilla.CheckBox((inset + 2, linePos - 1, 200, 20), "Add graded brace layers (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.addGradedBraceLayers = vanilla.CheckBox("auto", "Add graded brace layers (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.addGradedBraceLayers.setToolTip("Also create graded versions of existing brace layers in the font. This is slow and rarely needed.")
-		self.w.temporarilySwitchToDefaultInterpolation = vanilla.CheckBox((inset + 200, linePos - 1, -inset + 230, 20), "Use default interpolation", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.temporarilySwitchToDefaultInterpolation = vanilla.CheckBox("auto", "Use default interpolation", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.temporarilySwitchToDefaultInterpolation.setToolTip("Temporarily set Font Type to 'Default' during grading. Useful when the font uses a non-default interpolation model that would interfere with the grade calculation.")
-		linePos += lineHeight
 
-		self.w.addSyncMetricCustomParameter = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Add custom parameter ‘Link Metrics With Master’ (recommended)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.addSyncMetricCustomParameter = vanilla.CheckBox("auto", "Add custom parameter ‘Link Metrics With Master’ (recommended)", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.addSyncMetricCustomParameter.setToolTip("Will add a custom parameter that links the spacing and kerning of the graded master to its respective base master. Keep this checkbox on unless you know what you are doing.")
-		linePos += lineHeight
 
 		tooltipText = "Will actively recenter glyphs after interpolation if they are centered in the base master. The threshold specifies the maximum difference between LSB and RSB that is acceptable to consider the glyph centered. Best to use 1 or 2."
-		self.w.keepCenteredGlyphsCentered = vanilla.CheckBox((inset + 2, linePos, 305, 20), "Keep centered glyphs centered; max SB diff threshold", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.keepCenteredGlyphsCentered = vanilla.CheckBox("auto", "Keep centered glyphs centered; max SB diff threshold", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.keepCenteredGlyphsCentered.setToolTip(tooltipText)
-		self.w.keepCenteredThreshold = vanilla.EditText((inset + 305, linePos, -inset, 19), "2", callback=self.SavePreferences, sizeStyle="small")
+		thresholdFormatter = NSNumberFormatter.alloc().init()
+		thresholdFormatter.setAllowsFloats_(False)
+		thresholdFormatter.setMinimum_(0)
+		self.w.keepCenteredThreshold = SteppingEditText("auto", "2", callback=self.SavePreferences, sizeStyle="small", formatter=thresholdFormatter)
 		self.w.keepCenteredThreshold.setToolTip(tooltipText)
-		linePos += lineHeight
 
-		self.w.onlyCurrentGlyph = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Only apply to selected glyph", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.onlyCurrentGlyph = vanilla.CheckBox("auto", "Only apply to selected glyph", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.onlyCurrentGlyph.setToolTip("Limits grading to the currently selected glyph only. Useful for testing: much quicker than running the full font.")
-		linePos += lineHeight
 
-		linePos += 10
-		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Recipe for new graded masters", sizeStyle="small")
+		self.w.descriptionText = vanilla.TextBox("auto", "Recipe for new graded masters", sizeStyle="small")
 		self.w.descriptionText.setToolTip("Enter one recipe line per master. Prefix a line with # to deactivate it. Syntax: MASTERNAME: AXISTAG+=100, AXISTAG=400, AXISTAG-=10")
-		linePos += lineHeight
 
-		self.w.graderCode = vanilla.TextEditor((1, linePos, -1, -inset * 3), text=self.prefDict["graderCode"], callback=self.SavePreferences, checksSpelling=False)
+		self.w.graderCode = vanilla.TextEditor("auto", text=self.prefDict["graderCode"], callback=self.SavePreferences, checksSpelling=False)
 		self.w.graderCode.setToolTip("- Prefix comments with hashtag (#)\n- Empty line are ignored\n- Recipe syntax: MASTERNAME: AXISTAG+=100, AXISTAG=400, AXISTAG-=10")
 		self.w.graderCode.getNSScrollView().setHasVerticalScroller_(1)
 		self.w.graderCode.getNSScrollView().setHasHorizontalScroller_(1)
@@ -328,13 +319,61 @@ class BatchGrader(mekkaObject):
 			print(e)
 
 		# Buttons:
-		self.w.resetButton = vanilla.Button((inset, -20 - inset, 80, -inset), "Reset", callback=self.ResetGraderCode)
+		self.w.resetButton = vanilla.Button("auto", "Reset", callback=self.ResetGraderCode)
 		self.w.resetButton.setToolTip("Rebuilds the recipe from the current masters and settings. Existing active lines are deactivated (prefixed with #) and moved to the bottom so you can refer back to them. Duplicate commented lines are not added again.")
-		self.w.helpButton = vanilla.HelpButton((inset + 90, -20 - inset, 21, 21), callback=self.openURL)
+		self.w.helpButton = vanilla.HelpButton("auto", callback=self.openURL)
 		self.w.helpButton.setToolTip("Opens a Loom video explaining the script. Requires an internet connection.")
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Add Grades", callback=self.BatchGraderMain)
+		self.w.runButton = vanilla.Button("auto", "Add Grades", callback=self.BatchGraderMain)
 		self.w.runButton.setToolTip("Runs the recipe: adds graded masters and interpolates the grade shapes into them according to the recipe above.")
 		self.w.setDefaultButton(self.w.runButton)
+
+		# labels: right-aligned, one shared width per column
+		for labelName in ("gradeText", "searchForText", "excludeFromInterpolationText", "gradeAxisTagText", "replaceWithText"):
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		# checkboxes and square buttons stretch vertically by default; with everything
+		# hugging, the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		def sameAttribute(attribute, viewName, referenceName):
+			return {"view1": getattr(self.w, viewName), "attribute1": attribute, "view2": getattr(self.w, referenceName), "attribute2": attribute}
+
+		rules = [
+			"H:|-inset-[gradeText]-gap-[grade(60)]-gap-[gradeAxisTagText]-gap-[gradeAxisTag(45)]-gap-[axisName]-gap-[axisReset(24)]-inset-|",
+			"H:|-inset-[searchForText]-gap-[searchFor]-gap-[replaceWithText]-gap-[replaceWith]-inset-|",
+			"H:|-inset-[excludeFromInterpolationText]-gap-[excludeFromInterpolation]-gap-[ignoreReset(24)]-inset-|",
+			"H:|-inset-[addGradedBraceLayers]-gap-[temporarilySwitchToDefaultInterpolation]-(>=inset)-|",
+			"H:|-inset-[addSyncMetricCustomParameter]-(>=inset)-|",
+			"H:|-inset-[keepCenteredGlyphsCentered]-gap-[keepCenteredThreshold(50)]-(>=inset)-|",
+			"H:|-inset-[onlyCurrentGlyph]-(>=inset)-|",
+			"H:|-inset-[descriptionText]-inset-|",
+			"H:|-inset-[graderCode]-inset-|",
+			"H:|-inset-[resetButton(>=70)]-gap-[helpButton]-(>=gap)-[runButton(>=70)]-inset-|",
+			"V:|-inset-[grade]-row-[searchFor]-row-[excludeFromInterpolation]-row-[addGradedBraceLayers]-checkRow-[addSyncMetricCustomParameter]-checkRow-[keepCenteredThreshold]-checkRow-[onlyCurrentGlyph]-section-[descriptionText]-gap-[graderCode(140)]-inset-[runButton]-inset-|",
+			"V:[resetButton]-inset-|",
+			sameAttribute("width", "searchFor", "grade"),
+			sameAttribute("width", "searchForText", "gradeText"),
+			sameAttribute("width", "excludeFromInterpolationText", "gradeText"),
+			sameAttribute("width", "replaceWithText", "gradeAxisTagText"),
+			sameAttribute("centerY", "gradeText", "grade"),
+			sameAttribute("centerY", "gradeAxisTagText", "grade"),
+			sameAttribute("centerY", "gradeAxisTag", "grade"),
+			sameAttribute("centerY", "axisName", "grade"),
+			sameAttribute("centerY", "axisReset", "grade"),
+			sameAttribute("centerY", "searchForText", "searchFor"),
+			sameAttribute("centerY", "replaceWithText", "searchFor"),
+			sameAttribute("centerY", "replaceWith", "searchFor"),
+			sameAttribute("centerY", "excludeFromInterpolationText", "excludeFromInterpolation"),
+			sameAttribute("centerY", "ignoreReset", "excludeFromInterpolation"),
+			sameAttribute("centerY", "temporarilySwitchToDefaultInterpolation", "addGradedBraceLayers"),
+			sameAttribute("centerY", "keepCenteredGlyphsCentered", "keepCenteredThreshold"),
+			sameAttribute("centerY", "helpButton", "resetButton"),
+		]
+		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5, "section": 12})
 
 		# Load Settings:
 		self.LoadPreferences()

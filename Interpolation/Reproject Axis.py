@@ -5,6 +5,7 @@ Rescale (reproject) all design-space values of an axis to a new min/max range. R
 
 import re
 import vanilla
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, UpdateButton
 
@@ -37,56 +38,86 @@ class ReprojectAxis(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 340
-		windowHeight = 170
-		windowWidthResize = 0  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 400
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Reproject Axis",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow"),  # stores last window position and size
+			autosaveName=self.domain("mainwindow"),  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 24
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Rescale all design values of an axis onto a new range:", sizeStyle="small", selectable=True)
-		linePos += lineHeight
+		self.w.descriptionText = vanilla.TextBox("auto", "Rescale all design values of an axis onto a new range:", sizeStyle="small", selectable=True)
 
-		self.w.axisLabel = vanilla.TextBox((inset, linePos + 2, 28, 14), "Axis", sizeStyle="small")
-		self.w.axisPopup = vanilla.PopUpButton((inset + 32, linePos, -inset - 22, 17), self.axisMenuItems(), callback=self.axisChanged, sizeStyle="small")
+		self.w.axisLabel = vanilla.TextBox("auto", "Axis", sizeStyle="small")
+		self.w.axisPopup = vanilla.PopUpButton("auto", self.axisMenuItems(), callback=self.axisChanged, sizeStyle="small")
 		self.w.axisPopup.setToolTip("Pick the axis of the frontmost font whose values you want to reproject. Defaults to the first axis.")
-		self.w.axisReset = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.resetAxisMenu)
+		self.w.axisReset = UpdateButton("auto", callback=self.resetAxisMenu)
 		self.w.axisReset.setToolTip("Reset the axis menu to the axes of the frontmost font, and reset the value fields to the current axis extremes.")
-		linePos += lineHeight + 4
 
 		# min → [ ] [ ] ← max
-		self.w.minLabel = vanilla.TextBox((inset, linePos + 2, 26, 14), "Min", sizeStyle="small")
+		self.w.minLabel = vanilla.TextBox("auto", "Min", sizeStyle="small")
 		self.w.minLabel.setToolTip("The current minimum (lowest master value) of the chosen axis.")
-		self.w.currentMin = vanilla.TextBox((inset + 26, linePos + 2, 44, 14), "0", sizeStyle="small", selectable=True, alignment="right")
+		self.w.currentMin = vanilla.TextBox("auto", "0", sizeStyle="small", selectable=True, alignment="right")
 		self.w.currentMin.setToolTip("The current minimum (lowest master value) of the chosen axis.")
-		self.w.arrowRight = vanilla.TextBox((inset + 72, linePos + 2, 14, 14), "→", sizeStyle="small")
-		self.w.newMin = vanilla.EditText((inset + 88, linePos - 1, 52, 19), "0", callback=self.SavePreferences, sizeStyle="small")
+		self.w.arrowRight = vanilla.TextBox("auto", "→", sizeStyle="small")
+		self.w.newMin = vanilla.EditText("auto", "0", callback=self.SavePreferences, sizeStyle="small")
 		self.w.newMin.setToolTip("The new minimum for the chosen axis. All values on the axis are rescaled so that the current min lands here.")
-		self.w.newMax = vanilla.EditText((inset + 148, linePos - 1, 52, 19), "1000", callback=self.SavePreferences, sizeStyle="small")
+		self.w.newMax = vanilla.EditText("auto", "1000", callback=self.SavePreferences, sizeStyle="small")
 		self.w.newMax.setToolTip("The new maximum for the chosen axis. All values on the axis are rescaled so that the current max lands here.")
-		self.w.arrowLeft = vanilla.TextBox((inset + 204, linePos + 2, 14, 14), "←", sizeStyle="small")
-		self.w.currentMax = vanilla.TextBox((inset + 222, linePos + 2, 44, 14), "1000", sizeStyle="small", selectable=True)
+		self.w.arrowLeft = vanilla.TextBox("auto", "←", sizeStyle="small")
+		self.w.currentMax = vanilla.TextBox("auto", "1000", sizeStyle="small", selectable=True)
 		self.w.currentMax.setToolTip("The current maximum (highest master value) of the chosen axis.")
-		self.w.maxLabel = vanilla.TextBox((inset + 268, linePos + 2, 30, 14), "Max", sizeStyle="small")
+		self.w.maxLabel = vanilla.TextBox("auto", "Max", sizeStyle="small")
 		self.w.maxLabel.setToolTip("The current maximum (highest master value) of the chosen axis.")
-		linePos += lineHeight
 
-		self.w.roundValues = vanilla.CheckBox((inset, linePos, -inset, 20), "Round reprojected values to full coordinates", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.roundValues = vanilla.CheckBox("auto", "Round reprojected values to full coordinates", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.roundValues.setToolTip("If enabled, all reprojected values (masters, instances, name particles, brace and bracket layers, Virtual Masters, and feature code) are rounded to whole numbers. Otherwise, fractional values are kept (rounded to 4 decimal places).")
-		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-110 - inset, -20 - inset, -inset, -inset), "Reproject", callback=self.ReprojectAxisMain)
+		self.w.runButton = vanilla.Button("auto", "Reproject", callback=self.ReprojectAxisMain)
 		self.w.runButton.setToolTip("Rescale masters, instances, name particles, brace and bracket layers, Virtual Masters, and condition feature code of the chosen axis from the current onto the new range.")
 		self.w.setDefaultButton(self.w.runButton)
+
+		# labels: right-aligned, all with the width of the widest one
+		labelNames = ("axisLabel", "minLabel")
+		widestLabel = "minLabel"
+		for labelName in labelNames:
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		# checkboxes and square buttons stretch vertically by default; with everything
+		# hugging, the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		def sameAttribute(attribute, viewName, referenceName):
+			return {"view1": getattr(self.w, viewName), "attribute1": attribute, "view2": getattr(self.w, referenceName), "attribute2": attribute}
+
+		rules = [
+			"H:|-inset-[descriptionText]-inset-|",
+			"H:|-inset-[axisLabel]-gap-[axisPopup]-gap-[axisReset(24)]-inset-|",
+			"H:|-inset-[minLabel]-gap-[currentMin(44)]-gap-[arrowRight]-gap-[newMin(60)]-gap-[newMax(60)]-gap-[arrowLeft]-gap-[currentMax(44)]-gap-[maxLabel]-(>=inset)-|",
+			"H:|-inset-[roundValues]-(>=inset)-|",
+			"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+			"V:|-inset-[descriptionText]-row-[axisPopup]-row-[newMin]-row-[roundValues]-inset-[runButton]-inset-|",
+			sameAttribute("centerY", "axisLabel", "axisPopup"),
+			sameAttribute("centerY", "axisReset", "axisPopup"),
+			sameAttribute("centerY", "minLabel", "newMin"),
+			sameAttribute("centerY", "currentMin", "newMin"),
+			sameAttribute("centerY", "arrowRight", "newMin"),
+			sameAttribute("centerY", "newMax", "newMin"),
+			sameAttribute("centerY", "arrowLeft", "newMin"),
+			sameAttribute("centerY", "currentMax", "newMin"),
+			sameAttribute("centerY", "maxLabel", "newMin"),
+		] + [
+			sameAttribute("width", labelName, widestLabel) for labelName in labelNames if labelName != widestLabel
+		]
+		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "row": 6})
 
 		# Load Settings:
 		self.LoadPreferences()

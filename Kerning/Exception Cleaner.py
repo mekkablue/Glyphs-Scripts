@@ -3,10 +3,34 @@ __doc__ = """
 Compares every exception to the group kerning available for the same pair. If the difference is below a threshold, remove the kerning exception.
 """
 
+import objc
 import vanilla
-from AppKit import NSBeep
-from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject
+from GlyphsApp import Glyphs, Message
+from AppKit import (
+	NSBeep,
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultLow,
+	NSLayoutPriorityWindowSizeStayPut,
+)
+from Foundation import NSNumberFormatter
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
+
+
+def integerFormatter(minimum=None, maximum=None):
+	"""Number formatter that only accepts integers, optionally within a range."""
+	formatter = NSNumberFormatter.alloc().init()
+	formatter.setAllowsFloats_(False)
+	if minimum is not None:
+		formatter.setMinimum_(minimum)
+	if maximum is not None:
+		formatter.setMaximum_(maximum)
+	return formatter
 
 
 class DeleteExceptionsTooCloseToGroupKerning(mekkaObject):
@@ -21,51 +45,63 @@ class DeleteExceptionsTooCloseToGroupKerning(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 430
-		windowHeight = 190
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Exception Cleaner",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		inset, line, lineHeight = 15, 10, 22
+		inset = 15
 
-		self.w.text_1 = vanilla.TextBox((inset, line, -inset, lineHeight * 2), "Delete all kerning exceptions in the current master if they are less than the threshold value away from their corresponding group-to-group kerning:", sizeStyle='small')
-		line += int(lineHeight * 1.5)
+		self.w.text_1 = vanilla.TextBox("auto", "Delete all kerning exceptions in the current master if they are less than the threshold value away from their corresponding group-to-group kerning:", sizeStyle='small')
+		self.w.text_1.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
-		self.w.text_2 = vanilla.TextBox((inset, line + 3, 200, lineHeight), "Required minimum kern difference:", sizeStyle='small')
-		self.w.threshold = vanilla.EditText((inset + 200, line, -15, 20), "10", sizeStyle='small', callback=self.SavePreferences)
-		self.w.threshold.setToolTip("A kern exception must be at least this number of units different from its corresponding group kern pair, otherwise it will be deleted.")
-		line += lineHeight
+		tooltipText = "A kern exception must be at least this number of units different from its corresponding group kern pair, otherwise it will be deleted."
+		self.w.text_2 = vanilla.TextBox("auto", "Required minimum kern difference:", sizeStyle='small', selectable=True)
+		self.w.threshold = SteppingEditText("auto", "10", callback=self.SavePreferences, sizeStyle='small', formatter=integerFormatter(0))
+		self.w.text_2.setToolTip(tooltipText)
+		self.w.threshold.setToolTip(tooltipText)
 
-		self.w.selectedGlyphsOnly = vanilla.CheckBox((inset + 2, line, -inset, lineHeight), "Only consider pairs where at least one glyph is currently selected", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.selectedGlyphsOnly = vanilla.CheckBox("auto", "Only consider pairs where at least one glyph is currently selected", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.selectedGlyphsOnly.setToolTip("If enabled, respects your current glyph selection. Will only process kern pairs if one or both of the involved glyphs are in your selection.")
-		line += lineHeight
 
-		self.w.onlyReportDontDelete = vanilla.CheckBox((inset + 2, line, -inset, lineHeight), "Only report, do not delete pairs yet", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.onlyReportDontDelete = vanilla.CheckBox("auto", "Only report, do not delete pairs yet", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.onlyReportDontDelete.setToolTip("Opens a new tab with affected pairs, but does not delete any kerning.")
-		line += lineHeight
 
-		self.w.openTab = vanilla.CheckBox((inset + 2, line, 180, 20), "Open tab with affected pairs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.openTab = vanilla.CheckBox("auto", "Open tab with affected pairs", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.openTab.setToolTip("Opens a new tab for reporting. Otherwise will only write a report in Macro Window.")
-		self.w.reuseTab = vanilla.CheckBox((inset + 180, line, -inset, 20), "Reuse current tab if possible", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reuseTab = vanilla.CheckBox("auto", "Reuse current tab if possible", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reuseTab.setToolTip("If a tab is open and active already, will not open a new tab but rather reuse the current tab. Otherwise, will always open a new tab.")
-		line += lineHeight
 
 		# Buttons:
-		self.w.nextMasterButton = vanilla.Button((-220 - inset, -20 - inset, -90 - inset, -inset), "Next Master", callback=self.NextMaster)
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Clean", callback=self.DeleteExceptionsTooCloseToGroupKerningMain)
+		self.w.nextMasterButton = vanilla.Button("auto", "Next Master", callback=self.NextMaster)
+		self.w.runButton = vanilla.Button("auto", "Clean", callback=self.DeleteExceptionsTooCloseToGroupKerningMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; hug so the window is as tall as its content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[text_1]-inset-|",
+				"H:|-inset-[text_2]-gap-[threshold(50)]-(>=inset)-|",
+				"H:|-inset-[selectedGlyphsOnly]-(>=inset)-|",
+				"H:|-inset-[onlyReportDontDelete]-(>=inset)-|",
+				"H:|-inset-[openTab]-gap-[reuseTab]-(>=inset)-|",
+				"H:|-(>=inset)-[nextMasterButton(>=70)]-gap-[runButton(>=70)]-inset-|",
+				"V:|-gap-[text_1(descriptionHeight)]-row-[threshold]-row-[selectedGlyphsOnly]-checkRow-[onlyReportDontDelete]-checkRow-[openTab]-inset-[runButton]-inset-|",
+				"V:[nextMasterButton]-inset-|",
+				{"view1": self.w.text_2, "attribute1": "centerY", "view2": self.w.threshold, "attribute2": "centerY"},
+				{"view1": self.w.reuseTab, "attribute1": "centerY", "view2": self.w.openTab, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5, "descriptionHeight": 42},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
-
-		self.updateUI()
 
 		# Open window and focus on it:
 		self.w.open()

@@ -3,10 +3,17 @@ __doc__ = """
 Find and replace brace and bracket layer coordinates.
 """
 
+import objc
 import vanilla
-from AppKit import NSNotificationCenter
+from AppKit import NSColor, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSNotificationCenter, NSTextAlignmentRight
+from Foundation import NSNumberFormatter
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, UpdateButton
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 class BraceLayerManager(mekkaObject):
@@ -31,47 +38,83 @@ class BraceLayerManager(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 278
-		windowHeight = 206
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 380
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Brace and Bracket Manager",  # window title
-			minSize=(windowWidth, windowHeight + 19),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize + 19),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow"),  # stores last window position and size
+			autosaveName=self.domain("mainwindow"),  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 23
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, 20, 14), "In", sizeStyle="small")
-		self.w.layerType = vanilla.PopUpButton((inset + 20, linePos, -inset, 17), self.layerTypes, sizeStyle="small", callback=self.SavePreferences)
+		inset = 15
+		self.w.descriptionText = vanilla.TextBox("auto", "In", sizeStyle="small")
+		self.w.layerType = vanilla.PopUpButton("auto", self.layerTypes, sizeStyle="small", callback=self.SavePreferences)
 
-		linePos += lineHeight
-		self.w.replaceText = vanilla.TextBox((inset, linePos + 2, 45, 14), "replace", sizeStyle="small")
-		self.w.oldCoordinate = vanilla.ComboBox((inset + 45, linePos - 1, 55, 19), self.allBraceAndBracketLayerCoordinatesInFrontmostFont(), sizeStyle="small", callback=self.SavePreferences)
-		self.w.oldCoordinateUpdate = UpdateButton((inset + 104, linePos - 2, 20, 18), callback=self.update)
-		self.w.withText = vanilla.TextBox((inset + 130, linePos + 2, 30, 14), "with", sizeStyle="small")
-		self.w.newCoordinate = vanilla.EditText((inset + 157, linePos - 1, -inset, 19), "100", callback=self.SavePreferences, sizeStyle="small")
-		self.w.newCoordinate.setToolTip("Leave empty for disabling the brace layer or deleting the bracket layer condition.")
-		linePos += lineHeight
+		self.w.replaceText = vanilla.TextBox("auto", "replace", sizeStyle="small")
+		self.w.oldCoordinate = vanilla.ComboBox("auto", self.allBraceAndBracketLayerCoordinatesInFrontmostFont(), sizeStyle="small", callback=self.SavePreferences)
+		self.w.oldCoordinateUpdate = UpdateButton("auto", callback=self.update)
+		tooltipText = "Leave empty for disabling the brace layer or deleting the bracket layer condition."
+		self.w.withText = vanilla.TextBox("auto", "with", sizeStyle="small")
+		self.w.withText.setToolTip(tooltipText)
+		self.w.newCoordinate = vanilla.EditText("auto", "100", callback=self.SavePreferences, sizeStyle="small")
+		self.w.newCoordinate.setToolTip(tooltipText)
 
-		self.w.axisText = vanilla.TextBox((inset, linePos + 2, 95, 14), "for axis at index", sizeStyle="small")
-		self.w.axisIndex = vanilla.EditText((inset + 90, linePos - 1, -inset - 80, 19), "0", callback=self.SavePreferences, sizeStyle="small")
-		self.w.axisTextAfter = vanilla.TextBox((-inset - 78, linePos + 2, -inset, 14), "(first axis = 0)", sizeStyle="small")
-		linePos += lineHeight
+		self.w.axisText = vanilla.TextBox("auto", "for axis at index", sizeStyle="small")
+		axisIndexFormatter = NSNumberFormatter.alloc().init()
+		axisIndexFormatter.setAllowsFloats_(False)
+		axisIndexFormatter.setMinimum_(0)
+		self.w.axisIndex = SteppingEditText("auto", "0", callback=self.SavePreferences, sizeStyle="small", formatter=axisIndexFormatter)
+		self.w.axisTextAfter = vanilla.TextBox("auto", "(first axis = 0)", sizeStyle="small")
+		self.w.axisTextAfter.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
 
-		self.w.scope = vanilla.RadioGroup((inset, linePos, -inset, (lineHeight - 2) * len(self.scopes)), self.scopes, callback=self.SavePreferences, sizeStyle="small")
+		self.w.scope = vanilla.VerticalRadioGroup("auto", self.scopes, callback=self.SavePreferences, sizeStyle="small")
 		self.w.scope.set(0)
-		linePos += (lineHeight - 1) * len(self.scopes)
 
-		self.w.currentMasterOnly = vanilla.CheckBox((inset + 3, linePos - 1, -inset, 20), "Restrict to currently selected master(s) only", value=False, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
+		self.w.currentMasterOnly = vanilla.CheckBox("auto", "Restrict to currently selected master(s) only", value=False, callback=self.SavePreferences, sizeStyle="small")
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Change", callback=self.BraceLayerManagerMain)
+		self.w.runButton = vanilla.Button("auto", "Change", callback=self.BraceLayerManagerMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# labels: right-aligned, all with the width of the widest one
+		labelNames = ("descriptionText", "replaceText", "axisText")
+		for labelName in labelNames:
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		# checkboxes and square buttons stretch vertically by default; with everything
+		# hugging, the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		def sameAttribute(attribute, viewName, referenceName):
+			return {"view1": getattr(self.w, viewName), "attribute1": attribute, "view2": getattr(self.w, referenceName), "attribute2": attribute}
+
+		rules = [
+			"H:|-inset-[descriptionText]-gap-[layerType]-inset-|",
+			"H:|-inset-[replaceText]-gap-[oldCoordinate(70)]-gap-[oldCoordinateUpdate(24)]-gap-[withText]-gap-[newCoordinate(>=60)]-inset-|",
+			"H:|-inset-[axisText]-gap-[axisIndex(50)]-gap-[axisTextAfter]-(>=inset)-|",
+			"H:|-inset-[scope]-(>=inset)-|",
+			"H:|-inset-[currentMasterOnly]-(>=inset)-|",
+			"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+			"V:|-inset-[layerType]-row-[oldCoordinate]-row-[axisIndex]-row-[scope(radioHeight)]-checkRow-[currentMasterOnly]-inset-[runButton]-inset-|",
+			sameAttribute("width", "replaceText", "descriptionText"),
+			sameAttribute("width", "axisText", "descriptionText"),
+			sameAttribute("centerY", "descriptionText", "layerType"),
+			sameAttribute("centerY", "replaceText", "oldCoordinate"),
+			sameAttribute("centerY", "oldCoordinateUpdate", "oldCoordinate"),
+			sameAttribute("centerY", "withText", "oldCoordinate"),
+			sameAttribute("centerY", "newCoordinate", "oldCoordinate"),
+			sameAttribute("centerY", "axisText", "axisIndex"),
+			sameAttribute("centerY", "axisTextAfter", "axisIndex"),
+		]
+		self.w.addAutoPosSizeRules(
+			rules,
+			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5, "radioHeight": self.w.scope.getFittingHeight()},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()

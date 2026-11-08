@@ -3,10 +3,29 @@ __doc__ = """
 Creates kern strings for the current kerning and adds them to the Sample Strings.
 """
 
+import objc
 import vanilla
 import sampleText
-from GlyphsApp import Glyphs, GSUppercase, GSSmallcaps, Message
 from mekkablue import mekkaObject
+from GlyphsApp import Glyphs, GSUppercase, GSSmallcaps, Message
+from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
+from Foundation import NSNumberFormatter
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
+
+
+def integerFormatter(minimum=None, maximum=None):
+	"""Number formatter that only accepts integers, optionally within a range."""
+	formatter = NSNumberFormatter.alloc().init()
+	formatter.setAllowsFloats_(False)
+	if minimum is not None:
+		formatter.setMinimum_(minimum)
+	if maximum is not None:
+		formatter.setMaximum_(maximum)
+	return formatter
 
 
 class SampleStringsWithMasterKerning(mekkaObject):
@@ -27,54 +46,73 @@ class SampleStringsWithMasterKerning(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 340
-		windowHeight = 225
-		windowWidthResize = 1000  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Sample Strings with Master Kerning",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Builds kern strings with current kerning in Sample Texts.", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		self.w.descriptionText = vanilla.TextBox("auto", "Builds kern strings with current kerning in Sample Texts.", sizeStyle='small', selectable=True)
 
-		tab = 70
-		self.w.positivePairs = vanilla.CheckBox((inset + 2, linePos - 1, tab, 20), "Positive", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.negativePairs = vanilla.CheckBox((inset + tab, linePos - 1, tab, 20), "Negative", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.zeroPairs = vanilla.CheckBox((inset + tab * 2, linePos - 1, -inset, 20), "Zero pairs", value=False, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
+		self.w.positivePairs = vanilla.CheckBox("auto", "Positive", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.negativePairs = vanilla.CheckBox("auto", "Negative", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.zeroPairs = vanilla.CheckBox("auto", "Zero pairs", value=False, callback=self.SavePreferences, sizeStyle="small")
 
-		self.w.groupToGroupOnly = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Group-to-group kerning only", value=False, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
+		self.w.groupToGroupOnly = vanilla.CheckBox("auto", "Group-to-group kerning only", value=False, callback=self.SavePreferences, sizeStyle="small")
 
-		self.w.applyKernValueThreshold = vanilla.CheckBox((inset + 2, linePos - 1, 150, 20), "Only kernings of at least:", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.minimumKerning = vanilla.EditText((inset + 150, linePos, -inset, 19), "100", callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
+		self.w.applyKernValueThreshold = vanilla.CheckBox("auto", "Only kernings of at least:", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.minimumKerning = SteppingEditText("auto", "100", callback=self.SavePreferences, sizeStyle="small", formatter=integerFormatter(0))
+		tooltipText = "Only kern pairs whose value is at least this many units away from zero (positive or negative) are used."
+		self.w.applyKernValueThreshold.setToolTip(tooltipText)
+		self.w.minimumKerning.setToolTip(tooltipText)
 
-		self.w.overrideContext = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Override context glyphs:", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.overrideContext.setToolTip("If checked, the surrounding glyphs will be replaced with those given in the text box. Use a comma to differentiate the left-side context from the right-side context: ‘HOOH,noon’ will put HOOH on the left side, ‘noon’ on the right side.")
-		self.w.contextGlyphs = vanilla.EditText((inset + 150, linePos, -inset, 19), "HOOH,noon", callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		tooltipText = "If checked, the surrounding glyphs will be replaced with those given in the text box. Use a comma to differentiate the left-side context from the right-side context: ‘HOOH,noon’ will put HOOH on the left side, ‘noon’ on the right side."
+		self.w.overrideContext = vanilla.CheckBox("auto", "Override context glyphs:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.contextGlyphs = vanilla.EditText("auto", "HOOH,noon", callback=self.SavePreferences, sizeStyle='small')
+		self.w.overrideContext.setToolTip(tooltipText)
+		self.w.contextGlyphs.setToolTip(tooltipText)
 
-		self.w.mirrorPair = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Mirror kerning pair (AV→AVA)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.mirrorPair = vanilla.CheckBox("auto", "Mirror kerning pair (AV→AVA)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.mirrorPair.setToolTip("If checked, will create a mirrored version of the kerning string. E.g., instead of just AV, it will show AVA between the context glyphs.")
-		linePos += lineHeight
 
-		self.w.openTab = vanilla.CheckBox((inset + 2, linePos - 1, 170, 20), "Open tab at first kern string", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.openTab = vanilla.CheckBox("auto", "Open tab at first kern string", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.openTab.setToolTip("If checked, a new tab will be opened with the first found kern string, and the cursor positioned accordingly, ready for group kerning and switching to the next sample string.")
-		self.w.lockKerning = vanilla.CheckBox((inset + 170, linePos - 1, -inset, 20), "in kerning mode", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.lockKerning = vanilla.CheckBox("auto", "in kerning mode", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.lockKerning.setToolTip("Will set the kerning lock in the tab, prevents you from spacing accidentally.")
-		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Add", callback=self.SampleStringsWithCurrentKerning)
+		self.w.runButton = vanilla.Button("auto", "Add", callback=self.SampleStringsWithCurrentKerning)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; hug so the window is as tall as its content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[positivePairs]-gap-[negativePairs]-gap-[zeroPairs]-(>=inset)-|",
+				"H:|-inset-[groupToGroupOnly]-(>=inset)-|",
+				"H:|-inset-[applyKernValueThreshold]-gap-[minimumKerning(60)]-(>=inset)-|",
+				"H:|-inset-[overrideContext]-gap-[contextGlyphs]-inset-|",
+				"H:|-inset-[mirrorPair]-(>=inset)-|",
+				"H:|-inset-[openTab]-gap-[lockKerning]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[descriptionText]-row-[positivePairs]-checkRow-[groupToGroupOnly]-checkRow-[minimumKerning]-row-[contextGlyphs]-checkRow-[mirrorPair]-checkRow-[openTab]-inset-[runButton]-inset-|",
+				{"view1": self.w.negativePairs, "attribute1": "centerY", "view2": self.w.positivePairs, "attribute2": "centerY"},
+				{"view1": self.w.zeroPairs, "attribute1": "centerY", "view2": self.w.positivePairs, "attribute2": "centerY"},
+				{"view1": self.w.applyKernValueThreshold, "attribute1": "centerY", "view2": self.w.minimumKerning, "attribute2": "centerY"},
+				{"view1": self.w.overrideContext, "attribute1": "centerY", "view2": self.w.contextGlyphs, "attribute2": "centerY"},
+				{"view1": self.w.lockKerning, "attribute1": "centerY", "view2": self.w.openTab, "attribute2": "centerY"},
+				# same width, so both fields start at the same x-position:
+				{"view1": self.w.overrideContext, "attribute1": "width", "view2": self.w.applyKernValueThreshold, "attribute2": "width"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()

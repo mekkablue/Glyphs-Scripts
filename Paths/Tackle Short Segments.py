@@ -6,6 +6,14 @@ Finds short segments (measuring between the on-curve nodes, ignoring handles) an
 import vanilla
 from mekkablue import mekkaObject
 from GlyphsApp import Glyphs, GSLINE, GSOFFCURVE
+from AppKit import (
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityRequired,
+	NSLayoutPriorityWindowSizeStayPut,
+	NSTextAlignmentRight,
+)
 
 REMOVE = 0
 MULTIPLY = 1
@@ -20,32 +28,29 @@ class TackleShortSegments(mekkaObject):
 	}
 
 	def __init__(self):
-		windowWidth = 230
-		windowHeight = 153
-		windowWidthResize = 120
+		windowWidth = 260
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Tackle Short Segments",
-			minSize=(windowWidth, windowHeight),
-			maxSize=(windowWidth + windowWidthResize, windowHeight),
-			autosaveName=self.domain("mainwindow"),
+			autosaveName=self.domain("mainwindow"),  # stores last window position
 		)
 
-		linePos, inset, lineHeight = 12, 12, 18
+		inset = 15
 
 		# threshold line:
-		self.w.thresholdText = vanilla.TextBox((inset, linePos + 1, 125, 17), "Short segments up to:", selectable=True, sizeStyle="small")
-		self.w.threshold = vanilla.EditText((inset + 125, linePos - 2, -inset, 19), "1", callback=self.SavePreferences, sizeStyle="small")
-		self.w.threshold.setToolTip("Segments whose horizontal and vertical extents (measured between the surrounding on-curve nodes) are both at or below this many units count as short.")
-		linePos += lineHeight + 8
+		tooltipText = "Segments whose horizontal and vertical extents (measured between the surrounding on-curve nodes) are both at or below this many units count as short."
+		self.w.thresholdText = vanilla.TextBox("auto", "Short segments up to:", selectable=True, sizeStyle="small")
+		self.w.threshold = vanilla.EditText("auto", "1", callback=self.SavePreferences, sizeStyle="small")
+		self.w.thresholdText.setToolTip(tooltipText)
+		self.w.threshold.setToolTip(tooltipText)
 
 		# action radio buttons:
-		radioHeight = lineHeight * 3
 		self.w.action = vanilla.RadioGroup(
-			(inset, linePos, -inset, radioHeight),
+			"auto",
 			[
 				"Remove short segments",
-				"Multiply line segments by:",
+				"Multiply line segments",
 				"Straighten curve segments",
 			],
 			callback=self.SavePreferences,
@@ -53,21 +58,55 @@ class TackleShortSegments(mekkaObject):
 		)
 		self.w.action.getNSMatrix().setToolTip_("Choose what to do with short segments. Removal and straightening treat both lines and curves; multiplication only affects line segments.")
 
-		# factor field, aligned with the second radio option:
-		self.w.factor = vanilla.EditText((inset + 160, linePos + lineHeight - 2, -inset, 19), "2", callback=self.SavePreferences, sizeStyle="small")
-		self.w.factor.setToolTip("Factor by which the length of a short line segment gets multiplied (e.g. 2 doubles it).")
-		linePos += radioHeight
+		# factor field:
+		tooltipText = "Factor by which the length of a short line segment gets multiplied (e.g. 2 doubles it)."
+		self.w.factorText = vanilla.TextBox("auto", "Multiply by:", selectable=True, sizeStyle="small")
+		self.w.factor = vanilla.EditText("auto", "2", callback=self.SavePreferences, sizeStyle="small")
+		self.w.factorText.setToolTip(tooltipText)
+		self.w.factor.setToolTip(tooltipText)
 
 		# run button (regular size):
-		self.w.runButton = vanilla.Button((-90 - inset, -22 - inset, -inset, 22), "Tackle", callback=self.TackleShortSegmentsMain)
+		self.w.runButton = vanilla.Button("auto", "Tackle", callback=self.TackleShortSegmentsMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# labels: right-aligned, same width
+		labelNames = ("thresholdText", "factorText")
+		widestLabel = "thresholdText"  # the label with the longest text
+		for labelName in labelNames:
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+		widthRules = [
+			{"view1": getattr(self.w, labelName), "attribute1": "width", "view2": getattr(self.w, widestLabel), "attribute2": "width"}
+			for labelName in labelNames if labelName != widestLabel
+		]
+
+		# keep every control at its natural height, so the window is as tall as its content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[thresholdText]-gap-[threshold(60)]-(>=inset)-|",
+				"H:|-inset-[action]-inset-|",
+				"H:|-inset-[factorText]-gap-[factor(60)]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[threshold]-row-[action(radioHeight)]-row-[factor]-inset-[runButton]-inset-|",
+				{"view1": self.w.thresholdText, "attribute1": "centerY", "view2": self.w.threshold, "attribute2": "centerY"},
+				{"view1": self.w.factorText, "attribute1": "centerY", "view2": self.w.factor, "attribute2": "centerY"},
+			] + widthRules,
+			metrics={"inset": inset, "gap": 8, "row": 6, "radioHeight": 56},
+		)
 
 		self.LoadPreferences()
 		self.w.open()
 		self.w.makeKey()
 
 	def updateUI(self, sender=None):
-		self.w.factor.enable(self.prefInt("action") == MULTIPLY)
+		isMultiply = self.prefInt("action") == MULTIPLY
+		self.w.factor.enable(isMultiply)
+		self.w.factorText.enable(isMultiply)
 
 	def process(self, thisLayer, threshold, action, factor):
 		count = 0
