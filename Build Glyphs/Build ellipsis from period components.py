@@ -15,10 +15,13 @@ shiftKeyPressed = keysPressed & NSEventModifierFlagShift == NSEventModifierFlagS
 keepSidebearingsSnug = optionKeyPressed & shiftKeyPressed
 
 thisFont = Glyphs.font  # frontmost font
+if thisFont is None:
+	Message(title="No Font Open", message="This script requires a font. Open a font source and try again.", OKButton=None)
+	raise SystemExit
 period = thisFont.glyphs["period"]
 
 
-def decomposeGlyphsContaining(font, componentName, exceptions=[]):
+def decomposeGlyphsContaining(font, componentName, exceptions=()):
 	glyphNames = []
 	for master in font.masters:
 		for glyph in font.glyphsContainingComponentWithName_masterId_(componentName, master.id):
@@ -38,7 +41,7 @@ def decomposeGlyphsContaining(font, componentName, exceptions=[]):
 
 if not period:
 	Message(title="Build ellipsis Script Error", message="No period glyph in font. Add it and try again.", OKButton=None)
-	exit()
+	raise SystemExit
 
 ellipsis = thisFont.glyphs["ellipsis"]
 if not ellipsis:
@@ -65,13 +68,13 @@ try:
 			anchor.position = NSPoint(anchorX, 0)
 			periodLayer.anchors.append(anchor)
 
-		print("   Backing up period...")
+		print("   Backing up ellipsis...")
 		ellipsisLayer = ellipsis.layers[mID]
 		ellipsisLayer.swapForegroundWithBackground()
 		ellipsisLayer.background.decomposeComponents()
 		ellipsisLayer.shapes = None
 		for i in range(3):
-			ellipsisLayer.shapes.append(GSComponent("period"))
+			ellipsisLayer.shapes.append(GSComponent(period.name))
 		for thisComponent in ellipsisLayer.components:
 			thisComponent.setDisableAlignment_(False)
 		ellipsisLayer.updateMetrics()
@@ -82,7 +85,7 @@ try:
 		ellipsis.rightMetricsKey = "=+20"
 
 	thisFont.newTab(".…")
-	print("✅Done.")
+	print("✅ Done.")
 
 except Exception as e:
 	Glyphs.showMacroWindow()

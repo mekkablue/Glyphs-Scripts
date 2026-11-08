@@ -1,15 +1,16 @@
 # MenuTitle: Build Symbols
 __doc__ = """
-Creates an estimated glyph and draws an estimated sign in it. Does the same for bar and brokenbar, for which it respects standard stems and italic angle.
+Creates an estimated glyph and draws an estimated sign in it. Does the same for bar and brokenbar, for which it respects standard stems and italic angle, and for emptyset, dottedCircle, currency, lozenge and .notdef.
 """
 
 # TODO: further abstraction of existing methods
-# TODO: emptyset, currency, lozenge, product, summation, radical
+# TODO: product, summation, radical
 
 from Foundation import NSPoint, NSRect, NSSize, NSAffineTransform
 import vanilla
 import math
-from GlyphsApp import Glyphs, GSGlyph, GSPath, GSNode, GSAnchor, GSOFFCURVE, GSCURVE, GSSMOOTH, distance
+import traceback
+from GlyphsApp import Glyphs, GSGlyph, GSPath, GSNode, GSAnchor, GSOFFCURVE, GSCURVE, GSLINE, GSSMOOTH, distance
 from mekkablue import mekkaObject
 from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 from mekkablue.geometry import transform, italicize, offsetLayer
@@ -106,28 +107,12 @@ def circleInsideRect(rect):
 			newNode.connection = GSSMOOTH
 			circlePath.nodes.append(newNode)
 
-	# print(circlePath)
-	# for n in circlePath.nodes:
-	# 	print("   ", n)
 	circlePath.closed = True
 	return circlePath
 
 
 def isEmpty(layer):
-	try:
-		# GLYPHS 3:
-		if layer.shapes:
-			return False
-		else:
-			return True
-	except:
-		# GLYPHS 2:
-		if layer.paths:
-			return False
-		elif layer.components:
-			return False
-		else:
-			return True
+	return not layer.shapes
 
 
 def createGlyph(font, name, unicodeValue, override=False, defaultWidth=500):
@@ -147,11 +132,12 @@ def createGlyph(font, name, unicodeValue, override=False, defaultWidth=500):
 		else:
 			print("Overwriting existing glyph %s." % name)
 
-			# create backups of layers:
-			if Glyphs.defaults["com.mekkablue.BuildSymbols.backupLayers"]:
-				backupLayers = []
-				for layer in glyph.layers:
-					if layer.isMasterLayer or layer.isSpecialLayer:
+			# create backups of layers (if wanted), and clear them:
+			backupLayers = []
+			makeBackups = Glyphs.defaults["com.mekkablue.BuildSymbols.backupLayers"]
+			for layer in glyph.layers:
+				if layer.isMasterLayer or layer.isSpecialLayer:
+					if makeBackups:
 						if isEmpty(layer):
 							# nothing on layer? no backup needed:
 							print("- Layer ‘%s’ is empty. No backup needed." % (layer.name if layer.name else "(empty)"))
@@ -163,15 +149,15 @@ def createGlyph(font, name, unicodeValue, override=False, defaultWidth=500):
 							backupLayers.append(layerCopy)
 							print("- Creating backup of layer: %s" % (layer.name if layer.name else "(empty)"))
 
-						layer.clear()
-						layer.background.clear()
-						layer.leftMetricsKey = None
-						layer.rightMetricsKey = None
-						layer.width = defaultWidth
+					layer.clear()
+					layer.background.clear()
+					layer.leftMetricsKey = None
+					layer.rightMetricsKey = None
+					layer.width = defaultWidth
 
-				# add collected backup layers (after the loop)
-				for backupLayer in backupLayers:
-					glyph.layers.append(backupLayer)
+			# add collected backup layers (after the loop)
+			for backupLayer in backupLayers:
+				glyph.layers.append(backupLayer)
 
 			# remove special layers:
 			for i in range(len(glyph.layers) - 1, -1, -1):
@@ -216,7 +202,6 @@ def drawPenDataInLayer(thisLayer, penData, closePath=True):
 		pen.endPath()
 
 	# clean up:
-	# thisLayer.correctPathDirection()
 	thisLayer.cleanUpPaths()
 
 
@@ -224,14 +209,8 @@ def areaOfLayer(layer):
 	area = 0
 	layerCopy = layer.copyDecomposedLayer()
 	layerCopy.removeOverlap()
-	try:
-		# GLYPHS 3:
-		for s in layerCopy.shapes:
-			area += s.area()
-	except:
-		# GLYPHS 2:
-		for p in layerCopy.paths:
-			area += p.area()
+	for shape in layerCopy.shapes:
+		area += shape.area()
 	return area
 
 
@@ -252,40 +231,28 @@ def buildNotdef(thisFont, override=False):
 						sourceLayer = qLayer
 						area = qArea
 
-			if sourceLayer:
-				# Build .notdef from question mark and circle:
-				questionmarkLayer = sourceLayer.copyDecomposedLayer()
-				scaleLayerByFactor(questionmarkLayer, 0.8)
-				qOrigin = questionmarkLayer.fastBounds().origin
-				qWidth = questionmarkLayer.fastBounds().size.width
-				qHeight = questionmarkLayer.fastBounds().size.height
-				qCenter = NSPoint(qOrigin.x + 0.5 * qWidth, qOrigin.y + 0.5 * qHeight)
-				side = max((qWidth, qHeight)) * 1.5
-				circleRect = NSRect(NSPoint(qCenter.x - 0.5 * side, qCenter.y - 0.5 * side), NSSize(side, side))
-				circle = circleInsideRect(circleRect)
-				try:
-					# GLYPHS 3
-					questionmarkLayer.shapes.append(circle)
-				except:
-					# GLYPHS 2
-					questionmarkLayer.paths.append(circle)
-				questionmarkLayer.correctPathDirection()
+			# Build .notdef from question mark and circle:
+			questionmarkLayer = sourceLayer.copyDecomposedLayer()
+			scaleLayerByFactor(questionmarkLayer, 0.8)
+			qBounds = questionmarkLayer.fastBounds()
+			qOrigin = qBounds.origin
+			qWidth = qBounds.size.width
+			qHeight = qBounds.size.height
+			qCenter = NSPoint(qOrigin.x + 0.5 * qWidth, qOrigin.y + 0.5 * qHeight)
+			side = max((qWidth, qHeight)) * 1.5
+			circleRect = NSRect(NSPoint(qCenter.x - 0.5 * side, qCenter.y - 0.5 * side), NSSize(side, side))
+			circle = circleInsideRect(circleRect)
+			questionmarkLayer.shapes.append(circle)
+			questionmarkLayer.correctPathDirection()
 
-				# Create glyph:
-				notdefGlyph.leftMetricsKey = "=40"
-				notdefGlyph.rightMetricsKey = "=|"
-				for masterID in [m.id for m in thisFont.masters]:
-					notdefLayer = notdefGlyph.layers[masterID]
-					for thisPath in questionmarkLayer.paths:
-						try:
-							# GLYPHS 3:
-							notdefLayer.shapes.append(thisPath.copy())
-						except:
-							# GLYPHS 2:
-							notdefLayer.paths.append(thisPath.copy())
-					notdefLayer.syncMetrics()
-			else:
-				print("⚠️ Error building .notdef: Could not determine source layer of glyph 'question'.")
+			# Create glyph:
+			notdefGlyph.leftMetricsKey = "=40"
+			notdefGlyph.rightMetricsKey = "=|"
+			for masterID in [m.id for m in thisFont.masters]:
+				notdefLayer = notdefGlyph.layers[masterID]
+				for thisPath in questionmarkLayer.paths:
+					notdefLayer.shapes.append(thisPath.copy())
+				notdefLayer.syncMetrics()
 
 
 def buildLozenge(thisFont, override=False):
@@ -344,14 +311,10 @@ def buildLozenge(thisFont, override=False):
 			intersector.nodes.append(GSNode(NSPoint(*coordinate)))
 		intersector.closed = True
 
-		if Glyphs.versionNumber >= 3:
-			# GLYPHS 3
-			thisLayer.shapes.append(intersector)
-		else:
-			# GLYPHS 2
-			thisLayer.paths.append(intersector)
+		thisLayer.shapes.append(intersector)
 
 		thisLayer.pathIntersect_from_error_([intersector], [thisLayer.paths[0]], None)
+		thisLayer.syncMetrics()  # the outline changed after the first sync
 
 
 def buildCurrency(thisFont, override=False):
@@ -469,7 +432,7 @@ def buildEstimated(thisFont, override=False):
 							scaleFactor = correctedEstimatedHeight / estimatedHeight
 							estimatedCorrection = transform(shiftY=5.0)
 							estimatedCorrection.appendTransform_(transform(scale=scaleFactor))
-							estimatedCorrection.appendTransform_(transform(-5.0))
+							estimatedCorrection.appendTransform_(transform(shiftY=-5.0))
 							thisLayer.applyTransform(estimatedCorrection.transformStruct())
 
 				# tidy up paths and set width:
@@ -478,7 +441,7 @@ def buildEstimated(thisFont, override=False):
 				print("✅ Created estimated in master '%s'" % thisLayer.associatedFontMaster().name)
 
 	else:
-		print("⚠️ Could not create the estimated glyph already exists in this font. Rename or delete it and try again.")
+		print("⚠️ Could not create estimated, because the glyph already exists in this font. Rename or delete it and try again.")
 
 
 def stemWidthForMaster(thisFont, thisMaster, default=50, maxWidth=None):
@@ -486,8 +449,8 @@ def stemWidthForMaster(thisFont, thisMaster, default=50, maxWidth=None):
 		slash = thisFont.glyphs["slash"].layers[thisMaster.id]
 		slashLeft = slash.fastBounds().origin.x
 		slashRight = slashLeft + slash.fastBounds().size.width
-		slashBottom = slash.fastBounds().origin.x
-		slashTop = slashLeft + slash.fastBounds().size.width
+		slashBottom = slash.fastBounds().origin.y
+		slashTop = slashBottom + slash.fastBounds().size.height
 		middleHeight = (slashBottom + slashTop) / 2
 		measureStart = NSPoint(slashLeft, middleHeight)
 		measureEnd = NSPoint(slashRight, middleHeight)
@@ -506,8 +469,88 @@ def stemWidthForMaster(thisFont, thisMaster, default=50, maxWidth=None):
 		try:
 			return thisMaster.verticalStems[0] * 0.8
 		except:
-			print("⚠️ Error building bars: No vertical stems set in Master '%s'. Will default to %i." % (thisMaster.name, default))
+			print("⚠️ Error measuring stem width: No vertical stems set in Master '%s'. Will default to %i." % (thisMaster.name, default))
 	return default
+
+
+def barStemWidthForMaster(thisFont, thisMaster):
+	"""Stem thickness for bar and brokenbar (and emptyset): measured on the slash if there is one, else from the master stems."""
+	stemWidth = stemWidthForMaster(thisFont, thisMaster)
+	stemWidth -= stemWidth * math.cos(math.radians(thisMaster.italicAngle)) - stemWidth  # correct for italic angle
+
+	slashGlyph = thisFont.glyphs["slash"]
+	if slashGlyph:
+		slashLayer = slashGlyph.layers[thisMaster.id]
+		slashBounds = slashLayer.fastBounds()
+		if slashBounds.size.height > 0:
+			middle = slashBounds.origin.y + slashBounds.size.height * 0.5
+			suggestedStemWidth = slashLayer.width - slashLayer.rsbAtHeight_(middle) - slashLayer.lsbAtHeight_(middle)
+			if suggestedStemWidth > 0:
+				stemWidth = int(suggestedStemWidth * 0.96)
+	return stemWidth
+
+
+def buildEmptyset(thisFont, override=False):
+	emptysetGlyph = createGlyph(thisFont, "emptyset", "2205", override=override)
+	if not emptysetGlyph:
+		return
+
+	emptysetGlyph.leftMetricsKey = "=50"
+	emptysetGlyph.rightMetricsKey = "=|"
+
+	# find a zero for measuring the overshoot:
+	zeroGlyph = None
+	for zeroName in ("zero.lf", "zero.tf", "zero"):
+		if thisFont.glyphs[zeroName]:
+			zeroGlyph = thisFont.glyphs[zeroName]
+			break
+
+	diagonalFactor = 2.0**0.5  # diagonal of a square bounding box, in units of its side
+	for thisMaster in thisFont.masters:
+		thisLayer = emptysetGlyph.layers[thisMaster.id]
+		thisLayer.clear()
+
+		# height: average of x-height and cap height, plus overshoot at bottom and top:
+		overshoot = 5.0
+		if zeroGlyph:
+			zeroBounds = zeroGlyph.layers[thisMaster.id].bounds
+			if zeroBounds is not None and zeroBounds.size.height > 0:
+				overshoot = abs(min(-5.0, zeroBounds.origin.y))
+		baseHeight = (thisMaster.xHeight + thisMaster.capHeight) * 0.5
+		height = baseHeight + 2 * overshoot
+		radius = height * 0.5
+		center = NSPoint(radius, baseHeight * 0.5)
+
+		# stem thickness as for bar and brokenbar, but at most 18% of the height:
+		stemWidth = min(barStemWidthForMaster(thisFont, thisMaster), height * 0.18)
+
+		# circle with 57% handles; the stroke grows only inward.
+		# Outer circle runs counterclockwise, inner circle clockwise (counter):
+		thisLayer.shapes.append(circleAtCenter(center=center, radius=radius, bcp=0.57))
+		innerCircle = circleAtCenter(center=center, radius=radius - stemWidth, bcp=0.57)
+		innerCircle.reverse()
+		thisLayer.shapes.append(innerCircle)
+
+		# slash at 45° through the center of the circle, with the same thickness (counterclockwise,
+		# overlapping the circle on purpose, so no overlaps are removed):
+		slashLength = (height + 2 * height * diagonalFactor) / 3.0
+		halfLength = slashLength * 0.5
+		halfWidth = stemWidth * 0.5
+		slash = GSPath()
+		for lengthSign, widthSign in ((-1, -1), (1, -1), (1, 1), (-1, 1)):
+			along = lengthSign * halfLength
+			across = widthSign * halfWidth
+			x = center.x + (along - across) / diagonalFactor
+			y = center.y + (along + across) / diagonalFactor
+			node = GSNode()
+			node.type = GSLINE
+			node.position = NSPoint(x, y)
+			slash.nodes.append(node)
+		slash.closed = True
+		thisLayer.shapes.append(slash)
+
+		thisLayer.syncMetrics()
+		print(f"✅ Created emptyset in master '{thisMaster.name}'")
 
 
 def buildDottedCircle(thisFont, override=False):
@@ -556,25 +599,22 @@ def buildBars(thisFont, override=False):
 	slashGlyph = thisFont.glyphs["slash"]
 
 	if barGlyph or brokenbarGlyph:
+		# default vertical extent: from the lowest descender to the highest ascender of all masters
+		lowestDescender = min(thisMaster.descender for thisMaster in thisFont.masters)
+		highestAscender = max(thisMaster.ascender for thisMaster in thisFont.masters)
 		for thisMaster in thisFont.masters:
-			goodMeasure = (thisMaster.ascender - thisMaster.descender) * 0.2
-			descender = round(thisMaster.descender - goodMeasure)
-			ascender = round(thisMaster.ascender + goodMeasure)
+			descender = lowestDescender
+			ascender = highestAscender
 			mID = thisMaster.id
 			italicAngle = thisMaster.italicAngle
 			pivot = thisMaster.xHeight * 0.5
-			stemWidth = stemWidthForMaster(thisFont, thisMaster)
-			stemWidth -= stemWidth * math.cos(math.radians(italicAngle)) - stemWidth  # correct for italic angle
+			stemWidth = barStemWidthForMaster(thisFont, thisMaster)
 
 			if slashGlyph:
 				slashLayer = slashGlyph.layers[thisMaster.id]
 				if slashLayer.fastBounds().size.height > 0:
 					descender = slashLayer.fastBounds().origin.y
 					ascender = descender + slashLayer.fastBounds().size.height
-					middle = (descender + ascender) * 0.5
-					suggestedStemWidth = slashLayer.width - slashLayer.rsbAtHeight_(middle) - slashLayer.lsbAtHeight_(middle)
-					if suggestedStemWidth > 0:
-						stemWidth = int(suggestedStemWidth * 0.96)
 
 			sidebearing = max((350 - stemWidth) * 0.5, 60.0)
 			gap = max(250 - stemWidth, 120.0)
@@ -597,6 +637,7 @@ def buildBars(thisFont, override=False):
 				barGlyph.rightMetricsKey = "=|"
 				barGlyph.leftKerningGroup = "bar"
 				barGlyph.rightKerningGroup = "bar"
+				barLayer.syncMetrics()
 				print("✅ Created bar in master '%s'" % thisMaster.name)
 
 			if brokenbarGlyph:
@@ -616,7 +657,6 @@ def buildBars(thisFont, override=False):
 				pen.closePath()
 				pen.endPath()
 
-				brokenbarLayer = brokenbarGlyph.layers[mID]
 				pen = brokenbarLayer.getPen()
 				pen.moveTo(gapTopLeft)
 				pen.lineTo(gapTopRight)
@@ -630,6 +670,7 @@ def buildBars(thisFont, override=False):
 				brokenbarGlyph.rightMetricsKey = "=|"
 				brokenbarGlyph.leftKerningGroup = "bar"
 				brokenbarGlyph.rightKerningGroup = "bar"
+				brokenbarLayer.syncMetrics()
 				print("✅ Created brokenbar in master '%s'" % thisMaster.name)
 	else:
 		print("⚠️ The glyphs bar and brokenbar already exist in this font. Rename or delete them and try again.")
@@ -667,34 +708,33 @@ class BuildSymbols(mekkaObject):
 
 		self.w.descriptionText = vanilla.TextBox("auto", "Create the following symbols automatically. See tooltips for requirements.", sizeStyle='small', selectable=True)
 
-		self.w.buildEstimated = vanilla.CheckBox("auto", "estimated", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.buildEstimated = vanilla.CheckBox("auto", "estimated ℮", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.buildEstimated.setToolTip("Will build estimated ℮ and scale it to the size of your lining zero, if available.")
 
-		self.w.buildBars = vanilla.CheckBox("auto", "bar, brokenbar", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.buildBars.setToolTip("Will model bar | and brokenbar ¦ after your slash /, or if there is no slash, use the master’s stem values for their size.")
+		self.w.buildBars = vanilla.CheckBox("auto", "bar | brokenbar ¦", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.buildBars.setToolTip("Will model bar | and brokenbar ¦ after your slash /, or if there is no slash, use the master’s stem values for their width. Without a slash, they extend from the lowest descender to the highest ascender of all masters.")
 
-		self.w.buildEmptyset = vanilla.CheckBox("auto", "emptyset", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.buildEmptyset.setToolTip("Will build emptyset. Not yet implemented, sorry.")
-		self.w.buildEmptyset.enable(False)
+		self.w.buildEmptyset = vanilla.CheckBox("auto", "emptyset ∅", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.buildEmptyset.setToolTip("Will build emptyset ∅: a circle with a slash, with the stem thickness of bar and brokenbar (but at most 18% of the height). Its height is the average of x-height and cap height plus the overshoot of your zero.")
 
-		self.w.buildDottedcircle = vanilla.CheckBox("auto", "dottedCircle", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.buildDottedcircle = vanilla.CheckBox("auto", "dottedCircle ◌", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.buildDottedcircle.setToolTip("Will build dottedCircle ◌.")
 
-		self.w.buildCurrency = vanilla.CheckBox("auto", "currency", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.buildCurrency = vanilla.CheckBox("auto", "currency ¤", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.buildCurrency.setToolTip("Will build currency.")
 
-		self.w.buildLozenge = vanilla.CheckBox("auto", "lozenge", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.buildLozenge = vanilla.CheckBox("auto", "lozenge ◊", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.buildLozenge.setToolTip("Will build lozenge.")
 
-		self.w.buildProduct = vanilla.CheckBox("auto", "product", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.buildProduct = vanilla.CheckBox("auto", "product ∏", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.buildProduct.setToolTip("Will build product. Not yet implemented, sorry.")
 		self.w.buildProduct.enable(False)
 
-		self.w.buildSummation = vanilla.CheckBox("auto", "summation", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.buildSummation = vanilla.CheckBox("auto", "summation ∑", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.buildSummation.setToolTip("Will build summation. Not yet implemented, sorry.")
 		self.w.buildSummation.enable(False)
 
-		self.w.buildRadical = vanilla.CheckBox("auto", "radical", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.buildRadical = vanilla.CheckBox("auto", "radical √", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.buildRadical.setToolTip("Will build radical. Not yet implemented, sorry.")
 		self.w.buildRadical.enable(False)
 
@@ -708,7 +748,7 @@ class BuildSymbols(mekkaObject):
 		self.w.override = vanilla.CheckBox("auto", "Overwrite existing glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.override.setToolTip("If checked, will create fresh symbols even if they already exist. If unchecked, will skip glyphs that already exist.")
 		self.w.backupLayers = vanilla.CheckBox("auto", "Backup existing layers", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.backupLayers.setToolTip("If checked, will create backup layers when the glyph gets overwritten. Only available in combination with Override option.")
+		self.w.backupLayers.setToolTip("If checked, will create backup layers when the glyph gets overwritten. Only available in combination with ‘Overwrite existing glyphs’.")
 
 		self.w.newTab = vanilla.CheckBox("auto", "Open tab with new glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.newTab.setToolTip("If checked, will open a new tab with the newly created symbols.")
@@ -718,7 +758,10 @@ class BuildSymbols(mekkaObject):
 		# Run Button:
 		self.w.uncheckAllButton = vanilla.Button("auto", "Uncheck All", callback=self.checkAll)
 		self.w.checkAllButton = vanilla.Button("auto", "Check All", callback=self.checkAll)
+		self.w.uncheckAllButton.setToolTip("Unchecks all symbols.")
+		self.w.checkAllButton.setToolTip("Checks all symbols that can be built.")
 		self.w.runButton = vanilla.Button("auto", "Build", callback=self.BuildSymbolsMain)
+		self.w.runButton.setToolTip("Builds the checked symbols in the frontmost font.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# one shared width per grid column, so the checkboxes line up across the rows:
@@ -778,15 +821,20 @@ class BuildSymbols(mekkaObject):
 			onOrOff = False
 		Glyphs.defaults[self.domain("buildEstimated")] = onOrOff
 		Glyphs.defaults[self.domain("buildBars")] = onOrOff
-		Glyphs.defaults[self.domain("buildEmptyset")] = False  # onOrOff
+		Glyphs.defaults[self.domain("buildEmptyset")] = onOrOff
 		Glyphs.defaults[self.domain("buildCurrency")] = onOrOff
 		Glyphs.defaults[self.domain("buildLozenge")] = onOrOff
-		Glyphs.defaults[self.domain("buildProduct")] = False  # onOrOff
-		Glyphs.defaults[self.domain("buildSummation")] = False  # onOrOff
-		Glyphs.defaults[self.domain("buildRadical")] = False  # onOrOff
+		Glyphs.defaults[self.domain("buildProduct")] = False  # not yet implemented, so never checked
+		Glyphs.defaults[self.domain("buildSummation")] = False  # not yet implemented, so never checked
+		Glyphs.defaults[self.domain("buildRadical")] = False  # not yet implemented, so never checked
 		Glyphs.defaults[self.domain("buildNotdef")] = onOrOff
 		Glyphs.defaults[self.domain("buildDottedcircle")] = onOrOff
 		self.LoadPreferences()
+
+	@staticmethod
+	def tabStringForExistingGlyphs(thisFont, glyphNames):
+		"""Returns '/name' for each glyph (separated by slashes) that actually exists in the font, e.g. when the build failed."""
+		return "".join(f"/{glyphName}" for glyphName in glyphNames.split("/") if thisFont.glyphs[glyphName])
 
 	def BuildSymbolsMain(self, sender):
 		try:
@@ -796,6 +844,11 @@ class BuildSymbols(mekkaObject):
 			self.SavePreferences()
 
 			thisFont = Glyphs.font  # frontmost font
+			if thisFont is None:
+				Glyphs.showMacroWindow()
+				print("⚠️ Build Symbols: No font open.")
+				return
+
 			print("Build Symbols Report for %s" % thisFont.familyName)
 			if thisFont.filepath:
 				print(thisFont.filepath)
@@ -814,52 +867,49 @@ class BuildSymbols(mekkaObject):
 			if self.pref("buildEstimated"):
 				print("\n🔣 Building estimated:")
 				buildEstimated(thisFont, override=override)
-				tabText += "/estimated"
+				tabText += self.tabStringForExistingGlyphs(thisFont, "estimated")
 
 			if self.pref("buildBars"):
 				print("\n🔣 Building bars:")
 				buildBars(thisFont, override=override)
-				tabText += "/bar/brokenbar"
+				tabText += self.tabStringForExistingGlyphs(thisFont, "bar/brokenbar")
 
 			if self.pref("buildEmptyset"):
 				print("\n🔣 Building emptyset:")
-				print("😢 Not yet implemented, sorry.")
-				pass
+				buildEmptyset(thisFont, override=override)
+				tabText += self.tabStringForExistingGlyphs(thisFont, "emptyset")
 
 			if self.pref("buildCurrency"):
 				print("\n🔣 Building currency:")
 				buildCurrency(thisFont, override=override)
-				tabText += "/currency"
+				tabText += self.tabStringForExistingGlyphs(thisFont, "currency")
 
 			if self.pref("buildLozenge"):
 				print("\n🔣 Building lozenge:")
 				buildLozenge(thisFont, override=override)
-				tabText += "/lozenge"
+				tabText += self.tabStringForExistingGlyphs(thisFont, "lozenge")
 
 			if self.pref("buildProduct"):
 				print("\n🔣 Building product:")
 				print("😢 Not yet implemented, sorry.")
-				pass
 
 			if self.pref("buildSummation"):
 				print("\n🔣 Building summation:")
 				print("😢 Not yet implemented, sorry.")
-				pass
 
 			if self.pref("buildRadical"):
 				print("\n🔣 Building radical:")
 				print("😢 Not yet implemented, sorry.")
-				pass
 
 			if self.pref("buildNotdef"):
 				print("\n🔣 Building notdef:")
 				buildNotdef(thisFont, override=override)
-				tabText += "/.notdef"
+				tabText += self.tabStringForExistingGlyphs(thisFont, ".notdef")
 
 			if self.pref("buildDottedcircle"):
 				print("\n🔣 Building dottedCircle:")
 				buildDottedCircle(thisFont, override=override)
-				tabText += "/dottedCircle"
+				tabText += self.tabStringForExistingGlyphs(thisFont, "dottedCircle")
 
 			# Floating notification:
 			Glyphs.showNotification(
@@ -880,7 +930,6 @@ class BuildSymbols(mekkaObject):
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print("Build Symbols Error: %s" % e)
-			import traceback
 			print(traceback.format_exc())
 
 

@@ -4,7 +4,7 @@ Builds inverted Spanish punctuation ¡¿ for mixed and upper case. Hold down COM
 """
 
 from AppKit import NSEvent, NSEventModifierFlagShift, NSEventModifierFlagCommand
-from GlyphsApp import Glyphs, GSComponent
+from GlyphsApp import Glyphs, GSComponent, Message
 from mekkablue import newGlyphWithName
 
 invertedGlyphNames = (
@@ -35,7 +35,11 @@ print("Building Spanish inverted punctuation:\n")
 if commandKeyPressed and shiftKeyPressed:
 	theseFonts = Glyphs.fonts
 else:
-	theseFonts = [Glyphs.font, ]
+	theseFonts = [Glyphs.font]
+
+if None in theseFonts:
+	Message(title="No Font Open", message="This script requires a font. Open a font source and try again.", OKButton=None)
+	raise SystemExit
 
 for thisFont in theseFonts:
 	if thisFont.filepath:
@@ -46,8 +50,6 @@ for thisFont in theseFonts:
 
 	thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 	try:
-		exclam = thisFont.glyphs["exclam"]
-		question = thisFont.glyphs["question"]
 		tabText = ""
 
 		for invertedName in invertedGlyphNames:

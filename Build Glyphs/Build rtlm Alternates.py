@@ -4,7 +4,7 @@ Creates horizontally mirrored composite copies for selected glyphs, and updates 
 """
 
 from AppKit import NSAffineTransform
-from GlyphsApp import Glyphs, GSComponent, GSFeature
+from GlyphsApp import Glyphs, GSComponent, GSFeature, Message
 from mekkablue import newGlyphWithName
 
 
@@ -40,12 +40,15 @@ def okToAddToRTLM(glyph):
 		"3016", "3017", "3018", "3019", "301A", "301B", "FE59", "FE5A", "FE5B", "FE5C", "FE5D", "FE5E", "FE64", "FE65", "FF08", "FF09", "FF1C", "FF1E", "FF3B", "FF3D", "FF5B",
 		"FF5D", "FF5F", "FF60", "FF62", "FF63"
 	)
-	if info.unicode and info.unicode in omplUnicodes:
+	if info and info.unicode and info.unicode in omplUnicodes:
 		return False
 	return True
 
 
 thisFont = Glyphs.font  # frontmost font
+if thisFont is None:
+	Message(title="No Font Open", message="This script requires a font. Open a font source and try again.", OKButton=None)
+	raise SystemExit
 selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
 flipTransform = flip()
 Glyphs.clearLog()  # clears log in Macro window
@@ -55,7 +58,7 @@ thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 
 try:
 	# adding composite glyphs:
-	glyphs = [layer.parent for layer in selectedLayers]  # if not ".rtlm" in l.parent.name]
+	glyphs = [layer.parent for layer in selectedLayers]
 	count = 0
 	for glyph in glyphs:
 		glyphName = glyph.name
@@ -67,10 +70,10 @@ try:
 			continue
 		else:
 			rtlmName = "%s.rtlm" % glyphName
-			rtlmGlyph = newGlyphWithName(rtlmName)
 			if thisFont.glyphs[rtlmName]:
-				print("⚠️ %s: already in font, ignored.")
+				print("⚠️ %s: already in font, ignored." % rtlmName)
 			else:
+				rtlmGlyph = newGlyphWithName(rtlmName)
 				count += 1
 				thisFont.glyphs.append(rtlmGlyph)
 
@@ -119,7 +122,7 @@ try:
 
 except Exception as e:
 	Glyphs.showMacroWindow()
-	print("\n⚠️ Error in script: Create rtlm Alternates\n")
+	print("\n⚠️ Error in script: Build rtlm Alternates\n")
 	import traceback
 	print(traceback.format_exc())
 	print()

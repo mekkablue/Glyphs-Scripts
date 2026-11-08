@@ -1,12 +1,12 @@
 # MenuTitle: Build Small Figures
 __doc__ = """
-Takes a default set of figures (e.g., dnom), and derives the others (.numr, superior/.sups, inferiour/.sinf, .subs) as component copies. Respects the italic angle.
+Takes a default set of figures (e.g., dnom), and derives the others (.numr, superior/.sups, inferior/.sinf, .subs) as component copies. Respects the italic angle.
 """
 
 import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 from Foundation import NSPoint
-from GlyphsApp import Glyphs, GSComponent
+from GlyphsApp import Glyphs, GSComponent, Message
 from mekkablue import mekkaObject, newGlyphWithName
 from mekkablue.geometry import italicize
 
@@ -40,22 +40,22 @@ class smallFigureBuilder(mekkaObject):
 
 		self.w.text_1 = vanilla.TextBox("auto", "Default Suffix:", sizeStyle='small')
 		self.w.default = vanilla.EditText("auto", "", sizeStyle='small', callback=self.SavePreferences)
-		self.w.default.setToolTip(u"Small figures with this suffix will be used as components in the derivative figures.")
+		self.w.default.setToolTip("Small figures with this suffix will be used as components in the derivative figures.")
 
 		self.w.text_2 = vanilla.TextBox("auto", "Derivatives:", sizeStyle='small')
 		self.w.derive = vanilla.EditText("auto", "", sizeStyle='small', callback=self.SavePreferences)
-		self.w.derive.setToolTip(u"Add suffix:offset pairs (with a colon in between), separated by commas, e.g., ‘.numr:250, superior:350, inferior:-125’. Include the dot if the suffix is a dot suffix. The script will create the figure glyphs or overwrite existing ones.")
+		self.w.derive.setToolTip("Add suffix:offset pairs (with a colon in between), separated by commas, e.g., ‘.numr:250, superior:350, inferior:-125’. Include the dot if the suffix is a dot suffix. The script will create the figure glyphs or overwrite existing ones.")
 
 		self.w.currentMasterOnly = vanilla.CheckBox("auto", "Only apply to current master (uncheck for all masters)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.currentMasterOnly.setToolTip(u"If checked, will only process the currently selected master in the frontmost font. Useful if you want to use different values for different masters.")
+		self.w.currentMasterOnly.setToolTip("If checked, will only process the currently selected master in the frontmost font. Useful if you want to use different values for different masters.")
 
-		self.w.decomposeDefaultFigures = vanilla.CheckBox("auto", u"Decompose small figures with Default Suffix", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.decomposeDefaultFigures.setToolTip(u"If checked, will decompose the small figures with the suffix entered in ‘Default Suffix’, before placing them as components in the derivatives. Useful if the current defaults are e.g. numr, and you want to reset it to dnom, and keep all others (numr, superior, inferior) as compounds.")
+		self.w.decomposeDefaultFigures = vanilla.CheckBox("auto", "Decompose small figures with Default Suffix", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.decomposeDefaultFigures.setToolTip("If checked, will decompose the small figures with the suffix entered in ‘Default Suffix’, before placing them as components in the derivatives. Useful if the current defaults are e.g. numr, and you want to reset it to dnom, and keep all others (numr, superior, inferior) as compounds.")
 
-		self.w.openTab = vanilla.CheckBox("auto", u"Open tab with affected glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.openTab.setToolTip(u"If checked, will open a new tab with all figures that have default and derivative suffixes. Useful for checking.")
-		self.w.reuseTab = vanilla.CheckBox("auto", u"Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reuseTab.setToolTip(u"If checked, will reuse the current tab rather than open a new one. Will open a new one if no tab is currently open and active, though.")
+		self.w.openTab = vanilla.CheckBox("auto", "Open tab with affected glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.openTab.setToolTip("If checked, will open a new tab with all figures that have default and derivative suffixes. Useful for checking.")
+		self.w.reuseTab = vanilla.CheckBox("auto", "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reuseTab.setToolTip("If checked, will reuse the current tab rather than open a new one. Will open a new one if no tab is currently open and active, though.")
 
 		# Run Button:
 		self.w.reportButton = vanilla.Button("auto", "Open Report", callback=self.openMacroWindow)
@@ -123,6 +123,9 @@ class smallFigureBuilder(mekkaObject):
 			self.SavePreferences()
 
 			thisFont = Glyphs.font  # frontmost font
+			if thisFont is None:
+				Message(title="No Font Open", message="This script requires a font. Open a font source and try again.", OKButton=None)
+				return
 
 			# report in macro window:
 			Glyphs.clearLog()
@@ -138,7 +141,7 @@ class smallFigureBuilder(mekkaObject):
 			decomposeDefaultFigures = self.pref("decomposeDefaultFigures")
 			figures = ("zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine")
 			offsets = {}
-			for suffixPair in [pair.split(":") for pair in derive.split(",")]:
+			for suffixPair in [pair.split(":") for pair in derive.split(",") if pair.strip()]:
 				suffix = suffixPair[0].strip()
 				value = float(suffixPair[1].strip())
 				offsets[suffix] = value
@@ -167,7 +170,7 @@ class smallFigureBuilder(mekkaObject):
 							mID = thisFont.selectedFontMaster.id
 						else:
 							mID = None
-						self.decomposeComponents(defaultGlyph)
+						self.decomposeComponents(defaultGlyph, mID)
 
 					# step through derivative suffixes:
 					for deriveSuffix in offsets:
@@ -203,12 +206,7 @@ class smallFigureBuilder(mekkaObject):
 								defaultComponent = GSComponent(defaultGlyphName, offsetPos)
 								deriveLayer = deriveGlyph.layers[mID]
 								deriveLayer.clear()
-								try:
-									# GLYPHS 3:
-									deriveLayer.shapes.append(defaultComponent)
-								except:
-									# GLYPHS 2:
-									deriveLayer.components.append(defaultComponent)
+								deriveLayer.shapes.append(defaultComponent)
 
 			# open a new tab if requested
 			if self.pref("openTab"):
@@ -227,8 +225,8 @@ class smallFigureBuilder(mekkaObject):
 
 			# Floating notification:
 			Glyphs.showNotification(
-				u"%s: small figures built" % (thisFont.familyName),
-				u"%i glyph%s created, %i glyph%s updated. Detailed info in Macro Window." % (
+				"%s: small figures built" % (thisFont.familyName),
+				"%i glyph%s created, %i glyph%s updated. Detailed info in Macro Window." % (
 					createdGlyphCount,
 					"" if createdGlyphCount == 1 else "s",
 					updatedGlyphCount,

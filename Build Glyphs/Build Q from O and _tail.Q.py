@@ -3,8 +3,8 @@ __doc__ = """
 Run this script AFTER doing Component from Selection on the Q tail and naming it _tail.Q.
 """
 
-from copy import copy as copy
-from GlyphsApp import Glyphs, GSAnchor, GSComponent, Message
+from copy import copy
+from GlyphsApp import Glyphs, GSComponent, Message
 from mekkablue import newAnchorWithName
 
 thisFont = Glyphs.font  # frontmost font
@@ -49,9 +49,7 @@ else:
 					del tailLayer.shapes[i]
 
 			# add anchor:
-			newAnchor = GSAnchor()
-			newAnchor.name = newAnchorName
-			newAnchor.position = Oglyph.layers[thisLayer.associatedMasterId].anchors[anchorName].position
+			newAnchor = newAnchorWithName(newAnchorName, Oglyph.layers[thisLayer.associatedMasterId].anchors[anchorName].position)
 			tailLayer.anchors.append(newAnchor)
 
 			# add layer to _tail.Q:

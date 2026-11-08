@@ -5,7 +5,7 @@ Build and sync quotes: create single and double quotes with cursive attachment a
 
 import vanilla
 from Foundation import NSPoint
-from GlyphsApp import Glyphs, GSComponent, GSPath, GSNode, LINE, GSMetricsTypeCapHeight
+from GlyphsApp import Glyphs, GSComponent, GSPath, GSNode, LINE, GSMetricsTypeCapHeight, Message
 from mekkablue import mekkaObject, newAnchorWithName, newGlyphWithName
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 
@@ -575,10 +575,7 @@ class QuoteManager(mekkaObject):
 			# Copy paths
 			for path in defaultLayer.paths:
 				newPath = path.copy()
-				try:
-					targetLayer.shapes.append(newPath)
-				except Exception:
-					targetLayer.paths.append(newPath)
+				targetLayer.shapes.append(newPath)
 
 			# H-mirror around bbox center X
 			if flipH:
@@ -653,10 +650,7 @@ class QuoteManager(mekkaObject):
 				newPath.nodes.append(node)
 			newPath.closed = True
 
-			try:
-				targetLayer.shapes.append(newPath)
-			except Exception:
-				targetLayer.paths.append(newPath)
+			targetLayer.shapes.append(newPath)
 
 			targetLayer.width = defaultLayer.width
 			print(f"\t✏️ Trapezoid built for quotesingle / {master.name}")
@@ -686,10 +680,7 @@ class QuoteManager(mekkaObject):
 				layer.clear()
 
 				comp = GSComponent(sourceName)
-				try:
-					layer.shapes.append(comp)
-				except Exception:
-					layer.components.append(comp)
+				layer.shapes.append(comp)
 				self.setComponentAlignment(comp)
 
 				print(f"\t🔤 {apostropheName} ← composite of {sourceName} / {master.name}")
@@ -718,10 +709,7 @@ class QuoteManager(mekkaObject):
 			comp = GSComponent(defaultGuillemet)
 			# Horizontal mirror (-100% scale on x); the translation moves it back into the advance
 			comp.transform = (-1, 0, 0, 1, defaultLayer.width, 0)
-			try:
-				layer.shapes.append(comp)
-			except Exception:
-				layer.components.append(comp)
+			layer.shapes.append(comp)
 			# mirrored components are never auto-aligned
 			self.setComponentAlignment(comp)
 
@@ -758,10 +746,7 @@ class QuoteManager(mekkaObject):
 
 				for _ in range(2):
 					comp = GSComponent(singleName)
-					try:
-						ggl.shapes.append(comp)
-					except Exception:
-						ggl.components.append(comp)
+					ggl.shapes.append(comp)
 					self.setComponentAlignment(comp)
 
 				print(f"\t🔤 {doubleName} ← 2× {singleName} / {master.name}")
@@ -785,7 +770,7 @@ class QuoteManager(mekkaObject):
 		"""Return True if default quote exists, is not empty, and has anchors in all masters."""
 		g = font.glyphs[defaultName]
 		if not g:
-			print(f"❌ Default quote '{defaultName}' not in font. Click 'Edit Defaults' to create it first.")
+			print(f"❌ Default quote '{defaultName}' not in font. Click 'Edit Singles' to create it first.")
 			return False
 		ok = True
 		for master in font.masters:
@@ -799,14 +784,15 @@ class QuoteManager(mekkaObject):
 		return ok
 
 	# -----------------------------------------------------------------------
-	# Edit Defaults
+	# Edit Singles
 	# -----------------------------------------------------------------------
 
 	def editSingles(self, sender):
 		try:
 			self.SavePreferences()
 			font = Glyphs.font
-			if not font:
+			if font is None:
+				Message(title="No Font Open", message="Quote Manager needs a font. Please open one and try again.", OKButton=None)
 				return
 			Glyphs.clearLog()
 			print("Quote Manager — Edit Singles\n")
@@ -841,7 +827,8 @@ class QuoteManager(mekkaObject):
 			self.SavePreferences()
 			Glyphs.clearLog()
 			font = Glyphs.font
-			if not font:
+			if font is None:
+				Message(title="No Font Open", message="Quote Manager needs a font. Please open one and try again.", OKButton=None)
 				return
 			print("Quote Manager — Update\n")
 			print(f"Font: {font.familyName}\n")
@@ -899,7 +886,8 @@ class QuoteManager(mekkaObject):
 			self.SavePreferences()
 			Glyphs.clearLog()
 			font = Glyphs.font
-			if not font:
+			if font is None:
+				Message(title="No Font Open", message="Quote Manager needs a font. Please open one and try again.", OKButton=None)
 				return
 			print("Quote Manager — Build\n")
 			print(f"Font: {font.familyName}\n")
@@ -941,7 +929,7 @@ class QuoteManager(mekkaObject):
 					if singleName == defaultQuote:
 						continue
 					if singleName == "quotesingle" and "dumbQuotes" in groups:
-						self.buildDumbQuote(font, forceOverwrite=False)
+						self.buildDumbQuote(font, forceOverwrite=forceOverwrite)
 					else:
 						self.buildSingleFromDefault(font, singleName, defaultQuote, forceOverwrite=forceOverwrite)
 

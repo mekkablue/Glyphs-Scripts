@@ -3,6 +3,7 @@ __doc__ = """
 Build dotted numbers from your default figures and the period.
 """
 
+import traceback
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSGlyph, GSComponent
 from mekkablue.geometry import transform
@@ -71,7 +72,7 @@ def minDistanceBetweenTwoLayers(comp1, comp2, interval=5.0):
 			total = left + right
 			if minDist is None or minDist > total:
 				minDist = total
-		except:
+		except TypeError:  # left or right is None
 			pass
 	return minDist
 
@@ -82,6 +83,8 @@ def placeComponentsAtDistance(thisLayer, comp1, comp2, interval=5.0, distance=10
 	original1 = comp1.component.layers[masterID]
 	original2 = comp2.component.layers[masterID]
 	minDist = minDistanceBetweenTwoLayers(original1, original2, interval=interval)
+	if minDist is None:
+		return  # no measurable overlap in height, leave the component where it is
 	comp2shift = distance - minDist
 	addedSBs = original1.RSB + original2.LSB
 	comp2.x = comp1.x + original1.width - addedSBs + comp2shift
@@ -92,7 +95,6 @@ def process(thisGlyph):
 	maxWidth = thisFont.upm
 	thisGlyph.leftMetricsKey = None
 	thisGlyph.rightMetricsKey = None
-	print("-".join(parts))
 	for thisLayer in thisGlyph.layers:
 		thisLayer.clear()
 		for i, part in enumerate(parts):
@@ -108,16 +110,12 @@ def process(thisGlyph):
 			if i > 0:
 				placeComponentsAtDistance(thisLayer, thisLayer.components[i - 1], comp, distance=distanceBetweenComponents)
 
-		# thisLayer.decomposeComponents()
 		maxWidth = max(thisLayer.bounds.size.width * 1.1, maxWidth)
 	return maxWidth
 
 
 def postprocess(thisGlyph, scale, shiftUp):
 	for thisLayer in thisGlyph.layers:
-		# thisLayer.decomposeComponents()
-		# for thisComp in thisLayer.components:
-		# 	thisComp.makeDisableAlignment()
 		scaleDown = transform(scale=scale).transformStruct()
 		thisLayer.applyTransform(scaleDown)
 		thisLayer.applyTransform(shiftUp)
@@ -127,37 +125,35 @@ def postprocess(thisGlyph, scale, shiftUp):
 
 
 thisFont = Glyphs.font  # frontmost font
-thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
-try:
-	maxWidth = 0.0
-	for name in numberGlyphs:
-		thisGlyph = thisFont.glyphs[name]
-		if not thisGlyph:
-			thisGlyph = GSGlyph()
-			thisGlyph.name = name
-			thisFont.glyphs.append(thisGlyph)
-
-		print("Processing %s" % thisGlyph.name)
-		# thisGlyph.beginUndo()  # undo grouping causes crashes
-		maxWidth = max(maxWidth, process(thisGlyph))
-		print(maxWidth)
-		# thisGlyph.endUndo()  # undo grouping causes crashes
-
-	print(maxWidth)
-	scale = (thisFont.upm / maxWidth) * 0.95
-	yShift = transform(shiftY=thisFont.upm * 0.06).transformStruct()
-
-	for name in numberGlyphs:
-		thisGlyph = thisFont.glyphs[name]
-		# print "Post-processing %s" % thisGlyph.name
-		postprocess(thisGlyph, scale, yShift)
-
-except Exception as e:
+if thisFont is None:
 	Glyphs.showMacroWindow()
-	print("\n⚠️ Script Error:\n")
-	import traceback
-	print(traceback.format_exc())
-	print()
-	raise e
-finally:
-	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
+	print("⚠️ Build Dotted Numbers: No font open.")
+else:
+	thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
+	try:
+		maxWidth = 0.0
+		for name in numberGlyphs:
+			thisGlyph = thisFont.glyphs[name]
+			if not thisGlyph:
+				thisGlyph = GSGlyph()
+				thisGlyph.name = name
+				thisFont.glyphs.append(thisGlyph)
+
+			print(f"Processing {thisGlyph.name}")
+			maxWidth = max(maxWidth, process(thisGlyph))
+
+		scale = (thisFont.upm / maxWidth) * 0.95
+		yShift = transform(shiftY=thisFont.upm * 0.06).transformStruct()
+
+		for name in numberGlyphs:
+			thisGlyph = thisFont.glyphs[name]
+			postprocess(thisGlyph, scale, yShift)
+
+	except Exception:
+		Glyphs.showMacroWindow()
+		print("\n⚠️ Script Error:\n")
+		print(traceback.format_exc())
+		print()
+		raise
+	finally:
+		thisFont.enableUpdateInterface()  # re-enables UI updates in Font View

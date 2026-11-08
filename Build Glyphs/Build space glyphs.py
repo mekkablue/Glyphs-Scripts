@@ -3,7 +3,7 @@ __doc__ = """
 Creates mediumspace-math, emquad, emspace, enquad, enspace, figurespace, fourperemspace, hairspace, narrownbspace, punctuationspace, sixperemspace, nbspace, thinspace, threeperemspace, zerowidthspace.
 """
 
-from GlyphsApp import Glyphs
+from GlyphsApp import Glyphs, Message
 from mekkablue import newGlyphWithName
 
 
@@ -15,23 +15,24 @@ def tabfigure(font):
 	return "zero"
 
 
+problems = []  # collects everything that needs the user’s attention
+
+
 def createSpaceGlyph(thisFont, glyphName, widthKey):
 	created = 0
 	if thisFont.glyphs[glyphName]:
-		print(u"👍🏻 %s: already exists in %s. Updating..." % (glyphName, thisFont.familyName))
+		print("👍🏻 %s: already exists in %s. Updating..." % (glyphName, thisFont.familyName))
 		space = thisFont.glyphs[glyphName]
 		if not space.export:
 			space.export = True
-			print(u"😬 %s was set to not export. Fixed. 🙌" % glyphName)
+			print("😬 %s was set to not export. Fixed. 🙌" % glyphName)
 	else:
-		print(u"✅ Creating %s" % glyphName)
+		print("✅ Creating %s" % glyphName)
 		space = newGlyphWithName(glyphName)
 		thisFont.glyphs.append(space)
 		created = 1
 
-	# space.beginUndo()  # undo grouping causes crashes
-
-	print(u"✅ setting width metrics key: %s" % widthKey)
+	print("✅ setting width metrics key: %s" % widthKey)
 	space.widthMetricsKey = widthKey
 	space.rightMetricsKey = None
 	space.leftMetricsKey = None
@@ -47,21 +48,25 @@ def createSpaceGlyph(thisFont, glyphName, widthKey):
 		thisLayer.syncMetrics()
 
 	if not space.unicode:
-		newUnicode = Glyphs.glyphInfoForName(glyphName).unicode
+		glyphInfo = Glyphs.glyphInfoForName(glyphName)
+		newUnicode = glyphInfo.unicode if glyphInfo else None
 		if not newUnicode:
-			print(u"⛔️ Could not determine Unicode for %s. Please review.")
+			print("⛔️ Could not determine Unicode for %s. Please review." % glyphName)
+			problems.append(f"No Unicode for {glyphName}")
 		else:
-			print(u"✅ Setting Unicode value %s glyph %s" % (newUnicode, glyphName))
+			print("✅ Setting Unicode value %s glyph %s" % (newUnicode, glyphName))
 			space.unicode = newUnicode
 
-	# space.endUndo()  # undo grouping causes crashes
 	return created
 
 
 # frontmost font:
 thisFont = Glyphs.font
+if thisFont is None:
+	Message(title="No Font Open", message="This script requires a font. Open a font source and try again.", OKButton=None)
+	raise SystemExit
 
-# brings macro window to front and clears its log:
+# clears the log in the Macro Window:
 Glyphs.clearLog()
 
 # start reporting
@@ -110,8 +115,17 @@ finally:
 
 reportMessage = "%i of %i space glyphs added" % (createdSpaces, len(spaces))
 print("Done. %s." % reportMessage)
+
+# open a tab with all space glyphs, each between two H’s so that its width is visible:
+tabText = "H" + "".join(f"/{spaceName} H" for spaceName in spaces if thisFont.glyphs[spaceName])
+thisFont.newTab(tabText)
+
+# bring the Macro Window to the front if something went wrong:
+if problems:
+	print("\n⚠️ Please review:\n- " + "\n- ".join(problems))
+	Glyphs.showMacroWindow()
 # Floating notification:
 Glyphs.showNotification(
-	u"%s: space glyphs built" % (thisFont.familyName),
-	u"%s, %i were already in the font. Detailed report in Macro Window." % (reportMessage, (len(spaces) - createdSpaces)),
+	"%s: space glyphs built" % (thisFont.familyName),
+	"%s, %i were already in the font. Detailed report in Macro Window." % (reportMessage, (len(spaces) - createdSpaces)),
 )

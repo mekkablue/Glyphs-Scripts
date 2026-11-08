@@ -13,7 +13,7 @@ from AppKit import (
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
 )
-from Foundation import NSPoint, NSAffineTransform
+from Foundation import NSAffineTransform, NSNumberFormatter, NSPoint
 from GlyphsApp import Glyphs, GSComponent, GSPath, GSNode, LINE, GSMetricsTypeCapHeight, GSMetricsTypeAscender, Message
 from mekkablue import mekkaObject, newAnchorWithName, newGlyphWithName
 
@@ -41,6 +41,17 @@ heightOfGlyphIndex = 4
 class SteppingEditText(vanilla.EditText):
 	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
 	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
+
+
+def integerFormatter(minimum=None, maximum=None):
+	"""Number formatter that only accepts integers, optionally within a range."""
+	formatter = NSNumberFormatter.alloc().init()
+	formatter.setAllowsFloats_(False)
+	if minimum is not None:
+		formatter.setMinimum_(minimum)
+	if maximum is not None:
+		formatter.setMaximum_(maximum)
+	return formatter
 
 
 def rotationTransform(rotationCenter, rotationDegrees):
@@ -86,7 +97,7 @@ class BuildAsterisk(mekkaObject):
 		)
 
 		self.w.raysLabel = vanilla.TextBox("auto", "Number of rays:", sizeStyle="small")
-		self.w.rays = SteppingEditText("auto", "5", callback=self.SavePreferences, sizeStyle="small")
+		self.w.rays = SteppingEditText("auto", "5", formatter=integerFormatter(1), callback=self.SavePreferences, sizeStyle="small")
 		self.w.rays.setToolTip("How many rays the asterisk has. Use the arrow keys to step up and down. The rays are distributed evenly around the circle.")
 
 		self.w.inclinationLabel = vanilla.TextBox("auto", "Inclination:", sizeStyle="small")
