@@ -3,10 +3,26 @@ __doc__ = """
 Finds all combinations of positional shapes that do not click well. Clicking means sharing two point coordinates when overlapping.
 """
 
+import objc
 import vanilla
-from AppKit import NSFont
-from GlyphsApp import Glyphs, GSOFFCURVE, Message
 from mekkablue import mekkaObject, newLineControlLayer, UpdateButton
+from GlyphsApp import Glyphs, GSOFFCURVE, Message
+from AppKit import (
+	NSColor,
+	NSFont,
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityRequired,
+	NSLayoutPriorityWindowSizeStayPut,
+	NSTextAlignmentRight,
+)
+from Foundation import NSNumberFormatter
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 def layerMissesPointsAtCoordinates(thisLayer, coordinates):
@@ -90,74 +106,107 @@ class PositionClicker(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 360
-		windowHeight = 202
-		windowWidthResize = 500  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 400
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Position Clicker",  # window title
-			minSize=(windowWidth, windowHeight + 19),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize + 19),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight, indent = 12, 15, 22, 90
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Report positional combos that do not click", sizeStyle='small')
+		self.w.descriptionText = vanilla.TextBox("auto", "Report positional combos that do not click", sizeStyle="small", selectable=True)
 		self.w.descriptionText.setToolTip("Clicking means that when two matching positional shapes follow each other (e.g. initial and final), they 'click', i.e., they share at least 2 node coordinates. Or whatever number is set in the minimal node count setting below.")
-		linePos += lineHeight
 
 		tooltip = "Reference glyph. Pick a medial glyph with paths for clicking. We recommend behDotless-ar.medi."
-		self.w.referenceText = vanilla.TextBox((inset, linePos+1, indent, 14), "Click with glyph", sizeStyle='small')
+		self.w.referenceText = vanilla.TextBox("auto", "Click with glyph", sizeStyle="small", selectable=True)
 		self.w.referenceText.setToolTip(tooltip)
-		self.w.referenceGlyphName = vanilla.ComboBox((inset + indent, linePos - 2, -inset - 22, 19), self.getAllMediGlyphNames(), sizeStyle='small', callback=self.SavePreferences)
+		self.w.referenceGlyphName = vanilla.ComboBox("auto", self.getAllMediGlyphNames(), sizeStyle="small", callback=self.SavePreferences)
 		self.w.referenceGlyphName.getNSComboBox().setFont_(NSFont.userFixedPitchFontOfSize_(10))
 		self.w.referenceGlyphName.setToolTip(tooltip)
-		self.w.updateButton = UpdateButton((-inset - 18, linePos - 3, -inset, 18), callback=self.updateReferenceGlyphs)
+		self.w.updateButton = UpdateButton("auto", callback=self.updateReferenceGlyphs)
 		self.w.updateButton.setToolTip("Update the list in the combo box with all .medi glyphs in the frontmost font.")
-		linePos += lineHeight
 
-		indent = 140
 		tooltip = "The amount of point coordinates that must be shared between two consecutive positional forms. E.g., if set to 2, an initial and a final shape must have two or more nodes exactly on top of each other when they follow each other. Will respect exit and entry anchors."
-		self.w.clickCountText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Min count of node clicks", sizeStyle='small')
-		self.w.clickCount = vanilla.EditText((inset + indent, linePos - 1, -inset, 19), "2", callback=self.SavePreferences, sizeStyle='small')
+		self.w.clickCountText = vanilla.TextBox("auto", "Min count of node clicks", sizeStyle="small", selectable=True)
+		clickCountFormatter = NSNumberFormatter.alloc().init()
+		clickCountFormatter.setAllowsFloats_(False)
+		clickCountFormatter.setMinimum_(1)
+		self.w.clickCount = SteppingEditText("auto", "2", callback=self.SavePreferences, sizeStyle="small", formatter=clickCountFormatter)
 		self.w.clickCountText.setToolTip(tooltip)
 		self.w.clickCount.setToolTip(tooltip)
-		linePos += lineHeight
 
 		tooltip = "Ignore glyphs that contain any of these name particles. Useful if you have alternates that are intentionally not clicking with the reference glyph, e.g. because they are contextual alternates for specific situations. Use comma's to separate multiple particles."
-		self.w.ignoreGlyphsText = vanilla.TextBox((inset, linePos+2, indent, 14), "Ignore glyphs containing", sizeStyle="small", selectable=True)
-		self.w.ignoreGlyphs = vanilla.EditText((inset+indent, linePos-1, -inset, 19), ".alt, .calt, .pre, .post", callback=self.SavePreferences, sizeStyle="small")
+		self.w.ignoreGlyphsText = vanilla.TextBox("auto", "Ignore glyphs containing", sizeStyle="small", selectable=True)
+		self.w.ignoreGlyphs = vanilla.EditText("auto", ".alt, .calt, .pre, .post", callback=self.SavePreferences, sizeStyle="small")
 		self.w.ignoreGlyphsText.setToolTip(tooltip)
 		self.w.ignoreGlyphs.setToolTip(tooltip)
-		linePos += lineHeight
 
-		indent = 190
-		self.w.includeNonExporting = vanilla.CheckBox((inset + 2, linePos - 1, indent, 20), "Include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeNonExporting = vanilla.CheckBox("auto", "Include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.includeNonExporting.setToolTip("Will also measure glyphs that are set to not export.")
 
-		self.w.includeComposites = vanilla.CheckBox((inset + indent, linePos - 1, -inset, 20), "Include composites", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.includeComposites = vanilla.CheckBox("auto", "Include composites", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.includeComposites.setToolTip("Will also check glyphs that consist entirely of components (no paths of their own).")
-		linePos += lineHeight
 
-		self.w.reuseTab = vanilla.CheckBox((inset + 2, linePos - 1, indent, 20), "Reuse current tab", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reuseTab = vanilla.CheckBox("auto", "Reuse current tab", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.reuseTab.setToolTip("Will use the current tab for output. Will open a new tab only if there is no Edit tab open already.")
 
-		self.w.verbose = vanilla.CheckBox((inset + indent, linePos - 1, -inset, 20), "Verbose reporting", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.verbose = vanilla.CheckBox("auto", "Verbose reporting", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.verbose.setToolTip("Also reports successful clicks in Macro Window (slow).")
-		linePos += lineHeight
 
-		self.w.limitToSelection = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Limit to selected glyphs only", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.limitToSelection = vanilla.CheckBox("auto", "Limit to selected glyphs only", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.limitToSelection.setToolTip("Only check glyphs that are currently selected in the font window or edit tab, instead of all glyphs in the font.")
-		linePos += lineHeight
 
 		# Status line and Run Button:
-		self.w.status = vanilla.TextBox((inset, -16 - inset, -100 - inset - 10, 14), "🤖 Ready.", sizeStyle="small")
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Open Tab", callback=self.PositionClickerMain)
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.runButton = vanilla.Button("auto", "Open Tab", callback=self.PositionClickerMain)
 		self.w.runButton.setToolTip("Run the check and open a tab with all non-clicking combinations.")
 		self.w.setDefaultButton(self.w.runButton)
+
+		# labels: right-aligned, same width
+		labelNames = ("referenceText", "clickCountText", "ignoreGlyphsText")
+		widestLabel = "ignoreGlyphsText"  # the label with the longest text
+		fieldNames = {"referenceText": "referenceGlyphName", "clickCountText": "clickCount", "ignoreGlyphsText": "ignoreGlyphs"}
+		for labelName in labelNames:
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+		widthRules = [
+			{"view1": getattr(self.w, labelName), "attribute1": "width", "view2": getattr(self.w, widestLabel), "attribute2": "width"}
+			for labelName in labelNames if labelName != widestLabel
+		]
+		centerRules = [
+			{"view1": getattr(self.w, labelName), "attribute1": "centerY", "view2": getattr(self.w, fieldNames[labelName]), "attribute2": "centerY"}
+			for labelName in labelNames
+		]
+
+		# checkboxes stretch vertically by default; hug so the window is as tall as its content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[referenceText]-gap-[referenceGlyphName]-gap-[updateButton(20)]-inset-|",
+				"H:|-inset-[clickCountText]-gap-[clickCount(50)]-(>=inset)-|",
+				"H:|-inset-[ignoreGlyphsText]-gap-[ignoreGlyphs]-inset-|",
+				"H:|-inset-[includeNonExporting]-gap-[includeComposites]-(>=inset)-|",
+				"H:|-inset-[reuseTab]-gap-[verbose]-(>=inset)-|",
+				"H:|-inset-[limitToSelection]-(>=inset)-|",
+				"H:|-inset-[status]-gap-[runButton(>=100)]-inset-|",
+				"V:|-gap-[descriptionText]-row-[referenceGlyphName]-row-[clickCount]-row-[ignoreGlyphs]-row-[includeNonExporting]-checkRow-[reuseTab]-checkRow-[limitToSelection]-inset-[runButton]-inset-|",
+				{"view1": self.w.updateButton, "attribute1": "centerY", "view2": self.w.referenceGlyphName, "attribute2": "centerY"},
+				{"view1": self.w.includeComposites, "attribute1": "centerY", "view2": self.w.includeNonExporting, "attribute2": "centerY"},
+				{"view1": self.w.verbose, "attribute1": "centerY", "view2": self.w.reuseTab, "attribute2": "centerY"},
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
+				{"view1": self.w.reuseTab, "attribute1": "width", "view2": self.w.includeNonExporting, "attribute2": "width"},
+			] + widthRules + centerRules,
+			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -171,12 +220,8 @@ class PositionClicker(mekkaObject):
 
 	def updateUI(self, sender=None):
 		glyphSelected = self.w.referenceGlyphName.get()
-		try:
-			atLeastOneClick = int(self.w.clickCount.get()) > 0
-		except:
-			# invalid entry for conversion to int
-			atLeastOneClick = False
-		self.w.runButton.enable(glyphSelected and atLeastOneClick)
+		atLeastOneClick = self.prefInt("clickCount") > 0
+		self.w.runButton.enable(bool(glyphSelected) and atLeastOneClick)
 
 	def getAllMediGlyphNames(self, sender=None):
 		font = Glyphs.font

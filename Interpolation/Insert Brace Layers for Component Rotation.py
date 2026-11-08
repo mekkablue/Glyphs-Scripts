@@ -3,9 +3,23 @@ __doc__ = """
 Inserts a number of Brace Layers with continuously scaled and rotated components. Useful for OTVar interpolations with rotating elements.
 """
 
+import objc
 import vanilla
-from GlyphsApp import Glyphs, GSLayer, Message
 from mekkablue import mekkaObject
+from GlyphsApp import Glyphs, GSLayer, Message
+from AppKit import (
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityRequired,
+	NSLayoutPriorityWindowSizeStayPut,
+)
+from Foundation import NSNumberFormatter
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 class InsertBraceLayersForComponentRotation(mekkaObject):
@@ -16,26 +30,52 @@ class InsertBraceLayersForComponentRotation(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 250
-		windowHeight = 120
-		windowWidthResize = 150  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 270
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Layers for Rotating Components",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		self.w.text_1 = vanilla.TextBox((14, 12 + 2, 170, 14), "Insert steps between masters:", sizeStyle='small')
-		self.w.steps = vanilla.EditText((185, 11, -15, 20), "5", sizeStyle='small')
-		self.w.replace = vanilla.CheckBox((15, 38, -15, 16), "Replace existing Brace Layers", value=True, callback=self.SavePreferences, sizeStyle='small')
+		inset = 15
+
+		tooltipText = "Number of brace layers inserted between each pair of neighboring masters."
+		self.w.stepsText = vanilla.TextBox("auto", "Insert steps between masters:", sizeStyle="small", selectable=True)
+		stepsFormatter = NSNumberFormatter.alloc().init()
+		stepsFormatter.setAllowsFloats_(False)
+		stepsFormatter.setMinimum_(1)
+		self.w.steps = SteppingEditText("auto", "5", callback=self.SavePreferences, sizeStyle="small", formatter=stepsFormatter)
+		self.w.stepsText.setToolTip(tooltipText)
+		self.w.steps.setToolTip(tooltipText)
+
+		self.w.replace = vanilla.CheckBox("auto", "Replace existing Brace Layers", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.replace.setToolTip("Delete existing brace layers in the selected glyphs before inserting new ones.")
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - 15, -20 - 15, -15, -15), "Insert", callback=self.InsertBraceLayersForComponentRotationMain)
+		self.w.runButton = vanilla.Button("auto", "Insert", callback=self.InsertBraceLayersForComponentRotationMain)
+		self.w.runButton.setToolTip("Insert the brace layers in the selected glyphs.")
 		self.w.setDefaultButton(self.w.runButton)
+
+		nsLabel = self.w.stepsText.getNSTextField()
+		nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		# checkboxes stretch vertically by default; hug so the window is as tall as its content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[stepsText]-gap-[steps(50)]-(>=inset)-|",
+				"H:|-inset-[replace]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[steps]-row-[replace]-inset-[runButton]-inset-|",
+				{"view1": self.w.stepsText, "attribute1": "centerY", "view2": self.w.steps, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 12, "row": 6},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
