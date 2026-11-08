@@ -12,9 +12,9 @@ class MonospaceChecker(mekkaObject):
 	prefDict = {
 		"defaultGlyphName": "A",
 		"tolerance": 0.0,
-		"reportZeroWidths": 0,
-		"includeNonExporting": 0,
-		"setMonospaceFlag": 0,
+		"reportZeroWidths": False,
+		"includeNonExporting": False,
+		"setMonospaceFlag": False,
 	}
 
 	def __init__(self):
@@ -50,7 +50,7 @@ class MonospaceChecker(mekkaObject):
 		self.w.includeNonExporting.setToolTip("If disabled, will ignore non-exporting glyphs. If you are unsure, leave it off.")
 		linePos += lineHeight
 
-		self.w.setMonospaceFlag = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Set ‘isFixedPitch’ flag in Font Info", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.setMonospaceFlag = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Set ‘isFixedPitch’ flag in Font Info", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.setMonospaceFlag.setToolTip("Will set the isFixedPitch parameter in Font Info > Font. The parameter sets the isFixedPitch flag in the post table. Indicates whether the font is monospaced. Software can use this information to make sure that all glyphs are rendered with the same amount of pixels horizontally at any given PPM size.")
 		linePos += lineHeight
 
@@ -88,8 +88,8 @@ class MonospaceChecker(mekkaObject):
 			defaultGlyphName = self.pref("defaultGlyphName").strip()
 			defaultGlyph = thisFont.glyphs[defaultGlyphName]
 			tolerance = self.prefFloat("tolerance")
-			includeNonExporting = self.pref("includeNonExporting")
-			reportZeroWidths = self.pref("reportZeroWidths")
+			includeNonExporting = self.prefBool("includeNonExporting")
+			reportZeroWidths = self.prefBool("reportZeroWidths")
 
 			if not defaultGlyph:
 				Message(
@@ -103,6 +103,7 @@ class MonospaceChecker(mekkaObject):
 				for thisMaster in thisFont.masters:
 					masterID = thisMaster.id
 					defaultWidth = defaultGlyph.layers[masterID].width
+					layerCountBeforeMaster = len(affectedLayers)
 					print("\nⓂ️ Master %s, default width: %.1f" % (thisMaster.name, defaultWidth))
 					for thisGlyph in thisFont.glyphs:
 						if thisGlyph.export or includeNonExporting:
@@ -117,8 +118,8 @@ class MonospaceChecker(mekkaObject):
 										deviatingWidthCount += 1
 										print("⛔️ %s, layer '%s': %.1f" % (thisGlyph.name, thisLayer.name, thisWidth))
 
-					# add a newline:
-					if affectedLayers:
+					# add a newline after the layers of this master:
+					if len(affectedLayers) > layerCountBeforeMaster:
 						newLine = newLineControlLayer()
 						affectedLayers.append(newLine)
 
@@ -141,7 +142,7 @@ class MonospaceChecker(mekkaObject):
 					"All glyph widths are monospaced. Congrats!",
 				)
 
-			if self.pref("setMonospaceFlag"):
+			if self.prefBool("setMonospaceFlag"):
 				print("\nℹ️ Font Info > Font > Custom Parameters:")
 				if thisFont.customParameters["isFixedPitch"]:
 					print("👍🏻 isFixedPitch parameter already set. OK.")
