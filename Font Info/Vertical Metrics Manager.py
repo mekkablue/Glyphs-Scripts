@@ -879,7 +879,7 @@ class VerticalMetricsManager(mekkaObject):
 		
 		self.setPref("hheaAsc", self.pref("winAsc"))
 		self.setPref("hheaDesc", self.pref("winDesc"))
-		self.setPref("hheaLineGap", 0)
+		self.setPref("hheaGap", 0)
 		self.setPref("useTypoMetrics", False)
 		self.LoadPreferences()
 		
