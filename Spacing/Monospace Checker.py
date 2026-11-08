@@ -97,6 +97,7 @@ class MonospaceChecker(mekkaObject):
 					message="Could not find a glyph named '%s' in the frontmost font (%s). Aborting." % (defaultGlyphName, thisFont.familyName),
 					OKButton="Oops",
 				)
+				return
 			else:
 				affectedLayers = []
 				deviatingWidthCount = 0
