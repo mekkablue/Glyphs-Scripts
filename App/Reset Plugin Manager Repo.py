@@ -49,7 +49,10 @@ def openFolder(folderPath):
 
 
 class ResetPluginManagerRepo(mekkaObject):
-	repoFolder = "~/Library/Application Support/Glyphs 3/Repositories/"
+	if Glyphs.versionNumber >= 4.0:
+		repoFolder = "~/Library/Application Support/Glyphs 4/Repositories/"
+	else:
+		repoFolder = "~/Library/Application Support/Glyphs 3/Repositories/"
 
 	prefDict = {
 		"repositoryIndex": 0,
