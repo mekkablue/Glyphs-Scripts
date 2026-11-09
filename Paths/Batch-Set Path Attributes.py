@@ -3,9 +3,24 @@ __doc__ = """
 Set path attributes of all paths in selected glyphs, the master, the font, etc.
 """
 
+import objc
 import vanilla
-from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject
+from GlyphsApp import Glyphs, Message
+from AppKit import (
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityRequired,
+	NSLayoutPriorityWindowSizeStayPut,
+	NSTextAlignmentRight,
+)
+from Foundation import NSNumberFormatter
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 def intOrNone(value):
@@ -82,76 +97,106 @@ class BatchSetPathAttributes(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 300
-		windowHeight = 232
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Batch-Set Path Attributes",  # window title
-			minSize=(windowWidth, windowHeight),
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		inset = 15
 
-		indent = 70
-
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Attributes in", sizeStyle='small')
-		self.w.scopeGlyphs = vanilla.PopUpButton((inset + indent, linePos, -inset, 17), scopeGlyphs, sizeStyle='small', callback=self.SavePreferences)
-		linePos += lineHeight
-		self.w.scopeMasterText = vanilla.TextBox((inset, linePos + 2, indent, 14), "for paths on", sizeStyle='small')
-		self.w.scopeMaster = vanilla.PopUpButton((inset + indent, linePos, -inset, 17), scopeMaster, sizeStyle='small', callback=self.SavePreferences)
-		linePos += lineHeight + 5
-
-		indent = 90
+		self.w.descriptionText = vanilla.TextBox("auto", "Attributes in", sizeStyle="small")
+		self.w.scopeGlyphs = vanilla.PopUpButton("auto", scopeGlyphs, sizeStyle="small", callback=self.SavePreferences)
+		self.w.scopeMasterText = vanilla.TextBox("auto", "for paths on", sizeStyle="small")
+		self.w.scopeMaster = vanilla.PopUpButton("auto", scopeMaster, sizeStyle="small", callback=self.SavePreferences)
 
 		tooltip = "Width of the path in units."
-		self.w.strokeWidthCheck = vanilla.CheckBox((inset, linePos + 2, indent, 14), "Stroke Width", sizeStyle='small')
-		self.w.strokeWidthCheck._nsObject.setToolTip_(tooltip)
-		self.w.strokeWidth = vanilla.EditText((inset + indent, linePos, -inset, 19), "20", callback=self.SavePreferences, sizeStyle='small')
+		self.w.strokeWidthCheck = vanilla.CheckBox("auto", "Stroke Width", sizeStyle="small", callback=self.SavePreferences)
+		self.w.strokeWidthCheck.setToolTip(tooltip)
+		strokeWidthFormatter = NSNumberFormatter.alloc().init()
+		strokeWidthFormatter.setAllowsFloats_(False)
+		strokeWidthFormatter.setMinimum_(0)
+		self.w.strokeWidth = SteppingEditText("auto", "20", callback=self.SavePreferences, sizeStyle="small", formatter=strokeWidthFormatter)
 		self.w.strokeWidth.setToolTip(tooltip)
-		linePos += lineHeight
 
 		tooltip = "Height of the path in units. Leave empty for monoline (width=height)."
-		self.w.strokeHeightCheck = vanilla.CheckBox((inset, linePos + 2, indent, 14), "Stroke Height", sizeStyle='small')
-		self.w.strokeHeightCheck._nsObject.setToolTip_(tooltip)
-		self.w.strokeHeight = vanilla.EditText((inset + indent, linePos, -inset, 19), "20", callback=self.SavePreferences, sizeStyle='small')
+		self.w.strokeHeightCheck = vanilla.CheckBox("auto", "Stroke Height", sizeStyle="small", callback=self.SavePreferences)
+		self.w.strokeHeightCheck.setToolTip(tooltip)
+		self.w.strokeHeight = vanilla.EditText("auto", "20", callback=self.SavePreferences, sizeStyle="small")
 		self.w.strokeHeight.setToolTip(tooltip)
-		linePos += lineHeight
 
 		tooltip = "0: right\n1: left\nempty: center (default)"
-		self.w.strokePosCheck = vanilla.CheckBox((inset, linePos + 2, indent, 14), "Position", sizeStyle='small')
-		self.w.strokePosCheck._nsObject.setToolTip_(tooltip)
-		self.w.strokePos = vanilla.PopUpButton((inset + indent, linePos, -inset, 19), sortedStrokePositionNames, sizeStyle='small', callback=self.SavePreferences)
-		# self.w.strokePos = vanilla.EditText((inset*2+indent, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small')
+		self.w.strokePosCheck = vanilla.CheckBox("auto", "Position", sizeStyle="small", callback=self.SavePreferences)
+		self.w.strokePosCheck.setToolTip(tooltip)
+		self.w.strokePos = vanilla.PopUpButton("auto", sortedStrokePositionNames, sizeStyle="small", callback=self.SavePreferences)
 		self.w.strokePos.setToolTip(tooltip)
-		linePos += lineHeight
 
 		tooltip = "Cap style applied to both the start and end of open paths."
-		self.w.lineCapsCheck = vanilla.CheckBox((inset, linePos + 2, indent, 14), "Line Caps", sizeStyle='small')
-		self.w.lineCapsCheck._nsObject.setToolTip_(tooltip)
-		self.w.lineCaps = vanilla.PopUpButton((inset + indent, linePos, -inset, 17), lineCapsNames, sizeStyle='small', callback=self.SavePreferences)
+		self.w.lineCapsCheck = vanilla.CheckBox("auto", "Line Caps", sizeStyle="small", callback=self.SavePreferences)
+		self.w.lineCapsCheck.setToolTip(tooltip)
+		self.w.lineCaps = vanilla.PopUpButton("auto", lineCapsNames, sizeStyle="small", callback=self.SavePreferences)
 		self.w.lineCaps.setToolTip(tooltip)
-		linePos += lineHeight
 
 		tooltip = "Join style applied at corners of open and closed paths."
-		self.w.lineJoinCheck = vanilla.CheckBox((inset, linePos + 2, indent, 14), "Line Join", sizeStyle='small')
-		self.w.lineJoinCheck._nsObject.setToolTip_(tooltip)
-		self.w.lineJoin = vanilla.PopUpButton((inset + indent, linePos, -inset, 17), lineJoinNames, sizeStyle='small', callback=self.SavePreferences)
+		self.w.lineJoinCheck = vanilla.CheckBox("auto", "Line Join", sizeStyle="small", callback=self.SavePreferences)
+		self.w.lineJoinCheck.setToolTip(tooltip)
+		self.w.lineJoin = vanilla.PopUpButton("auto", lineJoinNames, sizeStyle="small", callback=self.SavePreferences)
 		self.w.lineJoin.setToolTip(tooltip)
-		linePos += lineHeight
 
 		# Buttons at the bottom:
-		self.w.extractButton = vanilla.Button((inset, -20 - inset, 80, -inset), "Extract", callback=self.extractAttributes)
+		self.w.extractButton = vanilla.Button("auto", "Extract", callback=self.extractAttributes)
 		self.w.extractButton.setToolTip("Extract attributes from currently selected path, or (if none are selected) from the first path in the current glyph.")
 
-		self.w.removeButton = vanilla.Button((inset + 90, -20 - inset, 80, -inset), "Remove", callback=self.removeAttributes)
+		self.w.removeButton = vanilla.Button("auto", "Remove", callback=self.removeAttributes)
 		self.w.removeButton.setToolTip("Clears all path attributes for selection above.")
 
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Apply", callback=self.BatchSetPathAttributesMain)
+		self.w.runButton = vanilla.Button("auto", "Apply", callback=self.BatchSetPathAttributesMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# the first column (labels and checkboxes) shares one width, the text labels are right-aligned:
+		textLabels = (self.w.descriptionText, self.w.scopeMasterText)
+		checkLabels = (self.w.strokeWidthCheck, self.w.strokeHeightCheck, self.w.strokePosCheck, self.w.lineCapsCheck, self.w.lineJoinCheck)
+		for label in textLabels:
+			label.getNSTextField().setAlignment_(NSTextAlignmentRight)
+		columnViews = [label.getNSTextField() for label in textLabels] + [label.getNSButton() for label in checkLabels]
+		for nsLabel in columnViews:
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		# checkboxes stretch vertically by default; hug so the window is as tall as its content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		widestLabel = self.w.strokeHeightCheck
+		rules = [
+			"H:|-inset-[descriptionText]-gap-[scopeGlyphs]-inset-|",
+			"H:|-inset-[scopeMasterText]-gap-[scopeMaster]-inset-|",
+			"H:|-inset-[strokeWidthCheck]-gap-[strokeWidth]-inset-|",
+			"H:|-inset-[strokeHeightCheck]-gap-[strokeHeight]-inset-|",
+			"H:|-inset-[strokePosCheck]-gap-[strokePos]-inset-|",
+			"H:|-inset-[lineCapsCheck]-gap-[lineCaps]-inset-|",
+			"H:|-inset-[lineJoinCheck]-gap-[lineJoin]-inset-|",
+			"H:|-inset-[extractButton(>=70)]-gap-[removeButton(>=70)]-(>=gap)-[runButton(>=70)]-inset-|",
+			"V:|-inset-[scopeGlyphs]-row-[scopeMaster]-section-[strokeWidth]-row-[strokeHeight]-row-[strokePos]-row-[lineCaps]-row-[lineJoin]-inset-[runButton]-inset-|",
+			"V:[extractButton]-inset-|",
+			"V:[removeButton]-inset-|",
+		]
+		for label in textLabels + checkLabels:
+			if label is not widestLabel:
+				rules.append({"view1": label, "attribute1": "width", "view2": widestLabel, "attribute2": "width"})
+		for label, field in (
+			(self.w.descriptionText, self.w.scopeGlyphs),
+			(self.w.scopeMasterText, self.w.scopeMaster),
+			(self.w.strokeWidthCheck, self.w.strokeWidth),
+			(self.w.strokeHeightCheck, self.w.strokeHeight),
+			(self.w.strokePosCheck, self.w.strokePos),
+			(self.w.lineCapsCheck, self.w.lineCaps),
+			(self.w.lineJoinCheck, self.w.lineJoin),
+		):
+			rules.append({"view1": label, "attribute1": "centerY", "view2": field, "attribute2": "centerY"})
+		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "row": 6, "section": 12})
 
 		# Load Settings:
 		self.LoadPreferences()

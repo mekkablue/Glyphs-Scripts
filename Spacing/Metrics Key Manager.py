@@ -3,10 +3,25 @@ __doc__ = """
 Batch apply metrics keys to the current font.
 """
 
+import objc
 import vanilla
-from AppKit import NSAlert, NSAlertStyleWarning, NSAlertFirstButtonReturn, NSEvent
-from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, getLegibleFont
+from GlyphsApp import Glyphs, Message
+from AppKit import (
+	NSAlert,
+	NSAlertStyleWarning,
+	NSAlertFirstButtonReturn,
+	NSEvent,
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityDefaultLow,
+	NSLayoutPriorityRequired,
+	NSLayoutPriorityWindowSizeStayPut,
+	NSWindowStyleMaskResizable,
+	NSTextAlignmentRight,
+)
+from Foundation import NSNumberFormatter
 
 LeftKeys = """
 =H: B D E F I K L N P R Thorn Germandbls M
@@ -44,6 +59,22 @@ WidthKeys = """
 """
 
 
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
+
+
+def integerFormatter(minimum=None, maximum=None):
+	"""Number formatter that only accepts integers, optionally within a range."""
+	formatter = NSNumberFormatter.alloc().init()
+	formatter.setAllowsFloats_(False)
+	if minimum is not None:
+		formatter.setMinimum_(minimum)
+	if maximum is not None:
+		formatter.setMaximum_(maximum)
+	return formatter
+
+
 class Alert(object):
 
 	def __init__(self, messageText="Are you sure?", informativeText="This cannot be undone.", buttons=["OK", "Cancel"]):
@@ -73,88 +104,115 @@ class MetricsKeyManager(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 550
-		windowHeight = 300
-		windowWidthResize = 1000  # user can resize width by this value
-		windowHeightResize = 1000  # user can resize height by this value
+		windowWidth = 620
+		windowHeight = 400  # starting height; the three editors take up any extra height when resizing
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Metrics Key Manager",  # window title
-			minSize=(windowWidth, windowHeight - 100),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight, boxHeight = self.getMeasurements()
+		inset = 15
 
-		self.w.LeftMetricsKeysText = vanilla.TextBox((inset, linePos + 2, 70, 14), "Left Keys", sizeStyle='small', selectable=True)
-		self.w.LeftMetricsKeys = vanilla.TextEditor((inset + 70, linePos, -inset, boxHeight), "", callback=self.SavePreferences)  # , sizeStyle='small')
-
-		linePos += boxHeight + 10
-		self.w.RightMetricsKeysText = vanilla.TextBox((inset, linePos + 2, 70, 14), "Right Keys", sizeStyle='small', selectable=True)
-		self.w.RightMetricsKeys = vanilla.TextEditor((inset + 70, linePos, -inset, boxHeight), "", callback=self.SavePreferences)  # , sizeStyle='small')
-
-		linePos += boxHeight + 10
-		self.w.WidthMetricsKeysText = vanilla.TextBox((inset, linePos + 2, 70, 14), "Width Keys", sizeStyle='small', selectable=True)
-		self.w.WidthMetricsKeys = vanilla.TextEditor((inset + 70, linePos, -inset, boxHeight), "", callback=self.SavePreferences)  # , sizeStyle='small')
+		self.w.LeftMetricsKeysText = vanilla.TextBox("auto", "Left Keys:", sizeStyle='small', selectable=True)
+		self.w.LeftMetricsKeys = vanilla.TextEditor("auto", "", callback=self.SavePreferences)
+		self.w.RightMetricsKeysText = vanilla.TextBox("auto", "Right Keys:", sizeStyle='small', selectable=True)
+		self.w.RightMetricsKeys = vanilla.TextEditor("auto", "", callback=self.SavePreferences)
+		self.w.WidthMetricsKeysText = vanilla.TextBox("auto", "Width Keys:", sizeStyle='small', selectable=True)
+		self.w.WidthMetricsKeys = vanilla.TextEditor("auto", "", callback=self.SavePreferences)
 
 		editFont = getLegibleFont()
-
+		tooltipText = "Enter a metrics key like '=H', followed by a colon (:), followed by glyph names, separated by space, comma, or any other separator that cannot be part of a glyph name. (Glyph names can contain A-Z, a-z, 0-9, period, underscore and hyphen.)\nExample: ‘=H: B D E F’."
 		for editField in (self.w.LeftMetricsKeys, self.w.RightMetricsKeys, self.w.WidthMetricsKeys):
-			editField.setToolTip("Enter a metrics key like '=H', followed by a colon (:), followed by glyph names, separated by space, comma, or any other separator that cannot be part of a glyph name. (Glyph names can contain A-Z, a-z, 0-9, period, underscore and hyphen.)\nExample: ‘=H: B D E F’.")
+			editField.setToolTip(tooltipText)
 			editField.getNSTextView().setFont_(editFont)
 			editField.getNSScrollView().setHasVerticalScroller_(1)
 			editField.getNSScrollView().setRulersVisible_(1)
+		for labelName in ("LeftMetricsKeysText", "RightMetricsKeysText", "WidthMetricsKeysText"):
+			getattr(self.w, labelName).setToolTip(tooltipText)
 
 		# Buttons:
-		self.w.symmetricButton = vanilla.Button((inset, -20 - inset, 60, -inset), "Add =|", callback=self.AddMissingSymmetricKeys)
-		self.w.symmetricThreshold = vanilla.EditText((inset + 65, -19 - inset, 20, -inset), "2", callback=self.SavePreferences, sizeStyle="small")
-		self.w.symmetricThresholdText = vanilla.TextBox((inset + 65 + 20, -16 - inset, 60, -inset), "Threshold", sizeStyle="small", selectable=True)
-		linePos += lineHeight
-		tooltip = "Adds glyphs with symmetrical SBs to =| in the right metrics keys. Add a threshold in units for catching SBs off by a unit or two."
-		self.w.symmetricButton.setToolTip(tooltip)
-		self.w.symmetricThreshold.setToolTip(tooltip)
-		self.w.symmetricThresholdText.setToolTip(tooltip)
+		tooltipText = "Adds glyphs with symmetrical SBs to =| in the right metrics keys. Add a threshold in units for catching SBs off by a unit or two."
+		self.w.symmetricButton = vanilla.Button("auto", "Add =|", callback=self.AddMissingSymmetricKeys)
+		self.w.symmetricThreshold = SteppingEditText("auto", "2", callback=self.SavePreferences, sizeStyle="small", formatter=integerFormatter(0))
+		self.w.symmetricThresholdText = vanilla.TextBox("auto", "Threshold", sizeStyle="small", selectable=True)
+		self.w.symmetricButton.setToolTip(tooltipText)
+		self.w.symmetricThreshold.setToolTip(tooltipText)
+		self.w.symmetricThresholdText.setToolTip(tooltipText)
 
-		self.w.deleteAllButton = vanilla.Button((inset + 150, -20 - inset, 80, -inset), "Delete All", callback=self.deleteAllMetricsKeys)
+		self.w.deleteAllButton = vanilla.Button("auto", "Delete All", callback=self.deleteAllMetricsKeys)
+		self.w.deleteAllButton.setToolTip("Deletes all metrics keys (left, right and width) in all glyphs and layers of the frontmost font. Cannot be undone.")
 
-		self.w.resetButton = vanilla.Button((-240 - inset, -20 - inset, -inset - 170, -inset), "⟲ Reset", callback=self.SetDefaults)
+		self.w.resetButton = vanilla.Button("auto", "⟲ Reset", callback=self.SetDefaults)
 		self.w.resetButton.setToolTip("Resets the contents of the L+R Keys to their (currently only Latin) defaults.")
 
-		self.w.scanButton = vanilla.Button((-160 - inset, -20 - inset, -inset - 80, -inset), "↑ Extract", callback=self.ScanFontForKeys)
+		self.w.scanButton = vanilla.Button("auto", "↑ Extract", callback=self.ScanFontForKeys)
 		self.w.scanButton.setToolTip("Scans the current font for all metrics keys and lists them here. Normalizes the preceding equals sign (=). No matter whether you typed them with or without an equals sign, they will show up here with one.")
 
-		self.w.runButton = vanilla.Button((-70 - inset, -20 - inset, -inset, -inset), "↓ Apply", callback=self.MetricsKeyManagerMain)
+		self.w.runButton = vanilla.Button("auto", "↓ Apply", callback=self.MetricsKeyManagerMain)
 		self.w.runButton.setToolTip("Parses the current content of the window and will attempt to set the metrics keys of the respective glyphs in the frontmost font. Hold down your OPTION key to also update glyph metrics right away. Careful, that is hard to undo.")
 		self.w.setDefaultButton(self.w.runButton)
 
+		# labels: right-aligned, same width
+		labelNames = ("LeftMetricsKeysText", "RightMetricsKeysText", "WidthMetricsKeysText")
+		widestLabel = "WidthMetricsKeysText"  # the label with the longest text
+		for labelName in labelNames:
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+		widthRules = [
+			{"view1": getattr(self.w, labelName), "attribute1": "width", "view2": getattr(self.w, widestLabel), "attribute2": "width"}
+			for labelName in labelNames if labelName != widestLabel
+		]
+
+		# every control keeps its natural height, except the three editors: they take up the extra height
+		editors = (self.w.LeftMetricsKeys, self.w.RightMetricsKeys, self.w.WidthMetricsKeys)
+		editorViews = [editor.getNSScrollView() for editor in editors]
+		for view in self.w.getNSWindow().contentView().subviews():
+			if any(view is editorView for editorView in editorViews):
+				priority = NSLayoutPriorityDefaultLow
+			else:
+				priority = NSLayoutPriorityWindowSizeStayPut
+			view.setContentHuggingPriority_forOrientation_(priority, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[LeftMetricsKeysText]-gap-[LeftMetricsKeys]-inset-|",
+				"H:|-inset-[RightMetricsKeysText]-gap-[RightMetricsKeys]-inset-|",
+				"H:|-inset-[WidthMetricsKeysText]-gap-[WidthMetricsKeys]-inset-|",
+				"H:|-inset-[symmetricButton(>=70)]-gap-[symmetricThreshold(40)]-gap-[symmetricThresholdText]-gap-[deleteAllButton(>=70)]-(>=gap)-[resetButton(>=70)]-gap-[scanButton(>=70)]-gap-[runButton(>=70)]-inset-|",
+				"V:|-gap-[LeftMetricsKeys(>=minBoxHeight)]-boxGap-[RightMetricsKeys]-boxGap-[WidthMetricsKeys]-inset-[runButton]-inset-|",
+				# the three editors always have the same height:
+				{"view1": self.w.RightMetricsKeys, "attribute1": "height", "view2": self.w.LeftMetricsKeys, "attribute2": "height"},
+				{"view1": self.w.WidthMetricsKeys, "attribute1": "height", "view2": self.w.LeftMetricsKeys, "attribute2": "height"},
+				# labels sit at the top of their editors:
+				{"view1": self.w.LeftMetricsKeysText, "attribute1": "top", "view2": self.w.LeftMetricsKeys, "attribute2": "top"},
+				{"view1": self.w.RightMetricsKeysText, "attribute1": "top", "view2": self.w.RightMetricsKeys, "attribute2": "top"},
+				{"view1": self.w.WidthMetricsKeysText, "attribute1": "top", "view2": self.w.WidthMetricsKeys, "attribute2": "top"},
+				# all controls of the button row share the vertical center of the run button:
+				{"view1": self.w.symmetricButton, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
+				{"view1": self.w.symmetricThreshold, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
+				{"view1": self.w.symmetricThresholdText, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
+				{"view1": self.w.deleteAllButton, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
+				{"view1": self.w.resetButton, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
+				{"view1": self.w.scanButton, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
+			] + widthRules,
+			metrics={"inset": inset, "gap": 8, "boxGap": 10, "minBoxHeight": 50},
+		)
+
 		# Load Settings:
 		self.LoadPreferences()
-
-		# Bind resizing method:
-		self.w.bind("resize", self.windowResize)
 
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
 
-	def getMeasurements(self, sender=None):
-		lineHeight = 22
-		currentWindowHeight = self.w.getPosSize()[3]
-		boxHeight = currentWindowHeight // 3 - int(lineHeight * 1.1)
-		return 12, 15, lineHeight, boxHeight
-
-	def windowResize(self, sender=None):
-		linePos, inset, lineHeight, boxHeight = self.getMeasurements()
-		self.w.LeftMetricsKeysText.setPosSize((inset, linePos + 2, 70, 14))
-		self.w.LeftMetricsKeys.setPosSize((inset + 70, linePos, -inset, boxHeight))
-		linePos += boxHeight + 10
-		self.w.RightMetricsKeysText.setPosSize((inset, linePos + 2, 70, 14))
-		self.w.RightMetricsKeys.setPosSize((inset + 70, linePos, -inset, boxHeight))
-		linePos += boxHeight + 10
-		self.w.WidthMetricsKeysText.setPosSize((inset, linePos + 2, 70, 14))
-		self.w.WidthMetricsKeys.setPosSize((inset + 70, linePos, -inset, boxHeight))
+		# resizable horizontally and vertically, no maximum size; the minimum is what the content needs
+		nsWindow = self.w.getNSWindow()
+		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
+		nsWindow.setContentMinSize_(nsWindow.contentView().fittingSize())
 
 	def SetDefaults(self, sender=None):
 		self.w.RightMetricsKeys.set(RightKeys.strip())
@@ -323,7 +381,7 @@ class MetricsKeyManager(mekkaObject):
 		try:
 			# clears macro window log:
 			Glyphs.clearLog()
-			
+
 			keysPressed = NSEvent.modifierFlags()
 			optionKey = 524288
 			optionKeyPressed = keysPressed & optionKey == optionKey
@@ -398,7 +456,7 @@ class MetricsKeyManager(mekkaObject):
 
 				if affectedGlyphs:
 					affectedGlyphs = set(affectedGlyphs)
-					
+
 					if optionKeyPressed:
 						for glyphName in affectedGlyphs:
 							glyph = thisFont[glyphName]
@@ -407,7 +465,7 @@ class MetricsKeyManager(mekkaObject):
 							for layer in glyph.layers:
 								if layer.isMasterLayer or layer.isSpecialLayer:
 									layer.syncMetrics()
-									
+
 					if shouldOpenTabWithAffectedGlyphs:
 						thisFont.newTab("/" + "/".join(affectedGlyphs))
 

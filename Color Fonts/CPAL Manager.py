@@ -3,9 +3,34 @@ __doc__ = """
 Manage color palette (CPAL) indices in color layers: for specified color indexes, delete, disable, reassign or duplicate color layers.
 """
 
+import objc
 import vanilla
-from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject
+from GlyphsApp import Glyphs, Message
+from AppKit import (
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityRequired,
+	NSLayoutPriorityWindowSizeStayPut,
+	NSTextAlignmentRight,
+)
+from Foundation import NSNumberFormatter
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
+
+
+def integerFormatter(minimum=None, maximum=None):
+	formatter = NSNumberFormatter.alloc().init()
+	formatter.setAllowsFloats_(False)
+	if minimum is not None:
+		formatter.setMinimum_(minimum)
+	if maximum is not None:
+		formatter.setMaximum_(maximum)
+	return formatter
 
 
 class CPALManager(mekkaObject):
@@ -22,87 +47,140 @@ class CPALManager(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 330
-		windowHeight = 240
-		windowWidthResize = 0  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 340
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"CPAL Manager",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight, tab1, tab2 = 12, 15, 22, 130, 205
+		inset = 15
 
 		# Option 1: Remove color index
-		self.w.removeText = vanilla.TextBox((inset, linePos + 2, tab1-5, 14), "Remove color index:", sizeStyle='small', selectable=True, alignment="right")
-		self.w.removeIndex = vanilla.EditText((inset + tab1, linePos, 65, 19), "0", callback=self.SavePreferences, sizeStyle='small')
-		self.w.removeButton = vanilla.Button((inset + tab2, linePos, -inset, 20), "Remove", callback=self.removeColorIndex, sizeStyle='small')
-		self.w.removeIndex.setToolTip("Index of color palette layers to remove completely.")
+		self.w.removeText = vanilla.TextBox("auto", "Remove color index:", sizeStyle='small', selectable=True)
+		self.w.removeIndex = SteppingEditText("auto", "0", callback=self.SavePreferences, sizeStyle='small', formatter=integerFormatter(minimum=0))
+		self.w.removeButton = vanilla.Button("auto", "Remove", callback=self.removeColorIndex, sizeStyle='small')
+		tooltipText = "Index of color palette layers to remove completely."
+		self.w.removeText.setToolTip(tooltipText)
+		self.w.removeIndex.setToolTip(tooltipText)
 		self.w.removeButton.setToolTip("Removes all layers with the specified color palette index from selected glyphs.")
-		linePos += lineHeight
 
 		# Option 2: Disable color index
-		self.w.disableText = vanilla.TextBox((inset, linePos + 2, tab1-5, 14), "Disable color index:", sizeStyle='small', selectable=True, alignment="right")
-		self.w.disableIndex = vanilla.EditText((inset + tab1, linePos, 65, 19), "0", callback=self.SavePreferences, sizeStyle='small')
-		self.w.disableButton = vanilla.Button((inset + tab2, linePos, -inset, 20), "Disable", callback=self.disableColorIndex, sizeStyle='small')
-		self.w.disableIndex.setToolTip("Index of color palette layers to disable (convert to backup layers).")
+		self.w.disableText = vanilla.TextBox("auto", "Disable color index:", sizeStyle='small', selectable=True)
+		self.w.disableIndex = SteppingEditText("auto", "0", callback=self.SavePreferences, sizeStyle='small', formatter=integerFormatter(minimum=0))
+		self.w.disableButton = vanilla.Button("auto", "Disable", callback=self.disableColorIndex, sizeStyle='small')
+		tooltipText = "Index of color palette layers to disable (convert to backup layers)."
+		self.w.disableText.setToolTip(tooltipText)
+		self.w.disableIndex.setToolTip(tooltipText)
 		self.w.disableButton.setToolTip("Removes the color palette attribute and converts layers to backup layers.")
-		linePos += lineHeight
 
 		# Option 3: Duplicate color index
-		self.w.duplicateText = vanilla.TextBox((inset, linePos + 2, tab1-5, 14), "Duplicate color index:", sizeStyle='small', selectable=True, alignment="right")
-		self.w.duplicateFromIndex = vanilla.EditText((inset + tab1, linePos, 25, 19), "0", callback=self.SavePreferences, sizeStyle='small')
-		self.w.duplicateArrow = vanilla.TextBox((inset + tab1 + 25, linePos + 2, 15, 14), "→", sizeStyle='small')
-		self.w.duplicateToIndex = vanilla.EditText((inset + tab1 + 25 + 15, linePos, 25, 19), "1", callback=self.SavePreferences, sizeStyle='small')
-		self.w.duplicateButton = vanilla.Button((inset + tab2, linePos, -inset, 20), "Duplicate", callback=self.duplicateColorIndex, sizeStyle='small')
+		self.w.duplicateText = vanilla.TextBox("auto", "Duplicate color index:", sizeStyle='small', selectable=True)
+		self.w.duplicateFromIndex = SteppingEditText("auto", "0", callback=self.SavePreferences, sizeStyle='small', formatter=integerFormatter(minimum=0))
+		self.w.duplicateArrow = vanilla.TextBox("auto", "→", sizeStyle='small')
+		self.w.duplicateToIndex = SteppingEditText("auto", "1", callback=self.SavePreferences, sizeStyle='small', formatter=integerFormatter(minimum=0))
+		self.w.duplicateButton = vanilla.Button("auto", "Duplicate", callback=self.duplicateColorIndex, sizeStyle='small')
+		self.w.duplicateText.setToolTip("Duplicate layers from the source index to the target index.")
 		self.w.duplicateFromIndex.setToolTip("Source color palette index to duplicate.")
 		self.w.duplicateToIndex.setToolTip("Target color palette index for the duplicate.")
 		self.w.duplicateButton.setToolTip("Creates a copy of layers with the source index and assigns them the target index.")
-		linePos += lineHeight
 
 		# Option 4: Change color index
-		self.w.changeText = vanilla.TextBox((inset, linePos + 2, tab1-5, 14), "Change color index:", sizeStyle='small', selectable=True, alignment="right")
-		self.w.changeFromIndex = vanilla.EditText((inset + tab1, linePos, 25, 19), "0", callback=self.SavePreferences, sizeStyle='small')
-		self.w.changeArrow = vanilla.TextBox((inset + tab1 + 25, linePos + 2, 15, 14), "→", sizeStyle='small')
-		self.w.changeToIndex = vanilla.EditText((inset + tab1 + 25 + 15, linePos, 25, 19), "1", callback=self.SavePreferences, sizeStyle='small')
-		self.w.changeButton = vanilla.Button((inset + tab2, linePos, -inset, 20), "Reassign", callback=self.changeColorIndex, sizeStyle='small')
+		self.w.changeText = vanilla.TextBox("auto", "Change color index:", sizeStyle='small', selectable=True)
+		self.w.changeFromIndex = SteppingEditText("auto", "0", callback=self.SavePreferences, sizeStyle='small', formatter=integerFormatter(minimum=0))
+		self.w.changeArrow = vanilla.TextBox("auto", "→", sizeStyle='small')
+		self.w.changeToIndex = SteppingEditText("auto", "1", callback=self.SavePreferences, sizeStyle='small', formatter=integerFormatter(minimum=0))
+		self.w.changeButton = vanilla.Button("auto", "Reassign", callback=self.changeColorIndex, sizeStyle='small')
+		self.w.changeText.setToolTip("Change the color palette index from the source to the target index.")
 		self.w.changeFromIndex.setToolTip("Source color palette index to change from.")
 		self.w.changeToIndex.setToolTip("Target color palette index to change to.")
 		self.w.changeButton.setToolTip("Changes the color palette index from source to target.")
-		linePos += lineHeight
 
 		# Option 5: Cycle color indexes
-		self.w.cycleText = vanilla.TextBox((inset, linePos + 2, tab2-5, 14), "Rotate color indexes  (0→1→2→0):", sizeStyle='small', selectable=True, alignment="right")
-		self.w.cycleButton = vanilla.Button((inset + tab2, linePos, -inset, 20), "Cycle", callback=self.cycleColorIndexes, sizeStyle='small')
-		self.w.cycleButton.setToolTip("Rotates color palette indexes: 0→1, 1→2, 2→3, etc. Last index becomes 0.")
-		linePos += lineHeight
+		self.w.cycleText = vanilla.TextBox("auto", "Rotate color indexes  (0→1→2→0):", sizeStyle='small', selectable=True)
+		self.w.cycleButton = vanilla.Button("auto", "Cycle", callback=self.cycleColorIndexes, sizeStyle='small')
+		tooltipText = "Rotates color palette indexes: 0→1, 1→2, 2→3, etc. Last index becomes 0."
+		self.w.cycleText.setToolTip(tooltipText)
+		self.w.cycleButton.setToolTip(tooltipText)
 
 		# Option 6: Reverse color indexes
-		self.w.reverseText = vanilla.TextBox((inset, linePos + 2, tab2-5, 14), "Reverse color indexes  (0,1,2↔2,1,0):", sizeStyle='small', selectable=True, alignment="right")
-		self.w.reverseButton = vanilla.Button((inset + tab2, linePos, -inset, 20), "Reverse", callback=self.reverseColorIndexes, sizeStyle='small')
-		self.w.reverseButton.setToolTip("Reverses color palette indexes: 0↔highest, 1↔second-highest, etc.")
-		linePos += lineHeight + 10
+		self.w.reverseText = vanilla.TextBox("auto", "Reverse color indexes  (0,1,2↔2,1,0):", sizeStyle='small', selectable=True)
+		self.w.reverseButton = vanilla.Button("auto", "Reverse", callback=self.reverseColorIndexes, sizeStyle='small')
+		tooltipText = "Reverses color palette indexes: 0↔highest, 1↔second-highest, etc."
+		self.w.reverseText.setToolTip(tooltipText)
+		self.w.reverseButton.setToolTip(tooltipText)
 
 		# Separator
-		self.w.separator = vanilla.HorizontalLine((inset, linePos, -inset, 1))
-		linePos += 10
+		self.w.separator = vanilla.HorizontalLine("auto")
 
 		# Checkboxes
-		self.w.currentMasterOnly = vanilla.CheckBox((inset, linePos, -inset, 20), "Current master only (otherwise all masters)", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.currentMasterOnly = vanilla.CheckBox("auto", "Current master only (otherwise all masters)", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.currentMasterOnly.setToolTip("Only process layers in the current master. Unchecked: process all masters.")
-		linePos += lineHeight
 
-		self.w.applyFontWide = vanilla.CheckBox((inset, linePos, -inset, 20), "⚠️ Apply to ALL glyphs (otherwise selected only)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.applyFontWide = vanilla.CheckBox("auto", "⚠️ Apply to ALL glyphs (otherwise selected only)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.applyFontWide.setToolTip("Process all glyphs in the font. Unchecked: only process selected glyphs.")
-		linePos += lineHeight + 5
 
 		# Status line
-		self.w.status = vanilla.TextBox((inset, linePos, -inset, 14), "", sizeStyle='small')
-		linePos += lineHeight
+		self.w.status = vanilla.TextBox("auto", "", sizeStyle='small')
+
+		# labels: right-aligned, same width, hugging their text
+		labelNames = ("removeText", "disableText", "duplicateText", "changeText", "cycleText", "reverseText")
+		for labelName in labelNames:
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		# checkboxes stretch vertically by default; hug so the window is as tall as its content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# the four labels in front of fields share one width, all buttons share one width
+		fieldLabelNames = ("removeText", "disableText", "duplicateText", "changeText")
+		widestLabel = "duplicateText"
+		buttonNames = ("removeButton", "disableButton", "changeButton", "cycleButton", "reverseButton")
+		widestButton = "duplicateButton"
+		widthRules = [
+			{"view1": getattr(self.w, labelName), "attribute1": "width", "view2": getattr(self.w, widestLabel), "attribute2": "width"}
+			for labelName in fieldLabelNames if labelName != widestLabel
+		]
+		widthRules += [
+			{"view1": getattr(self.w, buttonName), "attribute1": "width", "view2": getattr(self.w, widestButton), "attribute2": "width"}
+			for buttonName in buttonNames
+		]
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[removeText]-gap-[removeIndex(50)]-(>=gap)-[removeButton(>=70)]-inset-|",
+				"H:|-inset-[disableText]-gap-[disableIndex(50)]-(>=gap)-[disableButton(>=70)]-inset-|",
+				"H:|-inset-[duplicateText]-gap-[duplicateFromIndex(50)]-arrowGap-[duplicateArrow]-arrowGap-[duplicateToIndex(50)]-(>=gap)-[duplicateButton(>=70)]-inset-|",
+				"H:|-inset-[changeText]-gap-[changeFromIndex(50)]-arrowGap-[changeArrow]-arrowGap-[changeToIndex(50)]-(>=gap)-[changeButton(>=70)]-inset-|",
+				"H:|-inset-[cycleText]-gap-[cycleButton(>=70)]-inset-|",
+				"H:|-inset-[reverseText]-gap-[reverseButton(>=70)]-inset-|",
+				"H:|-inset-[separator]-inset-|",
+				"H:|-inset-[currentMasterOnly]-(>=inset)-|",
+				"H:|-inset-[applyFontWide]-(>=inset)-|",
+				"H:|-inset-[status]-inset-|",
+				"V:|-gap-[removeIndex]-row-[disableIndex]-row-[duplicateFromIndex]-row-[changeFromIndex]-row-[cycleButton]-row-[reverseButton]-inset-[separator(1)]-inset-[currentMasterOnly]-checkRow-[applyFontWide]-inset-[status]-inset-|",
+				{"view1": self.w.removeText, "attribute1": "centerY", "view2": self.w.removeIndex, "attribute2": "centerY"},
+				{"view1": self.w.removeButton, "attribute1": "centerY", "view2": self.w.removeIndex, "attribute2": "centerY"},
+				{"view1": self.w.disableText, "attribute1": "centerY", "view2": self.w.disableIndex, "attribute2": "centerY"},
+				{"view1": self.w.disableButton, "attribute1": "centerY", "view2": self.w.disableIndex, "attribute2": "centerY"},
+				{"view1": self.w.duplicateText, "attribute1": "centerY", "view2": self.w.duplicateFromIndex, "attribute2": "centerY"},
+				{"view1": self.w.duplicateArrow, "attribute1": "centerY", "view2": self.w.duplicateFromIndex, "attribute2": "centerY"},
+				{"view1": self.w.duplicateToIndex, "attribute1": "centerY", "view2": self.w.duplicateFromIndex, "attribute2": "centerY"},
+				{"view1": self.w.duplicateButton, "attribute1": "centerY", "view2": self.w.duplicateFromIndex, "attribute2": "centerY"},
+				{"view1": self.w.changeText, "attribute1": "centerY", "view2": self.w.changeFromIndex, "attribute2": "centerY"},
+				{"view1": self.w.changeArrow, "attribute1": "centerY", "view2": self.w.changeFromIndex, "attribute2": "centerY"},
+				{"view1": self.w.changeToIndex, "attribute1": "centerY", "view2": self.w.changeFromIndex, "attribute2": "centerY"},
+				{"view1": self.w.changeButton, "attribute1": "centerY", "view2": self.w.changeFromIndex, "attribute2": "centerY"},
+				{"view1": self.w.cycleText, "attribute1": "centerY", "view2": self.w.cycleButton, "attribute2": "centerY"},
+				{"view1": self.w.reverseText, "attribute1": "centerY", "view2": self.w.reverseButton, "attribute2": "centerY"},
+			] + widthRules,
+			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5, "arrowGap": 4},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -211,37 +289,23 @@ class CPALManager(mekkaObject):
 
 	def removeColorIndex(self, sender=None):
 		"""Remove all layers with the specified color index."""
-		try:
-			index = int(self.pref("removeIndex"))
-			self.processLayers('remove', index)
-		except ValueError:
-			Message("Invalid input", "Please enter a valid number for the color index.", OKButton=None)
+		self.processLayers('remove', self.prefInt("removeIndex"))
 
 	def disableColorIndex(self, sender=None):
 		"""Disable color layers (convert to backup layers)."""
-		try:
-			index = int(self.pref("disableIndex"))
-			self.processLayers('disable', index)
-		except ValueError:
-			Message("Invalid input", "Please enter a valid number for the color index.", OKButton=None)
+		self.processLayers('disable', self.prefInt("disableIndex"))
 
 	def duplicateColorIndex(self, sender=None):
 		"""Duplicate layers from one color index to another."""
-		try:
-			fromIndex = int(self.pref("duplicateFromIndex"))
-			toIndex = int(self.pref("duplicateToIndex"))
-			self.processLayers('duplicate', fromIndex, toIndex)
-		except ValueError:
-			Message("Invalid input", "Please enter valid numbers for both indices.", OKButton=None)
+		fromIndex = self.prefInt("duplicateFromIndex")
+		toIndex = self.prefInt("duplicateToIndex")
+		self.processLayers('duplicate', fromIndex, toIndex)
 
 	def changeColorIndex(self, sender=None):
 		"""Change color palette index from one value to another."""
-		try:
-			fromIndex = int(self.pref("changeFromIndex"))
-			toIndex = int(self.pref("changeToIndex"))
-			self.processLayers('change', fromIndex, toIndex)
-		except ValueError:
-			Message("Invalid input", "Please enter valid numbers for both indices.", OKButton=None)
+		fromIndex = self.prefInt("changeFromIndex")
+		toIndex = self.prefInt("changeToIndex")
+		self.processLayers('change', fromIndex, toIndex)
 
 	def cycleColorIndexes(self, sender=None):
 		"""Cycle color palette indexes: 0→1, 1→2, 2→3, etc."""

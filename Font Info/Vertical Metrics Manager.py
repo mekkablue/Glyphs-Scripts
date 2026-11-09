@@ -1,16 +1,20 @@
 # MenuTitle: Vertical Metrics Manager
-try:
-	from builtins import str
-except Exception as e:  # noqa: F841
-	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
 __doc__ = """
 Manage and sync ascender, descender and linegap values for hhea, OS/2 sTypo and OS/2 usWin.
 """
 
-import vanilla, string
-from GlyphsApp import Glyphs, Message, GetOpenFile, GSUppercase, GSLowercase, GSGlyph, GSLayer
+import string
+import objc
+import vanilla
 from mekkablue import mekkaObject, UpdateButton
-from AppKit import NSRightTextAlignment
+from GlyphsApp import Glyphs, Message, GetOpenFile, GSUppercase, GSLowercase, GSLayer
+from AppKit import NSColor, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
+from Foundation import NSNumberFormatter
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 def topEdge(rect):
@@ -42,6 +46,9 @@ def markHeight(glyph):
 
 
 def cleanInt(numberString):
+	if isinstance(numberString, (int, float)):
+		# stepping fields with a number formatter may deliver numbers instead of strings
+		return int(round(numberString))
 	exportString = ""
 	numberString = str(numberString)
 	for char in numberString:
@@ -74,7 +81,7 @@ class VerticalMetricsManager(mekkaObject):
 		"ignoreNonExporting": 1,
 		"includeAllMasters": 1,
 		"respectMarkToBaseOffset": 0,
-		"writeToPopup": 0,
+		"writeToPopup": 2 if Glyphs.versionNumber >= 4 else 0,  # font-wide in Glyphs 4+, all masters in Glyphs 3
 		"round": 1,
 		"roundValue": 10,
 		"useTypoMetrics": 1,
@@ -91,159 +98,248 @@ class VerticalMetricsManager(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 330
-		windowHeight = 540
+		windowWidth = 370
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight),  # default window size
+			(windowWidth, windowHeight),
 			"Vertical Metrics Manager",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow"),  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight, fieldWidth = 10, 15, 22, 60
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Manage and sync hhea, typo and win values:", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		# unsigned integers for usWin, signed integers for typo and hhea; fields may be left empty (no parameter):
+		unsignedFormatter = NSNumberFormatter.alloc().init()
+		unsignedFormatter.setAllowsFloats_(False)
+		unsignedFormatter.setMinimum_(0)
+		signedFormatter = NSNumberFormatter.alloc().init()
+		signedFormatter.setAllowsFloats_(False)
+		roundFormatter = NSNumberFormatter.alloc().init()
+		roundFormatter.setAllowsFloats_(False)
+		roundFormatter.setMinimum_(1)
 
-		self.w.titleAscent = vanilla.TextBox((inset + 70, linePos + 4, 70, 14), "Ascender", sizeStyle='small', selectable=True)
-		self.w.titleDescent = vanilla.TextBox((inset + 140, linePos + 4, 70, 14), "Descender", sizeStyle='small', selectable=True)
-		self.w.titleLineGap = vanilla.TextBox((inset + 210, linePos + 4, 70, 14), "Line Gap", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		self.w.descriptionText = vanilla.TextBox("auto", "Manage and sync hhea, typo and win values:", sizeStyle="small", selectable=True)
 
-		self.w.titleWin = vanilla.TextBox((inset, linePos + 3, 70, 14), "OS/2 usWin", sizeStyle='small', selectable=True)
-		self.w.winAsc = vanilla.EditText((inset + 70, linePos, fieldWidth, 19), "", callback=self.SavePreferences, sizeStyle='small')
+		self.w.titleAscent = vanilla.TextBox("auto", "Ascender", sizeStyle="small", selectable=True)
+		self.w.titleDescent = vanilla.TextBox("auto", "Descender", sizeStyle="small", selectable=True)
+		self.w.titleLineGap = vanilla.TextBox("auto", "Line Gap", sizeStyle="small", selectable=True)
+
+		self.w.titleWin = vanilla.TextBox("auto", "OS/2 usWin", sizeStyle="small", selectable=True)
+		self.w.winAsc = SteppingEditText("auto", "", callback=self.SavePreferences, sizeStyle="small", formatter=unsignedFormatter)
 		self.w.winAsc.setToolTip("OS/2 usWinAscent. Should be the maximum height in your font. Expect clipping or rendering artefacts beyond this point.")
-		self.w.winDesc = vanilla.EditText((inset + 140, linePos, fieldWidth, 19), "", callback=self.SavePreferences, sizeStyle='small')
+		self.w.winDesc = SteppingEditText("auto", "", callback=self.SavePreferences, sizeStyle="small", formatter=unsignedFormatter)
 		self.w.winDesc.setToolTip("OS/2 usWinDescent (unsigned integer). Should be the maximum depth in your font, like the lowest descender you have. Expect clipping or rendering artefacts beyond this point.")
-		self.w.winGap = vanilla.EditText((inset + 210, linePos, fieldWidth, 19), "", callback=None, sizeStyle='small', readOnly=True, placeholder="n/a")
+		self.w.winGap = vanilla.EditText("auto", "", callback=None, sizeStyle="small", readOnly=True, placeholder="n/a")
 		self.w.winGap.setToolTip("OS/2 usWinLineGap does not exist, hence greyed out here.")
-		self.w.winUpdate = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
+		self.w.winUpdate = UpdateButton("auto", callback=self.update)
 		self.w.winUpdate.setToolTip("Will recalculate the OS/2 usWin values in the fields to the left. Takes the measurement settings below into account, except for the Limit options.")
-		linePos += lineHeight + 6
 
-		self.w.parenTypo = vanilla.TextBox((inset - 12, linePos + 3, 15, 20), "┏", sizeStyle='small', selectable=False)
-		self.w.titleTypo = vanilla.TextBox((inset, linePos + 3, 70, 14), "OS/2 sTypo", sizeStyle='small', selectable=True)
-		self.w.typoAsc = vanilla.EditText((inset + 70, linePos, fieldWidth, 19), "", callback=self.SavePreferences, sizeStyle='small')
+		self.w.parenTypo = vanilla.TextBox("auto", "┏", sizeStyle="small", selectable=False)
+		self.w.titleTypo = vanilla.TextBox("auto", "OS/2 sTypo", sizeStyle="small", selectable=True)
+		self.w.typoAsc = SteppingEditText("auto", "", callback=self.SavePreferences, sizeStyle="small", formatter=signedFormatter)
 		self.w.typoAsc.setToolTip("OS/2 sTypoAscender (positive value), should be the same as hheaAscender. Should be the maximum height of the glyphs relevant for horizontal text setting in your font, like the highest accented uppercase letter, typically Aring or Ohungarumlaut. Used for first baseline offset in DTP and office apps and together with the line gap value, also in browsers.")
-		self.w.typoDesc = vanilla.EditText((inset + 140, linePos, fieldWidth, 19), "", callback=self.SavePreferences, sizeStyle='small')
+		self.w.typoDesc = SteppingEditText("auto", "", callback=self.SavePreferences, sizeStyle="small", formatter=signedFormatter)
 		self.w.typoDesc.setToolTip("OS/2 sTypoDescender (negative value), should be the same as hheaDescender. Should be the maximum depth of the glyphs relevant for horizontal text setting in your font, like the lowest descender or bottom accent, typically Gcommaccent, Ccedilla, or one of the lowercase descenders (gjpqy). Together with the line gap value, used for line distance calculation in office apps and browsers.")
-		self.w.typoGap = vanilla.EditText((inset + 210, linePos, fieldWidth, 19), "", callback=self.SavePreferences, sizeStyle='small')
+		self.w.typoGap = SteppingEditText("auto", "", callback=self.SavePreferences, sizeStyle="small", formatter=signedFormatter)
 		self.w.typoGap.setToolTip("OS/2 sTypoLineGap (positive value), should be the same as hheaLineGap. Should be either zero or a value for padding between lines that makes sense visually. Office apps insert this distance between the lines, browsers add half on top and half below each line, also for determining text object boundaries.")
-		self.w.typoUpdate = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
+		self.w.typoUpdate = UpdateButton("auto", callback=self.update)
 		self.w.typoUpdate.setToolTip("Will recalculate the OS/2 sTypo values in the fields to the left. Takes the measurement settings below into account.")
-		linePos += lineHeight
 
-		self.w.parenConnect = vanilla.TextBox((inset - 12, linePos - int(lineHeight / 2) + 3, 15, 20), "┃", sizeStyle='small', selectable=False)
-		self.w.parenHhea = vanilla.TextBox((inset - 12, linePos + 4, 15, 20), "┗", sizeStyle='small', selectable=False)
-		self.w.titleHhea = vanilla.TextBox((inset, linePos + 3, 70, 14), "hhea", sizeStyle='small', selectable=True)
-		self.w.hheaAsc = vanilla.EditText((inset + 70, linePos, fieldWidth, 19), "", callback=self.SavePreferences, sizeStyle='small')
+		self.w.parenHhea = vanilla.TextBox("auto", "┗", sizeStyle="small", selectable=False)
+		self.w.titleHhea = vanilla.TextBox("auto", "hhea", sizeStyle="small", selectable=True)
+		self.w.hheaAsc = SteppingEditText("auto", "", callback=self.SavePreferences, sizeStyle="small", formatter=signedFormatter)
 		self.w.hheaAsc.setToolTip("hheaAscender (positive value), should be the same as OS/2 sTypoAscender. Should be the maximum height of the glyphs relevant for horizontal text setting in your font, like the highest accented uppercase letter, typically Aring or Ohungarumlaut. Used for first baseline offset in Mac office apps and together with the line gap value, also in Mac browsers.")
-		self.w.hheaDesc = vanilla.EditText((inset + 140, linePos, fieldWidth, 19), "", callback=self.SavePreferences, sizeStyle='small')
+		self.w.hheaDesc = SteppingEditText("auto", "", callback=self.SavePreferences, sizeStyle="small", formatter=signedFormatter)
 		self.w.hheaDesc.setToolTip("hheaDescender (negative value), should be the same as OS/2 sTypoDescender. Should be the maximum depth of the glyphs relevant for horizontal text setting in your font, like the lowest descender or bottom accent, typically Gcommaccent, Ccedilla, or one of the lowercase descenders (gjpqy). Together with the line gap value, used for line distance calculation in office apps and browsers.")
-		self.w.hheaGap = vanilla.EditText((inset + 210, linePos, fieldWidth, 19), "", callback=self.SavePreferences, sizeStyle='small')
+		self.w.hheaGap = SteppingEditText("auto", "", callback=self.SavePreferences, sizeStyle="small", formatter=signedFormatter)
 		self.w.hheaGap.setToolTip("hheaLineGap (positive value), should be the same as OS/2 sTypoLineGap. Should be either zero or a value for padding between lines that makes sense visually. Mac office apps insert this distance between the lines, Mac browsers add half on top and half below each line, also for determining text object boundaries.")
-		self.w.hheaUpdate = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
+		self.w.hheaUpdate = UpdateButton("auto", callback=self.update)
 		self.w.hheaUpdate.setToolTip("Will copy the typo values into the hhea values (should always be in sync), unless typo values are not set. In that case, will recalculate the hhea values in the fields to the left. Takes the measurement settings below into account.")
-		linePos += lineHeight
+
+		# decoration: bracket linking typo and hhea values
+		for bracket in (self.w.parenTypo, self.w.parenHhea):
+			bracket.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
 
 		# right align:
-		for textCell in (self.w.winAsc, self.w.winDesc, self.w.typoAsc, self.w.typoDesc, self.w.typoGap, self.w.hheaAsc, self.w.hheaDesc, self.w.hheaGap):
-			textCell.getNSTextField().setAlignment_(NSRightTextAlignment)
+		gridFields = (self.w.winAsc, self.w.winDesc, self.w.typoAsc, self.w.typoDesc, self.w.typoGap, self.w.hheaAsc, self.w.hheaDesc, self.w.hheaGap)
+		for textCell in gridFields:
+			textCell.getNSTextField().setAlignment_(NSTextAlignmentRight)
+		for columnTitle in (self.w.titleAscent, self.w.titleDescent, self.w.titleLineGap):
+			columnTitle.getNSTextField().setAlignment_(NSTextAlignmentRight)
 
-		self.w.useTypoMetrics = vanilla.CheckBox((inset + 57, linePos + 6, -inset, 18), "Use Typo Metrics (fsSelection bit 7)", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.useTypoMetrics = vanilla.CheckBox("auto", "Use Typo Metrics (fsSelection bit 7)", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.useTypoMetrics.setToolTip("Should ALWAYS BE ON. Only uncheck if you really know what you are doing. If unchecked, line behaviour will not be consistent between apps and browsers because some apps prefer win values to sTypo values for determining line distances.")
-		self.w.useTypoMetricsUpdate = UpdateButton((-inset - 18, linePos + 3, -inset, 18), callback=self.update)
+		self.w.useTypoMetricsUpdate = UpdateButton("auto", callback=self.update)
 		self.w.useTypoMetricsUpdate.setToolTip("Will reset the checkbox to the left to ON, because it should ALWAYS be on. Strongly recommended.")
-		linePos += int(lineHeight * 1.4)
-		
+
 		# METHODS
-		self.w.separatorMethods = vanilla.HorizontalLine((inset, linePos, -inset, 6))
-		linePos += lineHeight - 7
-		
-		self.w.descriptionMethods = vanilla.TextBox((inset, linePos, -inset, 14), "Vertical metrics methods:", sizeStyle="small", selectable=True)
-		linePos += lineHeight
-		
-		self.w.calculateText = vanilla.TextBox((inset, linePos+2, 70, 14), "Use method", sizeStyle="small", selectable=True)
-		self.w.calculate = vanilla.PopUpButton((inset+70, linePos, -80-inset, 17), ("Google", "Webfonts (2019)", "ArrowType (1.3×UPM)", "ArrowType (1.5×UPM)", "Microsoft (Legacy)"), sizeStyle="small", callback=self.SavePreferences)
-		self.w.calculate.setToolTip("Choose a vertical metrics strategy and press Calculate to fill the fields above.\n\n• Google: centers the caps between ascender and descender, no line gap.\n• Webfonts (2019): slightly compressed values for webfont line spacing.\n• ArrowType: target line height of 130% resp. 150% of the UPM, with the cap height centered between hhea ascender and descender, usWin synced with hhea, a tight sTypo ascender on the cap height for the best first baseline in DTP apps, and Use Typo Metrics off. Pick the looser 1.5×UPM setting for more generous line spacing.\n• Microsoft (Legacy): usWin-based metrics without Use Typo Metrics.")
-		self.w.calculateButton = vanilla.Button((-70 - inset, linePos, -inset, 17), "Calculate", sizeStyle="small", callback=self.calculateMethod)
-		
-		linePos += lineHeight
-		
+		self.w.separatorMethods = vanilla.HorizontalLine("auto")
+
+		self.w.descriptionMethods = vanilla.TextBox("auto", "Vertical metrics methods:", sizeStyle="small", selectable=True)
+
+		calculateTooltip = "Choose a vertical metrics strategy and press Calculate to fill the fields above.\n\n• Google: centers the caps between ascender and descender, no line gap.\n• Webfonts (2019): slightly compressed values for webfont line spacing.\n• ArrowType: target line height of 130% resp. 150% of the UPM, with the cap height centered between hhea ascender and descender, usWin synced with hhea, a tight sTypo ascender on the cap height for the best first baseline in DTP apps, and Use Typo Metrics off. Pick the looser 1.5×UPM setting for more generous line spacing.\n• Microsoft (Legacy): usWin-based metrics without Use Typo Metrics."
+		self.w.calculateText = vanilla.TextBox("auto", "Use method", sizeStyle="small", selectable=True)
+		self.w.calculateText.setToolTip(calculateTooltip)
+		self.w.calculate = vanilla.PopUpButton("auto", ("Google", "Webfonts (2019)", "ArrowType (1.3×UPM)", "ArrowType (1.5×UPM)", "Microsoft (Legacy)"), sizeStyle="small", callback=self.SavePreferences)
+		self.w.calculate.setToolTip(calculateTooltip)
+		self.w.calculateButton = vanilla.Button("auto", "Calculate", sizeStyle="small", callback=self.calculateMethod)
+
 		# EXTRACT FROM EXISTING FONT
-		self.w.extractText = vanilla.TextBox((inset, linePos + 2, -70 - inset, 14), "Copy values from existing OpenType font:", sizeStyle="small", selectable=True)
-		self.w.extractButton = vanilla.Button((-70 - inset, linePos, -inset, 17), "Extract", sizeStyle="small", callback=self.extract)
-		self.w.extractButton.setToolTip("Extracts values from an existing compiled font (.otf or .ttf) and inserts them in the fields above. Useful if you need to stay in sync with a pre-existing font.")
-		linePos += int(lineHeight * 1.2)
+		self.w.extractText = vanilla.TextBox("auto", "Copy values from existing OpenType font:", sizeStyle="small", selectable=True)
+		extractTooltip = "Extracts values from an existing compiled font (.otf or .ttf) and inserts them in the fields above. Useful if you need to stay in sync with a pre-existing font."
+		self.w.extractText.setToolTip(extractTooltip)
+		self.w.extractButton = vanilla.Button("auto", "Extract", sizeStyle="small", callback=self.extract)
+		self.w.extractButton.setToolTip(extractTooltip)
 
-		self.w.separator = vanilla.HorizontalLine((inset, linePos, -inset, 6))
-		linePos += lineHeight - 7
-		
+		self.w.separator = vanilla.HorizontalLine("auto")
+
 		# MEASUREMENT SETTINGS
-		self.w.descriptionMeasurements = vanilla.TextBox((inset, linePos, -inset, 14), "Taking measurements (see tooltips for info):", sizeStyle='small')
-		linePos += lineHeight
+		self.w.descriptionMeasurements = vanilla.TextBox("auto", "Taking measurements (see tooltips for info):", sizeStyle="small")
 
-		self.w.round = vanilla.CheckBox((inset + 2, linePos, 70, 18), "Round by", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.round = vanilla.CheckBox("auto", "Round by", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.round.setToolTip("Turn on if you want your values rounded. Recommended.")
-		self.w.roundValue = vanilla.EditText((inset + 70, linePos - 1, 60, 19), "10", callback=self.SavePreferences, sizeStyle='small')
+		self.w.roundValue = SteppingEditText("auto", "10", callback=self.SavePreferences, sizeStyle="small", formatter=roundFormatter)
 		self.w.roundValue.setToolTip("All value calculations will be rounded up to the next multiple of this value. Recommended: 10.")
-		linePos += lineHeight
 
-		self.w.includeAllMasters = vanilla.CheckBox((inset + 2, linePos, -inset, 18), "Include all masters (otherwise current master only)", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeAllMasters = vanilla.CheckBox("auto", "Include all masters (otherwise current master only)", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.includeAllMasters.setToolTip("If checked, all masters will be measured. If unchecked, only the current master will be measured. Since vertical metrics should be the same throughout all masters, it also makes sense to measure on all masters.")
-		linePos += lineHeight
 
-		self.w.respectMarkToBaseOffset = vanilla.CheckBox((inset + 2, linePos, -inset, 18), "Include mark-to-base offset for OS/2 usWin", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.respectMarkToBaseOffset = vanilla.CheckBox("auto", "Include mark-to-base offset for OS/2 usWin", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.respectMarkToBaseOffset.setToolTip("If checked will calculate the maximum possible height that can be reached with top-anchored marks, and the lowest depth with bottom-anchored marks, and use those values for the OS/2 usWin values. Strongly recommended for making fonts work on Windows if they rely on mark-to-base positioning (e.g. Arabic). Respects the ‘Limit to Script’ setting.")
-		linePos += lineHeight
 
-		self.w.ignoreNonExporting = vanilla.CheckBox((inset + 2, linePos, -inset, 18), "Ignore non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.ignoreNonExporting = vanilla.CheckBox("auto", "Ignore non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.ignoreNonExporting.setToolTip("If checked, glyphs that do not export will be excluded from measuring. Recommended. (Ignored for calculating the OS/2 usWin values.)")
-		linePos += lineHeight
 
-		self.w.preferSelectedGlyphs = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Limit to selected glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.preferSelectedGlyphs = vanilla.CheckBox("auto", "Limit to selected glyphs", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.preferSelectedGlyphs.setToolTip("If checked, only the current glyphs will be measured. Can be combined with the other Limit options. May make sense if you want your metrics to be e.g. Latin-CE-centric.")
-		linePos += lineHeight
 
-		self.w.preferScript = vanilla.CheckBox((inset + 2, linePos, inset + 110, 18), "Limit to script", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.preferScript = vanilla.CheckBox("auto", "Limit to script", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.preferScript.setToolTip("If checked, only measures glyphs belonging to the selected writing system. Can be combined with the other Limit options. (Ignored for calculating the OS/2 usWin values, but respected for mark-to-base calculation.)")
-		self.w.preferScriptPopup = vanilla.PopUpButton((inset + 108, linePos, -inset - 22, 17), ("latin", "greek"), sizeStyle='small', callback=self.SavePreferences)
+		self.w.preferScriptPopup = vanilla.PopUpButton("auto", ("latin", "greek"), sizeStyle="small", callback=self.SavePreferences)
 		self.w.preferScriptPopup.setToolTip("Choose a writing system ('script') you want the measurements to be limited to. May make sense to ignore other scripts if the font is intended only for e.g. Cyrillic. Does not apply to OS/2 usWin")
-		self.w.preferScriptUpdate = UpdateButton((-inset - 18, linePos - 2, -inset, 18), callback=self.update)
+		self.w.preferScriptUpdate = UpdateButton("auto", callback=self.update)
 		self.w.preferScriptUpdate.setToolTip("Update the script popup to the left with all scripts (writing systems) found in the current font.")
-		linePos += lineHeight
 
-		self.w.preferCategory = vanilla.CheckBox((inset + 2, linePos, inset + 110, 18), "Limit to category", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.preferCategory = vanilla.CheckBox("auto", "Limit to category", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.preferCategory.setToolTip("If checked, only measures glyphs belonging to the selected glyph category. Can be combined with the other Limit options. (Ignored for calculating the OS/2 usWin values.)")
-		self.w.preferCategoryPopup = vanilla.PopUpButton((inset + 108, linePos, -inset - 22, 17), ("Letter", "Number"), sizeStyle='small', callback=self.SavePreferences)
+		self.w.preferCategoryPopup = vanilla.PopUpButton("auto", ("Letter", "Number"), sizeStyle="small", callback=self.SavePreferences)
 		self.w.preferCategoryPopup.setToolTip("Choose a glyph category you want the measurements to be limited to. It may make sense to limit only to Letter.")
-		self.w.preferCategoryUpdate = UpdateButton((-inset - 18, linePos - 2, -inset, 18), callback=self.update)
+		self.w.preferCategoryUpdate = UpdateButton("auto", callback=self.update)
 		self.w.preferCategoryUpdate.setToolTip("Update the category popup to the left with all glyph categories found in the current font.")
-		linePos += int(lineHeight * 1.2)
 
-		self.w.separatorAction = vanilla.HorizontalLine((inset, linePos, -inset, 6))
-		linePos += lineHeight - 7
+		self.w.separatorAction = vanilla.HorizontalLine("auto")
 
-		self.w.writeToText = vanilla.TextBox((inset, linePos + 2, 90, 14), "Write values to", sizeStyle="small", selectable=True)
-		self.w.writeToPopup = vanilla.PopUpButton((inset + 90, linePos, -inset-22, 17), ("All masters (recommended)", "First master only (experimental)", "Font-wide (experimental)"), sizeStyle="small", callback=self.SavePreferences)
-		linePos += lineHeight
+		writeToTooltip = "Where the number values are written to: into all masters (Glyphs 3), into the first master only, or into the font itself (Glyphs 4+). Default: font-wide in Glyphs 4 and later, all masters in Glyphs 3."
+		self.w.writeToText = vanilla.TextBox("auto", "Write values to", sizeStyle="small", selectable=True)
+		self.w.writeToText.setToolTip(writeToTooltip)
+		self.w.writeToPopup = vanilla.PopUpButton("auto", ("All masters (Glyphs 3)", "First master only (experimental)", "Font-wide (Glyphs 4+)"), sizeStyle="small", callback=self.SavePreferences)
+		self.w.writeToPopup.setToolTip(writeToTooltip)
 
-		self.w.allOpenFonts = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "⚠️ Read out and apply to ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allOpenFonts = vanilla.CheckBox("auto", "⚠️ Read out and apply to ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.allOpenFonts.setToolTip("If activated, does not only measure the frontmost font, but all open fonts. Careful: when you press the Apply button, will also apply it to all open fonts. Useful if you have all font files for a font family open.")
-		linePos += lineHeight
 
 		# Run Button:
-		self.w.helpButton = vanilla.HelpButton((inset - 2, -20 - inset, 21, -inset + 2), callback=self.openURL)
+		self.w.helpButton = vanilla.HelpButton("auto", callback=self.openURL)
 		self.w.helpButton.setToolTip("Opens the Vertical Metrics tutorial (highly recommended) in your web browser.")
 
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Apply to Font", callback=self.VerticalMetricsManagerMain)
-		self.w.runButton.setToolTip("Insert the OS/2, hhea and fsSelection values above as custom parameters in the font. The number values will be inserted into each master. Blank values will delete the respective parameters.")
+		self.w.runButton = vanilla.Button("auto", "Apply to Font", callback=self.VerticalMetricsManagerMain)
+		self.w.runButton.setToolTip("Insert the OS/2, hhea and fsSelection values above as custom parameters in the font. The number values will be inserted where the Write values to popup says (all masters, first master, or font-wide), and removed from the other places. Blank values will delete the respective parameters everywhere.")
 		self.w.setDefaultButton(self.w.runButton)
 
-		# Load Settings:
-		self.LoadPreferences()
+		# checkboxes and square buttons stretch vertically by default; with everything
+		# hugging, the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
 
-		# Open window and focus on it:
+		# in the Limit rows, the checkboxes hug their text and the popups stretch up to it
+		for checkBox in (self.w.preferScript, self.w.preferCategory):
+			checkBox.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		for popup in (self.w.preferScriptPopup, self.w.preferCategoryPopup):
+			popup.getNSPopUpButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
+		# labels in front of fields: right-aligned, all the same width as the widest one
+		labelNames = ("titleWin", "titleTypo", "titleHhea", "calculateText", "writeToText")
+		widestLabel = "writeToText"  # the label with the longest text
+		for labelName in labelNames:
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+		labelRules = [
+			{"view1": getattr(self.w, labelName), "attribute1": "width", "view2": getattr(self.w, widestLabel), "attribute2": "width"}
+			for labelName in labelNames if labelName != widestLabel
+		]
+
+		# the cells of the grid share one width, measured against the first one
+		referenceCell = self.w.winAsc
+		columnRules = [
+			{"view1": cell, "attribute1": "width", "view2": referenceCell, "attribute2": "width"}
+			for cell in gridFields[1:] + (self.w.winGap, )
+		]
+		# column titles sit on top of their column
+		titleRules = []
+		for columnTitle, columnCell in ((self.w.titleAscent, self.w.winAsc), (self.w.titleDescent, self.w.winDesc), (self.w.titleLineGap, self.w.winGap)):
+			titleRules.append({"view1": columnTitle, "attribute1": "left", "view2": columnCell, "attribute2": "left"})
+			titleRules.append({"view1": columnTitle, "attribute1": "width", "view2": columnCell, "attribute2": "width"})
+
+		# everything else in a row follows the control that has the intrinsic height
+		centerRows = (
+			(self.w.titleAscent, (self.w.titleDescent, self.w.titleLineGap)),
+			(self.w.winAsc, (self.w.titleWin, self.w.winDesc, self.w.winGap, self.w.winUpdate)),
+			(self.w.typoAsc, (self.w.parenTypo, self.w.titleTypo, self.w.typoDesc, self.w.typoGap, self.w.typoUpdate)),
+			(self.w.hheaAsc, (self.w.parenHhea, self.w.titleHhea, self.w.hheaDesc, self.w.hheaGap, self.w.hheaUpdate)),
+			(self.w.useTypoMetrics, (self.w.useTypoMetricsUpdate, )),
+			(self.w.calculate, (self.w.calculateText, self.w.calculateButton)),
+			(self.w.extractButton, (self.w.extractText, )),
+			(self.w.round, (self.w.roundValue, )),
+			(self.w.preferScript, (self.w.preferScriptPopup, self.w.preferScriptUpdate)),
+			(self.w.preferCategory, (self.w.preferCategoryPopup, self.w.preferCategoryUpdate)),
+			(self.w.writeToPopup, (self.w.writeToText, )),
+			(self.w.runButton, (self.w.helpButton, )),
+		)
+		centerRules = [
+			{"view1": otherView, "attribute1": "centerY", "view2": mainView, "attribute2": "centerY"}
+			for mainView, otherViews in centerRows for otherView in otherViews
+		]
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[titleWin]-gap-[winAsc(>=50)]-gap-[winDesc]-gap-[winGap]-gap-[winUpdate(18)]-inset-|",
+				"H:|-bracketInset-[parenTypo]",
+				"H:|-inset-[titleTypo]-gap-[typoAsc]-gap-[typoDesc]-gap-[typoGap]-gap-[typoUpdate(18)]-inset-|",
+				"H:|-bracketInset-[parenHhea]",
+				"H:|-inset-[titleHhea]-gap-[hheaAsc]-gap-[hheaDesc]-gap-[hheaGap]-gap-[hheaUpdate(18)]-inset-|",
+				"H:[useTypoMetrics]-(>=gap)-[useTypoMetricsUpdate(18)]-inset-|",
+				"H:|-inset-[separatorMethods]-inset-|",
+				"H:|-inset-[descriptionMethods]-inset-|",
+				"H:|-inset-[calculateText]-gap-[calculate]-gap-[calculateButton(>=70)]-inset-|",
+				"H:|-inset-[extractText]-(>=gap)-[extractButton(>=70)]-inset-|",
+				"H:|-inset-[separator]-inset-|",
+				"H:|-inset-[descriptionMeasurements]-inset-|",
+				"H:|-inset-[round]-gap-[roundValue(60)]-(>=inset)-|",
+				"H:|-inset-[includeAllMasters]-(>=inset)-|",
+				"H:|-inset-[respectMarkToBaseOffset]-(>=inset)-|",
+				"H:|-inset-[ignoreNonExporting]-(>=inset)-|",
+				"H:|-inset-[preferSelectedGlyphs]-(>=inset)-|",
+				"H:|-inset-[preferScript]-gap-[preferScriptPopup]-gap-[preferScriptUpdate(18)]-inset-|",
+				"H:|-inset-[preferCategory]-gap-[preferCategoryPopup]-gap-[preferCategoryUpdate(18)]-inset-|",
+				"H:|-inset-[separatorAction]-inset-|",
+				"H:|-inset-[writeToText]-gap-[writeToPopup]-inset-|",
+				"H:|-inset-[allOpenFonts]-(>=inset)-|",
+				"H:|-inset-[helpButton]-(>=gap)-[runButton(>=120)]-inset-|",
+				"V:|-inset-[descriptionText]-row-[titleAscent]-row-[winAsc]-groupGap-[typoAsc]-tightRow-[hheaAsc]-row-[useTypoMetrics]-inset-[separatorMethods(1)]-inset-[descriptionMethods]-row-[calculate]-row-[extractButton]-inset-[separator(1)]-inset-[descriptionMeasurements]-row-[round]-stackRow-[includeAllMasters]-stackRow-[respectMarkToBaseOffset]-stackRow-[ignoreNonExporting]-stackRow-[preferSelectedGlyphs]-stackRow-[preferScript]-stackRow-[preferCategory]-inset-[separatorAction(1)]-inset-[writeToPopup]-checkRow-[allOpenFonts]-inset-[runButton]-inset-|",
+				# the checkbox lines up with the first column of the grid:
+				{"view1": self.w.useTypoMetrics, "attribute1": "left", "view2": self.w.winAsc, "attribute2": "left"},
+				# both popups of the Limit rows get the same width, and so do their checkboxes:
+				{"view1": self.w.preferCategory, "attribute1": "width", "view2": self.w.preferScript, "attribute2": "width"},
+				{"view1": self.w.extractButton, "attribute1": "width", "view2": self.w.calculateButton, "attribute2": "width"},
+			] + labelRules + columnRules + titleRules + centerRules,
+			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5, "stackRow": 8, "groupGap": 9, "tightRow": 3, "bracketInset": 3},
+		)
+
+		self.LoadPreferences()
 		self.w.open()
 		self.w.makeKey()
 
@@ -697,7 +793,7 @@ class VerticalMetricsManager(mekkaObject):
 		lineGap = max(0, lineGap)
 		
 		shouldRound = self.pref("round")
-		roundValue = int(self.pref("roundValue"))
+		roundValue = self.prefInt("roundValue")
 		if shouldRound:
 			ascender = roundUpByValue(ascender, roundValue)
 			descender = roundUpByValue(descender, roundValue)
@@ -783,13 +879,13 @@ class VerticalMetricsManager(mekkaObject):
 
 	def methodMicrosoft(self, sender=None):
 		shouldRound = self.pref("round")
-		roundValue = int(self.pref("roundValue"))
+		roundValue = self.prefInt("roundValue")
 		
 		self.update(sender=self.w.winUpdate)
 		
 		self.setPref("hheaAsc", self.pref("winAsc"))
 		self.setPref("hheaDesc", self.pref("winDesc"))
-		self.setPref("hheaLineGap", 0)
+		self.setPref("hheaGap", 0)
 		self.setPref("useTypoMetrics", False)
 		self.LoadPreferences()
 		
@@ -824,7 +920,7 @@ class VerticalMetricsManager(mekkaObject):
 
 	def methodGoogle(self, sender=None):
 		shouldRound = self.pref("round")
-		roundValue = int(self.pref("roundValue"))
+		roundValue = self.prefInt("roundValue")
 		ignoreNonExporting = self.pref("ignoreNonExporting")
 
 		if self.pref("allOpenFonts"):
@@ -900,6 +996,18 @@ class VerticalMetricsManager(mekkaObject):
 		self.update(sender=self.w.useTypoMetricsUpdate)
 
 
+	def removeParameter(self, thisFont, parameterName, keepInFont=False, keepMasterIndexes=()):
+		"""Deletes a custom parameter from the font and from all masters, except where it is to be kept."""
+		if not keepInFont and thisFont.customParameters[parameterName] is not None:
+			del thisFont.customParameters[parameterName]
+			print(f"  🚫 Font {thisFont.familyName}: custom parameter removed.")
+		for masterIndex, thisMaster in enumerate(thisFont.masters):
+			if masterIndex in keepMasterIndexes:
+				continue
+			if thisMaster.customParameters[parameterName] is not None:
+				del thisMaster.customParameters[parameterName]
+				print(f"  🚫 Master {thisMaster.name}: custom parameter removed.")
+
 	def VerticalMetricsManagerMain(self, sender):
 		try:
 			Glyphs.clearLog()  # clears macro window log
@@ -927,6 +1035,7 @@ class VerticalMetricsManager(mekkaObject):
 				"winAscent": winAsc,
 			}
 
+			writeTo = self.prefInt("writeToPopup")  # 0: all masters, 1: first master only, 2: font-wide
 			allOpenFonts = self.pref("allOpenFonts")
 			if allOpenFonts:
 				theseFonts = Glyphs.fonts
@@ -948,21 +1057,21 @@ class VerticalMetricsManager(mekkaObject):
 						metricValue = int(verticalMetricDict[verticalMetricName])
 						print(f"🔢 {verticalMetricName}: {metricValue}")
 
-						# clean legacy master settings:
-						if not thisFont.customParameters[verticalMetricName] is None:
-							del thisFont.customParameters[verticalMetricName]
-							print(f"  🚫 Font {thisFont.familyName}: custom parameter removed.")
-						for thisMaster in thisFont.masters:
-							if not thisMaster.customParameters[verticalMetricName] is None:
-								del thisMaster.customParameters[verticalMetricName]
-								print(f"  🚫 Master {thisMaster.name}: custom parameter removed.")
+						# remove the parameter everywhere except where the new value is written:
+						if writeTo == 0:
+							keepMasterIndexes = set(range(len(thisFont.masters)))
+						elif writeTo == 1:
+							keepMasterIndexes = {0}
+						else:
+							keepMasterIndexes = set()
+						self.removeParameter(thisFont, verticalMetricName, keepInFont=(writeTo == 2), keepMasterIndexes=keepMasterIndexes)
 
 						# write new values:
-						if self.pref("writeToPopup") == 0:
+						if writeTo == 0:
 							for thisMaster in thisFont.masters:
 								thisMaster.customParameters[verticalMetricName] = metricValue
 								print(f"  ✅ Master {thisMaster.name}: custom parameter set.")
-						elif self.pref("writeToPopup") == 2:
+						elif writeTo == 2:
 							# add to font, not to masters:
 							thisFont.customParameters[verticalMetricName] = metricValue
 							print("  ✅ Font: custom parameter set.")
@@ -973,12 +1082,7 @@ class VerticalMetricsManager(mekkaObject):
 
 					except:
 						print(f"❌ {verticalMetricName}: No valid value found. Deleting parameters:")
-						for thisMaster in thisFont.masters:
-							if not thisMaster.customParameters[verticalMetricName] is None:
-								del thisMaster.customParameters[verticalMetricName]
-								print(f"  ⚠️ Master {thisMaster.name}: custom parameter removed.")
-							else:
-								print(f"  ❎ Master {thisMaster.name}: no custom parameter found.")
+						self.removeParameter(thisFont, verticalMetricName, keepInFont=False, keepMasterIndexes=set())
 
 				useTypoMetrics = self.pref("useTypoMetrics")
 				print("*️⃣ Use Typo Metrics (fsSelection bit 7)")

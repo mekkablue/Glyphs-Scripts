@@ -3,9 +3,36 @@ __doc__ = """
 Asks a threshold percentage, and opens a new tab with all kern pairs going beyond the width threshold. Option to fix them too.
 """
 
+import objc
 import vanilla
-from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, newLineControlLayer, reportFontName
+from GlyphsApp import Glyphs, Message
+from AppKit import (
+	NSColor,
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityRequired,
+	NSLayoutPriorityWindowSizeStayPut,
+	NSTextAlignmentRight,
+)
+from Foundation import NSNumberFormatter
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
+
+
+def integerFormatter(minimum=None, maximum=None):
+	"""Number formatter that only accepts integers, optionally within a range."""
+	formatter = NSNumberFormatter.alloc().init()
+	formatter.setAllowsFloats_(False)
+	if minimum is not None:
+		formatter.setMinimum_(minimum)
+	if maximum is not None:
+		formatter.setMaximum_(maximum)
+	return formatter
 
 
 def roundedDownBy(value, base):
@@ -25,49 +52,94 @@ class NewTabwithOverkernedPairs(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 290
-		windowHeight = 200
-		windowWidthResize = 1000  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 460
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Negative Overkerns in this Master",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		inset = 15
 
-		self.w.thresholdText = vanilla.TextBox((inset, linePos + 2, 210, 14), "Open tab with kerns beyond threshold:", sizeStyle='small', selectable=True)
-		self.w.threshold = vanilla.EditText((inset + 210, linePos - 1, -inset - 15, 19), "40", callback=self.SavePreferences, sizeStyle='small')
-		self.w.thresholdPercent = vanilla.TextBox((-inset - 15, linePos + 2, -inset, 14), "%", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		tooltipText = "Max percentage of the (narrower) glyph or group width that may be kerned."
+		self.w.thresholdText = vanilla.TextBox("auto", "Open tab with kerns beyond threshold:", sizeStyle='small', selectable=True)
+		self.w.threshold = vanilla.EditText("auto", "40", callback=self.SavePreferences, sizeStyle='small')
+		self.w.thresholdPercent = vanilla.TextBox("auto", "%", sizeStyle='small', selectable=True)
+		self.w.thresholdText.setToolTip(tooltipText)
+		self.w.threshold.setToolTip(tooltipText)
 
-		self.w.descriptionText2 = vanilla.TextBox((inset, linePos + 2, -inset, 14), "(Max percentage of widths that may be kerned.)", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		self.w.descriptionText2 = vanilla.TextBox("auto", "(Max percentage of widths that may be kerned.)", sizeStyle='small', selectable=True)
+		self.w.descriptionText2.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
 
-		self.w.roundingText = vanilla.TextBox((inset, linePos + 2, 210, 14), "When fixing, round kerning values by:", sizeStyle='small', selectable=True)
-		self.w.rounding = vanilla.EditText((inset + 210, linePos - 1, -inset, 19), "5", callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		tooltipText = "When fixing overkerns, kerning values are rounded to a multiple of this value."
+		self.w.roundingText = vanilla.TextBox("auto", "When fixing, round kerning values by:", sizeStyle='small', selectable=True)
+		self.w.rounding = SteppingEditText("auto", "5", callback=self.SavePreferences, sizeStyle='small', formatter=integerFormatter(1))
+		self.w.roundingText.setToolTip(tooltipText)
+		self.w.rounding.setToolTip(tooltipText)
 
-		self.w.limitToExportingGlyphs = vanilla.CheckBox((inset + 2, linePos - 1, 170, 20), "Limit to exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.verbose = vanilla.CheckBox((inset + 170, linePos - 1, -inset, 20), "Verbose reporting (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
+		self.w.limitToExportingGlyphs = vanilla.CheckBox("auto", "Limit to exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.limitToExportingGlyphs.setToolTip("Ignore glyphs that are set not to export.")
+		self.w.verbose = vanilla.CheckBox("auto", "Verbose reporting (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.verbose.setToolTip("Report every overkerned pair in the Macro Window.")
 
-		self.w.ignoreText = vanilla.TextBox((inset, linePos + 2, 140, 14), "Ignore glyphs containing:", sizeStyle="small", selectable=True)
-		self.w.ignore = vanilla.EditText((inset + 140, linePos, -inset, 19), "fraction, .percent", callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
+		tooltipText = "Glyphs and kerning groups whose names contain any of these comma-separated particles are ignored."
+		self.w.ignoreText = vanilla.TextBox("auto", "Ignore glyphs containing:", sizeStyle="small", selectable=True)
+		self.w.ignore = vanilla.EditText("auto", "fraction, .percent", callback=self.SavePreferences, sizeStyle="small")
+		self.w.ignoreText.setToolTip(tooltipText)
+		self.w.ignore.setToolTip(tooltipText)
 
-		self.w.scopeText = vanilla.TextBox((inset, linePos + 2, 50, 14), "Apply to", sizeStyle="small", selectable=True)
-		self.w.scope = vanilla.PopUpButton((inset + 50, linePos, -inset, 17), ("current master of current font", "⚠️ ALL masters of current font", "⚠️ ALL masters of ⚠️ ALL open fonts"), sizeStyle="small", callback=self.SavePreferences)
-		linePos += lineHeight
+		tooltipText = "Which masters of which fonts to look at."
+		self.w.scopeText = vanilla.TextBox("auto", "Apply to:", sizeStyle="small", selectable=True)
+		self.w.scope = vanilla.PopUpButton("auto", ("current master of current font", "⚠️ ALL masters of current font", "⚠️ ALL masters of ⚠️ ALL open fonts"), sizeStyle="small", callback=self.SavePreferences)
+		self.w.scopeText.setToolTip(tooltipText)
+		self.w.scope.setToolTip(tooltipText)
 
-		# Run Button:
-		self.w.fixButton = vanilla.Button((-180 - inset, -20 - inset, -110 - inset, -inset), "Fix", callback=self.NewTabwithOverkernedPairsMain)
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Report", callback=self.NewTabwithOverkernedPairsMain)
+		# Buttons:
+		self.w.fixButton = vanilla.Button("auto", "Fix", callback=self.NewTabwithOverkernedPairsMain)
+		self.w.fixButton.setToolTip("Rounds overkerned pairs down to the maximum allowed value and opens a tab with the affected pairs.")
+		self.w.runButton = vanilla.Button("auto", "Report", callback=self.NewTabwithOverkernedPairsMain)
+		self.w.runButton.setToolTip("Opens a tab with the overkerned pairs, without changing any kerning.")
 		self.w.setDefaultButton(self.w.runButton)
+
+		# labels: right-aligned, same width
+		labelNames = ("thresholdText", "roundingText", "ignoreText", "scopeText")
+		widestLabel = "thresholdText"  # the label with the longest text
+		for labelName in labelNames:
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+		widthRules = [
+			{"view1": getattr(self.w, labelName), "attribute1": "width", "view2": getattr(self.w, widestLabel), "attribute2": "width"}
+			for labelName in labelNames if labelName != widestLabel
+		]
+
+		# checkboxes stretch vertically by default; hug so the window is as tall as its content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[thresholdText]-gap-[threshold(50)]-gap-[thresholdPercent]-(>=inset)-|",
+				"H:|-inset-[descriptionText2]-inset-|",
+				"H:|-inset-[roundingText]-gap-[rounding(50)]-(>=inset)-|",
+				"H:|-inset-[limitToExportingGlyphs]-gap-[verbose]-(>=inset)-|",
+				"H:|-inset-[ignoreText]-gap-[ignore]-inset-|",
+				"H:|-inset-[scopeText]-gap-[scope]-inset-|",
+				"H:|-(>=inset)-[fixButton(>=70)]-gap-[runButton(>=70)]-inset-|",
+				"V:|-gap-[threshold]-row-[descriptionText2]-row-[rounding]-row-[limitToExportingGlyphs]-row-[ignore]-row-[scope]-inset-[runButton]-inset-|",
+				"V:[fixButton]-inset-|",
+				{"view1": self.w.thresholdText, "attribute1": "centerY", "view2": self.w.threshold, "attribute2": "centerY"},
+				{"view1": self.w.thresholdPercent, "attribute1": "centerY", "view2": self.w.threshold, "attribute2": "centerY"},
+				{"view1": self.w.roundingText, "attribute1": "centerY", "view2": self.w.rounding, "attribute2": "centerY"},
+				{"view1": self.w.verbose, "attribute1": "centerY", "view2": self.w.limitToExportingGlyphs, "attribute2": "centerY"},
+				{"view1": self.w.ignoreText, "attribute1": "centerY", "view2": self.w.ignore, "attribute2": "centerY"},
+				{"view1": self.w.scopeText, "attribute1": "centerY", "view2": self.w.scope, "attribute2": "centerY"},
+			] + widthRules,
+			metrics={"inset": inset, "gap": 8, "row": 6},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -83,7 +155,7 @@ class NewTabwithOverkernedPairs(mekkaObject):
 					if particle in glyphName:
 						return True
 				return False
-			
+
 			# clear macro window log:
 			Glyphs.clearLog()
 			shouldFix = sender == self.w.fixButton
@@ -170,7 +242,7 @@ class NewTabwithOverkernedPairs(mekkaObject):
 							continue
 						if leftKey[0] != "@" and glyphNameContainsIgnoredParticle(thisFont.glyphForId_(leftKey).name, ignores):
 							continue
-						
+
 						for rightKey in masterKerning[leftKey].keys():
 							if rightKey[0] == "@" and (not rightKey[7:] in leftGroupMinimumWidths.keys() or glyphNameContainsIgnoredParticle(rightKey, ignores)):
 								continue

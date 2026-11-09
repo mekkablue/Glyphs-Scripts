@@ -8,7 +8,14 @@ import sys
 from mekkablue import mekkaObject, UpdateButton, reportFontName
 from GlyphsApp import Glyphs, GSLayer, GSCustomParameter, Message
 from Foundation import NSString
-from AppKit import NSFont
+from AppKit import (
+	NSFont,
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityRequired,
+	NSLayoutPriorityWindowSizeStayPut,
+)
 # from copy import copy
 
 filterPrefix = """
@@ -66,52 +73,72 @@ class ColorPaletteMultiplier(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 280
-		windowHeight = 360
-		windowWidthResize = 400  # user can resize width by this value
-		windowHeightResize = 1000   # user can resize height by this value
+		windowWidth = 320
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Color Palette Multiplier",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		self.w.deriveText = vanilla.TextBox((inset, linePos+2, 70, 14), "Derive from", sizeStyle="small", selectable=True)
-		self.w.derive = vanilla.PopUpButton((inset+70, linePos, -inset-22, 17), self.currentColors(), sizeStyle="small", callback=self.SavePreferences)
-		self.w.deriveUpdate = UpdateButton((-inset-16, linePos-3, -inset, 18), callback=self.updateDerive)
-		linePos += lineHeight
+		inset = 15
+		self.w.deriveText = vanilla.TextBox("auto", "Derive from", sizeStyle="small", selectable=True)
+		self.w.derive = vanilla.PopUpButton("auto", self.currentColors(), sizeStyle="small", callback=self.SavePreferences)
+		self.w.deriveUpdate = UpdateButton("auto", callback=self.updateDerive)
+		tooltipText = "The color layers with this palette index are copied and processed to build the target colors."
+		self.w.deriveText.setToolTip(tooltipText)
+		self.w.derive.setToolTip(tooltipText)
+		self.w.deriveUpdate.setToolTip("Reload the color list from the Color Palettes parameter of the frontmost font.")
 
-		self.w.allGlyphs = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Apply to all glyphs (otherwise selected only)", value=False, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
+		self.w.allGlyphs = vanilla.CheckBox("auto", "Apply to all glyphs (otherwise selected only)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.overwrite = vanilla.CheckBox("auto", "Overwrite preexisting target colors", value=False, callback=self.SavePreferences, sizeStyle="small")
 
-		self.w.overwrite = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Overwrite preexisting target colors", value=False, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
+		self.w.descriptionText = vanilla.TextBox("auto", "Build target colors with filter parameters:", sizeStyle="small", selectable=True)
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos+2, -inset, 14), "Build target colors with filter parameters:", sizeStyle="small", selectable=True)
-		linePos += lineHeight
-
-		self.w.build = vanilla.TextEditor((1, linePos, -1, -40), "", callback=self.CleanInputAndSavePreferences)
+		self.w.build = vanilla.TextEditor("auto", "", callback=self.CleanInputAndSavePreferences)
 		self.w.build.getNSTextView().setFont_(NSFont.userFixedPitchFontOfSize_(14.0))
 		self.w.build.getNSTextView().turnOffLigatures_(1)
 		self.w.build.getNSTextView().useStandardLigatures_(0)
 		self.w.build.selectAll()
-	
+
 		# Action Button:
 		actionItems = (
-			{"title": "Add RemoveOverlap", "callback":self.removeOverlaps},
-			{"title": "Add CorrectPathDirections", "callback":self.correctPathDirections},
-			{"title": "Add TurnAllPathsClockwise", "callback":self.turnAllPathsClockwise},
-			{"title": "Add TurnAllPathsCounterClockwise", "callback":self.turnAllPathsCounterClockwise},
+			{"title": "Add RemoveOverlap", "callback": self.removeOverlaps},
+			{"title": "Add CorrectPathDirections", "callback": self.correctPathDirections},
+			{"title": "Add TurnAllPathsClockwise", "callback": self.turnAllPathsClockwise},
+			{"title": "Add TurnAllPathsCounterClockwise", "callback": self.turnAllPathsCounterClockwise},
 		)
-		self.w.ActionButton = vanilla.ActionButton((inset, -20-inset, 40, 20), actionItems, sizeStyle="regular")
-		
+		self.w.ActionButton = vanilla.ActionButton("auto", actionItems, sizeStyle="regular")
+
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80-inset, -20-inset, -inset, -inset), "Build", sizeStyle="regular", callback=self.ColorPaletteMultiplierMain)
+		self.w.runButton = vanilla.Button("auto", "Build", sizeStyle="regular", callback=self.ColorPaletteMultiplierMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# label hugs its text, so the popup takes the leftover width
+		nsLabel = self.w.deriveText.getNSTextField()
+		nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		# checkboxes stretch vertically by default; hug so the window is as tall as its content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[deriveText]-gap-[derive]-gap-[deriveUpdate(20)]-inset-|",
+				"H:|-inset-[allGlyphs]-(>=inset)-|",
+				"H:|-inset-[overwrite]-(>=inset)-|",
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[build]-inset-|",
+				"H:|-inset-[ActionButton(40)]-(>=gap)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[derive]-row-[allGlyphs]-checkRow-[overwrite]-row-[descriptionText]-row-[build(200)]-inset-[runButton]-inset-|",
+				"V:[ActionButton]-inset-|",
+				{"view1": self.w.deriveText, "attribute1": "centerY", "view2": self.w.derive, "attribute2": "centerY"},
+				{"view1": self.w.deriveUpdate, "attribute1": "centerY", "view2": self.w.derive, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -119,7 +146,7 @@ class ColorPaletteMultiplier(mekkaObject):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-	
+
 	def CleanInputAndSavePreferences(self, sender=None):
 		currentText = self.w.build.get()
 		originalText = currentText

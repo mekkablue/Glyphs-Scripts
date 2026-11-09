@@ -3,10 +3,25 @@ __doc__ = """
 Add OpenType feature with pseudorandom GPOS baseline shift for all glyphs in a class.
 """
 
+import objc
 import vanilla
 from random import randint
-from GlyphsApp import Glyphs, GSFeature, GSClass, Message
 from mekkablue import mekkaObject, UpdateButton, reportFontName
+from GlyphsApp import Glyphs, GSFeature, GSClass, Message
+from AppKit import (
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityRequired,
+	NSLayoutPriorityWindowSizeStayPut,
+	NSTextAlignmentRight,
+)
+from Foundation import NSNumberFormatter
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 allPossibleFeatures = [
@@ -105,48 +120,98 @@ class BaselineWiggle(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 240
-		windowHeight = 204
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 270
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Baseline Wiggle",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight, tab = 12, 15, 22, 100
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Create pseudorandom glyph wiggles:", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		self.w.descriptionText = vanilla.TextBox("auto", "Create pseudorandom glyph wiggles:", sizeStyle="small", selectable=True)
 
-		self.w.otClassText = vanilla.TextBox((inset, linePos + 2, tab, 14), "with class:", sizeStyle='small', selectable=True)
-		self.w.otClass = vanilla.ComboBox((inset + tab, linePos - 1, -inset - 24, 19), ["All"] + sorted([c.name for c in Glyphs.font.classes if not c.name == "All"]), sizeStyle='small', callback=self.SavePreferences)
-		self.w.otClassUpdate = UpdateButton((-inset - 18, linePos - 2, -inset, 18), callback=self.update)
-		linePos += lineHeight
+		tooltipText = "Name of the OpenType class containing the glyphs that receive the wiggle. ‘All’ will be created from all exporting glyphs if it does not exist yet."
+		self.w.otClassText = vanilla.TextBox("auto", "with class:", sizeStyle="small", selectable=True)
+		self.w.otClass = vanilla.ComboBox("auto", ["All"] + sorted([c.name for c in Glyphs.font.classes if not c.name == "All"]), sizeStyle="small", callback=self.SavePreferences)
+		self.w.otClassUpdate = UpdateButton("auto", callback=self.update)
+		self.w.otClassText.setToolTip(tooltipText)
+		self.w.otClass.setToolTip(tooltipText)
+		self.w.otClassUpdate.setToolTip("Reload the classes of the frontmost font.")
 
-		self.w.otFeatureText = vanilla.TextBox((inset, linePos + 2, tab, 14), "in feature:", sizeStyle='small', selectable=True)
-		self.w.otFeature = vanilla.ComboBox((inset + tab, linePos - 1, -inset, 19), allPossibleFeatures, sizeStyle='small', callback=self.SavePreferences)
-		linePos += lineHeight
+		tooltipText = "Name of the OpenType feature that receives the wiggle code. Will be created if it does not exist yet."
+		self.w.otFeatureText = vanilla.TextBox("auto", "in feature:", sizeStyle="small", selectable=True)
+		self.w.otFeature = vanilla.ComboBox("auto", allPossibleFeatures, sizeStyle="small", callback=self.SavePreferences)
+		self.w.otFeatureText.setToolTip(tooltipText)
+		self.w.otFeature.setToolTip(tooltipText)
 
-		self.w.wiggleMinText = vanilla.TextBox((inset, linePos + 2, tab, 14), "lowest wiggle:", sizeStyle='small', selectable=True)
-		self.w.wiggleMin = vanilla.EditText((inset + tab, linePos, -inset, 19), "-50", callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		# whole numbers, negative values allowed
+		wiggleFormatter = NSNumberFormatter.alloc().init()
+		wiggleFormatter.setAllowsFloats_(False)
 
-		self.w.wiggleMaxText = vanilla.TextBox((inset, linePos + 2, tab, 14), "highest wiggle:", sizeStyle='small', selectable=True)
-		self.w.wiggleMax = vanilla.EditText((inset + tab, linePos, -inset, 19), "50", callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		tooltipText = "Lowest vertical shift (in units) the random wiggle can have. Negative values shift down."
+		self.w.wiggleMinText = vanilla.TextBox("auto", "lowest wiggle:", sizeStyle="small", selectable=True)
+		self.w.wiggleMin = SteppingEditText("auto", "-50", callback=self.SavePreferences, sizeStyle="small", formatter=wiggleFormatter)
+		self.w.wiggleMinText.setToolTip(tooltipText)
+		self.w.wiggleMin.setToolTip(tooltipText)
 
-		self.w.lineLengthText = vanilla.TextBox((inset, linePos + 2, tab, 14), "for line length:", sizeStyle='small', selectable=True)
-		self.w.lineLength = vanilla.EditText((inset + tab, linePos, -inset, 19), "70", callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		tooltipText = "Highest vertical shift (in units) the random wiggle can have."
+		self.w.wiggleMaxText = vanilla.TextBox("auto", "highest wiggle:", sizeStyle="small", selectable=True)
+		self.w.wiggleMax = SteppingEditText("auto", "50", callback=self.SavePreferences, sizeStyle="small", formatter=wiggleFormatter)
+		self.w.wiggleMaxText.setToolTip(tooltipText)
+		self.w.wiggleMax.setToolTip(tooltipText)
+
+		lineLengthFormatter = NSNumberFormatter.alloc().init()
+		lineLengthFormatter.setAllowsFloats_(False)
+		lineLengthFormatter.setMinimum_(1)
+		tooltipText = "Number of glyphs in a line, i.e., how many glyphs long the wiggle context rules reach."
+		self.w.lineLengthText = vanilla.TextBox("auto", "for line length:", sizeStyle="small", selectable=True)
+		self.w.lineLength = SteppingEditText("auto", "70", callback=self.SavePreferences, sizeStyle="small", formatter=lineLengthFormatter)
+		self.w.lineLengthText.setToolTip(tooltipText)
+		self.w.lineLength.setToolTip(tooltipText)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((inset, -20 - inset, -inset, -inset), "Wiggle", callback=self.BaselineWiggleMain)
+		self.w.runButton = vanilla.Button("auto", "Wiggle", callback=self.BaselineWiggleMain)
+		self.w.runButton.setToolTip("Create the class and feature code in the frontmost font.")
 		self.w.setDefaultButton(self.w.runButton)
+
+		# labels: right-aligned, same width
+		labelNames = ("otClassText", "otFeatureText", "wiggleMinText", "wiggleMaxText", "lineLengthText")
+		widestLabel = "lineLengthText"  # the label with the longest text
+		for labelName in labelNames:
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+		widthRules = [
+			{"view1": getattr(self.w, labelName), "attribute1": "width", "view2": getattr(self.w, widestLabel), "attribute2": "width"}
+			for labelName in labelNames if labelName != widestLabel
+		]
+		centerRules = [
+			{"view1": getattr(self.w, labelName), "attribute1": "centerY", "view2": getattr(self.w, labelName[:-4]), "attribute2": "centerY"}
+			for labelName in labelNames
+		]
+
+		# hug vertically so the window is as tall as its content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[otClassText]-gap-[otClass]-gap-[otClassUpdate(20)]-inset-|",
+				"H:|-inset-[otFeatureText]-gap-[otFeature]-inset-|",
+				"H:|-inset-[wiggleMinText]-gap-[wiggleMin(60)]-(>=inset)-|",
+				"H:|-inset-[wiggleMaxText]-gap-[wiggleMax(60)]-(>=inset)-|",
+				"H:|-inset-[lineLengthText]-gap-[lineLength(60)]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[descriptionText]-row-[otClass]-row-[otFeature]-row-[wiggleMin]-row-[wiggleMax]-row-[lineLength]-inset-[runButton]-inset-|",
+				{"view1": self.w.otClassUpdate, "attribute1": "centerY", "view2": self.w.otClass, "attribute2": "centerY"},
+			] + widthRules + centerRules,
+			metrics={"inset": inset, "gap": 8, "row": 6},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()

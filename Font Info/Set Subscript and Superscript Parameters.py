@@ -3,10 +3,26 @@ __doc__ = """
 Measures your superior and inferior figures and derives subscript/superscript X/Y offset/size parameters.
 """
 
-import vanilla
 import math
-from GlyphsApp import Glyphs, Message
+
+import objc
+import vanilla
 from mekkablue import mekkaObject, UpdateButton
+from GlyphsApp import Glyphs, Message
+from AppKit import (
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityRequired,
+	NSLayoutPriorityWindowSizeStayPut,
+	NSTextAlignmentRight,
+)
+from Foundation import NSNumberFormatter
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 class CalculateSubscriptAndSuperscriptParameters(mekkaObject):
@@ -25,69 +41,106 @@ class CalculateSubscriptAndSuperscriptParameters(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 350
-		windowHeight = 170
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 440
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Set Subscript and Superscript Parameters",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Calculate custom parameters in Font Info > Masters", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		self.w.descriptionText = vanilla.TextBox("auto", "Calculate custom parameters in Font Info > Masters", sizeStyle="small", selectable=True)
 
-		self.w.subscriptCheck = vanilla.CheckBox((inset + 2, linePos, 80, 20), "Subscript", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.subscriptSample = vanilla.EditText((inset + 80, linePos, -inset - 170, 19), "oneinferior", callback=self.SavePreferences, sizeStyle='small')
-		self.w.subscriptReferenceText = vanilla.TextBox((-inset - 165, linePos + 3, -inset - 95, 14), "in relation to", sizeStyle='small', selectable=True)
-		self.w.subscriptReference = vanilla.EditText((-inset - 92, linePos, -inset - 22, 19), "one", callback=self.SavePreferences, sizeStyle='small')
-		self.w.subscriptReset = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.resetValues)
-		# tooltips:
-		tooltip = "If enabled, will calculate: subscriptXOffsetName, subscriptYOffsetName, subscriptXSizeName, subscriptYSizeName. The subscript glyph (on the left) will be measured in relation to the reference glyph on the right; offset and size scale will be computed from their differences."
-		self.w.subscriptSample.setToolTip(tooltip)
-		self.w.subscriptReference.setToolTip(tooltip)
-		self.w.subscriptCheck.setToolTip(tooltip)
-		self.w.subscriptReferenceText.setToolTip(tooltip)
-		self.w.subscriptReset.setToolTip("Resets the subscript reference glyphs to oneinferior vs. one.")
-		linePos += lineHeight
+		for prefix, title in (("sub", "Subscript"), ("super", "Superscript")):
+			sampleName = "oneinferior" if prefix == "sub" else "onesuperior"
+			tooltip = (
+				f"If enabled, will calculate: {prefix}scriptXOffsetName, {prefix}scriptYOffsetName, {prefix}scriptXSizeName, {prefix}scriptYSizeName. "
+				f"The {prefix}script glyph (on the left) will be measured in relation to the reference glyph on the right; "
+				"offset and size scale will be computed from their differences."
+			)
+			check = vanilla.CheckBox("auto", title, value=True, callback=self.SavePreferences, sizeStyle="small")
+			sample = vanilla.EditText("auto", sampleName, callback=self.SavePreferences, sizeStyle="small")
+			referenceText = vanilla.TextBox("auto", "in relation to", sizeStyle="small", selectable=True)
+			reference = vanilla.EditText("auto", "one", callback=self.SavePreferences, sizeStyle="small")
+			reset = UpdateButton("auto", callback=self.resetValues)
+			for element in (check, sample, referenceText, reference):
+				element.setToolTip(tooltip)
+			reset.setToolTip(f"Resets the {prefix}script reference glyphs to {sampleName} vs. one.")
+			setattr(self.w, f"{prefix}scriptCheck", check)
+			setattr(self.w, f"{prefix}scriptSample", sample)
+			setattr(self.w, f"{prefix}scriptReferenceText", referenceText)
+			setattr(self.w, f"{prefix}scriptReference", reference)
+			setattr(self.w, f"{prefix}scriptReset", reset)
 
-		self.w.superscriptCheck = vanilla.CheckBox((inset + 2, linePos, 80, 20), "Superscript", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.superscriptSample = vanilla.EditText((inset + 80, linePos, -inset - 170, 19), "onesuperior", callback=self.SavePreferences, sizeStyle='small')
-		self.w.superscriptReferenceText = vanilla.TextBox((-inset - 165, linePos + 3, -inset - 95, 14), "in relation to", sizeStyle='small', selectable=True)
-		self.w.superscriptReference = vanilla.EditText((-inset - 92, linePos, -inset - 22, 19), "one", callback=self.SavePreferences, sizeStyle='small')
-		self.w.superscriptReset = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.resetValues)
-		# tooltips:
-		tooltip = "If enabled, will calculate: superscriptXOffsetName, superscriptYOffsetName, superscriptXSizeName, superscriptYSizeName. The superscript glyph (on the left) will be measured in relation to the reference glyph on the right; offset and size scale will be computed from their differences."
-		self.w.superscriptSample.setToolTip(tooltip)
-		self.w.superscriptReference.setToolTip(tooltip)
-		self.w.superscriptCheck.setToolTip(tooltip)
-		self.w.superscriptReferenceText.setToolTip(tooltip)
-		self.w.superscriptReset.setToolTip("Resets the superscript reference glyphs to onesuperior vs. one.")
-		linePos += lineHeight
-
-		self.w.roundValues = vanilla.CheckBox((inset + 2, linePos, 130, 20), "Round all values by", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.roundBy = vanilla.EditText((inset + 120, linePos, 50, 19), "10", callback=self.SavePreferences, sizeStyle='small')
-		self.w.xSizeEqualsYSize = vanilla.CheckBox((inset + 180, linePos, -inset, 20), "xSize=ySize", value=False, callback=self.SavePreferences, sizeStyle='small')
-		# tooltips:
 		tooltip = "If enabled, will round all calculated values by the given amount. Recommended: 5 or 10."
+		self.w.roundValues = vanilla.CheckBox("auto", "Round all values by", value=False, callback=self.SavePreferences, sizeStyle="small")
+		roundByFormatter = NSNumberFormatter.alloc().init()
+		roundByFormatter.setAllowsFloats_(False)
+		roundByFormatter.setMinimum_(1)
+		self.w.roundBy = SteppingEditText("auto", "10", callback=self.SavePreferences, sizeStyle="small", formatter=roundByFormatter)
+		self.w.xSizeEqualsYSize = vanilla.CheckBox("auto", "xSize=ySize", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.roundValues.setToolTip(tooltip)
 		self.w.roundBy.setToolTip(tooltip)
 		self.w.xSizeEqualsYSize.setToolTip("If enabled, will set the horizontal scale to the same value as the vertical scale, ensuring a proportional scale. Especially useful for italics.")
-		linePos += lineHeight
 
-		self.w.syncWithFirstMaster = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Sync all values with first master", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.syncWithFirstMaster = vanilla.CheckBox("auto", "Sync all values with first master", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.syncWithFirstMaster.setToolTip("If enabled, will insert the same values in all masters.")
-		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Insert", callback=self.CalculateSubscriptAndSuperscriptParametersMain)
+		self.w.runButton = vanilla.Button("auto", "Insert", callback=self.CalculateSubscriptAndSuperscriptParametersMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# the 'in relation to' labels hug their text and resist compression
+		for referenceText in (self.w.subscriptReferenceText, self.w.superscriptReferenceText):
+			nsLabel = referenceText.getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+		for check in (self.w.subscriptCheck, self.w.superscriptCheck):
+			nsCheck = check.getNSButton()
+			nsCheck.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsCheck.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		# checkboxes stretch vertically by default; hug so the window is as tall as its content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		def equalWidth(view1, view2):
+			return {"view1": view1, "attribute1": "width", "view2": view2, "attribute2": "width"}
+
+		def centerY(view1, view2):
+			return {"view1": view1, "attribute1": "centerY", "view2": view2, "attribute2": "centerY"}
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[subscriptCheck]-gap-[subscriptSample(>=70)]-gap-[subscriptReferenceText]-gap-[subscriptReference(>=70)]-gap-[subscriptReset(20)]-inset-|",
+				"H:|-inset-[superscriptCheck]-gap-[superscriptSample(>=70)]-gap-[superscriptReferenceText]-gap-[superscriptReference(>=70)]-gap-[superscriptReset(20)]-inset-|",
+				"H:|-inset-[roundValues]-gap-[roundBy(50)]-gap-[xSizeEqualsYSize]-(>=inset)-|",
+				"H:|-inset-[syncWithFirstMaster]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-inset-[descriptionText]-row-[subscriptSample]-row-[superscriptSample]-row-[roundBy]-checkRow-[syncWithFirstMaster]-inset-[runButton]-inset-|",
+				equalWidth(self.w.superscriptCheck, self.w.subscriptCheck),
+				equalWidth(self.w.superscriptReferenceText, self.w.subscriptReferenceText),
+				equalWidth(self.w.subscriptReference, self.w.subscriptSample),
+				equalWidth(self.w.superscriptSample, self.w.subscriptSample),
+				equalWidth(self.w.superscriptReference, self.w.subscriptSample),
+				centerY(self.w.subscriptCheck, self.w.subscriptSample),
+				centerY(self.w.subscriptReferenceText, self.w.subscriptSample),
+				centerY(self.w.subscriptReference, self.w.subscriptSample),
+				centerY(self.w.subscriptReset, self.w.subscriptSample),
+				centerY(self.w.superscriptCheck, self.w.superscriptSample),
+				centerY(self.w.superscriptReferenceText, self.w.superscriptSample),
+				centerY(self.w.superscriptReference, self.w.superscriptSample),
+				centerY(self.w.superscriptReset, self.w.superscriptSample),
+				centerY(self.w.roundValues, self.w.roundBy),
+				centerY(self.w.xSizeEqualsYSize, self.w.roundBy),
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -100,7 +153,7 @@ class CalculateSubscriptAndSuperscriptParameters(mekkaObject):
 	def resetValues(self, sender=None):
 		if sender == self.w.subscriptReset:
 			self.setPref("subscriptSample", "oneinferior")
-			self.setPref("subscriptReference" "one")
+			self.setPref("subscriptReference", "one")
 		if sender == self.w.superscriptReset:
 			self.setPref("superscriptSample", "onesuperior")
 			self.setPref("superscriptReference", "one")

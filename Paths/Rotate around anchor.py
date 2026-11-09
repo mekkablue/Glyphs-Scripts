@@ -5,20 +5,27 @@ Rotate selected glyphs (or selected paths and components) around a 'rotate' anch
 
 from math import isfinite
 
+import objc
 import vanilla
+from mekkablue import mekkaObject, newAnchorWithName, UpdateButton
+from mekkablue.geometry import centerOfRect
+from GlyphsApp import Glyphs
 from AppKit import (
 	NSLayoutConstraintOrientationHorizontal,
 	NSLayoutConstraintOrientationVertical,
 	NSLayoutPriorityDefaultHigh,
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
+	NSTextAlignmentRight,
 )
-from Foundation import NSPoint, NSAffineTransform
-from GlyphsApp import Glyphs
-from mekkablue import mekkaObject, newAnchorWithName, UpdateButton
-from mekkablue.geometry import centerOfRect
+from Foundation import NSAffineTransform, NSNumberFormatter, NSPoint
 
 rotateAnchorName = "rotate"
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 class Rotator(mekkaObject):
@@ -40,8 +47,10 @@ class Rotator(mekkaObject):
 		)
 
 		self.w.anchor_text = vanilla.TextBox("auto", "Set 'rotate' anchor", sizeStyle='small')
-		self.w.anchor_x = vanilla.EditText("auto", "0", sizeStyle='small', callback=self.SavePreferences)
-		self.w.anchor_y = vanilla.EditText("auto", "0", sizeStyle='small', callback=self.SavePreferences)
+		anchorFormatter = NSNumberFormatter.alloc().init()
+		anchorFormatter.setAllowsFloats_(False)  # integers, negative values allowed
+		self.w.anchor_x = SteppingEditText("auto", "0", sizeStyle='small', callback=self.SavePreferences, formatter=anchorFormatter)
+		self.w.anchor_y = SteppingEditText("auto", "0", sizeStyle='small', callback=self.SavePreferences, formatter=anchorFormatter)
 		self.w.updateButton = UpdateButton("auto", callback=self.updateRotateAnchor)
 		self.w.anchor_button = vanilla.Button("auto", "Insert", sizeStyle='small', callback=self.insertRotateAnchor)
 
@@ -52,14 +61,18 @@ class Rotator(mekkaObject):
 		self.w.rotate_cw = vanilla.Button("auto", u"↻ cw", sizeStyle='small', callback=self.rotate)
 
 		self.w.stepAndRepeat_text1 = vanilla.TextBox("auto", "Repeat", sizeStyle='small')
-		self.w.stepAndRepeat_times = vanilla.EditText("auto", "5", sizeStyle='small', callback=self.SavePreferences)
+		timesFormatter = NSNumberFormatter.alloc().init()
+		timesFormatter.setAllowsFloats_(False)
+		timesFormatter.setMinimum_(0)
+		self.w.stepAndRepeat_times = SteppingEditText("auto", "5", sizeStyle='small', callback=self.SavePreferences, formatter=timesFormatter)
 		self.w.stepAndRepeat_text2 = vanilla.TextBox("auto", "times", sizeStyle='small')
 		self.w.stepAndRepeat_ccw = vanilla.Button("auto", u"↺+ ccw", sizeStyle='small', callback=self.rotate)
 		self.w.stepAndRepeat_cw = vanilla.Button("auto", u"↻+ cw", sizeStyle='small', callback=self.rotate)
 
-		# the labels of the three rows share one width and resist compression:
+		# the labels of the three rows are right-aligned, share one width and resist compression:
 		for label in (self.w.anchor_text, self.w.rotate_text1, self.w.stepAndRepeat_text1):
 			nsLabel = label.getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
 			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
 			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 
@@ -94,7 +107,7 @@ class Rotator(mekkaObject):
 		for field, others in rowFields.items():
 			for other in others:
 				rules.append({"view1": other, "attribute1": "centerY", "view2": field, "attribute2": "centerY"})
-		self.w.addAutoPosSizeRules(rules, metrics={"inset": 12, "gap": 8, "row": 8})
+		self.w.addAutoPosSizeRules(rules, metrics={"inset": 15, "gap": 8, "row": 6})
 
 		self.LoadPreferences()
 
@@ -106,8 +119,8 @@ class Rotator(mekkaObject):
 		try:
 			selectedLayers = Glyphs.currentDocument.selectedLayers()
 			myRotationCenter = NSPoint()
-			myRotationCenter.x = int(self.pref("anchor_x"))
-			myRotationCenter.y = int(self.pref("anchor_y"))
+			myRotationCenter.x = self.prefInt("anchor_x")
+			myRotationCenter.y = self.prefInt("anchor_y")
 			myRotationAnchor = newAnchorWithName("#%s" % rotateAnchorName, myRotationCenter)
 			for thisLayer in selectedLayers:
 				# adds '#rotate' if it doesn't exist, resets it if it exists:
@@ -172,14 +185,14 @@ class Rotator(mekkaObject):
 			rotationDirection = -1
 
 		if "+" in originatingButton:
-			repeatCount = int(self.pref("stepAndRepeat_times"))
+			repeatCount = self.prefInt("stepAndRepeat_times")
 		else:
 			repeatCount = 0
 
 		rotationDegrees = float(self.pref("rotate_degrees"))
 		rotationCenter = NSPoint(
-			int(self.pref("anchor_x")),
-			int(self.pref("anchor_y")),
+			self.prefInt("anchor_x"),
+			self.prefInt("anchor_y"),
 		)
 
 		if len(selectedLayers) == 1:

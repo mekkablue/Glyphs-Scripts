@@ -5,7 +5,7 @@ Add Grade axis and/or Grade master, based on your Weight and Width axes.
 """
 
 import vanilla
-from AppKit import NSAffineTransform, NSPoint
+from AppKit import NSAffineTransform, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSPoint, NSTextAlignmentRight
 from copy import copy
 from GlyphsApp import Glyphs, GSInstance, GSUppercase, GSSmallcaps, GSSMOOTH, GSOFFCURVE, GSAxis, GSCustomParameter, Message
 from mekkablue import mekkaObject, UpdateButton, reportFontName
@@ -265,60 +265,86 @@ class AddGrade(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 440
-		windowHeight = 208
-		windowWidthResize = 200  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 470
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Add Grade",  # window title
-			autosaveName=self.domain("mainwindow"),  # stores last window position and size
+			autosaveName=self.domain("mainwindow"),  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		indent = 97
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Add Grade master (and if necessary Grade axis)", sizeStyle="small", selectable=True)
-		linePos += lineHeight
+		self.w.descriptionText = vanilla.TextBox("auto", "Add Grade master (and if necessary Grade axis)", sizeStyle="small", selectable=True)
 
-		self.w.baseMasterText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Based on master", sizeStyle="small", selectable=True)
-		self.w.baseMaster = vanilla.PopUpButton((inset + indent, linePos - 1, -inset - 22, 17), self.mastersOfCurrentFont(), sizeStyle="small", callback=self.SavePreferences)
-		self.w.updateBaseMaster = UpdateButton((-inset - 18, linePos - 2, -inset, 18), callback=self.updateFromButton)
-		linePos += lineHeight
+		self.w.baseMasterText = vanilla.TextBox("auto", "Based on master", sizeStyle="small", selectable=True)
+		self.w.baseMaster = vanilla.PopUpButton("auto", self.mastersOfCurrentFont(), sizeStyle="small", callback=self.SavePreferences)
+		self.w.updateBaseMaster = UpdateButton("auto", callback=self.updateFromButton)
 
-		self.w.weightText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Use coordinate", sizeStyle="small", selectable=True)
-		self.w.weight = vanilla.ComboBox((inset + indent, linePos - 2, -inset - 22, 19), self.weightValuesForCurrentFont(), sizeStyle="small", callback=self.SavePreferences)
-		self.w.updateWeight = UpdateButton((-inset - 18, linePos - 2, -inset, 18), callback=self.updateFromButton)
-		linePos += lineHeight
+		self.w.weightText = vanilla.TextBox("auto", "Use coordinate", sizeStyle="small", selectable=True)
+		self.w.weight = vanilla.ComboBox("auto", self.weightValuesForCurrentFont(), sizeStyle="small", callback=self.SavePreferences)
+		self.w.updateWeight = UpdateButton("auto", callback=self.updateFromButton)
 
-		self.w.gradeText = vanilla.TextBox((inset, linePos + 2, indent, 14), "… for grade", sizeStyle="small", selectable=True)
-		self.w.grade = vanilla.ComboBox((inset + indent, linePos - 1, 55, 19), ("-50", "0", "50"), sizeStyle="small", callback=self.SavePreferences)
-		self.w.axisTagText = vanilla.TextBox((inset + indent + 65, linePos + 2, indent, 14), "Axis tag & name", sizeStyle="small", selectable=True)
-		self.w.axisTag = vanilla.EditText((inset + indent * 2 + 60, linePos, 45, 19), "GRAD", callback=self.SavePreferences, sizeStyle="small")
-		self.w.axisName = vanilla.EditText((inset + indent * 2 + 110, linePos, -inset - 22, 19), "Grade", callback=self.SavePreferences, sizeStyle="small")
-		self.w.axisReset = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.updateFromButton)
-		linePos += lineHeight + 8
+		self.w.gradeText = vanilla.TextBox("auto", "… for grade", sizeStyle="small", selectable=True)
+		self.w.grade = vanilla.ComboBox("auto", ("-50", "0", "50"), sizeStyle="small", callback=self.SavePreferences)
+		self.w.axisTagText = vanilla.TextBox("auto", "Axis tag & name", sizeStyle="small", selectable=True)
+		self.w.axisTag = vanilla.EditText("auto", "GRAD", callback=self.SavePreferences, sizeStyle="small")
+		self.w.axisName = vanilla.EditText("auto", "Grade", callback=self.SavePreferences, sizeStyle="small")
+		self.w.axisReset = UpdateButton("auto", callback=self.updateFromButton)
 
-		indent = 45
-		self.w.fittingMethodText = vanilla.TextBox((inset, linePos + 3, indent, 14), "Fitting", sizeStyle="small", selectable=True)
-		self.w.fittingMethod = vanilla.PopUpButton((inset + indent, linePos, -inset, 17), self.refittingMethods, sizeStyle="small", callback=self.SavePreferences)
-		linePos += lineHeight
+		self.w.fittingMethodText = vanilla.TextBox("auto", "Fitting", sizeStyle="small", selectable=True)
+		self.w.fittingMethod = vanilla.PopUpButton("auto", self.refittingMethods, sizeStyle="small", callback=self.SavePreferences)
 
-		self.w.addSyncMetricCustomParameter = vanilla.CheckBox((inset + indent, linePos, -inset, 20), "Add custom parameter ‘Link Metrics With Master’ (recommended)", value=True, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight + 6
+		self.w.addSyncMetricCustomParameter = vanilla.CheckBox("auto", "Add custom parameter ‘Link Metrics With Master’ (recommended)", value=True, callback=self.SavePreferences, sizeStyle="small")
 
-		self.w.limitToSelectedGlyphs = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Limit to selected glyphs", value=False, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
-
-		# self.w.useWdthAxis = vanilla.CheckBox((inset + 2, linePos-1, -inset, 20), "Use Width axis for fitting grade layer width", value=False, callback=self.SavePreferences, sizeStyle="small")
-		# linePos += lineHeight
-		#
-		# self.w.useWdthAxis.enable(False)
+		self.w.limitToSelectedGlyphs = vanilla.CheckBox("auto", "Limit to selected glyphs", value=False, callback=self.SavePreferences, sizeStyle="small")
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Add Master", callback=self.AddGradeMain)
+		self.w.runButton = vanilla.Button("auto", "Add Master", callback=self.AddGradeMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# labels: right-aligned, one shared width per column
+		for labelName in ("baseMasterText", "weightText", "gradeText", "fittingMethodText", "axisTagText"):
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		# checkboxes and square buttons stretch vertically by default; with everything
+		# hugging, the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		def sameAttribute(attribute, viewName, referenceName):
+			return {"view1": getattr(self.w, viewName), "attribute1": attribute, "view2": getattr(self.w, referenceName), "attribute2": attribute}
+
+		rules = [
+			"H:|-inset-[descriptionText]-inset-|",
+			"H:|-inset-[baseMasterText]-gap-[baseMaster]-gap-[updateBaseMaster(24)]-inset-|",
+			"H:|-inset-[weightText]-gap-[weight]-gap-[updateWeight(24)]-inset-|",
+			"H:|-inset-[gradeText]-gap-[grade(60)]-gap-[axisTagText]-gap-[axisTag(45)]-gap-[axisName]-gap-[axisReset(24)]-inset-|",
+			"H:|-inset-[fittingMethodText]-gap-[fittingMethod]-inset-|",
+			"H:[addSyncMetricCustomParameter]-(>=inset)-|",
+			"H:|-inset-[limitToSelectedGlyphs]-(>=inset)-|",
+			"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+			"V:|-inset-[descriptionText]-row-[baseMaster]-row-[weight]-row-[grade]-section-[fittingMethod]-checkRow-[addSyncMetricCustomParameter]-checkRow-[limitToSelectedGlyphs]-inset-[runButton]-inset-|",
+			sameAttribute("left", "addSyncMetricCustomParameter", "fittingMethod"),
+			sameAttribute("width", "weightText", "baseMasterText"),
+			sameAttribute("width", "gradeText", "baseMasterText"),
+			sameAttribute("width", "fittingMethodText", "baseMasterText"),
+			sameAttribute("centerY", "baseMasterText", "baseMaster"),
+			sameAttribute("centerY", "updateBaseMaster", "baseMaster"),
+			sameAttribute("centerY", "weightText", "weight"),
+			sameAttribute("centerY", "updateWeight", "weight"),
+			sameAttribute("centerY", "gradeText", "grade"),
+			sameAttribute("centerY", "axisTagText", "grade"),
+			sameAttribute("centerY", "axisTag", "grade"),
+			sameAttribute("centerY", "axisName", "grade"),
+			sameAttribute("centerY", "axisReset", "grade"),
+			sameAttribute("centerY", "fittingMethodText", "fittingMethod"),
+		]
+		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5, "section": 12})
 
 		# Load Settings:
 		self.LoadPreferences()

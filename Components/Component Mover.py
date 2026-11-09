@@ -4,9 +4,18 @@ Batch edit (smart) components across selected glyphs. Change positions, scales a
 """
 
 import vanilla
-from AppKit import NSPoint, NSFont
-from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, UpdateButton, match
+from GlyphsApp import Glyphs, Message
+from AppKit import (
+	NSFont,
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityRequired,
+	NSLayoutPriorityWindowSizeStayPut,
+	NSTextAlignmentRight,
+)
+from Foundation import NSPoint
 
 
 class ComponentMover(mekkaObject):
@@ -23,66 +32,111 @@ class ComponentMover(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 250
-		windowHeight = 222
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Component Mover",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 6, 15, 19
-		
-		tabStop = 48
-		self.w.changeAttributeText = vanilla.TextBox((inset, linePos + 2, tabStop - 3, 14), "Change", sizeStyle='small')
-		self.w.changeAttributeText.getNSTextField().setAlignment_(2)
-		self.w.changeAttribute = vanilla.PopUpButton((inset + tabStop, linePos, -inset - 16, 18), self.defaultSettings + self.availableAttributes(), sizeStyle='small', callback=self.SavePreferences)
-		self.w.changeAttributeUpdate = UpdateButton((-inset - 12, linePos - 2, -inset + 6, 18), callback=self.updateUI)
+		inset = 15
+		buttonWidth, buttonHeight, gridGap = 60, 34, 2
+		gridInset = round((windowWidth - buttonWidth * 3 - gridGap * 2) / 2.0)
+
 		toolTip = "Pick the component attribute to change in all selected glyphs. Position and Size are available for all components. Smart axes will be listed here. Click the Update button to reset the menu for all smart axes for the current glyph selection."
+		self.w.changeAttributeText = vanilla.TextBox("auto", "Change", sizeStyle="small", selectable=True)
+		self.w.changeAttribute = vanilla.PopUpButton("auto", self.defaultSettings + self.availableAttributes(), sizeStyle="small", callback=self.SavePreferences)
+		self.w.changeAttributeUpdate = UpdateButton("auto", callback=self.updateUI)
 		self.w.changeAttributeText.setToolTip(toolTip)
 		self.w.changeAttribute.setToolTip(toolTip)
 		self.w.changeAttributeUpdate.setToolTip(toolTip)
-		linePos += lineHeight
 
-		self.w.searchStringText = vanilla.TextBox((inset, linePos + 3, tabStop - 3, 14), "for", sizeStyle='small')
-		self.w.searchStringText.getNSTextField().setAlignment_(2)
-		self.w.searchString = vanilla.ComboBox((inset + tabStop, linePos, -inset - 18, 18), self.availableComponents(), sizeStyle='small', callback=self.SavePreferences)
-		self.w.searchString.getNSComboBox().setPlaceholderString_("any component")
-		self.w.searchStringUpdate = UpdateButton((-inset - 12, linePos - 2, -inset + 6, 18), callback=self.updateUI)
 		toolTip = "Pick the name of the component you want to manipulate in (all masters of) all selected glyphs. An empty entry means every component. You can use * and ? as wildcards. Click the Update button to populate the menu with the names of all components in all selected glyphs."
+		self.w.searchStringText = vanilla.TextBox("auto", "for", sizeStyle="small", selectable=True)
+		self.w.searchString = vanilla.ComboBox("auto", self.availableComponents(), sizeStyle="small", callback=self.SavePreferences)
+		self.w.searchString.getNSComboBox().setPlaceholderString_("any component")
+		self.w.searchStringUpdate = UpdateButton("auto", callback=self.updateUI)
 		self.w.searchStringText.setToolTip(toolTip)
 		self.w.searchString.setToolTip(toolTip)
 		self.w.searchStringUpdate.setToolTip(toolTip)
-		linePos += int(lineHeight * 1.8)
 
-		buttonWidth, buttonHeight = 60, 34
-		inset = round((windowWidth - (buttonWidth * 3)) / 2.0)
+		self.w.upLeft = vanilla.SquareButton("auto", "↖", callback=self.ComponentMoverMain)
+		self.w.up = vanilla.SquareButton("auto", "↑", callback=self.ComponentMoverMain)
+		self.w.upRight = vanilla.SquareButton("auto", "↗", callback=self.ComponentMoverMain)
 
-		self.w.upLeft = vanilla.SquareButton((inset, linePos, buttonWidth - 1, buttonHeight - 1), "↖", callback=self.ComponentMoverMain)
-		self.w.up = vanilla.SquareButton((inset + buttonWidth, linePos, buttonWidth - 1, buttonHeight - 1), "↑", callback=self.ComponentMoverMain)
-		self.w.upRight = vanilla.SquareButton((inset + buttonWidth * 2, linePos, buttonWidth - 1, buttonHeight - 1), "↗", callback=self.ComponentMoverMain)
-		linePos += buttonHeight
-
-		font = NSFont.systemFontOfSize_(20)
-		self.w.left = vanilla.SquareButton((inset, linePos, buttonWidth - 1, buttonHeight - 1), "←", callback=self.ComponentMoverMain)
-		self.w.amount = vanilla.EditText((inset + buttonWidth, linePos, buttonWidth - 1, buttonHeight - 1), "10", callback=self.SavePreferences)
+		self.w.left = vanilla.SquareButton("auto", "←", callback=self.ComponentMoverMain)
+		self.w.amount = vanilla.EditText("auto", "10", callback=self.SavePreferences)
+		self.w.amount.setToolTip("Amount of the move (units), scale change (percent) or smart component axis change.")
 		self.w.amount.getNSTextField().setUsesSingleLineMode_(1)
-		self.w.amount.getNSTextField().setAlignment_(1)
-		self.w.amount.getNSTextField().setFont_(font)
-		self.w.right = vanilla.SquareButton((inset + buttonWidth * 2, linePos, buttonWidth - 1, buttonHeight - 1), "→", callback=self.ComponentMoverMain)
-		linePos += buttonHeight
+		self.w.amount.getNSTextField().setAlignment_(NSTextAlignmentRight)
+		self.w.amount.getNSTextField().setFont_(NSFont.systemFontOfSize_(20))
+		self.w.right = vanilla.SquareButton("auto", "→", callback=self.ComponentMoverMain)
 
-		self.w.downLeft = vanilla.SquareButton((inset, linePos, buttonWidth - 1, buttonHeight - 1), "↙", callback=self.ComponentMoverMain)
-		self.w.down = vanilla.SquareButton((inset + buttonWidth, linePos, buttonWidth - 1, buttonHeight - 1), "↓", callback=self.ComponentMoverMain)
-		self.w.downRight = vanilla.SquareButton((inset + buttonWidth * 2, linePos, buttonWidth - 1, buttonHeight - 1), "↘", callback=self.ComponentMoverMain)
-		linePos += int(buttonHeight * 1.4)
+		self.w.downLeft = vanilla.SquareButton("auto", "↙", callback=self.ComponentMoverMain)
+		self.w.down = vanilla.SquareButton("auto", "↓", callback=self.ComponentMoverMain)
+		self.w.downRight = vanilla.SquareButton("auto", "↘", callback=self.ComponentMoverMain)
 
-		inset = 15
-		self.w.breakAlignment = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Break alignment if necessary", value=False, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.breakAlignment = vanilla.CheckBox("auto", "Break alignment if necessary", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.breakAlignment.setToolTip("Disables automatic alignment of a component before moving it.")
+		self.w.allMasters = vanilla.CheckBox("auto", "Apply to all masters", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allMasters.setToolTip("Also change the components in the other masters (and special layers) of the selected glyphs.")
 
-		self.w.allMasters = vanilla.CheckBox((inset, linePos - 1, -inset, 20), "Apply to all masters", value=False, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		# labels: right-aligned, same width
+		labelNames = ("changeAttributeText", "searchStringText")
+		widestLabel = "changeAttributeText"  # the label with the longest text
+		for labelName in labelNames:
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+		widthRules = [
+			{"view1": getattr(self.w, labelName), "attribute1": "width", "view2": getattr(self.w, widestLabel), "attribute2": "width"}
+			for labelName in labelNames if labelName != widestLabel
+		]
+
+		# checkboxes and square buttons stretch vertically by default; hug so the window is as tall as its content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		gridRows = (
+			("upLeft", "up", "upRight"),
+			("left", "amount", "right"),
+			("downLeft", "down", "downRight"),
+		)
+		gridRules = []
+		for leftName, centerName, rightName in gridRows:
+			gridRules.append(f"H:|-gridInset-[{leftName}(buttonWidth)]-gridGap-[{centerName}(buttonWidth)]-gridGap-[{rightName}(buttonWidth)]-gridInset-|")
+			for cellName in (leftName, centerName, rightName):
+				gridRules.append(f"V:[{cellName}(buttonHeight)]")
+			for cellName in (leftName, rightName):
+				gridRules.append({"view1": getattr(self.w, cellName), "attribute1": "centerY", "view2": getattr(self.w, centerName), "attribute2": "centerY"})
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[changeAttributeText]-gap-[changeAttribute]-gap-[changeAttributeUpdate(20)]-inset-|",
+				"H:|-inset-[searchStringText]-gap-[searchString]-gap-[searchStringUpdate(20)]-inset-|",
+				"H:|-inset-[breakAlignment]-(>=inset)-|",
+				"H:|-inset-[allMasters]-(>=inset)-|",
+				"V:|-gap-[changeAttribute]-row-[searchString]-gridTop-[up]-gridGap-[amount]-gridGap-[down]-gridBottom-[breakAlignment]-checkRow-[allMasters]-inset-|",
+				{"view1": self.w.changeAttributeText, "attribute1": "centerY", "view2": self.w.changeAttribute, "attribute2": "centerY"},
+				{"view1": self.w.changeAttributeUpdate, "attribute1": "centerY", "view2": self.w.changeAttribute, "attribute2": "centerY"},
+				{"view1": self.w.searchStringText, "attribute1": "centerY", "view2": self.w.searchString, "attribute2": "centerY"},
+				{"view1": self.w.searchStringUpdate, "attribute1": "centerY", "view2": self.w.searchString, "attribute2": "centerY"},
+			] + widthRules + gridRules,
+			metrics={
+				"inset": inset,
+				"gap": 8,
+				"row": 6,
+				"checkRow": 5,
+				"gridInset": gridInset,
+				"gridGap": gridGap,
+				"gridTop": 14,
+				"gridBottom": 14,
+				"buttonWidth": buttonWidth,
+				"buttonHeight": buttonHeight,
+			},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
