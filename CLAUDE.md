@@ -356,6 +356,16 @@ Rules for rows with a label, learned from converting `Kerning/KernCrasher.py`:
 - **Controls in different rows that should look alike get an equal-width rule** (`popupSpeed` = `popupScript`).
 - **Name the spacing.** Use metrics (`row`, `headlineGap`, `barGap`) for the gaps between sections instead of
   scattering numbers through the chain. A stack of checkboxes sits tighter than rows of fields: a `checkRow` metric of 5 between checkboxes, against 6 for `row`.
+- **Checkboxes in a stack are equidistant.** Chain the checkboxes themselves in the `V:` rule with one shared gap,
+  and never the popup, stepping field or refresh button that follows one of them. Tie such a follower to its
+  checkbox with a `centerY` rule. Where only some checkboxes have a follower (mixed content), find common ground and
+  still keep the distance equal: choose the shared gap so the tallest follower still clears its neighbors, e.g. a
+  `stackRow` metric of 8 for the whole stack instead of `checkRow` 5, and use it between *all* checkboxes of that
+  stack, with or without follower. Chaining the followers instead gives rows of unequal pitch.
+- **Checkboxes with a follower hug their text, the follower stretches.** Give those checkboxes an equal-width rule,
+  set their horizontal hugging to `NSLayoutPriorityDefaultHigh` (`getNSButton()`), and the popups or fields behind
+  them `NSLayoutPriorityDefaultLow` (`getNSPopUpButton()`, `getNSTextField()`). The followers then start right after
+  the longest checkbox title and run to the right edge, instead of leaving a gap behind the checkbox.
 - **Window width:** all labels take the width of the widest one, so make `windowWidth` large enough for that label
   plus a usable field (KernCrasher grew from 410 to 470).
 - **`ProgressBar` needs a height in the rule:** `[bar(16)]`.

@@ -8,7 +8,7 @@ import objc
 import vanilla
 from mekkablue import mekkaObject, UpdateButton
 from GlyphsApp import Glyphs, Message, GetOpenFile, GSUppercase, GSLowercase, GSLayer
-from AppKit import NSColor, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
+from AppKit import NSColor, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
 from Foundation import NSNumberFormatter
 
 
@@ -244,13 +244,19 @@ class VerticalMetricsManager(mekkaObject):
 		self.w.helpButton.setToolTip("Opens the Vertical Metrics tutorial (highly recommended) in your web browser.")
 
 		self.w.runButton = vanilla.Button("auto", "Apply to Font", callback=self.VerticalMetricsManagerMain)
-		self.w.runButton.setToolTip("Insert the OS/2, hhea and fsSelection values above as custom parameters in the font. The number values will be inserted into each master. Blank values will delete the respective parameters.")
+		self.w.runButton.setToolTip("Insert the OS/2, hhea and fsSelection values above as custom parameters in the font. The number values will be inserted where the Write values to popup says (all masters, first master, or font-wide), and removed from the other places. Blank values will delete the respective parameters everywhere.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes and square buttons stretch vertically by default; with everything
 		# hugging, the window ends up exactly as tall as the content
 		for view in self.w.getNSWindow().contentView().subviews():
 			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# in the Limit rows, the checkboxes hug their text and the popups stretch up to it
+		for checkBox in (self.w.preferScript, self.w.preferCategory):
+			checkBox.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		for popup in (self.w.preferScriptPopup, self.w.preferCategoryPopup):
+			popup.getNSPopUpButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# labels in front of fields: right-aligned, all the same width as the widest one
 		labelNames = ("titleWin", "titleTypo", "titleHhea", "calculateText", "writeToText")
@@ -286,9 +292,9 @@ class VerticalMetricsManager(mekkaObject):
 			(self.w.useTypoMetrics, (self.w.useTypoMetricsUpdate, )),
 			(self.w.calculate, (self.w.calculateText, self.w.calculateButton)),
 			(self.w.extractButton, (self.w.extractText, )),
-			(self.w.roundValue, (self.w.round, )),
-			(self.w.preferScriptPopup, (self.w.preferScript, self.w.preferScriptUpdate)),
-			(self.w.preferCategoryPopup, (self.w.preferCategory, self.w.preferCategoryUpdate)),
+			(self.w.round, (self.w.roundValue, )),
+			(self.w.preferScript, (self.w.preferScriptPopup, self.w.preferScriptUpdate)),
+			(self.w.preferCategory, (self.w.preferCategoryPopup, self.w.preferCategoryUpdate)),
 			(self.w.writeToPopup, (self.w.writeToText, )),
 			(self.w.runButton, (self.w.helpButton, )),
 		)
@@ -323,14 +329,14 @@ class VerticalMetricsManager(mekkaObject):
 				"H:|-inset-[writeToText]-gap-[writeToPopup]-inset-|",
 				"H:|-inset-[allOpenFonts]-(>=inset)-|",
 				"H:|-inset-[helpButton]-(>=gap)-[runButton(>=120)]-inset-|",
-				"V:|-inset-[descriptionText]-row-[titleAscent]-row-[winAsc]-groupGap-[typoAsc]-tightRow-[hheaAsc]-row-[useTypoMetrics]-inset-[separatorMethods(1)]-inset-[descriptionMethods]-row-[calculate]-row-[extractButton]-inset-[separator(1)]-inset-[descriptionMeasurements]-row-[roundValue]-checkRow-[includeAllMasters]-checkRow-[respectMarkToBaseOffset]-checkRow-[ignoreNonExporting]-checkRow-[preferSelectedGlyphs]-checkRow-[preferScriptPopup]-row-[preferCategoryPopup]-inset-[separatorAction(1)]-inset-[writeToPopup]-checkRow-[allOpenFonts]-inset-[runButton]-inset-|",
+				"V:|-inset-[descriptionText]-row-[titleAscent]-row-[winAsc]-groupGap-[typoAsc]-tightRow-[hheaAsc]-row-[useTypoMetrics]-inset-[separatorMethods(1)]-inset-[descriptionMethods]-row-[calculate]-row-[extractButton]-inset-[separator(1)]-inset-[descriptionMeasurements]-row-[round]-stackRow-[includeAllMasters]-stackRow-[respectMarkToBaseOffset]-stackRow-[ignoreNonExporting]-stackRow-[preferSelectedGlyphs]-stackRow-[preferScript]-stackRow-[preferCategory]-inset-[separatorAction(1)]-inset-[writeToPopup]-checkRow-[allOpenFonts]-inset-[runButton]-inset-|",
 				# the checkbox lines up with the first column of the grid:
 				{"view1": self.w.useTypoMetrics, "attribute1": "left", "view2": self.w.winAsc, "attribute2": "left"},
 				# both popups of the Limit rows get the same width, and so do their checkboxes:
 				{"view1": self.w.preferCategory, "attribute1": "width", "view2": self.w.preferScript, "attribute2": "width"},
 				{"view1": self.w.extractButton, "attribute1": "width", "view2": self.w.calculateButton, "attribute2": "width"},
 			] + labelRules + columnRules + titleRules + centerRules,
-			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5, "groupGap": 9, "tightRow": 3, "bracketInset": 3},
+			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5, "stackRow": 8, "groupGap": 9, "tightRow": 3, "bracketInset": 3},
 		)
 
 		self.LoadPreferences()
@@ -990,6 +996,18 @@ class VerticalMetricsManager(mekkaObject):
 		self.update(sender=self.w.useTypoMetricsUpdate)
 
 
+	def removeParameter(self, thisFont, parameterName, keepInFont=False, keepMasterIndexes=()):
+		"""Deletes a custom parameter from the font and from all masters, except where it is to be kept."""
+		if not keepInFont and thisFont.customParameters[parameterName] is not None:
+			del thisFont.customParameters[parameterName]
+			print(f"  🚫 Font {thisFont.familyName}: custom parameter removed.")
+		for masterIndex, thisMaster in enumerate(thisFont.masters):
+			if masterIndex in keepMasterIndexes:
+				continue
+			if thisMaster.customParameters[parameterName] is not None:
+				del thisMaster.customParameters[parameterName]
+				print(f"  🚫 Master {thisMaster.name}: custom parameter removed.")
+
 	def VerticalMetricsManagerMain(self, sender):
 		try:
 			Glyphs.clearLog()  # clears macro window log
@@ -1017,6 +1035,7 @@ class VerticalMetricsManager(mekkaObject):
 				"winAscent": winAsc,
 			}
 
+			writeTo = self.prefInt("writeToPopup")  # 0: all masters, 1: first master only, 2: font-wide
 			allOpenFonts = self.pref("allOpenFonts")
 			if allOpenFonts:
 				theseFonts = Glyphs.fonts
@@ -1038,21 +1057,21 @@ class VerticalMetricsManager(mekkaObject):
 						metricValue = int(verticalMetricDict[verticalMetricName])
 						print(f"🔢 {verticalMetricName}: {metricValue}")
 
-						# clean legacy master settings:
-						if not thisFont.customParameters[verticalMetricName] is None:
-							del thisFont.customParameters[verticalMetricName]
-							print(f"  🚫 Font {thisFont.familyName}: custom parameter removed.")
-						for thisMaster in thisFont.masters:
-							if not thisMaster.customParameters[verticalMetricName] is None:
-								del thisMaster.customParameters[verticalMetricName]
-								print(f"  🚫 Master {thisMaster.name}: custom parameter removed.")
+						# remove the parameter everywhere except where the new value is written:
+						if writeTo == 0:
+							keepMasterIndexes = set(range(len(thisFont.masters)))
+						elif writeTo == 1:
+							keepMasterIndexes = {0}
+						else:
+							keepMasterIndexes = set()
+						self.removeParameter(thisFont, verticalMetricName, keepInFont=(writeTo == 2), keepMasterIndexes=keepMasterIndexes)
 
 						# write new values:
-						if self.pref("writeToPopup") == 0:
+						if writeTo == 0:
 							for thisMaster in thisFont.masters:
 								thisMaster.customParameters[verticalMetricName] = metricValue
 								print(f"  ✅ Master {thisMaster.name}: custom parameter set.")
-						elif self.pref("writeToPopup") == 2:
+						elif writeTo == 2:
 							# add to font, not to masters:
 							thisFont.customParameters[verticalMetricName] = metricValue
 							print("  ✅ Font: custom parameter set.")
@@ -1063,12 +1082,7 @@ class VerticalMetricsManager(mekkaObject):
 
 					except:
 						print(f"❌ {verticalMetricName}: No valid value found. Deleting parameters:")
-						for thisMaster in thisFont.masters:
-							if not thisMaster.customParameters[verticalMetricName] is None:
-								del thisMaster.customParameters[verticalMetricName]
-								print(f"  ⚠️ Master {thisMaster.name}: custom parameter removed.")
-							else:
-								print(f"  ❎ Master {thisMaster.name}: no custom parameter found.")
+						self.removeParameter(thisFont, verticalMetricName, keepInFont=False, keepMasterIndexes=set())
 
 				useTypoMetrics = self.pref("useTypoMetrics")
 				print("*️⃣ Use Typo Metrics (fsSelection bit 7)")
