@@ -81,7 +81,7 @@ class VerticalMetricsManager(mekkaObject):
 		"ignoreNonExporting": 1,
 		"includeAllMasters": 1,
 		"respectMarkToBaseOffset": 0,
-		"writeToPopup": 0,
+		"writeToPopup": 2 if Glyphs.versionNumber >= 4 else 0,  # font-wide in Glyphs 4+, all masters in Glyphs 3
 		"round": 1,
 		"roundValue": 10,
 		"useTypoMetrics": 1,
@@ -230,10 +230,10 @@ class VerticalMetricsManager(mekkaObject):
 
 		self.w.separatorAction = vanilla.HorizontalLine("auto")
 
-		writeToTooltip = "Where the number values are written to: into all masters, into the first master only, or into the font itself."
+		writeToTooltip = "Where the number values are written to: into all masters (Glyphs 3), into the first master only, or into the font itself (Glyphs 4+). Default: font-wide in Glyphs 4 and later, all masters in Glyphs 3."
 		self.w.writeToText = vanilla.TextBox("auto", "Write values to", sizeStyle="small", selectable=True)
 		self.w.writeToText.setToolTip(writeToTooltip)
-		self.w.writeToPopup = vanilla.PopUpButton("auto", ("All masters (recommended)", "First master only (experimental)", "Font-wide (experimental)"), sizeStyle="small", callback=self.SavePreferences)
+		self.w.writeToPopup = vanilla.PopUpButton("auto", ("All masters (Glyphs 3)", "First master only (experimental)", "Font-wide (Glyphs 4+)"), sizeStyle="small", callback=self.SavePreferences)
 		self.w.writeToPopup.setToolTip(writeToTooltip)
 
 		self.w.allOpenFonts = vanilla.CheckBox("auto", "⚠️ Read out and apply to ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
