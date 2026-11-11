@@ -1048,6 +1048,11 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 				if (state.speed === 0) { updatePlayAllButton(); return; }
 				state.startTime = now;
 				state.phaseOffset = currentPhase;
+				// axes spanning 0 to 1 (e.g. ital) would snap to their coarse step, so animate them continuously:
+				const animSlider = document.getElementById(axisTag);
+				if (animSlider && parseFloat(animSlider.max) - parseFloat(animSlider.min) <= 1) {
+					animSlider.step = 0.005;
+				}
 				function animFrame(time) {
 					const s = animStates[axisTag];
 					if (!s || s.speed === 0) return;
@@ -1179,6 +1184,9 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 					}
 				} else {
 					for (i = 0; i < sliders.length; i++) {
+						if (animStates[sliders[i].id] && animStates[sliders[i].id].speed > 0) {
+							continue; // keep animated sliders continuous
+						}
 						if (sliders[i].id == "ital") {
 							sliders[i].step = 0.05;
 						} else {
