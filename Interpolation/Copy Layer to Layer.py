@@ -12,7 +12,7 @@ Copies one layer to another layer across selected glyphs:
 
 import vanilla
 from GlyphsApp import Glyphs, Message, GSLayer
-from mekkablue import mekkaObject, newGlyphWithName, UpdateButton
+from mekkablue import mekkaObject, newGlyphWithName, UpdateButton, colorCountOfFirstPalette
 
 
 def isColorLayer(layer):
@@ -215,14 +215,11 @@ class CopyLayerToLayer(mekkaObject):
 			return specs[index]
 		return None
 
-	def GetColorPalettes(self, font):
-		"""Returns the color palettes from font's custom parameters"""
-		if font and font.customParameters["Color Palettes"]:
-			palettes = font.customParameters["Color Palettes"]
-			if palettes and len(palettes) > 0:
-				# Return the first palette (index 0) which contains the color definitions
-				return palettes[0]
-		return None
+	def GetColorCount(self, font):
+		"""Returns the number of colors in the first palette of font's Color Palettes parameter"""
+		if font:
+			return colorCountOfFirstPalette(font)
+		return 0
 
 	def GetLayerList(self, font):
 		"""Returns (displayNames, specs).
@@ -249,9 +246,8 @@ class CopyLayerToLayer(mekkaObject):
 			displayNames.append(displayName)
 			specs.append((master.id, master.name, None))
 
-		colorPalette = self.GetColorPalettes(font)
-		if colorPalette:
-			numColors = len(colorPalette)
+		numColors = self.GetColorCount(font)
+		if numColors:
 			for masterID, masterName, displayName in masterEntries:
 				for colorIndex in range(numColors):
 					displayNames.append("%s, Color %d" % (displayName, colorIndex))

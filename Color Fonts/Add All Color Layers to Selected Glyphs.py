@@ -6,6 +6,7 @@ Adds a duplicate of the fallback (master) layer for each color defined in the Co
 """
 
 from GlyphsApp import Glyphs, Message
+from mekkablue import colorCountOfFirstPalette
 
 
 def glyphAlreadyHasLayerForThisColor(glyph, mID, colorIndex):
@@ -55,7 +56,7 @@ for m in thisFont.masters:
 		CPAL = thisFont.customParameters[parameterName]
 
 	if CPAL:
-		paletteSize = len(CPAL[0])
+		paletteSize = colorCountOfFirstPalette(m if m.customParameters[parameterName] else thisFont)
 		for thisGlyph in selectedGlyphs:
 			print("\n🔠 %s" % thisGlyph.name)
 			process(thisGlyph, mID, paletteSize)

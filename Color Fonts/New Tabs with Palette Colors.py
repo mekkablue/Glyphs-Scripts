@@ -4,14 +4,10 @@ Opens new tabs, one each for all layers pertaining to a color index (CPAL/COLR).
 """
 
 from GlyphsApp import Glyphs, Message
+from mekkablue import colorCountOfFirstPalette
 
 def countColors(font):
-	colors = []
-	palettes = font.customParameters["Color Palettes"]
-	if not palettes:
-		return None
-	palette = palettes[0]
-	return len(palette)
+	return colorCountOfFirstPalette(font)
 
 def newTabWithColorIndex(font, requestedIndex=0, includeInactive=False, colorKey="colorPalette"):
 	currentMasterID = font.selectedFontMaster.id
