@@ -445,7 +445,10 @@ def particleStylesOfInstance(thisFont, particleInstance):
 		styleName = " ".join(nameParts) if nameParts else particleInstance.name
 		axisValues = {}
 		for axisTag, particle in zip(axisTags, particleCombination):
-			axisValue = particle.internal
+			# the sliders work in user space, so use external coordinates (internal as fallback):
+			axisValue = particle.external
+			if axisValue is None:
+				axisValue = particle.internal
 			if axisValue is None:
 				continue
 			axisValues[axisTag] = axisValue
@@ -481,7 +484,7 @@ def generateAxisDict(thisFont: GSFont):
 			particles = particleInstance.nameParticles[axis.axisId]
 			if not particles:
 				continue
-			particleValues = [particle.external if particle.external else particle.internal for particle in particles]
+			particleValues = [particle.external if particle.external is not None else particle.internal for particle in particles]
 			particleValues = [value for value in particleValues if value is not None]
 			if not particleValues:
 				continue
