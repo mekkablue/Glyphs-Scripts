@@ -271,6 +271,24 @@ def layerGroupsOf(glyph):
 	return tuple(tuple(layerGroup) for layerGroup in layerGroups)
 
 
+def colorCountOfFirstPalette(fontOrMaster):
+	"""
+	Returns the number of colors in the first palette of the ‘Color Palettes’
+	parameter of a GSFont or GSFontMaster, or 0 if there is no palette.
+	In Glyphs 2/3, the parameter value is a list of palettes, each a list of colors.
+	In Glyphs 4, it is a GSPalettes object, which has no len() and cannot be indexed.
+	"""
+	palettes = fontOrMaster.customParameters["Color Palettes"]
+	if not palettes:
+		return 0
+	if Glyphs.versionNumber >= 4:
+		if palettes.countOfPalettes() < 1:
+			return 0
+		return palettes.countOfColors()
+	else:
+		return len(palettes[0])
+
+
 def previewPanel():
 	"""
 	Returns the Preview Panel plugin instance (Window > Preview Panel), or None if
