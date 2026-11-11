@@ -1438,12 +1438,17 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 				}
 			}
 			function setStyle(styleString) {
+				pauseAllAnimations();
 				const axisStrings = styleString.split(",");
 				for (var i = axisStrings.length - 1; i >= 0; i--) {
 					const axisSetting = axisStrings[i].split(":");
 					const axisTag = axisSetting[0];
-					const axisValue = parseInt(axisSetting[1]);
-					document.getElementById(axisTag).value=axisValue;
+					const axisValue = parseFloat(axisSetting[1]);
+					const axisSlider = document.getElementById(axisTag);
+					if (!Number.isInteger(axisValue)) {
+						axisSlider.step = 0.005; // keep fractional values (e.g. ital 0.5) from snapping
+					}
+					axisSlider.value = axisValue;
 					updateSlider();
 				}
 			}
