@@ -8,8 +8,7 @@ from copy import copy as copy
 from GlyphsApp import Glyphs, GSLayer
 
 
-def addMissingHeightWidth(g):
-	f = g.parent
+def addMissingHeightWidth(g, f):
 	currentSpots = []
 	layerDict = {}
 	for layer in g.layers:
@@ -35,15 +34,21 @@ def addMissingHeightWidth(g):
 			print(f"🔤 {g.name}: added height={spot['hght']} width={spot['wdth']} for {m.name}")
 
 
-def addMissingBraceLayers(g):
-	f = g.parent
+def addMissingBraceLayers(g, f):
 	currentSpots = []
 	for layer in g.layers:
 		if layer.isMasterLayer:
-			currentSpots.append(tuple(layer.master.axes))
+			master = layer.master
+			currentSpots.append(tuple(master.axisInternalValueValueForId_(axis.axisId) for axis in f.axes))
 		elif layer.isSpecialLayer and layer.attributes["coordinates"]:
 			coords = dict(layer.attributes["coordinates"])
-			axisValues = tuple([float(coords[m.id]) for m in f.axes])
+			if not any(axis.axisId in coords for axis in f.axes):
+				continue  # not positioned along the font's axes (e.g. smart glyph layer)
+			# an axis missing in the brace layer takes the value of its associated master:
+			master = f.masters[layer.associatedMasterId]
+			axisValues = tuple(
+				float(coords[axis.axisId]) if axis.axisId in coords else float(master.axisInternalValueValueForId_(axis.axisId)) for axis in f.axes
+			)
 			currentSpots.append(axisValues)
 
 	allCoordsPerAxis = []
@@ -57,7 +62,7 @@ def addMissingBraceLayers(g):
 	for missingSpot in missingSpots:
 		braceLayer = GSLayer()
 		g.layers.append(braceLayer)
-		axisIDs = [a.id for a in f.axes]
+		axisIDs = [axis.axisId for axis in f.axes]
 		braceLayer.attributes["coordinates"] = {}
 		for axisID, axisValue in zip(axisIDs, missingSpot):
 			braceLayer.attributes["coordinates"][axisID] = axisValue
@@ -78,13 +83,19 @@ thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 try:
 	for thisLayer in selectedLayers:
 		thisGlyph = thisLayer.parent
-		thisGlyph.beginUndo()  # begin undo grouping
-		if thisGlyph.category == "Corner":
-			addMissingHeightWidth(thisGlyph)
-		else:
-			addMissingBraceLayers(thisGlyph)
-		print()
-		thisGlyph.endUndo()  # end undo grouping
+		# beginUndo() raises an AttributeError if the glyph has no undo manager:
+		hasUndoManager = thisGlyph.undoManager() is not None
+		if hasUndoManager:
+			thisGlyph.beginUndo()  # begin undo grouping
+		try:
+			if thisGlyph.category == "Corner":
+				addMissingHeightWidth(thisGlyph, thisFont)
+			else:
+				addMissingBraceLayers(thisGlyph, thisFont)
+			print()
+		finally:
+			if hasUndoManager:
+				thisGlyph.endUndo()  # end undo grouping
 except Exception as e:
 	Glyphs.showMacroWindow()
 	print("\n⚠️ Error in script: Add Missing Brace Layers\n")
