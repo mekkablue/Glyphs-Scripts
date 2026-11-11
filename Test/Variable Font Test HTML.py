@@ -880,6 +880,24 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 				overflow-y: scroll;
 				word-wrap: break-word;
 			}
+			/* vertical metrics: a band as high as the font's content area (ascender to descender),
+			   --metrics-band-height and --metrics-band-top are measured in computeMetricsBand() */
+			:root {
+				--metrics-color: rgba(160, 160, 160, 0.1);
+			}
+			body[data-metrics] #textarea {
+				background-image: linear-gradient(var(--metrics-color), var(--metrics-color));
+				background-repeat: no-repeat;
+				background-attachment: local;
+				background-size: 100%% var(--metrics-band-height, 1em);
+				background-position: 0 var(--metrics-band-top, 0);
+			}
+			body[data-metrics] .gridCell {
+				background-image: linear-gradient(var(--metrics-color), var(--metrics-color));
+				background-repeat: no-repeat;
+				background-size: 100%% var(--metrics-band-height, 1em);
+				background-position: 0 50%%;
+			}
 			.○ {
 				-webkit-text-stroke: 1px black;
 				-webkit-text-fill-color: #FFF0;
@@ -916,7 +934,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 				cursor: default;
 			}
 			.gridCell:hover {
-				background: #eef;
+				background-color: #eef;
 			}
 			#gridTooltip {
 				display: none;
@@ -1004,7 +1022,8 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 					background-color: black;
 				}
 				.gridCell { border-color: #333; }
-				.gridCell:hover { background: #223; }
+				.gridCell:hover { background-color: #223; }
+				:root { --metrics-color: rgba(128, 128, 128, 0.3); }
 				.○ {
 					-webkit-text-stroke: 1px white;
 					-webkit-text-fill-color: #0000;
@@ -1209,6 +1228,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 				let fontFace = new FontFace("###fontFamilyName###", `url('###fontFileNameWithoutSuffix###.${currentSuffix()}?v=${version()}')`);
 				fontFace.load().then(function(loadedFontFace) {
 					document.fonts.add(loadedFontFace);
+					document.fonts.ready.then(computeMetricsBand); // vertical metrics may have changed
 					console.log('Font reloaded');
 				}).catch(function(error) {
 					console.error('Failed to reload font:', error);
@@ -1345,7 +1365,10 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 					var label = document.getElementById("label_"+sliderID);
 					var labelName = label.getAttribute("name");
 
-					label.textContent = ""+labelName+": "+sliderValue;
+					// decimals shown depend on the span of the slider: up to 1 → 2, up to 20 → 1, beyond → none
+					const sliderSpan = Math.abs(parseFloat(sliders[i].max) - parseFloat(sliders[i].min));
+					const decimals = (sliderID == "fontsize" || sliderID == "lineheight") ? 0 : (sliderSpan <= 1 ? 2 : (sliderSpan <= 20 ? 1 : 0));
+					label.textContent = ""+labelName+": "+parseFloat(sliderValue).toFixed(decimals);
 
 					if (sliderID == "fontsize") {
 						// Text Size Slider
@@ -1366,6 +1389,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 				// apply OTVar slider settings:
 				body.style.setProperty("font-variation-settings", settingtext);
 				gridview.style.setProperty("font-variation-settings", settingtext);
+				computeMetricsBand();
 			}
 			function vanish(item) {
 				item.style.setProperty("display", "none");
@@ -1391,6 +1415,34 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 						waterfall.align = "left";
 					}
 				}
+			}
+			function toggleMetrics() {
+				document.body.toggleAttribute("data-metrics");
+				computeMetricsBand();
+			}
+			function computeMetricsBand() {
+				// the content area of an inline box is what the font's vertical metrics make of it;
+				// measure it with an invisible probe that has the same font settings as the test text
+				if (!document.body.hasAttribute("data-metrics")) return;
+				const testText = getTestText();
+				const style = getComputedStyle(testText);
+				let probe = document.getElementById("metricsProbe");
+				if (!probe) {
+					probe = document.createElement("div");
+					probe.id = "metricsProbe";
+					probe.style.cssText = "position:absolute;visibility:hidden;pointer-events:none;white-space:nowrap;line-height:normal;";
+					probe.appendChild(document.createElement("span")).textContent = "Hxg";
+					document.body.appendChild(probe);
+				}
+				probe.style.fontFamily = style.fontFamily;
+				probe.style.fontSize = style.fontSize;
+				probe.style.fontVariationSettings = style.fontVariationSettings;
+				const bandHeight = probe.firstChild.getBoundingClientRect().height;
+				let lineHeight = parseFloat(style.lineHeight);
+				if (isNaN(lineHeight)) lineHeight = bandHeight; // line-height: normal
+				const root = document.documentElement.style;
+				root.setProperty("--metrics-band-height", bandHeight + "px");
+				root.setProperty("--metrics-band-top", ((lineHeight - bandHeight) / 2) + "px");
 			}
 			function toggleInverse() {
 				const testText = document.getElementById("textarea");
@@ -1476,6 +1528,9 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 
 			<!-- display type (x-ray vs. filled) -->
 				<a onclick="toggleInverse();" id="invert" class="emojiButton" title="Toggle x-ray (outline) display (Ctrl-X)">🔲</a>
+
+			<!-- vertical metrics -->
+				<a onclick="toggleMetrics();" id="metricsToggle" class="emojiButton" title="Show vertical metrics">↕️</a>
 
 			<!-- OT features -->
 				<input type="checkbox" name="kern" id="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel" title="Kerning (kern)">kern</label>
