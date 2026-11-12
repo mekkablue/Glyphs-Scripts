@@ -6,6 +6,7 @@ Create a Test HTML for the current font inside the current Variation Font Export
 from os import system, path
 from itertools import product
 import json
+import re
 from Cocoa import NSEvent, NSAlternateKeyMask, NSShiftKeyMask
 import codecs
 from GlyphsApp import Glyphs, GSFont, Message
@@ -502,6 +503,104 @@ def allUnicodeEscapesOfFont(thisFont):
 	return " ".join(allUnicodes)
 
 
+# features that cannot be triggered one by one through CSS font-feature-settings, or are not part of aalt:
+NON_ALTERNATE_FEATURES = ("aalt", "locl", "ccmp", "rvrn", "rlig", "calt", "rclt")
+
+
+def glyphNamesOfFeatureItem(text, classes):
+	"""Resolves a glyph, a @class or a [glyph @class ...] to a list of glyph names; None if it is a sequence."""
+	text = text.strip()
+	if text.startswith("[") and text.endswith("]") and text.count("[") == 1:
+		tokens = text[1:-1].split()
+	elif len(text.split()) == 1:
+		tokens = [text]
+	else:
+		return None
+	names = []
+	for token in tokens:
+		if token.startswith("@"):
+			names.extend(classes.get(token[1:], []))
+		else:
+			names.append(token)
+	return names
+
+
+def alternateEntriesOfFont(thisFont):
+	"""
+	One-to-one substitutions (single and alternate substitutions, as listed in aalt) from the font's feature code,
+	as a list of dicts for the grid view: a base character plus the feature that turns it into the alternate.
+	"""
+	featureCodes = {}
+	featureOrder = []
+	for feature in thisFont.features:
+		if not getattr(feature, "active", True):
+			continue
+		featureCodes[feature.name] = re.sub(r"#[^\n]*", "", feature.code or "")
+		featureOrder.append(feature.name)
+
+	# a manual aalt dictates the order: feature xxxx;
+	aaltTags = re.findall(r"\bfeature\s+(\w{4})\s*;", featureCodes.get("aalt", ""))
+	tags = [tag for tag in aaltTags if tag in featureCodes] or [tag for tag in featureOrder if tag not in NON_ALTERNATE_FEATURES]
+
+	# glyph classes from the font, the prefixes and the feature code:
+	classes = {}
+	classSources = [f"@{c.name} = [{c.code}];" for c in thisFont.classes]
+	classSources += [(prefix.code or "") for prefix in thisFont.featurePrefixes]
+	classSources += list(featureCodes.values())
+	for source in classSources:
+		for className, members in re.findall(r"@([\w.]+)\s*=\s*\[([^\]]*)\]\s*;", re.sub(r"#[^\n]*", "", source)):
+			classes[className] = glyphNamesOfFeatureItem(f"[{members}]", classes) or []
+
+	entries = []
+	seen = set()
+	colorIndex = 0
+	rulePattern = re.compile(r"\bsub(?:stitute)?\s+([^;]+?)\s+(by|from)\s+([^;]+?)\s*;")
+	for tag in tags:
+		featureEntries = []
+		for sourceText, keyword, targetText in rulePattern.findall(featureCodes[tag]):
+			if "'" in sourceText:
+				continue  # contextual
+			sources = glyphNamesOfFeatureItem(sourceText, classes)
+			targets = glyphNamesOfFeatureItem(targetText, classes)
+			if not sources or not targets:
+				continue
+			pairs = []
+			if keyword == "from":
+				if len(sources) == 1:
+					pairs = [(sources[0], target, index + 1) for index, target in enumerate(targets)]
+			elif len(targets) == 1:
+				pairs = [(source, targets[0], 1) for source in sources]
+			elif len(targets) == len(sources):
+				pairs = [(source, target, 1) for source, target in zip(sources, targets)]
+			for sourceName, targetName, index in pairs:
+				key = (tag, sourceName, targetName)
+				sourceGlyph = thisFont.glyphs[sourceName]
+				targetGlyph = thisFont.glyphs[targetName]
+				if key in seen or sourceName == targetName or not sourceGlyph or not targetGlyph:
+					continue
+				if not sourceGlyph.unicode:
+					continue  # can only show alternates of encoded glyphs
+				seen.add(key)
+				entry = {
+					"c": int(sourceGlyph.unicode, 16),
+					"u": sourceGlyph.unicode,
+					"n": targetName,
+					"b": sourceName,
+					"f": tag,
+					"i": index,
+					"k": colorIndex,
+				}
+				if targetGlyph.category:
+					entry["cat"] = targetGlyph.category
+				if targetGlyph.subCategory:
+					entry["sub"] = targetGlyph.subCategory
+				featureEntries.append(entry)
+		if featureEntries:
+			entries.extend(featureEntries)
+			colorIndex += 1
+	return entries
+
+
 def allGlyphInfosOfFont(thisFont):
 	# Collect per-glyph info for the grid view (code point + metadata for tooltips).
 	glyphInfos = []
@@ -522,6 +621,7 @@ def allGlyphInfosOfFont(thisFont):
 		if g.subCategory:
 			entry["sub"] = g.subCategory
 		glyphInfos.append(entry)
+	glyphInfos.extend(alternateEntriesOfFont(thisFont))
 	return json.dumps(glyphInfos, ensure_ascii=False)
 
 
@@ -929,6 +1029,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 				flex: 0 0 auto;
 				width: var(--grid-cell-size, 56px);
 				height: var(--grid-cell-size, 56px);
+				position: relative;
 				border: 1px solid #eee;
 				line-height: 1;
 				cursor: default;
@@ -936,12 +1037,39 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 			.gridCell:hover {
 				background-color: #eef;
 			}
+			/* alternates (one-to-one substitutions), alternating colors per OT feature: */
+			:root {
+				--featA-bg: #e8f6e8; --featA-border: #8fcf8f; --featA-text: #165a1c;
+				--featB-bg: #e8f0fb; --featB-border: #8db4e6; --featB-text: #17407a;
+			}
+			.gridCell.featA { background-color: var(--featA-bg); border-color: var(--featA-border); --tag-text: var(--featA-text); }
+			.gridCell.featB { background-color: var(--featB-bg); border-color: var(--featB-border); --tag-text: var(--featB-text); }
+			.gridCell.featA:hover, .gridCell.featB:hover { box-shadow: inset 0 0 0 999px rgba(128, 128, 128, 0.15); }
+			.featTag {
+				display: none;
+				position: absolute;
+				left: 0;
+				bottom: -16px;
+				width: 100%%;
+				height: 16px;
+				font: 11px/16px sans-serif;
+				font-variation-settings: normal;
+				font-feature-settings: normal;
+				text-align: center;
+				color: var(--tag-text);
+				-webkit-text-stroke: 0;
+				-webkit-text-fill-color: var(--tag-text);
+				overflow: hidden;
+			}
+			#gridview[data-tags] .gridCell.featA, #gridview[data-tags] .gridCell.featB { border-bottom-width: 16px; }
+			#gridview[data-tags] .featTag { display: block; }
 			#gridTooltip {
 				display: none;
 				position: fixed;
 				z-index: 30;
-				background: #333;
-				color: white;
+				background: #f6f6f6;
+				color: #222;
+				border: 1px solid #ccc;
 				padding: 0.4em 0.7em;
 				border-radius: 0.3em;
 				pointer-events: none;
@@ -1023,6 +1151,11 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 				}
 				.gridCell { border-color: #333; }
 				.gridCell:hover { background-color: #223; }
+				:root {
+					--featA-bg: #0e2a12; --featA-border: #2d7a35; --featA-text: #a9e3af;
+					--featB-bg: #0d1c33; --featB-border: #2a5fa8; --featB-text: #a8c8f5;
+				}
+				#gridTooltip { background: #333; color: white; border-color: #333; }
 				:root { --metrics-color: rgba(128, 128, 128, 0.3); }
 				.○ {
 					-webkit-text-stroke: 1px white;
@@ -1136,6 +1269,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 				}
 				return gridTooltip;
 			}
+			let gridTooltipsEnabled = true;
 			function buildGridView() {
 				const grid = document.getElementById('gridview');
 				grid.innerHTML = '';
@@ -1145,14 +1279,27 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 					const cell = document.createElement('div');
 					cell.className = 'gridCell';
 					cell.textContent = ch;
-					cell.addEventListener('mouseenter', function() {
+					if (info.f) {
+						// alternate: show the substitution of this feature only, independent of the feature buttons
+						cell.classList.add(info.k %% 2 == 0 ? 'featA' : 'featB');
+						cell.style.setProperty('font-feature-settings', '"' + info.f + '" ' + info.i);
+						const tag = document.createElement('span');
+						tag.className = 'featTag';
+						tag.textContent = info.f;
+						cell.appendChild(tag);
+					}
+					function showTooltip() {
 						tooltip.innerHTML = '';
 						const refGlyph = document.createElement('div');
 						refGlyph.className = 'refGlyph';
 						refGlyph.textContent = ch;
 						tooltip.appendChild(refGlyph);
 						const metaLines = [];
-						if (info.u) metaLines.push('U+' + info.u);
+						if (info.f) {
+							metaLines.push('Feature: ' + info.f + (info.i > 1 ? ' (alternate ' + info.i + ')' : ''));
+							metaLines.push('/' + info.n);
+							metaLines.push('Alternate of /' + info.b + ' (U+' + info.u + ')');
+						} else if (info.u) metaLines.push('U+' + info.u);
 						if (info.d) metaLines.push(info.d);
 						if (info.cat) metaLines.push(info.cat);
 						if (info.sub) metaLines.push(info.sub);
@@ -1163,6 +1310,20 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 							tooltip.appendChild(l);
 						}
 						tooltip.style.display = 'block';
+					}
+					cell.addEventListener('mouseenter', function() {
+						if (gridTooltipsEnabled) showTooltip();
+					});
+					cell.addEventListener('click', function(e) {
+						// a click toggles the tooltips (on by default)
+						gridTooltipsEnabled = !gridTooltipsEnabled;
+						if (gridTooltipsEnabled) {
+							showTooltip();
+							tooltip.style.left = (e.clientX + 14) + 'px';
+							tooltip.style.top = (e.clientY + 14) + 'px';
+						} else {
+							tooltip.style.display = 'none';
+						}
 					});
 					cell.addEventListener('mousemove', function(e) {
 						tooltip.style.left = (e.clientX + 14) + 'px';
@@ -1375,6 +1536,12 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 						body.style.setProperty("font-size", ""+sliderValue+"px");
 						gridview.style.setProperty("font-size", ""+sliderValue+"px");
 						document.documentElement.style.setProperty('--grid-cell-size', Math.round(parseFloat(sliderValue) * 1.4) + 'px');
+						// from 60px on, alternates carry the name of their feature in a thicker bottom border:
+						if (parseFloat(sliderValue) >= 60) {
+							gridview.setAttribute('data-tags', '');
+						} else {
+							gridview.removeAttribute('data-tags');
+						}
 						label.textContent += "px";
 					} else if (sliderID == "lineheight") {
 						// Line Height Slider
