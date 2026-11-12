@@ -11,11 +11,15 @@ from mekkablue import mekkaObject, newAnchorWithName, reportFontName
 from GlyphsApp import Glyphs, GSPath, GSComponent, OFFCURVE, GSOFFCURVE, GSSMOOTH, Message, distance
 from AppKit import (
 	NSAffineTransform,
+	NSLayoutAttributeCenterY,
+	NSLayoutConstraint,
 	NSLayoutConstraintOrientationHorizontal,
 	NSLayoutConstraintOrientationVertical,
 	NSLayoutPriorityDefaultHigh,
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
+	NSLayoutRelationEqual,
+	NSTextAlignmentLeft,
 	NSTextAlignmentRight,
 )
 from Foundation import NSNotFound, NSPoint
@@ -324,7 +328,7 @@ class CompatibilityManager(mekkaObject):
 	}
 
 	def __init__(self):
-		windowWidth = 440
+		windowWidth = 1  # Auto Layout grows the window to the width the content needs
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
@@ -367,7 +371,12 @@ class CompatibilityManager(mekkaObject):
 		self.w.resetStartPoints = vanilla.Button("auto", "Reset Start Points", callback=self.resetStartPoints)
 		self.w.reorderShapes = vanilla.Button("auto", "Reorder Shapes", callback=self.reorderShapes)
 
-		self.w.separator = vanilla.HorizontalLine("auto")
+		# title of the collapsible lower part, set like the other titles, but clickable:
+		self.w.extraTitle = vanilla.Button("auto", "", callback=self.toggleExtraOptions, sizeStyle="small")
+		self.w.extraTitle.setToolTip("Show or hide the extra options.")
+		nsExtraTitle = self.w.extraTitle.getNSButton()
+		nsExtraTitle.setBordered_(False)
+		nsExtraTitle.setAlignment_(NSTextAlignmentLeft)
 
 		# UI elements, one row per function: description on the left, run button on the right.
 		# Grouped in this order: sync, realign, remove, backup.
@@ -429,18 +438,15 @@ class CompatibilityManager(mekkaObject):
 		def centerY(viewName, referenceName):
 			return {"view1": getattr(self.w, viewName), "attribute1": "centerY", "view2": getattr(self.w, referenceName), "attribute2": "centerY"}
 
+		metrics = {"inset": inset, "gap": 8, "row": 6, "titleGap": 2}
 		rules = [
 			"H:|-inset-[startPointTitle]-gap-[shapeOrderTitle]-inset-|",
 			"H:|-inset-[startPointOptions]-gap-[shapeOrderOptions]-inset-|",
 			"H:|-inset-[resetStartPoints]-gap-[reorderShapes]-inset-|",
-			"H:|-inset-[separator]-inset-|",
+			"H:|-inset-[extraTitle]-(>=inset)-|",
 		]
-		rules += [f"H:|-inset-[{name}Text]-(>=gap)-[{name}Button(>=70)]-inset-|" for name in rowNames]
-		rules.append(
-			"V:|-gap-[startPointTitle]-titleGap-[startPointOptions]-row-[resetStartPoints]-inset-[separator(1)]-inset-"
-			+ "-row-".join(f"[{name}Button]" for name in rowNames)
-			+ "-inset-|"
-		)
+		# the label ends a fixed gap before its button, so it sits close to it
+		rules += [f"H:|-inset-[{name}Text]-gap-[{name}Button(>=80)]-inset-|" for name in rowNames]
 		rules += [
 			centerY("shapeOrderTitle", "startPointTitle"),
 			centerY("shapeOrderOptions", "startPointOptions"),
@@ -452,12 +458,71 @@ class CompatibilityManager(mekkaObject):
 		rules += [centerY(f"{name}Text", f"{name}Button") for name in rowNames]
 		rules += [equalWidth(f"{name}Text", widestLabel) for name in rowNames if f"{name}Text" != widestLabel]
 		rules += [equalWidth(f"{name}Button", widestButton) for name in rowNames if f"{name}Button" != widestButton]
+		self.w.addAutoPosSizeRules(rules, metrics=metrics)
 
-		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "row": 6, "titleGap": 2})
+		# The vertical chain comes in two variants, so the lower part can be collapsed.
+		# Built with AppKit constraints directly, because they get switched on and off:
+		self.extraRowNames = rowNames
+		viewNames = ["startPointTitle", "startPointOptions", "resetStartPoints", "extraTitle"] + [f"{name}Button" for name in rowNames]
+		views = {viewName: getattr(self.w, viewName).getNSView() for viewName in viewNames}
+		upperChain = "V:|-gap-[startPointTitle]-titleGap-[startPointOptions]-row-[resetStartPoints]-inset-[extraTitle]"
+		buttonChain = "-row-".join(f"[{name}Button]" for name in rowNames)
+		self.expandedConstraints = NSLayoutConstraint.constraintsWithVisualFormat_options_metrics_views_(
+			f"{upperChain}-row-{buttonChain}-inset-|",
+			0,
+			metrics,
+			views,
+		)
+		# collapsed: the (hidden) buttons are parked on the title, so they take no space
+		self.collapsedConstraints = list(NSLayoutConstraint.constraintsWithVisualFormat_options_metrics_views_(
+			f"{upperChain}-inset-|",
+			0,
+			metrics,
+			views,
+		))
+		for name in rowNames:
+			self.collapsedConstraints.append(
+				NSLayoutConstraint.constraintWithItem_attribute_relatedBy_toItem_attribute_multiplier_constant_(
+					views[f"{name}Button"],
+					NSLayoutAttributeCenterY,
+					NSLayoutRelationEqual,
+					views["extraTitle"],
+					NSLayoutAttributeCenterY,
+					1.0,
+					0.0,
+				)
+			)
+		expanded = Glyphs.defaults[self.domain("extraOptionsExpanded")]
+		self.setExtraOptionsExpanded(True if expanded is None else bool(expanded), resizeWindow=False)
 
 		self.LoadPreferences()
 		self.w.open()
 		self.w.makeKey()
+
+	def setExtraOptionsExpanded(self, expanded, resizeWindow=True):
+		Glyphs.defaults[self.domain("extraOptionsExpanded")] = expanded
+		self.w.extraTitle.setTitle(("▼" if expanded else "▶\uFE0E") + " Extra options")
+		if expanded:
+			NSLayoutConstraint.deactivateConstraints_(self.collapsedConstraints)
+			NSLayoutConstraint.activateConstraints_(self.expandedConstraints)
+		else:
+			NSLayoutConstraint.deactivateConstraints_(self.expandedConstraints)
+			NSLayoutConstraint.activateConstraints_(self.collapsedConstraints)
+		for name in self.extraRowNames:
+			getattr(self.w, f"{name}Text").show(expanded)
+			getattr(self.w, f"{name}Button").show(expanded)
+		self.extraOptionsExpanded = expanded
+
+		if resizeWindow:
+			# fit the window height to the content again, keep the width
+			window = self.w.getNSWindow()
+			window.layoutIfNeeded()
+			fittingHeight = window.contentView().fittingSize().height
+			if fittingHeight > 50:
+				self.w.resize(self.w.getPosSize()[2], fittingHeight)
+
+	def toggleExtraOptions(self, sender=None):
+		self.setExtraOptionsExpanded(not self.extraOptionsExpanded)
 
 	def processSelectedGlyphs(self, title, function, unit):
 		"""Calls function(glyph, sourceLayer) for each selected glyph; the function reports and returns a count."""
