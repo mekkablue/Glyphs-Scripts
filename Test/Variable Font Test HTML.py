@@ -1045,6 +1045,8 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 			.gridCell.featA { background-color: var(--featA-bg); border-color: var(--featA-border); --tag-text: var(--featA-text); }
 			.gridCell.featB { background-color: var(--featB-bg); border-color: var(--featB-border); --tag-text: var(--featB-text); }
 			.gridCell.featA:hover, .gridCell.featB:hover { box-shadow: inset 0 0 0 999px rgba(128, 128, 128, 0.15); }
+			/* base glyphs that an active OT feature button substitutes: yellow backdrop, alternates stay blue/green */
+			.gridCell.featHit { background-color: rgba(255, 215, 0, 0.3); }
 			.featTag {
 				display: none;
 				position: absolute;
@@ -1270,6 +1272,34 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 				return gridTooltip;
 			}
 			let gridTooltipsEnabled = true;
+			function activeFeaturesAffecting(codePoint) {
+				// tags of the active feature buttons that substitute this character (in aalt order, without duplicates)
+				const activeFeatures = new Set();
+				for (const checkbox of document.getElementsByClassName("otFeature")) {
+					if (checkbox.checked) activeFeatures.add(checkbox.name);
+				}
+				const tags = [];
+				for (const info of glyphInfos) {
+					if (info.f && info.c === codePoint && activeFeatures.has(info.f) && !tags.includes(info.f)) tags.push(info.f);
+				}
+				return tags;
+			}
+			function updateGridHighlights() {
+				// yellow backdrop for base glyphs that an active feature button substitutes (one-to-one substitutions
+				// known from the alternates); the alternate cells themselves keep their blue/green
+				const activeFeatures = new Set();
+				for (const checkbox of document.getElementsByClassName("otFeature")) {
+					if (checkbox.checked) activeFeatures.add(checkbox.name);
+				}
+				const affected = new Set();
+				for (const info of glyphInfos) {
+					if (info.f && activeFeatures.has(info.f)) affected.add(String(info.c));
+				}
+				for (const cell of document.getElementById('gridview').getElementsByClassName('gridCell')) {
+					const isBaseCell = !cell.classList.contains('featA') && !cell.classList.contains('featB');
+					cell.classList.toggle('featHit', isBaseCell && affected.has(cell.dataset.cp));
+				}
+			}
 			function buildGridView() {
 				const grid = document.getElementById('gridview');
 				grid.innerHTML = '';
@@ -1279,6 +1309,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 					const cell = document.createElement('div');
 					cell.className = 'gridCell';
 					cell.textContent = ch;
+					cell.dataset.cp = info.c;
 					if (info.f) {
 						// alternate: show the substitution of this feature only, independent of the feature buttons
 						cell.classList.add(info.k %% 2 == 0 ? 'featA' : 'featB');
@@ -1299,7 +1330,13 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 							metaLines.push('Feature: ' + info.f + (info.i > 1 ? ' (alternate ' + info.i + ')' : ''));
 							metaLines.push('/' + info.n);
 							metaLines.push('Alternate of /' + info.b + ' (U+' + info.u + ')');
-						} else if (info.u) metaLines.push('U+' + info.u);
+						} else if (info.u) {
+							metaLines.push('U+' + info.u);
+						}
+						if (!info.f) {
+							const accessTags = activeFeaturesAffecting(info.c);
+							if (accessTags.length > 0) metaLines.push('Accessed through ' + accessTags.join(', '));
+						}
 						if (info.d) metaLines.push(info.d);
 						if (info.cat) metaLines.push(info.cat);
 						if (info.sub) metaLines.push(info.sub);
@@ -1337,6 +1374,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 					});
 					grid.appendChild(cell);
 				}
+				updateGridHighlights();
 			}
 			function toggleGridView() {
 				const textarea = document.getElementById('textarea');
@@ -1501,6 +1539,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 				}
 				testtext.style.setProperty("font-feature-settings", codeLine);
 				document.getElementById("gridview").style.setProperty("font-feature-settings", codeLine);
+				updateGridHighlights();
 			}
 			function resetParagraph() {
 				const defaulttext = "The Quick Brown Fox Jumps Over the Lazy Dog.";
