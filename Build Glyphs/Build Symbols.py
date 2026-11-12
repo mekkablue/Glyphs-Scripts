@@ -174,7 +174,20 @@ def areaOfLayer(layer):
 	return sum(shape.area() for shape in layerCopy.shapes)
 
 
-def stemWidthForMaster(font, master, default=50, maxWidth=None):
+def verticalStemOfMaster(font, master):
+	"""Returns the first vertical stem value set in the master, or None."""
+	if Glyphs.versionNumber >= 4:
+		# Glyphs 4: the stems of the master line up with font.stems, which flags each as horizontal or vertical
+		for index, stem in enumerate(font.stems):
+			if not stem.horizontal and master.stems[index]:
+				return master.stems[index]
+	elif master.verticalStems:
+		# Glyphs 3 and earlier
+		return master.verticalStems[0]
+	return None
+
+
+def stemWidthForMaster(font, master, default=60, maxWidth=None):
 	"""Stem thickness measured on the slash; else 80% of the master’s vertical stem; else the default. Never more than maxWidth."""
 	width = None
 	slash = slashLayerOf(font, master)
@@ -195,8 +208,10 @@ def stemWidthForMaster(font, master, default=50, maxWidth=None):
 		except (IndexError, ZeroDivisionError):
 			print("⚠️ Error measuring slash, will try master stem width instead.")
 
-	if width is None and master.verticalStems:
-		width = master.verticalStems[0] * 0.8
+	if width is None:
+		verticalStem = verticalStemOfMaster(font, master)
+		if verticalStem:
+			width = verticalStem * 0.8
 
 	if width is None:
 		print(f"⚠️ Error measuring stem width: No vertical stems set in master ‘{master.name}’. Will default to {default}.")
