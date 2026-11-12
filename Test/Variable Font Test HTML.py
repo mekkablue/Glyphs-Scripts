@@ -1086,6 +1086,10 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 				line-height: 1.1;
 				font-variation-settings: normal;
 			}
+			#gridTooltip .tooltipFeature {
+				color: #e07b00;
+				font-weight: bold;
+			}
 			#gridTooltip .cellMeta {
 				font: 12px sans-serif;
 			}
@@ -1335,7 +1339,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 						}
 						if (!info.f) {
 							const accessTags = activeFeaturesAffecting(info.c);
-							if (accessTags.length > 0) metaLines.push('Accessed through ' + accessTags.join(', '));
+							if (accessTags.length > 0) metaLines.push({substitutedBy: accessTags});
 						}
 						if (info.d) metaLines.push(info.d);
 						if (info.cat) metaLines.push(info.cat);
@@ -1343,7 +1347,18 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 						for (const line of metaLines) {
 							const l = document.createElement('div');
 							l.className = 'cellMeta';
-							l.textContent = line;
+							if (typeof line === 'string') {
+								l.textContent = line;
+							} else {
+								l.appendChild(document.createTextNode('Substituted by '));
+								line.substitutedBy.forEach(function(tag, index) {
+									if (index > 0) l.appendChild(document.createTextNode(', '));
+									const tagSpan = document.createElement('span');
+									tagSpan.className = 'tooltipFeature';
+									tagSpan.textContent = tag;
+									l.appendChild(tagSpan);
+								});
+							}
 							tooltip.appendChild(l);
 						}
 						tooltip.style.display = 'block';
