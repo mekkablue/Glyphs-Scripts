@@ -280,7 +280,10 @@ class AxisLocationSetter(mekkaObject):
 			print(traceback.format_exc())
 
 
-if Glyphs.versionNumber >= 3:
+if Glyphs.versionNumber >= 4:
+	# GLYPHS 4
+	Message(title="Axis Location Setter", message="This script is a helper for Glyphs 2 and 3. It is not meant for Glyphs 4 and does nothing there.", OKButton=None)
+elif Glyphs.versionNumber >= 3:
 	# GLYPHS 3
 	AxisLocationSetter()
 else:
