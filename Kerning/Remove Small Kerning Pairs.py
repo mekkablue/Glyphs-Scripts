@@ -3,76 +3,198 @@ __doc__ = """
 Specify a kerning value, and every kerning in the current master smaller than that will be removed.
 """
 
+import objc
 import vanilla
-from GlyphsApp import Glyphs
 from mekkablue import mekkaObject
+from GlyphsApp import Glyphs
+from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal
+from Foundation import NSNumberFormatter
 
 
-def nameForID(Font, ID):
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
+
+
+def nameForID(font, ID):
 	"""Return the name of a group or glyph for a given kerning ID."""
-	try:
-		if ID[0] == "@":  # is a group
-			return ID
-		else:  # is a glyph
-			return Font.glyphForId_(ID).name
-	except Exception as e:
-		raise e
+	if ID.startswith("@"):  # is a group
+		return ID
+	return font.glyphForId_(ID).name
 
 
 class DeleteSmallKerningPairs(mekkaObject):
 	prefDict = {
-		"howMuch": "10",
+		"howMuch": 10,
 		"positive": True,
 		"zero": False,
 		"negative": True,
 		"glyphToGlyph": True,
 		"glyphToClass": True,
 		"classToClass": True,
-		"keepWindow": True,
+		"countPairs": True,
+		"removeOnMasters": 0,
 	}
 
 	def __init__(self):
-		# Window 'self.w':
-		offset = 10
-		line = 20
-
-		windowWidth = 325
-		windowHeight = 170
+		windowWidth = 350
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight),  # default window size
-			"Remove Small Kerning Pairs",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			(windowWidth, windowHeight),
+			"Remove Small Kerning Pairs",
+			autosaveName=self.domain("mainwindow"),  # stores last window position
 		)
 
 		# UI elements:
-		self.w.text_1 = vanilla.TextBox((15 - 1, offset + 2, -15, line), "In the current font master, delete all pairs smaller than:", sizeStyle='small')
-		self.w.howMuch = vanilla.EditText((15 - 1, offset + line + 1, -15, line), "10", sizeStyle='small', callback=self.SavePreferences)
+		inset = 15
 
-		self.w.text_2 = vanilla.TextBox((15 - 1, offset * 2 + line * 2 + 2, -15, line), "Only delete:", sizeStyle='small')
-		self.w.positive = vanilla.CheckBox((25, offset * 2 + line * 3, -15, line), "Positive,", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.zero = vanilla.CheckBox((90, offset * 2 + line * 3, -15, line), "zero, and", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.negative = vanilla.CheckBox((162, offset * 2 + line * 3, -15, line), "negative pairs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.textHowMuch = vanilla.TextBox("auto", "Delete pairs smaller than:")
+		formatter = NSNumberFormatter.alloc().init()
+		formatter.setAllowsFloats_(False)
+		formatter.setMinimum_(1)
+		self.w.howMuch = SteppingEditText("auto", "10", callback=self.SavePreferences, formatter=formatter)
+		tooltip = "Kerning pairs with an absolute value smaller than this will be removed."
+		self.w.textHowMuch.setToolTip(tooltip)
+		self.w.howMuch.setToolTip(tooltip)
 
-		self.w.glyphToGlyph = vanilla.CheckBox((25, offset * 2 + line * 4, -15, line), "Glyph-glyph", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.glyphToClass = vanilla.CheckBox((115, offset * 2 + line * 4, -15, line), "Glyph-class", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.classToClass = vanilla.CheckBox((205, offset * 2 + line * 4, -15, line), "Class-class", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.textScope = vanilla.TextBox("auto", "Scope:", sizeStyle="small")
+		self.w.textScope.setToolTip("Which kinds of pairs may be removed.")
+		self.w.positive = vanilla.CheckBox("auto", "Positive,", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.positive.setToolTip("Remove positive pairs smaller than the value.")
+		self.w.zero = vanilla.CheckBox("auto", "zero, and", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.zero.setToolTip("Remove pairs with a value of zero.")
+		self.w.negative = vanilla.CheckBox("auto", "negative pairs", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.negative.setToolTip("Remove negative pairs smaller (in absolute value) than the value.")
+		self.w.glyphToGlyph = vanilla.CheckBox("auto", "Glyph-glyph", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.glyphToGlyph.setToolTip("Include pairs between two glyphs.")
+		self.w.glyphToClass = vanilla.CheckBox("auto", "Glyph-group", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.glyphToClass.setToolTip("Include pairs between a glyph and a group.")
+		self.w.classToClass = vanilla.CheckBox("auto", "Group-group", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.classToClass.setToolTip("Include pairs between two groups.")
 
-		self.w.keepWindow = vanilla.CheckBox((25, offset * 2 + line * 5, -15, line), "Keep window open", value=True, callback=self.SavePreferences, sizeStyle='small')
+		tooltip = "Where to remove the pairs."
+		self.w.removeOnMastersText = vanilla.TextBox("auto", "Remove on:", sizeStyle="small", selectable=True)
+		self.w.removeOnMasters = vanilla.PopUpButton(
+			"auto",
+			("current master", "⚠️ all masters of current font", "⚠️ all masters of ⚠️ all open fonts"),
+			sizeStyle="small",
+			callback=self.SavePreferences,
+		)
+		self.w.removeOnMastersText.setToolTip(tooltip)
+		self.w.removeOnMasters.setToolTip(tooltip)
 
-		# Next Master Button:
-		self.w.nextMasterButton = vanilla.Button((-80 - 15 - 110 - 10, -20 - 15, -80 - 15 - 10, -15), "Next Master", callback=self.selectNextMaster)
-		self.w.nextMasterButton.setToolTip("Switches the frontmost font to its next master, so you can step through all masters and remove small pairs in each of them.")
+		tooltip = "Count the affected pairs (may be slow in large fonts)."
+		self.w.countPairs = vanilla.CheckBox("auto", "Will remove:", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.statusText = vanilla.TextBox("auto", "–", sizeStyle="small")
+		self.w.countPairs.setToolTip(tooltip)
+		self.w.statusText.setToolTip("Number of pairs the Remove button would delete right now.")
 
-		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - 15, -20 - 15, -15, -15), "Remove", callback=self.DeleteSmallKerningPairsMain)
+		self.w.nextMasterButton = vanilla.Button("auto", "Next Master", callback=self.selectNextMaster)
+		self.w.nextMasterButton.setToolTip("Switch the frontmost font to its next master.")
+		self.w.runButton = vanilla.Button("auto", "Remove", callback=self.DeleteSmallKerningPairsMain)
+		self.w.runButton.setToolTip("Remove the matching pairs.")
 		self.w.setDefaultButton(self.w.runButton)
 
-		# Load Settings:
-		self.LoadPreferences()
+		# checkboxes stretch vertically by default; hugging makes the window as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
 
-		# Open window and focus on it:
+		# labels hug their text, the fields take the leftover width
+		for labelName in ("textHowMuch", "removeOnMastersText"):
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(750, NSLayoutConstraintOrientationHorizontal)
+		self.w.countPairs.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.removeOnMasters.getNSPopUpButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
+		columnRules = [
+			{"view1": self.w.glyphToGlyph, "attribute1": "width", "view2": self.w.positive, "attribute2": "width"},
+			{"view1": self.w.glyphToClass, "attribute1": "width", "view2": self.w.zero, "attribute2": "width"},
+			{"view1": self.w.classToClass, "attribute1": "width", "view2": self.w.negative, "attribute2": "width"},
+		]
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[textHowMuch]-gap-[howMuch(60)]-(>=inset)-|",
+				"H:|-inset-[textScope]-(>=inset)-|",
+				"H:|-inset-[positive]-gap-[zero]-gap-[negative]-(>=inset)-|",
+				"H:|-inset-[glyphToGlyph]-gap-[glyphToClass]-gap-[classToClass]-(>=inset)-|",
+				"H:|-inset-[countPairs]-gap-[statusText]-(>=inset)-|",
+				"H:|-inset-[removeOnMastersText]-gap-[removeOnMasters]-inset-|",
+				"H:|-inset-[nextMasterButton(>=70)]-(>=gap)-[runButton(>=70)]-inset-|",
+				"V:|-inset-[howMuch]-row-[textScope]-row-[positive]-stackRow-[glyphToGlyph]-row-[removeOnMasters]-row-[countPairs]-inset-[runButton]-inset-|",
+				"V:[nextMasterButton]-inset-|",
+				{"view1": self.w.textHowMuch, "attribute1": "centerY", "view2": self.w.howMuch, "attribute2": "centerY"},
+				{"view1": self.w.zero, "attribute1": "centerY", "view2": self.w.positive, "attribute2": "centerY"},
+				{"view1": self.w.negative, "attribute1": "centerY", "view2": self.w.positive, "attribute2": "centerY"},
+				{"view1": self.w.glyphToClass, "attribute1": "centerY", "view2": self.w.glyphToGlyph, "attribute2": "centerY"},
+				{"view1": self.w.classToClass, "attribute1": "centerY", "view2": self.w.glyphToGlyph, "attribute2": "centerY"},
+				{"view1": self.w.statusText, "attribute1": "centerY", "view2": self.w.countPairs, "attribute2": "centerY"},
+				{"view1": self.w.removeOnMastersText, "attribute1": "centerY", "view2": self.w.removeOnMasters, "attribute2": "centerY"},
+			] + columnRules,
+			metrics={"inset": inset, "gap": 8, "row": 8, "stackRow": 5},
+		)
+
+		self.LoadPreferences()
 		self.w.open()
 		self.w.makeKey()
+
+	def updateUI(self, sender=None):
+		anyValue = self.prefBool("positive") or self.prefBool("zero") or self.prefBool("negative")
+		anyKind = self.prefBool("glyphToGlyph") or self.prefBool("glyphToClass") or self.prefBool("classToClass")
+		self.w.runButton.enable(anyValue and anyKind)
+
+		countEnabled = self.prefBool("countPairs")
+		self.w.statusText.getNSTextField().setEnabled_(countEnabled)
+		if countEnabled and anyValue and anyKind:
+			total = sum(len(self.pairsToRemove(font, master)[0]) for font, master in self.fontsAndMasters())
+			self.w.statusText.set("%i pair%s" % (total, "" if total == 1 else "s"))
+		else:
+			self.w.statusText.set("–")
+
+	def fontsAndMasters(self):
+		"""Yield (font, master) tuples according to the ‘Remove on’ popup."""
+		removeOn = self.prefInt("removeOnMasters")
+		if removeOn == 2:
+			fonts = tuple(Glyphs.fonts)
+		else:
+			fonts = (Glyphs.font, ) if Glyphs.font else ()
+		for font in fonts:
+			for master in font.masters:
+				if removeOn > 0 or master == font.selectedFontMaster:
+					yield font, master
+
+	def pairsToRemove(self, font, master):
+		"""Return ((leftName, rightName) pairs, negativeCount, zeroCount, positiveCount) for a master."""
+		removePositive = self.prefBool("positive")
+		removeZero = self.prefBool("zero")
+		removeNegative = self.prefBool("negative")
+		removeGlyphToGlyph = self.prefBool("glyphToGlyph")
+		removeGlyphToClass = self.prefBool("glyphToClass")
+		removeClassToClass = self.prefBool("classToClass")
+		maxKernValue = abs(self.prefInt("howMuch"))
+
+		pairs = []
+		countZero = countPositive = countNegative = 0
+		kernDict = font.kerning[master.id]
+		if not kernDict:
+			return pairs, countNegative, countZero, countPositive
+		for leftID in kernDict.keys():
+			for rightID in kernDict[leftID].keys():
+				countClasses = int(leftID.startswith("@")) + int(rightID.startswith("@"))
+				if (removeGlyphToGlyph and countClasses == 0) or \
+					(removeGlyphToClass and countClasses == 1) or \
+					(removeClassToClass and countClasses == 2):
+					kerningValue = kernDict[leftID][rightID]
+					if removeZero and kerningValue == 0.0:
+						countZero += 1
+					elif removePositive and 0.0 < kerningValue < maxKernValue:
+						countPositive += 1
+					elif removeNegative and 0.0 > kerningValue > -maxKernValue:
+						countNegative += 1
+					else:
+						continue
+					pairs.append((nameForID(font, leftID), nameForID(font, rightID)))
+		return pairs, countNegative, countZero, countPositive
 
 	def selectNextMaster(self, sender=None):
 		try:
@@ -87,6 +209,7 @@ class DeleteSmallKerningPairs(mekkaObject):
 			nextIndex = (thisFont.masterIndex + 1) % masterCount
 			thisFont.masterIndex = nextIndex
 			print("Switched to master: %s" % thisFont.masters[nextIndex].name)
+			self.updateUI()
 		except Exception as e:
 			Glyphs.showMacroWindow()
 			print("Next Master Error: %s" % e)
@@ -94,88 +217,32 @@ class DeleteSmallKerningPairs(mekkaObject):
 	def DeleteSmallKerningPairsMain(self, sender):
 		try:
 			self.SavePreferences()
-
-			# brings macro window:
 			Glyphs.showMacroWindow()
 
-			# read the user entry:
-			shouldRemovePositive = self.prefBool("positive")
-			shouldRemoveZero = self.prefBool("zero")
-			shouldRemoveNegative = self.prefBool("negative")
-			shouldRemoveGlyphToGlyph = self.prefBool("glyphToGlyph")
-			shouldRemoveGlyphToClass = self.prefBool("glyphToClass")
-			shouldRemoveClassToClass = self.prefBool("classToClass")
-			keepWindowOpen = self.prefBool("keepWindow")
-			try:
-				# convert to positive decimal number:
-				maxKernValue = abs(float(self.w.howMuch.get()))
-			except:
-				# bad entry, default to 0 (could be left empty for zero pairs only):
-				maxKernValue = 0.0
+			maxKernValue = abs(self.prefInt("howMuch"))
+			removeZeroOnly = self.prefBool("zero") and not self.prefBool("negative") and not self.prefBool("positive")
+			willRemove = "zero kernings" if removeZeroOnly else "kernings smaller than %i" % maxKernValue
 
-			# set the variables:
-			thisFont = Glyphs.font  # frontmost font
-			thisFontMaster = thisFont.selectedFontMaster  # active master
-			thisFontMasterID = thisFontMaster.id  # active master ID
-			thisFontMasterKernDict = thisFont.kerning[thisFontMasterID]  # kerning dictionary
-
-			if ((shouldRemovePositive or shouldRemoveNegative) and maxKernValue) or shouldRemoveZero:
-				willRemove = "kernings smaller than %i" % maxKernValue
-				if shouldRemoveZero and ((not maxKernValue) or (not shouldRemoveNegative and not shouldRemovePositive)):
-					willRemove = "zero kernings"
+			fontsAndMasters = tuple(self.fontsAndMasters())
+			if not fontsAndMasters:
+				print("Note: No font open.")
+			for thisFont, thisFontMaster in fontsAndMasters:
 				print("Deleting %s in %s %s..." % (willRemove, thisFont.familyName, thisFontMaster.name))
-
-				# collect pairs to be removed:
-				kernpairsToBeRemoved = []
-				countZero = 0
-				countPositive = 0
-				countNegative = 0
-				for leftGlyphID in thisFontMasterKernDict.keys():
-					for rightGlyphID in thisFontMasterKernDict[leftGlyphID].keys():
-
-						countClasses = 0
-						if leftGlyphID.startswith("@"):
-							countClasses += 1
-						if rightGlyphID.startswith("@"):
-							countClasses += 1
-
-						if (shouldRemoveGlyphToGlyph and countClasses == 0) or \
-							(shouldRemoveGlyphToClass and countClasses == 1) or \
-							(shouldRemoveClassToClass and countClasses == 2):
-
-							kerningValue = thisFontMasterKernDict[leftGlyphID][rightGlyphID]
-							leftName = nameForID(thisFont, leftGlyphID)
-							rightName = nameForID(thisFont, rightGlyphID)
-
-							if shouldRemoveZero and kerningValue == 0.0:
-								kernpairsToBeRemoved.append((leftName, rightName))
-								countZero += 1
-							elif shouldRemovePositive and 0.0 < kerningValue < maxKernValue:
-								kernpairsToBeRemoved.append((leftName, rightName))
-								countPositive += 1
-							elif shouldRemoveNegative and 0.0 > kerningValue > -maxKernValue:
-								kernpairsToBeRemoved.append((leftName, rightName))
-								countNegative += 1
-
-				# remove the pairs:
+				pairs, countNegative, countZero, countPositive = self.pairsToRemove(thisFont, thisFontMaster)
 				thisFont.disableUpdateInterface()
-				for thisKernPair in kernpairsToBeRemoved:
-					leftSide = thisKernPair[0]
-					rightSide = thisKernPair[1]
-					thisFont.removeKerningForPair(thisFontMasterID, leftSide, rightSide)
-				thisFont.enableUpdateInterface()
-				print("   Removed %i kerning pairs:" % len(kernpairsToBeRemoved))
+				try:
+					for leftSide, rightSide in pairs:
+						thisFont.removeKerningForPair(thisFontMaster.id, leftSide, rightSide)
+				finally:
+					thisFont.enableUpdateInterface()
+				print("   Removed %i kerning pairs:" % len(pairs))
 				print("   %i negative pairs" % countNegative)
 				print("   %i zero pairs" % countZero)
 				print("   %i positive pairs" % countPositive)
-				print("Done.")
-			else:
-				print("Note: No kerning removed, because no options were picked.")
-
-			if not keepWindowOpen:
-				self.w.close()
+			print("Done.")
+			Glyphs.showNotification("Remove Small Kerning Pairs", "Done. Details in Macro Window.")
+			self.updateUI()
 		except Exception as e:
-			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print("Delete Small Kerning Pairs Error: %s" % e)
 
