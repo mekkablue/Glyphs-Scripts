@@ -792,7 +792,7 @@ class BuildSymbols(mekkaObject):
 				"H:|-inset-[line]-inset-|",
 				"H:|-inset-[override]-gap-[backupLayers]-inset-|",
 				"H:|-inset-[newTab]-gap-[reuseTab]-inset-|",
-				"H:|-(>=inset)-[uncheckAllButton(>=70)]-gap-[checkAllButton(>=70)]-gap-[runButton(>=70)]-inset-|",
+				"H:|-inset-[uncheckAllButton(>=70)]-gap-[checkAllButton(>=70)]-(>=gap)-[runButton(>=70)]-inset-|",
 				# one vertical chain per column; equal row heights keep the rows aligned
 				"V:|-row-[descriptionText]-row-[buildEstimated]-row-[buildCurrency]-row-[buildSummation]-row-[line(1)]-row-[override]-row-[newTab]-inset-[runButton]-inset-|",
 				"V:|-row-[descriptionText]-row-[buildBars]-row-[buildLozenge]-row-[buildRadical]-row-[line]-row-[backupLayers]-row-[reuseTab]",
