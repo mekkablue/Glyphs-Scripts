@@ -321,11 +321,10 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Batch-Add Smart Axes:** Will add smart axes and additional smart layers to selected glyphs.
 * **Brace and Bracket Manager:** Find and replace brace or bracket layer coordinates in Glyphs 3 and later.
 * **Bracify:** Turn font masters into brace layers of certain glyphs. A.k.a. Sparsify.
-* **Compatibility Manager:** A better way to reset startpoints and reorder paths.
+* **Compatibility Manager:** Fixes the compatibility of the layers of selected glyphs: resets start points and reorders shapes; syncs node types, node connections and anchors; realigns smooth connections; removes empty paths and stray points; backs up layers in their backgrounds. Replaces Enhance Compatibility.
 * **Composite Variabler:** Reduplicates Brace and Bracket layers of components in the compounds in which they are used. Makes bracket layers work in composites.
 * **Copy Layer to Layer:** Copies paths (and optionally, also components, anchors, hints and metrics) from one layer to another, across selected glyphs, fonts and masters, including backgrounds, color palette layers, and layers that do not yet exist in the target.
 * **Dekink Master Layers:** Dekinks your smooth point triplets in all compatible layers (useful if they are not horizontal or vertical). Select a point in one or more smooth point triplets, and run this script to move the corresponding nodes in all other masters to the same relative position. Thus you achieve the same point ratio in all masters and avoid interpolation kinks, when the angle of the triplet changes. There is a [video describing it.](http://tinyurl.com/dekink-py) The triplet problem is [described in this tutorial](http://www.glyphsapp.com/learn/multiple-masters-part-2-keeping-your-outlines-compatible).
-* **Enhance Compatibility:** Takes the current layer of each selected glyph, and propagates node types, node connections, realigns handles in technically compatible layers of the same glyph. Useful for fixing compatibility of glyphs that are shown to be compatible but still do not export.
 * **Fill Up Empty Masters:** Copies paths from one Master to another. But only if target master is empty.
 * **Find and Replace in Layer Names:** Replaces text in all layer names (except Master layers) of selected glyphs. Useful if you use the bracket trick in many glyphs.
 * **Find Shapeshifting Glyphs:** Finds glyphs that change the number of paths while interpolating. Opens a new tab and reports to Macro window.
