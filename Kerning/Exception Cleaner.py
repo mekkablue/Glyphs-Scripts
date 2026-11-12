@@ -1,16 +1,17 @@
 # MenuTitle: Exception Cleaner
 __doc__ = """
-Compares every exception to the group kerning available for the same pair. If the difference is below a threshold, remove the kerning exception.
+Removes kerning exceptions (glyph-to-glyph, glyph-to-group and group-to-glyph pairs) in the current master, all masters of the current font, or all masters of all open fonts. Optionally only those that differ less than a threshold from the group kerning they would fall back to. Group-to-group kerning is never touched.
 """
 
 import objc
 import vanilla
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, reportFontName
 from GlyphsApp import Glyphs, Message
 from AppKit import (
 	NSBeep,
 	NSLayoutConstraintOrientationHorizontal,
 	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
 	NSLayoutPriorityDefaultLow,
 	NSLayoutPriorityWindowSizeStayPut,
 )
@@ -35,16 +36,18 @@ def integerFormatter(minimum=None, maximum=None):
 
 class DeleteExceptionsTooCloseToGroupKerning(mekkaObject):
 	prefDict = {
-		"selectedGlyphsOnly": 0,
+		"glyphGlyph": True,
+		"glyphGroup": True,
+		"groupGlyph": True,
+		"keepGrouplessKerning": False,
+		"onlyBelowThreshold": True,
 		"threshold": 10,
-		"onlyReportDontDelete": 0,
-		"reuseTab": 1,
-		"openTab": 1,
+		"removeOnMasters": 0,
 	}
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 430
+		windowWidth = 340
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
@@ -55,30 +58,49 @@ class DeleteExceptionsTooCloseToGroupKerning(mekkaObject):
 		# UI elements:
 		inset = 15
 
-		self.w.text_1 = vanilla.TextBox("auto", "Delete all kerning exceptions in the current master if they are less than the threshold value away from their corresponding group-to-group kerning:", sizeStyle='small')
-		self.w.text_1.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		# Which kinds of exceptions:
+		self.w.glyphGlyph = vanilla.CheckBox("auto", "Remove 🅰️🅰️ glyph-to-glyph pairs", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.glyphGlyph.setToolTip("Remove kerning pairs between two glyphs, e.g., ‘A’ and ‘V’.")
+		self.w.glyphGroup = vanilla.CheckBox("auto", "Remove 🅰️🔠 glyph-to-group pairs", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.glyphGroup.setToolTip("Remove kerning pairs between a glyph on the left and a group on the right.")
+		self.w.groupGlyph = vanilla.CheckBox("auto", "Remove 🔠🅰️ group-to-glyph pairs", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.groupGlyph.setToolTip("Remove kerning pairs between a group on the left and a glyph on the right.")
+		self.w.keepGrouplessKerning = vanilla.CheckBox("auto", "Keep kerning for groupless glyphs", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.keepGrouplessKerning.setToolTip("Glyphs without a kerning group on the relevant side have nothing to fall back to. If enabled, their pairs are kept.")
 
-		tooltipText = "A kern exception must be at least this number of units different from its corresponding group kern pair, otherwise it will be deleted."
-		self.w.text_2 = vanilla.TextBox("auto", "Required minimum kern difference:", sizeStyle='small', selectable=True)
-		self.w.threshold = SteppingEditText("auto", "10", callback=self.SavePreferences, sizeStyle='small', formatter=integerFormatter(0))
-		self.w.text_2.setToolTip(tooltipText)
-		self.w.threshold.setToolTip(tooltipText)
+		# Scope:
+		self.w.scopeText = vanilla.TextBox("auto", "Scope:", sizeStyle="small", selectable=True)
+		self.w.scopeText.setToolTip("Which of the exceptions above are removed, and where.")
 
-		self.w.selectedGlyphsOnly = vanilla.CheckBox("auto", "Only consider pairs where at least one glyph is currently selected", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.selectedGlyphsOnly.setToolTip("If enabled, respects your current glyph selection. Will only process kern pairs if one or both of the involved glyphs are in your selection.")
+		self.w.onlyBelowThreshold = vanilla.CheckBox("auto", "Only if difference to group kerning below:", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.onlyBelowThreshold.setToolTip(
+			"If enabled, an exception is only removed if it is less than the threshold value away from its corresponding group-to-group kerning, i.e., if it is insignificant. Exceptions of glyphs without groups cannot be compared and are kept. If disabled, all exceptions of the checked kinds are removed."
+		)
+		self.w.threshold = SteppingEditText("auto", "10", callback=self.SavePreferences, sizeStyle="small", formatter=integerFormatter(0))
+		self.w.threshold.setToolTip("An exception must be at least this number of units different from its corresponding group kern pair, otherwise it will be removed.")
 
-		self.w.onlyReportDontDelete = vanilla.CheckBox("auto", "Only report, do not delete pairs yet", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.onlyReportDontDelete.setToolTip("Opens a new tab with affected pairs, but does not delete any kerning.")
-
-		self.w.openTab = vanilla.CheckBox("auto", "Open tab with affected pairs", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.openTab.setToolTip("Opens a new tab for reporting. Otherwise will only write a report in Macro Window.")
-		self.w.reuseTab = vanilla.CheckBox("auto", "Reuse current tab if possible", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reuseTab.setToolTip("If a tab is open and active already, will not open a new tab but rather reuse the current tab. Otherwise, will always open a new tab.")
+		self.w.removeOnMastersText = vanilla.TextBox("auto", "Remove in:", sizeStyle="small", selectable=True)
+		self.w.removeOnMasters = vanilla.PopUpButton(
+			"auto",
+			("current master", "⚠️ all masters of current font", "⚠️ all masters of ⚠️ all open fonts"),
+			sizeStyle="small",
+			callback=self.SavePreferences,
+		)
+		tooltipText = "Where to remove the exceptions: in the current master only, in all masters of the frontmost font, or in all masters of all open fonts."
+		self.w.removeOnMastersText.setToolTip(tooltipText)
+		self.w.removeOnMasters.setToolTip(tooltipText)
 
 		# Buttons:
 		self.w.nextMasterButton = vanilla.Button("auto", "Next Master", callback=self.NextMaster)
+		self.w.nextMasterButton.setToolTip("Switches the frontmost font to its next master, so you can clean master after master.")
 		self.w.runButton = vanilla.Button("auto", "Clean", callback=self.DeleteExceptionsTooCloseToGroupKerningMain)
+		self.w.runButton.setToolTip("Removes the exceptions as set above. If the button is greyed out, check at least one kind of exception.")
 		self.w.setDefaultButton(self.w.runButton)
+
+		# the checkbox hugs its text, so the stepping field sits right behind it; the popup takes the leftover width
+		self.w.onlyBelowThreshold.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.removeOnMastersText.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.removeOnMasters.getNSPopUpButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# checkboxes stretch vertically by default; hug so the window is as tall as its content
 		for view in self.w.getNSWindow().contentView().subviews():
@@ -86,18 +108,20 @@ class DeleteExceptionsTooCloseToGroupKerning(mekkaObject):
 
 		self.w.addAutoPosSizeRules(
 			[
-				"H:|-inset-[text_1]-inset-|",
-				"H:|-inset-[text_2]-gap-[threshold(50)]-(>=inset)-|",
-				"H:|-inset-[selectedGlyphsOnly]-(>=inset)-|",
-				"H:|-inset-[onlyReportDontDelete]-(>=inset)-|",
-				"H:|-inset-[openTab]-gap-[reuseTab]-(>=inset)-|",
-				"H:|-(>=inset)-[nextMasterButton(>=70)]-gap-[runButton(>=70)]-inset-|",
-				"V:|-gap-[text_1(descriptionHeight)]-row-[threshold]-row-[selectedGlyphsOnly]-checkRow-[onlyReportDontDelete]-checkRow-[openTab]-inset-[runButton]-inset-|",
-				"V:[nextMasterButton]-inset-|",
-				{"view1": self.w.text_2, "attribute1": "centerY", "view2": self.w.threshold, "attribute2": "centerY"},
-				{"view1": self.w.reuseTab, "attribute1": "centerY", "view2": self.w.openTab, "attribute2": "centerY"},
+				"H:|-inset-[glyphGlyph]-(>=inset)-|",
+				"H:|-inset-[glyphGroup]-(>=inset)-|",
+				"H:|-inset-[groupGlyph]-(>=inset)-|",
+				"H:|-inset-[keepGrouplessKerning]-(>=inset)-|",
+				"H:|-inset-[scopeText]-(>=inset)-|",
+				"H:|-inset-[onlyBelowThreshold]-gap-[threshold(50)]-(>=inset)-|",
+				"H:|-inset-[removeOnMastersText]-gap-[removeOnMasters]-inset-|",
+				"H:|-inset-[nextMasterButton(>=70)]-(>=gap)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[glyphGlyph]-checkRow-[glyphGroup]-checkRow-[groupGlyph]-checkRow-[keepGrouplessKerning]-section-[scopeText]-titleGap-[onlyBelowThreshold]-tallRow-[removeOnMasters]-inset-[runButton]-inset-|",
+				{"view1": self.w.threshold, "attribute1": "centerY", "view2": self.w.onlyBelowThreshold, "attribute2": "centerY"},
+				{"view1": self.w.removeOnMastersText, "attribute1": "centerY", "view2": self.w.removeOnMasters, "attribute2": "centerY"},
+				{"view1": self.w.nextMasterButton, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 			],
-			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5, "descriptionHeight": 42},
+			metrics={"inset": inset, "gap": 8, "checkRow": 5, "section": 12, "titleGap": 2, "tallRow": 8},
 		)
 
 		# Load Settings:
@@ -115,254 +139,118 @@ class DeleteExceptionsTooCloseToGroupKerning(mekkaObject):
 			NSBeep()
 
 	def updateUI(self, sender=None):
-		self.w.reuseTab.enable(self.w.openTab.get())
+		self.w.threshold.enable(self.w.onlyBelowThreshold.get())
+		anyKindIsSelected = self.w.glyphGlyph.get() or self.w.glyphGroup.get() or self.w.groupGlyph.get()
+		self.w.runButton.enable(bool(anyKindIsSelected))
 
-		if self.pref("onlyReportDontDelete"):
-			self.w.runButton.setTitle("Report")
-		else:
-			self.w.runButton.setTitle("Clean")
+	def exceptionsToRemove(self, font, master):
+		"""Returns (left, right, report) tuples for the exceptions to remove in this master. Left and right are as removeKerningForPair() takes them."""
+		kerning = font.kerning[master.id]
+		if not kerning:
+			return []
 
-	def glyphNameForKernSide(self, thisFont, kernSideName, isTheLeftSide=True):
-		if kernSideName.startswith("@"):
-			groupName = kernSideName.replace("@MMK_L_", "").replace("@MMK_R_", "").replace("@", "")
-			for thisGlyph in thisFont.glyphs:
-				if isTheLeftSide:
-					if thisGlyph.rightKerningGroup == groupName:
-						return thisGlyph.name
-				else:
-					if thisGlyph.leftKerningGroup == groupName:
-						return thisGlyph.name
-			print(
-				"⚠️ No glyph found for %s group: @%s" % (
-					"right" if isTheLeftSide else "left",  # if it is on the left side, we are looking for the right group and vice versa
-					groupName,
-				)
-			)
-			return None
-		else:
-			if thisFont.glyphs[kernSideName]:
-				return kernSideName
+		removeGlyphGlyph = self.prefBool("glyphGlyph")
+		removeGlyphGroup = self.prefBool("glyphGroup")
+		removeGroupGlyph = self.prefBool("groupGlyph")
+		keepGrouplessKerning = self.prefBool("keepGrouplessKerning")
+		onlyBelowThreshold = self.prefBool("onlyBelowThreshold")
+		threshold = self.prefInt("threshold")
+
+		pairs = []
+		for leftSide in list(kerning.keys()):
+			leftIsGlyph = not leftSide.startswith("@")
+			leftGlyph = font.glyphForId_(leftSide) if leftIsGlyph else None
+			if leftIsGlyph and leftGlyph is None:
+				print(f"\t⚠️ Could not find glyph for ID {leftSide}, consider cleaning up kerning.")
+				continue
+			if leftIsGlyph:
+				leftGroupKey = f"@MMK_L_{leftGlyph.rightKerningGroup}" if leftGlyph.rightKerningGroup else None
+				leftName = leftGlyph.name
 			else:
-				print("⚠️ Glyph not found: %s" % kernSideName)
-				return None
+				leftGroupKey = leftSide
+				leftName = leftSide
+			leftMayBeRemoved = not (leftIsGlyph and leftGroupKey is None and keepGrouplessKerning)
 
-	def DeleteExceptionsTooCloseToGroupKerningMain(self, sender):
+			for rightSide in list(kerning[leftSide].keys()):
+				rightIsGlyph = not rightSide.startswith("@")
+				rightGlyph = font.glyphForId_(rightSide) if rightIsGlyph else None
+				if rightIsGlyph and rightGlyph is None:
+					print(f"\t⚠️ Could not find glyph for ID {rightSide}, consider cleaning up kerning.")
+					continue
+				if rightIsGlyph:
+					rightGroupKey = f"@MMK_R_{rightGlyph.leftKerningGroup}" if rightGlyph.leftKerningGroup else None
+					rightName = rightGlyph.name
+				else:
+					rightGroupKey = rightSide
+					rightName = rightSide
+				rightMayBeRemoved = not (rightIsGlyph and rightGroupKey is None and keepGrouplessKerning)
+
+				if leftIsGlyph and rightIsGlyph:
+					shouldRemove = removeGlyphGlyph and leftMayBeRemoved and rightMayBeRemoved
+				elif leftIsGlyph:
+					shouldRemove = removeGlyphGroup and leftMayBeRemoved
+				elif rightIsGlyph:
+					shouldRemove = removeGroupGlyph and rightMayBeRemoved
+				else:
+					continue  # group-to-group kerning is never removed
+				if not shouldRemove:
+					continue
+
+				exceptionValue = kerning[leftSide][rightSide]
+				report = f"{leftName}-{rightName}: {exceptionValue:g}"
+				if onlyBelowThreshold:
+					if leftGroupKey is None or rightGroupKey is None:
+						continue  # no group to compare with
+					groupValue = font.kerningForPair(master.id, leftGroupKey, rightGroupKey)
+					if groupValue is None or groupValue > 100000:  # NSNotFound
+						groupValue = 0
+					if abs(exceptionValue - groupValue) >= threshold:
+						continue
+					report += f" vs. {leftGroupKey}-{rightGroupKey}: {groupValue:g}"
+				pairs.append((leftName, rightName, report))
+		return pairs
+
+	def DeleteExceptionsTooCloseToGroupKerningMain(self, sender=None):
 		try:
+			# clear macro window log:
+			Glyphs.clearLog()
+
+			# update settings to the latest user input:
 			self.SavePreferences()
 
-			thisFont = Glyphs.font  # frontmost font
-			thisMaster = thisFont.selectedFontMaster
-			thisMasterID = thisMaster.id
+			font = Glyphs.font  # frontmost font
+			if font is None:
+				Message(title="No Font Open", message="The script requires at least one font. Open a font and run the script again.", OKButton=None)
+				return
 
-			onlyReportDontDelete = self.pref("onlyReportDontDelete")
-			onlySelectedGlyphs = self.pref("selectedGlyphsOnly")
-			threshold = self.prefInt("threshold")
-			openTab = self.pref("openTab")
-			reuseTab = self.pref("reuseTab")
+			scope = self.prefInt("removeOnMasters")
+			fonts = Glyphs.fonts if scope == 2 else (font, )
 
-			if onlySelectedGlyphs:
-				selection = thisFont.selectedLayers
-				if selection:
-					selectedGlyphs = [layer.parent for layer in selection]
-					selectedLeftGlyphGroups = [glyph.rightKerningGroup for glyph in selectedGlyphs]
-					selectedRightGlyphGroups = [glyph.leftKerningGroup for glyph in selectedGlyphs]
-				else:
-					Message(
-						title="Selection Error",
-						message="You specified you want to process only selected glyphs, but no glyphs appear to be selected in the frontmost font.",
-						OKButton="😬 Oops"
-					)
-					return
-			else:
-				selectedGlyphs = ()
-				selectedLeftGlyphGroups = ()
-				selectedRightGlyphGroups = ()
+			print("Exception Cleaner Report\n")
+			totalCount = 0
+			for thisFont in fonts:
+				print(f"Font: {reportFontName(thisFont)}")
+				masters = thisFont.masters if scope >= 1 else (thisFont.selectedFontMaster, )
+				for thisMaster in masters:
+					pairs = self.exceptionsToRemove(thisFont, thisMaster)
+					print(f"\n🚫 Master ‘{thisMaster.name}’: removing {len(pairs)} exception{'' if len(pairs) == 1 else 's'}")
+					for left, right, report in pairs:
+						print(f"\t✅ {report}")
+						thisFont.removeKerningForPair(thisMaster.id, left, right)
+					totalCount += len(pairs)
+				print()
 
-			# brings macro window to front and clears its log:
-			Glyphs.clearLog()
-			print("Font: %s" % thisFont.familyName)
-			print("Path: %s" % (thisFont.filepath if thisFont.filepath else "(unsaved)"))
-			print("Master: %s" % thisMaster.name)
-			print()
-
-			# collect unnecessary kerning exceptions:
-			unnecessaryKernPairs = []
-			for leftSide in thisFont.kerning[thisMasterID].keys():
-				if leftSide.startswith("@"):
-					# group on the left side
-
-					leftGlyphGroup = leftSide.replace("@MMK_L_", "")
-					leftGlyphGroupMMK = leftSide
-
-					for rightSide in thisFont.kerning[thisMasterID][leftSide].keys():
-
-						if not rightSide.startswith("@"):
-							# right side is exception:
-							rightGlyph = thisFont.glyphForId_(rightSide)
-
-							if onlySelectedGlyphs:
-								okToContinue = (leftGlyphGroup in selectedLeftGlyphGroups) or (rightGlyph in selectedGlyphs)
-							else:
-								okToContinue = True
-
-							if okToContinue:
-								if not rightGlyph:
-									# found orphaned kerning, report and abort:
-									print("- Warning: could not find glyph for ID %s, consider cleaning up kerning" % rightSide)
-								else:
-									rightGlyphGroup = rightGlyph.leftKerningGroup
-
-									if not rightGlyphGroup:
-										# no corresponding kerning group, report and abort:
-										print("- Note: Glyph '%s' has no left group; skipping." % rightGlyph.name)
-									else:
-										rightGlyphGroupMMK = "@MMK_R_%s" % rightGlyphGroup
-										exceptionKerning = thisFont.kerning[thisMasterID][leftSide][rightSide]
-										groupKerning = thisFont.kerningForPair(thisMasterID, leftGlyphGroupMMK, rightGlyphGroupMMK)
-										if groupKerning is None or groupKerning > 100000:  # NSNotFound
-											groupKerning = 0
-										if abs(exceptionKerning - groupKerning) < threshold:
-											print(
-												"- Insignificant exception @%s-%s: %i vs. @%s-@%s: %i" % (
-													leftGlyphGroup,
-													rightGlyph.name,
-													exceptionKerning,
-													leftGlyphGroup,
-													rightGlyphGroup,
-													groupKerning,
-												)
-											)
-											unnecessaryKernPairs.append(("@%s" % leftGlyphGroup, rightGlyph.name))
-
-				else:
-					# left side is exception
-					leftGlyph = thisFont.glyphForId_(leftSide)
-					okToContinue = (not onlySelectedGlyphs or leftGlyph in selectedGlyphs)
-					if not leftGlyph:
-						# found orphaned kerning, report and abort:
-						if okToContinue:
-							print("- Warning: could not find glyph for ID %s, consider cleaning up kerning" % leftSide)
-
-					elif leftGlyph.export:
-						# only proceed if the glyph is set to export:
-						leftGlyphGroup = leftGlyph.rightKerningGroup
-
-						if not leftGlyphGroup:
-							# no corresponding kerning group, report and abort:
-							if okToContinue:
-								print("- Note: Glyph '%s' has no right group; skipping." % leftGlyph.name)
-
-						else:
-							# step through exceptions:
-							leftGlyphGroupMMK = "@MMK_L_%s" % leftGlyphGroup
-
-							for rightSide in thisFont.kerning[thisMasterID][leftSide].keys():
-								if rightSide.startswith("@"):
-									# exception-group:
-									rightGlyph = None
-									rightGlyphGroupMMK = rightSide
-									rightGlyphGroup = rightSide.replace("@MMK_R_", "")
-									okToContinue = okToContinue or (not onlySelectedGlyphs or rightGlyphGroup in selectedRightGlyphGroups)
-								else:
-									# exception-exception:
-									rightGlyph = thisFont.glyphForId_(rightSide)
-									rightGlyphGroup = rightGlyph.leftKerningGroup
-									rightGlyphGroupMMK = "@MMK_R_%s" % rightGlyphGroup
-									okToContinue = okToContinue or (not onlySelectedGlyphs or rightGlyph in selectedGlyphs)
-
-								if okToContinue:
-									exceptionKerning = thisFont.kerning[thisMasterID][leftSide][rightSide]
-									groupKerning = thisFont.kerningForPair(thisMasterID, leftGlyphGroupMMK, rightGlyphGroupMMK)
-									if groupKerning is None or groupKerning > 100000:  # NSNotFound
-										groupKerning = 0
-
-									if abs(exceptionKerning - groupKerning) < threshold:
-										if rightGlyph:
-											rightSideName = rightGlyph.name
-										else:
-											rightSideName = "@%s" % rightGlyphGroup
-
-										print(
-											"- Found unnecessary exception %s-%s: %i vs. @%s-@%s: %i" % (
-												leftGlyph.name,
-												rightSideName,
-												exceptionKerning,
-												leftGlyphGroup,
-												rightGlyphGroup,
-												groupKerning,
-											)
-										)
-										unnecessaryKernPairs.append((leftGlyph.name, rightSideName))
-
-			if not unnecessaryKernPairs:
-				Message(
-					title="No insignificant exceptions found",
-					message="Found no kerning exceptions that are less than %i off the group kerning in %s, master ‘%s’." % (
-						threshold,
-						thisFont.familyName,
-						thisMaster.name,
-					),
-					OKButton="😎Cool"
-				)
-			else:
-				tabString = ""
-				for kernPair in unnecessaryKernPairs:
-					leftSide, rightSide = kernPair
-
-					# DELETE
-					if not onlyReportDontDelete:
-						print("- Removing: %s-%s" % (leftSide, rightSide))
-						if leftSide.startswith("@") and not leftSide.startswith("@MMK_L_"):
-							leftSide = "@MMK_L_%s" % leftSide[1:]
-						if rightSide.startswith("@") and not rightSide.startswith("@MMK_R_"):
-							rightSide = "@MMK_R_%s" % rightSide[1:]
-						thisFont.removeKerningForPair(thisMasterID, leftSide, rightSide)
-
-					# COLLECT FOR REPORT
-					leftGlyphName = self.glyphNameForKernSide(thisFont, leftSide, isTheLeftSide=True)
-					rightGlyphName = self.glyphNameForKernSide(thisFont, rightSide, isTheLeftSide=False)
-					if leftGlyphName is not None and rightGlyphName is not None:
-						tabString += "/%s/%s " % (leftGlyphName, rightGlyphName)
-
-				# REPORT
-				if tabString and openTab:
-
-					# prepare report message:
-					countPairs = len(unnecessaryKernPairs)
-					if onlyReportDontDelete:
-						title = "%i insignificant pairs" % countPairs
-						message = "Found %i insignificant exception%s in %s, master ‘%s’." % (
-							countPairs,
-							"" if countPairs == 1 else "s",
-							thisFont.familyName,
-							thisMaster.name,
-						)
-					else:
-						title = "Removed unnecessary exceptions"
-						message = "Deleted %i kerning exception%s in %s, master: ‘%s’." % (
-							countPairs,
-							"" if countPairs == 1 else "s",
-							thisFont.familyName,
-							thisMaster.name,
-						)
-
-					# Floating notification:
-					Glyphs.showNotification(title, message + " Details in Macro Window.")
-
-					# Macro Window:
-					print()
-					print(message)
-
-					# Open tab with affected pairs:
-					if thisFont.currentTab and reuseTab:
-						thisFont.currentTab.text = tabString.strip()
-					else:
-						thisFont.newTab(tabString.strip())
+			# Final report:
+			Glyphs.showNotification(
+				f"Removed {totalCount} exception{'' if totalCount == 1 else 's'}",
+				f"Processed {len(fonts)} font{'' if len(fonts) == 1 else 's'}. Details in Macro Window.",
+			)
+			print("✅ Done.")
 
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print("'Exception Cleaner' Error: %s" % e)
+			print(f"Exception Cleaner Error: {e}")
 			import traceback
 			print(traceback.format_exc())
 
