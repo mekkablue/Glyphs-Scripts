@@ -523,6 +523,25 @@ survives.
 Scripts should not call these directly — use `macroPanelController()`, `macroConsoleSplitView()`,
 `macroDividerPosition()` and `setMacroDivider()` from the table above.
 
+### Omissions in the API / Python wrapper
+
+When you find an issue that is an apparent omission or bug in the Glyphs API or its Python wrapper
+(a missing property, a selector that only exists in some versions, a method that raises where it should not, …):
+
+- **Report it upstream.** Add or suggest an issue (or a PR) for the Python wrapper in
+  <https://github.com/schriftgestalt/GlyphsSDK>. Check for an existing issue first to avoid duplicates.
+- **Treat the fix in this codebase as a workaround**, and mark it as such in a comment in the code, e.g.
+  `# WORKAROUND (Glyphs 4.0.1, 1234): GSFoo.bar is missing in the wrapper, see https://github.com/schriftgestalt/GlyphsSDK/issues/123`.
+- **Name the Glyphs version in the workaround comment.** That is the current version at the time of writing;
+  get the latest one from <https://florianpircher.com/glyphs/versions/>.
+- **Revisit existing workarounds.** When you touch code with a workaround comment, or notice one, check whether the
+  current Glyphs version has fixed the issue. Update the workaround to the proper API, or remove it, and act accordingly
+  (e.g. drop a version branch that no supported version needs any more).
+- **Centralize where it makes sense.** If enough scripts or enough Glyphs versions are affected, add a version clause
+  (`Glyphs.versionNumber`, see above) and put the solution in one wrapper in `__init__.py`, so the workaround, its
+  comment and its eventual removal live in a single place. Follow the rules above: wrap only what actually differs
+  between versions, and never guess at selector names.
+
 ### `caseDict` (Glyphs 3 only)
 
 `__init__.py` exports `caseDict`, a mapping from string names to Glyphs case constants. Available only when `Glyphs.versionNumber >= 3`:
