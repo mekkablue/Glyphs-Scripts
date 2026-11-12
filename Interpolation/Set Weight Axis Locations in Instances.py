@@ -8,7 +8,7 @@ If the font has masters without Axis Locations, but with corresponding instances
 """
 
 from Foundation import NSDictionary
-from GlyphsApp import Glyphs
+from GlyphsApp import Glyphs, Message
 
 paramName = "Axis Location"
 
@@ -108,37 +108,41 @@ for idx, i in enumerate(Font.instances):
 		i.customParameters["Axis Location"] = tuple(axisLocations)
 """
 
-thisFont = Glyphs.font  # frontmost font
-Glyphs.clearLog()  # clears log in Macro window
+if Glyphs.versionNumber >= 4:
+	# GLYPHS 4
+	Message(title="Set Weight Axis Locations in Instances", message="This script is a helper for Glyphs 2 and 3. It is not meant for Glyphs 4 and does nothing there.", OKButton=None)
+else:
+	thisFont = Glyphs.font  # frontmost font
+	Glyphs.clearLog()  # clears log in Macro window
 
-thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
-try:
-	# set instances:
-	for i, thisInstance in enumerate(thisFont.instances):
-		if thisInstance.type == 0:
-			print("ℹ️ Instance %i: wght=%i (%s)" % (i, process(thisInstance), thisInstance.name))
+	thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
+	try:
+		# set instances:
+		for i, thisInstance in enumerate(thisFont.instances):
+			if thisInstance.type == 0:
+				print("ℹ️ Instance %i: wght=%i (%s)" % (i, process(thisInstance), thisInstance.name))
 
-	# set masters if possible:
-	for thisMaster in thisFont.masters:
-		if not thisMaster.customParameters[paramName]:
-			for thisInstance in thisFont.instances:
-				if thisInstance.type == 0 and thisMaster.axes == thisInstance.axes:
-					print("Ⓜ️ Master %s ← Instance %s" % (thisMaster.name, thisInstance.name))
-					thisMaster.customParameters[paramName] = thisInstance.customParameters[paramName]
+		# set masters if possible:
+		for thisMaster in thisFont.masters:
+			if not thisMaster.customParameters[paramName]:
+				for thisInstance in thisFont.instances:
+					if thisInstance.type == 0 and thisMaster.axes == thisInstance.axes:
+						print("Ⓜ️ Master %s ← Instance %s" % (thisMaster.name, thisInstance.name))
+						thisMaster.customParameters[paramName] = thisInstance.customParameters[paramName]
 
-	# Disable Axis Mappings if present:
-	paramName = "Axis Mappings"
-	param = thisFont.customParameterForKey_(paramName)
-	if param:
-		param.active = False
-		print("⛲️ Font: Axis Mappings disabled. WARNING: may not show in the UI until you reopen the font.")
+		# Disable Axis Mappings if present:
+		paramName = "Axis Mappings"
+		param = thisFont.customParameterForKey_(paramName)
+		if param:
+			param.active = False
+			print("⛲️ Font: Axis Mappings disabled. WARNING: may not show in the UI until you reopen the font.")
 
-except Exception as e:
-	Glyphs.showMacroWindow()
-	print("\n⚠️ Error in script: Set Weight Axis Locations in Instances\n")
-	import traceback
-	print(traceback.format_exc())
-	print()
-	raise e
-finally:
-	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
+	except Exception as e:
+		Glyphs.showMacroWindow()
+		print("\n⚠️ Error in script: Set Weight Axis Locations in Instances\n")
+		import traceback
+		print(traceback.format_exc())
+		print()
+		raise e
+	finally:
+		thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
