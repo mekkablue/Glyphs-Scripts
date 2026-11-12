@@ -67,9 +67,9 @@ class DeleteSmallKerningPairs(mekkaObject):
 		self.w.negative.setToolTip("Remove negative pairs smaller (in absolute value) than the value.")
 		self.w.glyphToGlyph = vanilla.CheckBox("auto", "Glyph-glyph", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.glyphToGlyph.setToolTip("Include pairs between two glyphs.")
-		self.w.glyphToClass = vanilla.CheckBox("auto", "Glyph-group", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.glyphToClass = vanilla.CheckBox("auto", "glyph-group", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.glyphToClass.setToolTip("Include pairs between a glyph and a group.")
-		self.w.classToClass = vanilla.CheckBox("auto", "Group-group", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.classToClass = vanilla.CheckBox("auto", "group-group", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.classToClass.setToolTip("Include pairs between two groups.")
 
 		tooltip = "Where to remove the pairs."
@@ -84,8 +84,8 @@ class DeleteSmallKerningPairs(mekkaObject):
 		self.w.removeOnMasters.setToolTip(tooltip)
 
 		tooltip = "Count the affected pairs (may be slow in large fonts)."
-		self.w.countPairs = vanilla.CheckBox("auto", "Will remove:", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.statusText = vanilla.TextBox("auto", "–", sizeStyle="small")
+		self.w.countPairs = vanilla.CheckBox("auto", "Prediction:", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.statusText = vanilla.TextBox("auto", "will remove – pairs.", sizeStyle="small")
 		self.w.countPairs.setToolTip(tooltip)
 		self.w.statusText.setToolTip("Number of pairs the Remove button would delete right now.")
 
@@ -147,9 +147,9 @@ class DeleteSmallKerningPairs(mekkaObject):
 		self.w.statusText.getNSTextField().setEnabled_(countEnabled)
 		if countEnabled and anyValue and anyKind:
 			total = sum(len(self.pairsToRemove(font, master)[0]) for font, master in self.fontsAndMasters())
-			self.w.statusText.set("%i pair%s" % (total, "" if total == 1 else "s"))
+			self.w.statusText.set("will remove %i pair%s." % (total, "" if total == 1 else "s"))
 		else:
-			self.w.statusText.set("–")
+			self.w.statusText.set("will remove – pairs.")
 
 	def fontsAndMasters(self):
 		"""Yield (font, master) tuples according to the ‘Remove on’ popup."""
