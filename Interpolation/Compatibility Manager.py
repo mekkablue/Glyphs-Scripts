@@ -464,7 +464,15 @@ class CompatibilityManager(mekkaObject):
 		# Built with AppKit constraints directly, because they get switched on and off:
 		self.extraRowNames = rowNames
 		viewNames = ["startPointTitle", "startPointOptions", "resetStartPoints", "extraTitle"] + [f"{name}Button" for name in rowNames]
-		views = {viewName: getattr(self.w, viewName).getNSView() for viewName in viewNames}
+		nsViewGetters = {
+			vanilla.TextBox: "getNSTextField",
+			vanilla.PopUpButton: "getNSPopUpButton",
+			vanilla.Button: "getNSButton",
+		}
+		views = {}
+		for viewName in viewNames:
+			vanillaView = getattr(self.w, viewName)
+			views[viewName] = getattr(vanillaView, nsViewGetters[type(vanillaView)])()
 		upperChain = "V:|-gap-[startPointTitle]-titleGap-[startPointOptions]-row-[resetStartPoints]-inset-[extraTitle]"
 		buttonChain = "-row-".join(f"[{name}Button]" for name in rowNames)
 		self.expandedConstraints = NSLayoutConstraint.constraintsWithVisualFormat_options_metrics_views_(
