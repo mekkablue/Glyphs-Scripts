@@ -114,7 +114,10 @@ class CompositeVariabler(mekkaObject):
 		return max(depths)
 
 	def isBracketLayer(self, layer):
-		if Glyphs.versionNumber >= 3:
+		if Glyphs.versionNumber >= 4:
+			# GLYPHS 4
+			return layer.isBracketLayer
+		elif Glyphs.versionNumber >= 3:
 			# GLYPHS 3
 			return layer.isBracketLayer()
 		else:
@@ -122,7 +125,10 @@ class CompositeVariabler(mekkaObject):
 			return layer.isSpecialLayer and "[" in layer.name and "]" in layer.name
 
 	def isBraceLayer(self, layer):
-		if Glyphs.versionNumber >= 3:
+		if Glyphs.versionNumber >= 4:
+			# GLYPHS 4
+			return layer.isBraceLayer
+		elif Glyphs.versionNumber >= 3:
 			# GLYPHS 3
 			return layer.isBraceLayer()
 		else:
@@ -241,7 +247,10 @@ class CompositeVariabler(mekkaObject):
 														attributeKey,
 													)
 											newLayer.reinterpolate()
-											newLayer.reinterpolateMetrics()
+											if Glyphs.versionNumber >= 4:
+												newLayer.reinterpolateMetrics_(None)
+											else:
+												newLayer.reinterpolateMetrics()
 											newLayer.syncMetrics()
 											if Glyphs.versionNumber >= 3:
 												masterLayer = currentGlyph.layers[originalLayer.associatedMasterId]
