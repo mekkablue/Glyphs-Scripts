@@ -359,7 +359,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Compress Glyph:** Compress kerning for specified glyph only.
 * **Convert RTL Kerning from Glyphs 2 to 3:** Convert RTL kerning from Glyphs 2 to Glyphs 3 format and switches the kerning classes. (Hold down OPTION and SHIFT to convert from Glyphs 3 back to Glyphs 2.) Detailed report in Macro Window.
 * **Copy Kerning Exceptions to Double Accents:** Copies Kerning exceptions with abreve, `acircumflex`, `ecircumflex`, `ocircumflex`, `udieresis` into Vietnamese and Pinyin double accents.
-* **Exception Cleaner:** Compares every exception to the group kerning available for the same pair. If the difference is below a threshold, remove the kerning exception.
+* **Exception Cleaner:** Removes kerning exceptions (glyph-to-glyph, glyph-to-group, group-to-glyph) in the current master, all masters, or all masters of all open fonts. Optionally only those that differ less than a threshold from the group kerning for the same pair. Group-to-group kerning is never touched.
 * **Find and Replace in Kerning Groups:** GUI for searching and replacing text in the L and R Kerning Groups, e.g. replace 'O' by 'O.alt'. Leave the search field blank for appending.
 * **GapFinder:** Opens a new tab with kerning combos that have large gaps in the current fontmaster.
 * **Import Kerning from .fea File:** Choose an .fea file containing a kern feature in AFDKO code, and this script will attempt to import the kerning values into the frontmost font master (see *Window > Kerning*).
