@@ -3,6 +3,7 @@ __doc__ = """
 Batch edit (smart) components across selected glyphs. Change positions, scales and smart properties.
 """
 
+import objc
 import vanilla
 from mekkablue import mekkaObject, UpdateButton, match
 from GlyphsApp import Glyphs, Message
@@ -13,9 +14,15 @@ from AppKit import (
 	NSLayoutPriorityDefaultHigh,
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
+	NSTextAlignmentCenter,
 	NSTextAlignmentRight,
 )
-from Foundation import NSPoint
+from Foundation import NSNumberFormatter, NSPoint
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 class ComponentMover(mekkaObject):
@@ -44,32 +51,33 @@ class ComponentMover(mekkaObject):
 		buttonWidth, buttonHeight, gridGap = 60, 34, 2
 		gridInset = round((windowWidth - buttonWidth * 3 - gridGap * 2) / 2.0)
 
-		toolTip = "Pick the component attribute to change in all selected glyphs. Position and Size are available for all components. Smart axes will be listed here. Click the Update button to reset the menu for all smart axes for the current glyph selection."
+		toolTip = "The component attribute to change in all selected glyphs: Position, Scale, or a smart component axis."
 		self.w.changeAttributeText = vanilla.TextBox("auto", "Change", sizeStyle="small", selectable=True)
 		self.w.changeAttribute = vanilla.PopUpButton("auto", self.defaultSettings + self.availableAttributes(), sizeStyle="small", callback=self.SavePreferences)
 		self.w.changeAttributeUpdate = UpdateButton("auto", callback=self.updateUI)
 		self.w.changeAttributeText.setToolTip(toolTip)
 		self.w.changeAttribute.setToolTip(toolTip)
-		self.w.changeAttributeUpdate.setToolTip(toolTip)
+		self.w.changeAttributeUpdate.setToolTip("Lists the smart axes of the components in the selected glyphs.")
 
-		toolTip = "Pick the name of the component you want to manipulate in (all masters of) all selected glyphs. An empty entry means every component. You can use * and ? as wildcards. Click the Update button to populate the menu with the names of all components in all selected glyphs."
+		toolTip = "Name of the component to change in the selected glyphs. Empty means every component. Wildcards * and ? work."
 		self.w.searchStringText = vanilla.TextBox("auto", "for", sizeStyle="small", selectable=True)
 		self.w.searchString = vanilla.ComboBox("auto", self.availableComponents(), sizeStyle="small", callback=self.SavePreferences)
 		self.w.searchString.getNSComboBox().setPlaceholderString_("any component")
 		self.w.searchStringUpdate = UpdateButton("auto", callback=self.updateUI)
 		self.w.searchStringText.setToolTip(toolTip)
 		self.w.searchString.setToolTip(toolTip)
-		self.w.searchStringUpdate.setToolTip(toolTip)
+		self.w.searchStringUpdate.setToolTip("Lists the names of all components in the selected glyphs.")
 
 		self.w.upLeft = vanilla.SquareButton("auto", "↖", callback=self.ComponentMoverMain)
 		self.w.up = vanilla.SquareButton("auto", "↑", callback=self.ComponentMoverMain)
 		self.w.upRight = vanilla.SquareButton("auto", "↗", callback=self.ComponentMoverMain)
 
 		self.w.left = vanilla.SquareButton("auto", "←", callback=self.ComponentMoverMain)
-		self.w.amount = vanilla.EditText("auto", "10", callback=self.SavePreferences)
-		self.w.amount.setToolTip("Amount of the move (units), scale change (percent) or smart component axis change.")
+		formatter = NSNumberFormatter.alloc().init()  # decimals and negative numbers are fine
+		self.w.amount = SteppingEditText("auto", "10", callback=self.SavePreferences, formatter=formatter)
+		self.w.amount.setToolTip("Amount of the move (units), scale change (percent) or smart component axis change. Use the arrow keys to step the value.")
 		self.w.amount.getNSTextField().setUsesSingleLineMode_(1)
-		self.w.amount.getNSTextField().setAlignment_(NSTextAlignmentRight)
+		self.w.amount.getNSTextField().setAlignment_(NSTextAlignmentCenter)
 		self.w.amount.getNSTextField().setFont_(NSFont.systemFontOfSize_(20))
 		self.w.right = vanilla.SquareButton("auto", "→", callback=self.ComponentMoverMain)
 
@@ -162,6 +170,44 @@ class ComponentMover(mekkaObject):
 		self.w.downRight.setTitle("↘" if moveOrScale else "→÷10")
 
 		self.w.breakAlignment.enable(self.pref("changeAttribute") == 0)
+
+		# arrow button tooltips follow the chosen attribute:
+		changeAttribute = self.pref("changeAttribute")
+		if changeAttribute == 0:
+			tooltips = {
+				"upLeft": "Move up and left by the amount.",
+				"up": "Move up by the amount.",
+				"upRight": "Move up and right by the amount.",
+				"left": "Move left by the amount.",
+				"right": "Move right by the amount.",
+				"downLeft": "Move down and left by the amount.",
+				"down": "Move down by the amount.",
+				"downRight": "Move down and right by the amount.",
+			}
+		elif changeAttribute == 1:
+			tooltips = {
+				"upLeft": "Make narrower and taller by the amount (percent).",
+				"up": "Make taller by the amount (percent).",
+				"upRight": "Make wider and taller by the amount (percent).",
+				"left": "Make narrower by the amount (percent).",
+				"right": "Make wider by the amount (percent).",
+				"downLeft": "Make narrower and shorter by the amount (percent).",
+				"down": "Make shorter by the amount (percent).",
+				"downRight": "Make wider and shorter by the amount (percent).",
+			}
+		else:
+			tooltips = {
+				"upLeft": "Subtract ten times the amount from the smart axis value.",
+				"up": "Not available for smart axes.",
+				"upRight": "Add ten times the amount to the smart axis value.",
+				"left": "Subtract the amount from the smart axis value.",
+				"right": "Add the amount to the smart axis value.",
+				"downLeft": "Subtract a tenth of the amount from the smart axis value.",
+				"down": "Not available for smart axes.",
+				"downRight": "Add a tenth of the amount to the smart axis value.",
+			}
+		for buttonName, tooltip in tooltips.items():
+			getattr(self.w, buttonName).setToolTip(tooltip)
 
 	def availableAttributes(self):
 		searchString = self.pref("searchString")
