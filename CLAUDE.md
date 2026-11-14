@@ -630,9 +630,17 @@ Official Glyphs.app scripting references. Look an API up here instead of guessin
 (see “Version-dependent APIs” above), and check the version-appropriate page: the wrapper API
 and the Objective-C core differ between Glyphs 3 and Glyphs 4.
 
+**Primary resources** — consult these first:
+
+- <https://docu.glyphsapp.com/> — Glyphs 4 Python API
+- <https://docu.glyphsapp.com/Core/#language=python> — Glyphs 4 Core (Objective-C classes as seen from Python/PyObjC)
+- <https://github.com/schriftgestalt/GlyphsSDK> — use the branch `Glyphs4`. Look at the `Glyphs3` branch only if explicitly requested.
+- <https://github.com/schriftgestalt/GlyphsSDK/tree/Glyphs4/ObjectWrapper> — the source of the Python wrapper (`GlyphsApp`); check it for what properties and methods really exist.
+
+Older references (only if explicitly requested):
+
 | Resource | URL |
 |---|---|
-| Glyphs 4 API and Core (PyObjC) | <https://docu.glyphsapp.com> |
 | Glyphs 3 API | <https://docu.glyphsapp.com/python3/> |
 | Glyphs 3 Core | <https://docu.glyphsapp.com/Core3/> |
 
