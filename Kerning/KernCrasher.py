@@ -33,7 +33,7 @@ class KernCrasher(mekkaObject):
 		"minDistance": "10",
 		"popupScope": 0,
 		"popupScript": "latin",
-		"popupSpeed": 0,
+		"popupSpeed": 3,
 		"popupLeftCat": 0,
 		"popupRightCat": 0,
 		"excludeSuffixes": ".locl, .alt, .sups, .sinf, .tf, .tosf, Ldot, ldot, Jacute, jacute",
