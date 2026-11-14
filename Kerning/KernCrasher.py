@@ -148,7 +148,7 @@ class KernCrasher(mekkaObject):
 
 		# Status line, with the prediction:
 		self.w.statusText = vanilla.TextBox("auto", "🔢 Will analyze – pairs.", sizeStyle='small')
-		self.w.statusText.setToolTip("How many glyph pairs will be measured with the current settings, across all masters and fonts of the chosen scope.")
+		self.w.statusText.setToolTip("Before you run: how many glyph pairs will be measured with the current settings, across all masters and fonts of the chosen scope. While running: how many pairs are being analyzed. Afterwards: how many collisions were found.")
 		self.w.statusText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# Buttons:
@@ -255,6 +255,11 @@ class KernCrasher(mekkaObject):
 	def updateUI(self, sender=None):
 		pairCount = self.predictedPairCount()
 		self.w.statusText.set(f"🔢 Will analyze {pairCount:,} pair{'' if pairCount == 1 else 's'}.")
+
+	def setStatus(self, text):
+		"""Sets the status line and redraws it right away, so it shows while the script is busy."""
+		self.w.statusText.set(text)
+		self.w.statusText.getNSTextField().display()
 
 	def update(self, sender=None):
 		if sender == self.w.updateScriptsButton and Glyphs.font:
@@ -446,6 +451,8 @@ class KernCrasher(mekkaObject):
 			step = intervalList[self.pref("popupSpeed")]
 			directionSensitive = self.w.directionSensitive.get() == 1
 			totalPairs = self.predictedPairCount()
+			if totalPairs:
+				self.setStatus(f"🛠️ Analyzing {totalPairs:,} pair{'' if totalPairs == 1 else 's'}…")
 			analyzedPairs = 0
 			totalCrashCount = 0
 
@@ -529,6 +536,9 @@ class KernCrasher(mekkaObject):
 					message="The criteria for glyph selection are too strict. With the current settings, there are no glyph pairs to analyze.",
 					OKButton=None,
 				)
+				self.updateUI()
+			else:
+				self.setStatus(f"✅ Found {totalCrashCount:,} collision{'' if totalCrashCount == 1 else 's'}.")
 
 			# take time:
 			end = timer()
@@ -553,6 +563,9 @@ class KernCrasher(mekkaObject):
 				Glyphs.showMacroWindow()
 
 		except Exception as e:
+			# brings macro window to front and reports error:
+			Glyphs.showMacroWindow()
+			self.setStatus("❌ Error. Details in Macro Window.")
 			print("KernCrasher Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
