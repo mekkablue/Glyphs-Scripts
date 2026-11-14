@@ -24,7 +24,7 @@ class AutoAlignmentManager(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Alignment Manager",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
@@ -38,7 +38,7 @@ class AutoAlignmentManager(mekkaObject):
 		self.w.includeAllLayers = vanilla.CheckBox("auto", "Include all masters and special layers (recommended)", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.includeAllLayers.setToolTip("If enabled, will enable/disable automatic alignment not only for the currently selected masters/layers, but for ALL master layers, brace layers and bracket layers of selected glyphs. Will still ignore backup layers (the ones with a timestamp in their names).")
 
-		self.w.differentiationText = vanilla.TextBox("auto", "Differentiate:", sizeStyle="small", selectable=True)
+		self.w.differentiationText = vanilla.TextBox("auto", "Differentiate", sizeStyle="small", selectable=True)
 		self.w.differentiation = vanilla.PopUpButton("auto", ("Treat all components equally", "Ignore first component", "Only apply to first component"), sizeStyle="small", callback=self.SavePreferences)
 		self.w.differentiation.setToolTip("You can choose to exclude the first component (usually the base letter) from toggling auto-alignment. This can be useful if you want to keep the diacritic marks aligned to the base, but still move the base. Or if you want to keep the base letter aligned, and place the marks freely.")
 
@@ -54,7 +54,7 @@ class AutoAlignmentManager(mekkaObject):
 		self.w.disableButton = vanilla.Button("auto", "🚫 Disable", callback=self.AutoAlignmentManagerMain)
 		self.w.disableButton.setToolTip("Disables automatic alignment with the current span and settings.")
 		self.w.rotateButton = vanilla.Button("auto", "🔄 Rotate", callback=self.rotateComponents)
-		self.w.rotateButton.setToolTip("Moves the last component into first place. Useful if you quickly want to fix component order without leaving he script UI.")
+		self.w.rotateButton.setToolTip("Moves the last component into first place. Useful if you quickly want to fix component order without leaving the script UI.")
 
 		# a label next to a flexible control hugs its text, so the control gets the leftover width:
 		self.w.differentiationText.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
@@ -73,7 +73,7 @@ class AutoAlignmentManager(mekkaObject):
 				"H:|-inset-[includeAllLayers]-inset-|",
 				"H:|-inset-[differentiationText]-[differentiation]-inset-|",
 				"H:|-inset-[alignVertical(20)]-gap-[alignFull(20)]-gap-[alignmentTypeText]-inset-|",
-				"H:|-(>=inset)-[rotateButton(>=70)]-gap-[disableButton(>=70)]-gap-[enableButton(>=70)]-inset-|",
+				"H:|-inset-[rotateButton(>=70)]-(>=gap)-[disableButton(>=70)]-gap-[enableButton(>=70)]-inset-|",
 				"V:|-gap-[descriptionText]-line-[includeAllGlyphs]-line-[includeAllLayers]-line-[differentiation]-line-[alignVertical(18)]-inset-[enableButton]-inset-|",
 				"V:[alignFull(18)]",
 				"V:[rotateButton]-inset-|",
