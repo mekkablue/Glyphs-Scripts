@@ -10,14 +10,18 @@ import math
 import re
 
 import vanilla
-from AppKit import NSAffineTransform, NSPoint
+from AppKit import NSAffineTransform, NSPoint, NSTextAlignmentRight, NSWindowStyleMaskResizable, NSSize, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import CAP, SEGMENT, GSAnchor, GSHint, GSLayer, Glyphs, Message
-from mekkablue import UpdateButton, mekkaObject, newGlyphWithName
+from mekkablue import UpdateButton, mekkaObject, newGlyphWithName, clearGuides
 
 
 def sanitizeSuffix(text):
 	"""Keep only characters allowed in glyph name suffixes: A-Z, a-z, 0-9, hyphen, period, underscore."""
 	return re.sub(r'[^A-Za-z0-9\-._]', '', text)
+
+
+def plural(count, noun):
+	return f"{count} {noun}{'' if count == 1 else 's'}"
 
 
 class ConvertCapToSegmentComponent(mekkaObject):
@@ -31,73 +35,106 @@ class ConvertCapToSegmentComponent(mekkaObject):
 	}
 
 	def __init__(self):
+		# state for the one Undo step (None as long as there is nothing to undo)
+		self.undoState = None
+
 		windowWidth = 390
-		windowHeight = 185
-		windowWidthResize = 400
-		windowHeightResize = 0
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Convert Cap to Segment Component",
-			minSize=(windowWidth, windowHeight),
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),
-			autosaveName=self.domain("mainwindow"),
+			autosaveName=self.domain("mainwindow"),  # stores last window position
 		)
 
-		linePos, inset, lineHeight = 12, 15, 22
+		inset = 15
 
-		# Line 1: cap combo box + update button
-		self.w.capLabel = vanilla.TextBox((inset, linePos + 2, 75, 14), "Convert cap:", sizeStyle="small")
-		self.w.capGlyphName = vanilla.ComboBox((inset + 75, linePos - 1, -inset - 26, 18), self.allCapGlyphs(), sizeStyle="small", callback=self.SavePreferences)
-		self.w.capGlyphName.setToolTip("Select the _cap.xxx glyph to convert to a _segment component.")
-		self.w.updateCapList = UpdateButton((-inset - 19, linePos - 3, -inset, 18), callback=self.updateCapList)
-		self.w.updateCapList.setToolTip("Update the list of _cap.xxx glyphs from the frontmost font.")
-		linePos += lineHeight
+		# cap combo box + update button
+		tooltipText = "The _cap.xxx glyph to convert into a _segment component."
+		self.w.capLabel = vanilla.TextBox("auto", "Convert cap", sizeStyle="small")
+		self.w.capLabel.setToolTip(tooltipText)
+		self.w.capGlyphName = vanilla.ComboBox("auto", self.allCapGlyphs(), sizeStyle="small", callback=self.SavePreferences)
+		self.w.capGlyphName.setToolTip(tooltipText)
+		self.w.updateCapList = UpdateButton("auto", callback=self.updateCapList)
+		self.w.updateCapList.setToolTip("Refreshes the list of _cap.xxx glyphs from the frontmost font.")
 
-		# Line 2: rename suffix
-		self.w.renameLabel = vanilla.TextBox((inset, linePos + 2, 122, 14), "Rename to: _segment.", sizeStyle="small")
-		self.w.renameTo = vanilla.EditText((inset + 122, linePos - 1, -inset, 19), "", callback=self.SavePreferences, sizeStyle="small")
-		self.w.renameTo.setToolTip(
-			"Suffix for the new _segment glyph name. Leave empty to keep the same suffix as the selected _cap glyph. "
-			"Allowed characters: A–Z, a–z, 0–9, hyphen (-), period (.), underscore (_). Spaces and other characters are removed."
-		)
+		# rename suffix
+		tooltipText = "Suffix of the new _segment glyph. Empty keeps the suffix of the cap. Allowed: A–Z, a–z, 0–9, hyphen, period, underscore; other characters are removed."
+		self.w.renameLabel = vanilla.TextBox("auto", "Rename to _segment.", sizeStyle="small")
+		self.w.renameLabel.setToolTip(tooltipText)
+		self.w.renameTo = vanilla.EditText("auto", "", callback=self.SavePreferences, sizeStyle="small")
+		self.w.renameTo.setToolTip(tooltipText)
 		self.w.renameTo.getNSTextField().setPlaceholderString_("Leave empty for keeping cap suffix")
-		linePos += lineHeight
 
-		# Line 3: update all affected glyphs
-		self.w.updateAffectedGlyphs = vanilla.CheckBox((inset, linePos, -inset, 20), "Update all affected glyphs", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.updateAffectedGlyphs.setToolTip(
-			"If enabled: create the _segment glyph, delete the _cap glyph, and update all cap component references "
-			"in all glyph layers (including backups) to use the new segment. "
-			"If disabled: only create the _segment glyph without removing the _cap or modifying other glyphs."
-		)
-		linePos += lineHeight
-
-		# Line 4: decomposed backup in background
-		self.w.decomposeBackup = vanilla.CheckBox((inset, linePos, -inset, 20), "Decomposed backup in background", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.decomposeBackup.setToolTip(
-			"Before converting, copy the current layer content into the background of each master/special layer "
-			"in affected glyphs, then decompose regular components there. Gives you a backup of the original state."
-		)
-		linePos += lineHeight
-
-		# Line 5: open tab + reuse tab
-		self.w.openTab = vanilla.CheckBox((inset, linePos, 90, 20), "Open tab", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.openTab.setToolTip("After conversion, open a tab showing the new _segment glyph and all updated glyphs.")
-		self.w.reuseTab = vanilla.CheckBox((inset + 90, linePos, -inset, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.reuseTab.setToolTip("If 'Open tab' is active: replace the content of the current tab instead of opening a new one.")
-		linePos += lineHeight
+		# options
+		self.w.updateAffectedGlyphs = vanilla.CheckBox("auto", "Update all affected glyphs", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.updateAffectedGlyphs.setToolTip("Creates the segment, switches all glyphs using the cap to it (in all layers, including backups), and deletes the cap. If off, only creates the segment.")
+		self.w.decomposeBackup = vanilla.CheckBox("auto", "Decomposed backup in background", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.decomposeBackup.setToolTip("Before converting, copies the decomposed outlines of each affected master and special layer into its background.")
+		self.w.openTab = vanilla.CheckBox("auto", "Open tab", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.openTab.setToolTip("Opens a tab with the new segment and all updated glyphs.")
+		self.w.reuseTab = vanilla.CheckBox("auto", "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.reuseTab.setToolTip("Replaces the text of the current tab instead of opening a new one. Needs ‘Open tab’.")
 
 		# Status line (bottom, left of run button)
-		self.w.statusText = vanilla.TextBox((inset, -20 - inset + 3, -inset - 96, 14), "🤖 Ready.", sizeStyle="small")
+		self.w.statusText = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.statusText.setToolTip("Progress and result of the last run.")
+		self.w.statusText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
+		# Undo button
+		self.w.undoButton = vanilla.Button("auto", "Undo", callback=self.undo)
+		self.w.undoButton.setToolTip("Restores the glyphs as they were before the last conversion. Available only after a conversion.")
+		self.w.undoButton.enable(False)
 
 		# Run button
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Convert", callback=self.run)
+		self.w.runButton = vanilla.Button("auto", "Convert", callback=self.run)
+		self.w.runButton.setToolTip("Converts the cap into a segment with the settings above.")
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; hug so the window is as tall as its content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# labels: right-aligned, same width, hugging their text
+		labelNames = ("capLabel", "renameLabel")
+		for labelName in labelNames:
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[capLabel]-gap-[capGlyphName]-gap-[updateCapList]-inset-|",
+				"H:|-inset-[renameLabel]-gap-[renameTo]-inset-|",
+				"H:|-inset-[updateAffectedGlyphs]-(>=inset)-|",
+				"H:|-inset-[decomposeBackup]-(>=inset)-|",
+				"H:|-inset-[openTab]-gap-[reuseTab]-(>=inset)-|",
+				"H:|-inset-[statusText]-inset-|",
+				"H:|-inset-[undoButton(>=80)]-(>=gap)-[runButton(>=80)]-inset-|",
+				"V:|-inset-[capGlyphName]-row-[renameTo]-checkGap-[updateAffectedGlyphs]-checkRow-[decomposeBackup]-checkRow-[openTab]-inset-[statusText]-gap-[runButton]-inset-|",
+				{"view1": self.w.capLabel, "attribute1": "centerY", "view2": self.w.capGlyphName, "attribute2": "centerY"},
+				{"view1": self.w.updateCapList, "attribute1": "centerY", "view2": self.w.capGlyphName, "attribute2": "centerY"},
+				{"view1": self.w.renameLabel, "attribute1": "centerY", "view2": self.w.renameTo, "attribute2": "centerY"},
+				{"view1": self.w.undoButton, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
+				{"view1": self.w.reuseTab, "attribute1": "centerY", "view2": self.w.openTab, "attribute2": "centerY"},
+				{"view1": self.w.capLabel, "attribute1": "width", "view2": self.w.renameLabel, "attribute2": "width"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6, "checkGap": 10, "checkRow": 5},
+		)
 
 		self.LoadPreferences()
 		self.updateCapList()  # reset to first cap if stored name is no longer valid
 		self.w.open()
 		self.w.makeKey()
+
+		# make the window horizontally resizable, but keep the height that Auto Layout determined.
+		# (Content sizes set directly on the NSWindow, so the title bar is not counted twice.)
+		nsWindow = self.w.getNSWindow()
+		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
+		nsWindow.layoutIfNeeded()
+		contentSize = nsWindow.contentView().frame().size
+		nsWindow.setContentMinSize_(NSSize(round(contentSize.width * 0.75), contentSize.height))  # 25% narrower than the initial width
+		nsWindow.setContentMaxSize_(NSSize(contentSize.width + 1000, contentSize.height))
 
 	def allCapGlyphs(self):
 		font = Glyphs.font
@@ -116,11 +153,12 @@ class ConvertCapToSegmentComponent(mekkaObject):
 			self.SavePreferences()
 
 	def updateUI(self, sender=None):
-		openTab = self.prefBool("openTab")
-		self.w.reuseTab.enable(openTab)
+		self.w.reuseTab.enable(self.prefBool("openTab"))
 
 	def setStatus(self, text):
+		"""Sets the status line and redraws it right away, so it shows while the script is busy."""
 		self.w.statusText.set(text)
+		self.w.statusText.getNSTextField().display()
 
 	# -------------------------------------------------------------------------
 	# Geometry helpers
@@ -175,57 +213,53 @@ class ConvertCapToSegmentComponent(mekkaObject):
 		segmentGlyph.rightMetricsKey = "=100"
 		font.glyphs.append(segmentGlyph)
 
-		font.disableUpdateInterface()
-		try:
-			for capLayer in capGlyph.layers:
-				startPos, endPos = self.getCapConnectionPoints(capLayer)
-				if startPos is None:
-					continue  # no geometry in this layer
+		for capLayer in capGlyph.layers:
+			startPos, endPos = self.getCapConnectionPoints(capLayer)
+			if startPos is None:
+				continue  # no geometry in this layer
 
-				# Find or create the corresponding layer in the segment glyph
-				segmentLayer = segmentGlyph.layers[capLayer.layerId]
-				if segmentLayer is None:
-					segmentLayer = GSLayer()
-					segmentLayer.layerId = capLayer.layerId
-					segmentLayer.name = capLayer.name
-					if hasattr(capLayer, 'associatedMasterId'):
-						segmentLayer.associatedMasterId = capLayer.associatedMasterId
-					segmentGlyph.layers.append(segmentLayer)
+			# Find or create the corresponding layer in the segment glyph
+			segmentLayer = segmentGlyph.layers[capLayer.layerId]
+			if segmentLayer is None:
+				segmentLayer = GSLayer()
+				segmentLayer.layerId = capLayer.layerId
+				segmentLayer.name = capLayer.name
+				if hasattr(capLayer, 'associatedMasterId'):
+					segmentLayer.associatedMasterId = capLayer.associatedMasterId
+				segmentGlyph.layers.append(segmentLayer)
 
-				# Copy paths only (no guides, no anchors yet)
-				for path in capLayer.paths:
-					segmentLayer.shapes.append(path.copy())
+			# Copy paths only (no guides, no anchors yet)
+			for path in capLayer.paths:
+				segmentLayer.shapes.append(path.copy())
 
-				# Apply the aligning transform: move startPos to origin, rotate to baseline
-				t = self.buildAlignTransform(startPos, endPos)
-				segmentLayer.applyTransform(t.transformStruct())
+			# Apply the aligning transform: move startPos to origin, rotate to baseline
+			t = self.buildAlignTransform(startPos, endPos)
+			segmentLayer.applyTransform(t.transformStruct())
 
-				# Clear guides and anchors before setting sidebearings
-				segmentLayer.guides = []
-				segmentLayer.anchors = []
+			# Clear guides and anchors before setting sidebearings
+			clearGuides(segmentLayer)
+			segmentLayer.anchors = []
 
-				# Set sidebearings — Glyphs shifts the paths to achieve these values;
-				# read node positions afterwards so anchors land on the actual nodes
-				segmentLayer.LSB = 100
-				segmentLayer.RSB = 100
+			# Set sidebearings — Glyphs shifts the paths to achieve these values;
+			# read node positions afterwards so anchors land on the actual nodes
+			segmentLayer.LSB = 100
+			segmentLayer.RSB = 100
 
-				firstPath = segmentLayer.paths[0]
-				actualStart = firstPath.nodes[0].position
-				actualEnd = firstPath.nodes[-1].position
+			firstPath = segmentLayer.paths[0]
+			actualStart = firstPath.nodes[0].position
+			actualEnd = firstPath.nodes[-1].position
 
-				startAnchor = GSAnchor()
-				startAnchor.name = "start"
-				startAnchor.position = NSPoint(actualStart.x, actualStart.y)
-				segmentLayer.anchors.append(startAnchor)
+			startAnchor = GSAnchor()
+			startAnchor.name = "start"
+			startAnchor.position = NSPoint(actualStart.x, actualStart.y)
+			segmentLayer.anchors.append(startAnchor)
 
-				endAnchor = GSAnchor()
-				endAnchor.name = "end"
-				endAnchor.position = NSPoint(actualEnd.x, actualEnd.y)
-				segmentLayer.anchors.append(endAnchor)
+			endAnchor = GSAnchor()
+			endAnchor.name = "end"
+			endAnchor.position = NSPoint(actualEnd.x, actualEnd.y)
+			segmentLayer.anchors.append(endAnchor)
 
-				segmentLayer.updateHints()
-		finally:
-			font.enableUpdateInterface()
+			segmentLayer.updateHints()
 
 		print(f"\t☑️ Created {segmentGlyphName}")
 		return segmentGlyph
@@ -268,6 +302,44 @@ class ConvertCapToSegmentComponent(mekkaObject):
 				layer.updateHints()
 
 	# -------------------------------------------------------------------------
+	# Undo
+	# -------------------------------------------------------------------------
+
+	def undo(self, sender=None):
+		"""Restores the glyphs of the last conversion (one step): removes the new segment and puts back the stored copies."""
+		state = self.undoState
+		if state is None:
+			return
+		font = state["font"]
+		if font not in Glyphs.fonts:
+			self.undoState = None
+			self.w.undoButton.enable(False)
+			self.setStatus("⚠️ The font was closed, nothing to undo.")
+			return
+
+		font.disableUpdateInterface()
+		try:
+			# the new segment goes away, a segment of the same name that existed before comes back:
+			segmentGlyphName = state["segmentGlyphName"]
+			if font.glyphs[segmentGlyphName]:
+				del font.glyphs[segmentGlyphName]
+			if state["previousSegment"] is not None:
+				font.glyphs.append(state["previousSegment"])
+
+			# the affected glyphs and the cap come back in their previous state:
+			for glyphName, glyphCopy in state["glyphs"]:
+				if font.glyphs[glyphName]:
+					del font.glyphs[glyphName]
+				font.glyphs.append(glyphCopy)
+		finally:
+			font.enableUpdateInterface()
+
+		print(f"↩️ Undo: restored {plural(len(state['glyphs']), 'glyph')}, removed {segmentGlyphName}.")
+		self.undoState = None
+		self.w.undoButton.enable(False)
+		self.setStatus("↩️ Conversion undone.")
+
+	# -------------------------------------------------------------------------
 	# Main action
 	# -------------------------------------------------------------------------
 
@@ -276,17 +348,17 @@ class ConvertCapToSegmentComponent(mekkaObject):
 			self.SavePreferences()
 			font = Glyphs.font
 			if not font:
-				Message("No font open", "Please open a font and try again.", OKButton=None)
+				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 				return
 
 			capGlyphName = self.pref("capGlyphName").strip()
 			if not capGlyphName or not capGlyphName.startswith("_cap."):
-				Message("No cap selected", f"Please select a _cap.xxx glyph. Got: '{capGlyphName}'", OKButton=None)
+				Message(title="No Cap Selected", message=f"Please select a _cap.xxx glyph. Got: ‘{capGlyphName}’", OKButton=None)
 				return
 
 			capGlyph = font.glyphs[capGlyphName]
 			if capGlyph is None:
-				Message("Cap not found", f"Could not find '{capGlyphName}' in the current font.", OKButton=None)
+				Message(title="Cap Not Found", message=f"Could not find ‘{capGlyphName}’ in the frontmost font.", OKButton=None)
 				return
 
 			capSuffix = capGlyphName[len("_cap."):]
@@ -300,27 +372,34 @@ class ConvertCapToSegmentComponent(mekkaObject):
 			reuseTab = self.prefBool("reuseTab")
 
 			Glyphs.clearLog()
-			print(f"Convert Cap to Segment Component\n")
+			print("Convert Cap to Segment Component Report\n")
 			print(f"\t{capGlyphName} → {segmentGlyphName}\n")
+
+			# remember the state before any change, for Undo (names and copies of the affected glyphs, and of the cap):
+			affectedGlyphs = self.findAffectedGlyphs(font, capGlyphName) if updateAffectedGlyphs else []
+			namesToRemember = affectedGlyphs + ([capGlyphName] if updateAffectedGlyphs else [])
+			previousSegment = font.glyphs[segmentGlyphName]
+			self.undoState = {
+				"font": font,
+				"segmentGlyphName": segmentGlyphName,
+				"previousSegment": previousSegment.copy() if previousSegment else None,
+				"glyphs": [(name, font.glyphs[name].copy()) for name in namesToRemember if font.glyphs[name]],
+			}
+			self.w.undoButton.enable(True)
 
 			# Step 1: create the _segment glyph
 			self.setStatus(f"🔧 Creating {segmentGlyphName}…")
 			font.disableUpdateInterface()
 			try:
-				segmentGlyph = self.createSegmentGlyph(font, capGlyph, segmentGlyphName)
+				self.createSegmentGlyph(font, capGlyph, segmentGlyphName)
 			finally:
 				font.enableUpdateInterface()
-
-			if segmentGlyph is None:
-				self.setStatus("❌ Aborted.")
-				return
 
 			tabGlyphs = [segmentGlyphName]
 			updatedCount = 0
 
 			if updateAffectedGlyphs:
-				affectedGlyphs = self.findAffectedGlyphs(font, capGlyphName)
-				print(f"\tFound {len(affectedGlyphs)} glyph{'' if len(affectedGlyphs)==1 else 's'} referencing {capGlyphName}\n")
+				print(f"\tFound {plural(len(affectedGlyphs), 'glyph')} referencing {capGlyphName}\n")
 
 				font.disableUpdateInterface()
 				try:
@@ -359,9 +438,9 @@ class ConvertCapToSegmentComponent(mekkaObject):
 					font.newTab(tabString)
 
 			if updateAffectedGlyphs:
-				statusMsg = f"✅ Updated {updatedCount} glyph{'' if updatedCount==1 else 's'} to use {segmentGlyphName}."
+				statusMsg = f"✅ Updated {plural(updatedCount, 'glyph')} to use {segmentGlyphName}."
 				print(f"\n{statusMsg}")
-				Glyphs.showNotification("Convert Cap to Segment", f"Updated {updatedCount} glyph{'' if updatedCount==1 else 's'}. {capGlyphName} → {segmentGlyphName}")
+				Glyphs.showNotification("Convert Cap to Segment", f"Updated {plural(updatedCount, 'glyph')}. {capGlyphName} → {segmentGlyphName}")
 			else:
 				statusMsg = f"✅ Created {segmentGlyphName}."
 				print(f"\n{statusMsg}")
