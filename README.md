@@ -363,8 +363,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Find and Replace in Kerning Groups:** GUI for searching and replacing text in the L and R Kerning Groups, e.g. replace 'O' by 'O.alt'. Leave the search field blank for appending.
 * **GapFinder:** Opens a new tab with kerning combos that have large gaps in the current fontmaster.
 * **Import Kerning from .fea File:** Choose an .fea file containing a kern feature in AFDKO code, and this script will attempt to import the kerning values into the frontmost font master (see *Window > Kerning*).
-* **KernCrash Current Glyph:** Opens a new tab containing kerning combos with the current glyph that collide in the current fontmaster.
-* **KernCrasher:** Opens a new tab with Kerning Combos that crash in the current fontmaster.
+* **KernCrasher:** Finds kerning collisions in the current master (or all masters of the frontmost font, or of all open fonts) and opens a tab with them, one tab per font. Glyphs for the left and right side: by category, all letters (optionally with punctuation and figures), or all glyphs in the current tab. Shows how many pairs it will analyze.
 * **Kern Flattener:** Duplicates your font, flattens kerning to glyph-to-glyph kerning only, deletes all group kerning and keeps only relevant pairs (it has a built-in list), adds a *Export kern Table* parameter (and some other parameters) to each instance. Warning: do this only for making your kerning compatible with outdated and broken software like PowerPoint. No guarantee it works, though.
 * **Kern String Mixer:** Intersect two sets of glyphs (tokens are possible) with each other in order to get all possible glyph combinations.
 * **New Tab with All Group Members:** Select two glyphs, e.g. ‘Ta’, run the script, and it will open a new tab with all combinations of the right kerning group of T with the left kerning group of a.
