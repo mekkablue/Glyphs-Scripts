@@ -43,6 +43,7 @@ class DeleteExceptionsTooCloseToGroupKerning(mekkaObject):
 		"onlyBelowThreshold": True,
 		"threshold": 10,
 		"removeOnMasters": 0,
+		"countPairs": True,
 	}
 
 	def __init__(self):
@@ -90,6 +91,12 @@ class DeleteExceptionsTooCloseToGroupKerning(mekkaObject):
 		self.w.removeOnMastersText.setToolTip(tooltipText)
 		self.w.removeOnMasters.setToolTip(tooltipText)
 
+		# Prediction:
+		self.w.countPairs = vanilla.CheckBox("auto", "Prediction:", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.countPairs.setToolTip("Count the exceptions that would be removed with the current settings (may be slow in large fonts).")
+		self.w.statusText = vanilla.TextBox("auto", "will remove – pairs.", sizeStyle="small")
+		self.w.statusText.setToolTip("Number of kerning pairs the Clean button would remove right now.")
+
 		# Buttons:
 		self.w.nextMasterButton = vanilla.Button("auto", "Next Master", callback=self.NextMaster)
 		self.w.nextMasterButton.setToolTip("Switches the frontmost font to its next master, so you can clean master after master.")
@@ -99,6 +106,7 @@ class DeleteExceptionsTooCloseToGroupKerning(mekkaObject):
 
 		# the checkbox hugs its text, so the stepping field sits right behind it; the popup takes the leftover width
 		self.w.onlyBelowThreshold.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.countPairs.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
 		self.w.removeOnMastersText.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
 		self.w.removeOnMasters.getNSPopUpButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
@@ -115,10 +123,12 @@ class DeleteExceptionsTooCloseToGroupKerning(mekkaObject):
 				"H:|-inset-[scopeText]-(>=inset)-|",
 				"H:|-inset-[onlyBelowThreshold]-gap-[threshold(50)]-(>=inset)-|",
 				"H:|-inset-[removeOnMastersText]-gap-[removeOnMasters]-inset-|",
+				"H:|-inset-[countPairs]-gap-[statusText]-(>=inset)-|",
 				"H:|-inset-[nextMasterButton(>=70)]-(>=gap)-[runButton(>=70)]-inset-|",
-				"V:|-gap-[glyphGlyph]-checkRow-[glyphGroup]-checkRow-[groupGlyph]-checkRow-[keepGrouplessKerning]-section-[scopeText]-titleGap-[onlyBelowThreshold]-tallRow-[removeOnMasters]-inset-[runButton]-inset-|",
+				"V:|-gap-[glyphGlyph]-checkRow-[glyphGroup]-checkRow-[groupGlyph]-checkRow-[keepGrouplessKerning]-section-[scopeText]-titleGap-[onlyBelowThreshold]-tallRow-[removeOnMasters]-tallRow-[countPairs]-inset-[runButton]-inset-|",
 				{"view1": self.w.threshold, "attribute1": "centerY", "view2": self.w.onlyBelowThreshold, "attribute2": "centerY"},
 				{"view1": self.w.removeOnMastersText, "attribute1": "centerY", "view2": self.w.removeOnMasters, "attribute2": "centerY"},
+				{"view1": self.w.statusText, "attribute1": "centerY", "view2": self.w.countPairs, "attribute2": "centerY"},
 				{"view1": self.w.nextMasterButton, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 			],
 			metrics={"inset": inset, "gap": 8, "checkRow": 5, "section": 12, "titleGap": 2, "tallRow": 8},
@@ -135,6 +145,7 @@ class DeleteExceptionsTooCloseToGroupKerning(mekkaObject):
 		thisFont = Glyphs.font
 		if thisFont:
 			thisFont.masterIndex = (thisFont.masterIndex + 1) % len(thisFont.masters)
+			self.updateUI()
 		else:
 			NSBeep()
 
@@ -143,7 +154,31 @@ class DeleteExceptionsTooCloseToGroupKerning(mekkaObject):
 		anyKindIsSelected = self.w.glyphGlyph.get() or self.w.glyphGroup.get() or self.w.groupGlyph.get()
 		self.w.runButton.enable(bool(anyKindIsSelected))
 
-	def exceptionsToRemove(self, font, master):
+		countEnabled = self.prefBool("countPairs")
+		self.w.statusText.getNSTextField().setEnabled_(countEnabled)
+		if countEnabled and anyKindIsSelected:
+			total = sum(
+				len(self.exceptionsToRemove(font, master, verbose=False))
+				for font in self.fontsToProcess()
+				for master in self.mastersToProcess(font)
+			)
+			self.w.statusText.set(f"will remove {total} pair{'' if total == 1 else 's'}.")
+		else:
+			self.w.statusText.set("will remove – pairs.")
+
+	def fontsToProcess(self):
+		"""The fonts to clean, according to the ‘Remove in’ popup."""
+		if self.prefInt("removeOnMasters") == 2:
+			return tuple(Glyphs.fonts)
+		return (Glyphs.font, ) if Glyphs.font else ()
+
+	def mastersToProcess(self, font):
+		"""The masters of a font to clean, according to the ‘Remove in’ popup."""
+		if self.prefInt("removeOnMasters") >= 1:
+			return tuple(font.masters)
+		return (font.selectedFontMaster, )
+
+	def exceptionsToRemove(self, font, master, verbose=True):
 		"""Returns (left, right, report) tuples for the exceptions to remove in this master. Left and right are as removeKerningForPair() takes them."""
 		kerning = font.kerning[master.id]
 		if not kerning:
@@ -161,7 +196,8 @@ class DeleteExceptionsTooCloseToGroupKerning(mekkaObject):
 			leftIsGlyph = not leftSide.startswith("@")
 			leftGlyph = font.glyphForId_(leftSide) if leftIsGlyph else None
 			if leftIsGlyph and leftGlyph is None:
-				print(f"\t⚠️ Could not find glyph for ID {leftSide}, consider cleaning up kerning.")
+				if verbose:
+					print(f"\t⚠️ Could not find glyph for ID {leftSide}, consider cleaning up kerning.")
 				continue
 			if leftIsGlyph:
 				leftGroupKey = f"@MMK_L_{leftGlyph.rightKerningGroup}" if leftGlyph.rightKerningGroup else None
@@ -175,7 +211,8 @@ class DeleteExceptionsTooCloseToGroupKerning(mekkaObject):
 				rightIsGlyph = not rightSide.startswith("@")
 				rightGlyph = font.glyphForId_(rightSide) if rightIsGlyph else None
 				if rightIsGlyph and rightGlyph is None:
-					print(f"\t⚠️ Could not find glyph for ID {rightSide}, consider cleaning up kerning.")
+					if verbose:
+						print(f"\t⚠️ Could not find glyph for ID {rightSide}, consider cleaning up kerning.")
 					continue
 				if rightIsGlyph:
 					rightGroupKey = f"@MMK_R_{rightGlyph.leftKerningGroup}" if rightGlyph.leftKerningGroup else None
@@ -223,15 +260,13 @@ class DeleteExceptionsTooCloseToGroupKerning(mekkaObject):
 				Message(title="No Font Open", message="The script requires at least one font. Open a font and run the script again.", OKButton=None)
 				return
 
-			scope = self.prefInt("removeOnMasters")
-			fonts = Glyphs.fonts if scope == 2 else (font, )
+			fonts = self.fontsToProcess()
 
 			print("Exception Cleaner Report\n")
 			totalCount = 0
 			for thisFont in fonts:
 				print(f"Font: {reportFontName(thisFont)}")
-				masters = thisFont.masters if scope >= 1 else (thisFont.selectedFontMaster, )
-				for thisMaster in masters:
+				for thisMaster in self.mastersToProcess(thisFont):
 					pairs = self.exceptionsToRemove(thisFont, thisMaster)
 					print(f"\n🚫 Master ‘{thisMaster.name}’: removing {len(pairs)} exception{'' if len(pairs) == 1 else 's'}")
 					for left, right, report in pairs:
@@ -246,6 +281,7 @@ class DeleteExceptionsTooCloseToGroupKerning(mekkaObject):
 				f"Processed {len(fonts)} font{'' if len(fonts) == 1 else 's'}. Details in Macro Window.",
 			)
 			print("✅ Done.")
+			self.updateUI()
 
 		except Exception as e:
 			# brings macro window to front and reports error:
