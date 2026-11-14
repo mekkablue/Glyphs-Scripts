@@ -1,21 +1,37 @@
 # MenuTitle: KernCrasher
 __doc__ = """
-Opens a new tab with Kerning Combos that crash in the current fontmaster.
+Finds kerning collisions in the current master (or in more masters and fonts, see Scope) and opens a tab with them, one tab per font.
 """
 
 import vanilla
 from timeit import default_timer as timer
-from AppKit import NSTextAlignmentRight, NSWindowStyleMaskResizable, NSSize, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
+from AppKit import NSTextAlignmentRight, NSWindowStyleMaskResizable, NSSize, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from Foundation import NSNotFound
 from kernanalysis import intervalList, categoryList, sortedIntervalsFromString, effectiveKerning, minDistanceBetweenTwoLayers, distanceFromEntry
-from GlyphsApp import Glyphs, Message
+from GlyphsApp import Glyphs, GSControlLayer, Message
 from mekkablue import mekkaObject, caseDict, UpdateButton
+
+# entries for the left and right glyph popups; the new ones come last, so saved popup positions stay valid:
+currentTabEntry = "All glyphs in current tab"
+categoriesForAllEntries = {
+	"All letters": ("Letter", ),
+	"All letters and punctuation": ("Letter", "Punctuation"),
+	"All letters, punctuation and figures (slow)": ("Letter", "Punctuation", "Number"),
+}
+glyphChoices = tuple(categoryList) + (currentTabEntry, ) + tuple(categoriesForAllEntries.keys())
+scopeChoices = (
+	"Current master",
+	"⚠️ All masters of frontmost font",
+	"⚠️ Current masters of all open fonts",
+	"⚠️ All masters of all open fonts",
+)
 
 
 class KernCrasher(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"minDistance": "10",
+		"popupScope": 0,
 		"popupScript": "latin",
 		"popupSpeed": 0,
 		"popupLeftCat": 0,
@@ -28,7 +44,7 @@ class KernCrasher(mekkaObject):
 		"reuseCurrentTab": 1,
 		"limitRightSuffixes": "",
 		"limitLeftSuffixes": "",
-		"directionSensitive": "",
+		"directionSensitive": 1,
 	}
 
 	def __init__(self):
@@ -44,7 +60,13 @@ class KernCrasher(mekkaObject):
 		# UI elements:
 		inset = 16
 
-		self.w.descriptionText = vanilla.TextBox("auto", "Open tab with kern collisions in current master", sizeStyle='small')
+		self.w.descriptionText = vanilla.TextBox("auto", "Find kerning collisions and open tab", sizeStyle='small')
+
+		self.w.textScope = vanilla.TextBox("auto", "Scope", sizeStyle='small')
+		self.w.popupScope = vanilla.PopUpButton("auto", scopeChoices, callback=self.SavePreferences, sizeStyle='small')
+		tooltipText = "Which masters to check for kerning collisions. Whatever you choose, each font gets at most one tab with its results (opened, or reused, if ‘Reuse current tab’ is on)."
+		self.w.textScope.setToolTip(tooltipText)
+		self.w.popupScope.setToolTip(tooltipText)
 
 		self.w.textScript = vanilla.TextBox("auto", "Script", sizeStyle='small')
 		self.w.popupScript = vanilla.ComboBox("auto", ("latin", "cyrillic", "greek"), callback=self.SavePreferences, sizeStyle='small')
@@ -68,15 +90,15 @@ class KernCrasher(mekkaObject):
 		self.w.popupSpeed.setToolTip(tooltipText)
 		self.w.text_speedExplanation.setToolTip(tooltipText)
 
-		self.w.text_popupLeftCat = vanilla.TextBox("auto", "Left Category", sizeStyle='small')
-		self.w.popupLeftCat = vanilla.PopUpButton("auto", categoryList, callback=self.SavePreferences, sizeStyle='small')
-		tooltipText = "The category for the glyph on the LEFT side of the kerning pair. In ‘AV’, that would be ‘A’."
+		self.w.text_popupLeftCat = vanilla.TextBox("auto", "Left glyph", sizeStyle='small')
+		self.w.popupLeftCat = vanilla.PopUpButton("auto", glyphChoices, callback=self.SavePreferences, sizeStyle='small')
+		tooltipText = "The glyphs for the LEFT side of the kerning pair. In ‘AV’, that would be ‘A’. Choose a category, all glyphs in the current tab (each counted once), or all letters, optionally with punctuation and figures. The settings below (script, exclusions, non-exporting glyphs, paths only) are respected in every case."
 		self.w.text_popupLeftCat.setToolTip(tooltipText)
 		self.w.popupLeftCat.setToolTip(tooltipText)
 
-		self.w.text_popupRightCat = vanilla.TextBox("auto", "Right Category", sizeStyle='small')
-		self.w.popupRightCat = vanilla.PopUpButton("auto", categoryList, callback=self.SavePreferences, sizeStyle='small')
-		tooltipText = "The category for the glyph on the RIGHT side of the kerning pair. In ‘AV’, that would be ‘V’."
+		self.w.text_popupRightCat = vanilla.TextBox("auto", "Right glyph", sizeStyle='small')
+		self.w.popupRightCat = vanilla.PopUpButton("auto", glyphChoices, callback=self.SavePreferences, sizeStyle='small')
+		tooltipText = "The glyphs for the RIGHT side of the kerning pair. In ‘AV’, that would be ‘V’. Choose a category, all glyphs in the current tab (each counted once), or all letters, optionally with punctuation and figures. The settings below (script, exclusions, non-exporting glyphs, paths only) are respected in every case."
 		self.w.text_popupRightCat.setToolTip(tooltipText)
 		self.w.popupRightCat.setToolTip(tooltipText)
 
@@ -116,19 +138,26 @@ class KernCrasher(mekkaObject):
 		self.w.directionSensitive = vanilla.CheckBox("auto", "Auto-detect writing direction (LTR vs. RTL)", value=True, sizeStyle='small', callback=self.SavePreferences)
 		self.w.directionSensitive.setToolTip("If enabled, will determine writing direction based on settings in current tab. If disabled, LTR will be used")
 
+		self.w.reuseCurrentTab = vanilla.CheckBox("auto", "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reuseCurrentTab.setToolTip("If enabled, will not open a new tab with the collisions, but reuse the current Edit tab of each font. Will open an Edit tab if none is open.")
 		self.w.reportCrashesInMacroWindow = vanilla.CheckBox("auto", "Verbose report in Macro Window", value=False, sizeStyle='small', callback=self.SavePreferences)
 		self.w.reportCrashesInMacroWindow.setToolTip("Will output a detailed report of the kern crashing in Window > Macro Panel. Will slow down the script a bit. Usually not necessary, but can be useful for checking if a certain pairing has been taken care of or not.")
-		self.w.reuseCurrentTab = vanilla.CheckBox("auto", "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reuseCurrentTab.setToolTip("If enabled, will not open a new tab with newly added kern pairs, but reuse the current Edit tab. Will open an Edit tab if none is open.")
 
 		# Percentage:
 		self.w.bar = vanilla.ProgressBar("auto")
+
+		# Status line, with the prediction:
+		self.w.statusText = vanilla.TextBox("auto", "🔢 Will analyze – pairs.", sizeStyle='small')
+		self.w.statusText.setToolTip("How many glyph pairs will be measured with the current settings, across all masters and fonts of the chosen scope.")
+		self.w.statusText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# Buttons:
 		self.w.nextButton = vanilla.Button("auto", "Next Master", callback=self.masterSwitch)
 
 		# Run Button:
+		self.w.nextButton.setToolTip("Switches the frontmost font to its next master.")
 		self.w.runButton = vanilla.Button("auto", "Open Tab", callback=self.KernCrasherMain)
+		self.w.runButton.setToolTip("Measures the distances between all glyph pairs of the chosen scope and opens a tab with the pairs that collide.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window
@@ -138,6 +167,7 @@ class KernCrasher(mekkaObject):
 
 		# labels hug their text, and resist compression, so the fields take the leftover width:
 		labelNames = (
+			"textScope",
 			"textScript",
 			"textSpeed",
 			"text_popupLeftCat",
@@ -166,6 +196,7 @@ class KernCrasher(mekkaObject):
 		self.w.addAutoPosSizeRules(
 			[
 				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[textScope]-gap-[popupScope]-inset-|",
 				"H:|-inset-[textScript]-gap-[popupScript(>=110)]-gap-[updateScriptsButton]-gap-[textDistance]-gap-[minDistance(50)]-inset-|",
 				"H:|-inset-[textSpeed]-gap-[popupSpeed]-gap-[text_speedExplanation]-(>=inset)-|",
 				"H:|-inset-[text_popupLeftCat]-gap-[popupLeftCat]-inset-|",
@@ -177,12 +208,14 @@ class KernCrasher(mekkaObject):
 				"H:|-inset-[pathGlyphsOnly]-(>=inset)-|",
 				"H:|-inset-[excludeNonExporting]-(>=inset)-|",
 				"H:|-inset-[directionSensitive]-(>=inset)-|",
-				"H:|-inset-[reportCrashesInMacroWindow]-gap-[reuseCurrentTab]-(>=inset)-|",
+				"H:|-inset-[reuseCurrentTab]-gap-[reportCrashesInMacroWindow]-(>=inset)-|",
 				"H:|-inset-[bar]-inset-|",
-				"H:|-(>=inset)-[nextButton(>=70)]-gap-[runButton(>=70)]-inset-|",
-				"V:|-inset-[descriptionText]-headlineGap-[popupScript]-row-[popupSpeed]-row-[popupLeftCat]-row-[popupRightCat]-row-[limitLeftSuffixes]-row-[limitRightSuffixes]-row-[excludeSuffixes]-row-[ignoreIntervals]-row-[pathGlyphsOnly]-5-[excludeNonExporting]-5-[directionSensitive]-5-[reportCrashesInMacroWindow]-barGap-[bar(16)]-inset-[runButton]-inset-|",
+				"H:|-inset-[statusText]-(>=gap)-[nextButton(>=70)]-gap-[runButton(>=70)]-inset-|",
+				"V:|-inset-[descriptionText]-headlineGap-[popupScope]-row-[popupScript]-row-[popupSpeed]-row-[popupLeftCat]-row-[popupRightCat]-row-[limitLeftSuffixes]-row-[limitRightSuffixes]-row-[excludeSuffixes]-row-[ignoreIntervals]-row-[pathGlyphsOnly]-5-[excludeNonExporting]-5-[directionSensitive]-5-[reportCrashesInMacroWindow]-barGap-[bar(16)]-inset-[runButton]-inset-|",
 				"V:[nextButton]-inset-|",
 				# one baseline per row:
+				{"view1": self.w.textScope, "attribute1": "centerY", "view2": self.w.popupScope, "attribute2": "centerY"},
+				{"view1": self.w.statusText, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 				{"view1": self.w.textScript, "attribute1": "centerY", "view2": self.w.popupScript, "attribute2": "centerY"},
 				{"view1": self.w.updateScriptsButton, "attribute1": "centerY", "view2": self.w.popupScript, "attribute2": "centerY"},
 				{"view1": self.w.textDistance, "attribute1": "centerY", "view2": self.w.popupScript, "attribute2": "centerY"},
@@ -204,6 +237,7 @@ class KernCrasher(mekkaObject):
 
 		# Load Settings:
 		self.LoadPreferences()
+		self.updateUI()  # prediction in the status line
 
 		# Open window and focus on it:
 		self.w.open()
@@ -213,9 +247,14 @@ class KernCrasher(mekkaObject):
 		# (Content sizes set directly on the NSWindow, so the title bar is not counted twice.)
 		nsWindow = self.w.getNSWindow()
 		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
-		contentHeight = nsWindow.contentView().frame().size.height
-		nsWindow.setContentMinSize_(NSSize(windowWidth, contentHeight))
-		nsWindow.setContentMaxSize_(NSSize(windowWidth + 1000, contentHeight))
+		nsWindow.layoutIfNeeded()  # make sure the content has its final size before we read it
+		contentSize = nsWindow.contentView().frame().size
+		nsWindow.setContentMinSize_(NSSize(contentSize.width, contentSize.height))
+		nsWindow.setContentMaxSize_(NSSize(contentSize.width + 1000, contentSize.height))
+
+	def updateUI(self, sender=None):
+		pairCount = self.predictedPairCount()
+		self.w.statusText.set(f"🔢 Will analyze {pairCount:,} pair{'' if pairCount == 1 else 's'}.")
 
 	def update(self, sender=None):
 		if sender == self.w.updateScriptsButton and Glyphs.font:
@@ -239,40 +278,112 @@ class KernCrasher(mekkaObject):
 			offset = glyphName.find(".")
 			return glyphName[:offset]
 
+	def glyphPassesFilters(self, thisGlyph, requiredScript, excludedGlyphNameParts, excludeNonExporting, pathGlyphsOnly, mustContain):
+		"""The settings below the popups, applied to every choice of glyphs."""
+		glyphName = thisGlyph.name
+		if excludedGlyphNameParts and any(thisNamePart in glyphName for thisNamePart in excludedGlyphNameParts):
+			return False
+		if mustContain and not any(thisNamePart in glyphName for thisNamePart in mustContain):
+			return False
+		if excludeNonExporting and not thisGlyph.export:
+			return False
+		if thisGlyph.script is not None and thisGlyph.script != requiredScript:
+			return False
+		if pathGlyphsOnly and not thisGlyph.layers[0].paths:
+			return False
+		return True
+
 	def listOfNamesForCategories(self, thisFont, requiredCategory, requiredSubCategory, requiredScript, excludedGlyphNameParts, excludeNonExporting, pathGlyphsOnly, mustContain):
 		nameList = []
 		for thisGlyph in thisFont.glyphs:
-			thisScript = thisGlyph.script
-			glyphName = thisGlyph.name
-			nameIsOK = True
-
-			if nameIsOK and excludedGlyphNameParts:
-				for thisNamePart in excludedGlyphNameParts:
-					nameIsOK = nameIsOK and not (thisNamePart in glyphName)
-
-			if nameIsOK and mustContain:
-				nameIsOK = False
-				for thisNamePart in mustContain:
-					if thisNamePart in glyphName:
-						nameIsOK = True
-
-			if nameIsOK and (thisGlyph.export or not excludeNonExporting):
-				if thisScript is None or thisScript == requiredScript:
-					if thisGlyph.category == requiredCategory:
-						if requiredSubCategory:
-							if Glyphs.versionNumber >= 3 and requiredSubCategory in caseDict:
-								requiredCase = caseDict[requiredSubCategory]
-								if thisGlyph.case == requiredCase:
-									if (not pathGlyphsOnly) or thisGlyph.layers[0].paths:
-										nameList.append(glyphName)
-							else:
-								if thisGlyph.subCategory == requiredSubCategory or (requiredSubCategory == "Other" and thisGlyph.subCategory is None):
-									if (not pathGlyphsOnly) or thisGlyph.layers[0].paths:
-										nameList.append(glyphName)
-						else:
-							if (not pathGlyphsOnly) or thisGlyph.layers[0].paths:
-								nameList.append(glyphName)
+			if not self.glyphPassesFilters(thisGlyph, requiredScript, excludedGlyphNameParts, excludeNonExporting, pathGlyphsOnly, mustContain):
+				continue
+			if thisGlyph.category != requiredCategory:
+				continue
+			if requiredSubCategory:
+				if Glyphs.versionNumber >= 3 and requiredSubCategory in caseDict:
+					if thisGlyph.case != caseDict[requiredSubCategory]:
+						continue
+				elif not (thisGlyph.subCategory == requiredSubCategory or (requiredSubCategory == "Other" and thisGlyph.subCategory is None)):
+					continue
+			nameList.append(thisGlyph.name)
 		return nameList
+
+	def glyphNamesInCurrentTab(self, thisFont):
+		"""Names of the glyphs in the font's current tab, each name once, in the order of the font."""
+		thisTab = thisFont.currentTab
+		if thisTab is None:
+			return set()
+		namesInTab = set()
+		for thisLayer in thisTab.layers:
+			if isinstance(thisLayer, GSControlLayer):
+				continue  # line breaks and the like
+			if thisLayer.parent is not None:
+				namesInTab.add(thisLayer.parent.name)
+		return namesInTab
+
+	def glyphNamesForChoice(self, thisFont, choice, requiredScript, excludedGlyphNameParts, excludeNonExporting, pathGlyphsOnly, mustContain):
+		"""Glyph names for an entry of the left or right glyph popup."""
+		if choice == currentTabEntry:
+			namesInTab = self.glyphNamesInCurrentTab(thisFont)
+			return [
+				thisGlyph.name for thisGlyph in thisFont.glyphs
+				if thisGlyph.name in namesInTab and self.glyphPassesFilters(thisGlyph, requiredScript, excludedGlyphNameParts, excludeNonExporting, pathGlyphsOnly, mustContain)
+			]
+		if choice in categoriesForAllEntries:
+			categories = categoriesForAllEntries[choice]
+			return [
+				thisGlyph.name for thisGlyph in thisFont.glyphs
+				if thisGlyph.category in categories and self.glyphPassesFilters(thisGlyph, requiredScript, excludedGlyphNameParts, excludeNonExporting, pathGlyphsOnly, mustContain)
+			]
+		category, subCategory = self.splitString(choice)
+		return self.listOfNamesForCategories(thisFont, category, subCategory, requiredScript, excludedGlyphNameParts, excludeNonExporting, pathGlyphsOnly, mustContain)
+
+	def choiceFromPopup(self, prefName):
+		index = self.prefInt(prefName)
+		if not 0 <= index < len(glyphChoices):
+			index = 0
+		return glyphChoices[index]
+
+	def glyphListsForFont(self, thisFont):
+		"""Returns the glyph names for the left and for the right side, according to the current settings."""
+		script = self.pref("popupScript")
+		excludedGlyphNameParts = self.splitString(self.pref("excludeSuffixes"), delimiter=",", minimum=0)
+		excludeNonExporting = self.prefBool("excludeNonExporting")
+		pathGlyphsOnly = self.prefBool("pathGlyphsOnly")
+		limitLeftSuffixes = self.splitString(self.pref("limitLeftSuffixes"), delimiter=",", minimum=0)
+		limitRightSuffixes = self.splitString(self.pref("limitRightSuffixes"), delimiter=",", minimum=0)
+		firstList = self.glyphNamesForChoice(
+			thisFont, self.choiceFromPopup("popupLeftCat"), script, excludedGlyphNameParts, excludeNonExporting, pathGlyphsOnly, limitLeftSuffixes
+		)
+		secondList = self.glyphNamesForChoice(
+			thisFont, self.choiceFromPopup("popupRightCat"), script, excludedGlyphNameParts, excludeNonExporting, pathGlyphsOnly, limitRightSuffixes
+		)
+		return firstList, secondList
+
+	def targets(self):
+		"""Returns (font, masters) tuples according to the scope."""
+		scope = self.prefInt("popupScope")
+		if scope in (0, 1):
+			fonts = [Glyphs.font] if Glyphs.font else []
+		else:
+			fonts = list(Glyphs.fonts)
+		targets = []
+		for thisFont in fonts:
+			if scope in (1, 3):
+				masters = list(thisFont.masters)
+			else:
+				masters = [thisFont.selectedFontMaster]
+			targets.append((thisFont, masters))
+		return targets
+
+	def predictedPairCount(self):
+		"""How many glyph pairs will be measured in total."""
+		pairCount = 0
+		for thisFont, masters in self.targets():
+			firstList, secondList = self.glyphListsForFont(thisFont)
+			pairCount += len(firstList) * len(secondList) * len(masters)
+		return pairCount
 
 	def masterSwitch(self, sender=None):
 		if sender is self.w.nextButton:
@@ -309,22 +420,15 @@ class KernCrasher(mekkaObject):
 			raise e
 			return None
 
-	def queryPrefs(self):
-		script = self.pref("popupScript")
-		firstCategory, firstSubCategory = self.splitString(self.w.popupLeftCat.getItems()[self.pref("popupLeftCat")])
-		secondCategory, secondSubCategory = self.splitString(self.w.popupRightCat.getItems()[self.pref("popupRightCat")])
-		return script, firstCategory, firstSubCategory, secondCategory, secondSubCategory
-
 	def KernCrasherMain(self, sender):
 		try:
 			# update settings to the latest user input:
 			self.SavePreferences()
 
-			# query frontmost fontmaster:
-			thisFont = Glyphs.font
-			thisFontMaster = thisFont.selectedFontMaster
-			thisFontMasterID = thisFontMaster.id
-			thisFontMasterIndex = thisFont.masterIndex
+			targets = self.targets()
+			if not targets:
+				Message(title="No Font Open", message="KernCrasher requires a font. Open a font and run the script again.", OKButton=None)
+				return
 
 			# reset progress bar:
 			self.w.bar.set(0)
@@ -333,91 +437,98 @@ class KernCrasher(mekkaObject):
 			start = timer()
 
 			# start reporting to macro window:
-			if self.pref("reportCrashesInMacroWindow"):
+			reportInMacroWindow = self.pref("reportCrashesInMacroWindow")
+			if reportInMacroWindow:
 				Glyphs.clearLog()
-				print("KernCrasher Report for %s, master %s:\n" % (thisFont.familyName, thisFontMaster.name))
+				print("KernCrasher Report\n")
 
 			# query user input:
-			script, firstCategory, firstSubCategory, secondCategory, secondSubCategory = self.queryPrefs()
 			step = intervalList[self.pref("popupSpeed")]
-			excludedGlyphNameParts = self.splitString(self.pref("excludeSuffixes"), delimiter=",", minimum=0)
-			excludeNonExporting = self.prefBool("excludeNonExporting")
-			pathGlyphsOnly = self.prefBool("pathGlyphsOnly")
-			limitRightSuffixes = self.splitString(self.pref("limitRightSuffixes"), delimiter=",", minimum=0)
-			limitLeftSuffixes = self.splitString(self.pref("limitLeftSuffixes"), delimiter=",", minimum=0)
-			minDistance = 0.0
-			ignoreIntervals = sortedIntervalsFromString(self.pref("ignoreIntervals"), thisFont, thisFontMasterID)
-			try:
-				minDistance = distanceFromEntry(self.pref("minDistance"), thisFont, thisFontMasterID)
-			except Exception as e:
-				print("⚠️ Warning: Could not read min distance entry. Will default to 0.\n%s" % e)
-				import traceback
-				print(traceback.format_exc())
-				print()
+			directionSensitive = self.w.directionSensitive.get() == 1
+			totalPairs = self.predictedPairCount()
+			analyzedPairs = 0
+			totalCrashCount = 0
 
-			# save prefs
-			self.SavePreferences()
+			for thisFont, masters in targets:
+				# get lists of glyph names:
+				firstList, secondList = self.glyphListsForFont(thisFont)
+				if not firstList or not secondList:
+					print(
+						"⚠️ %s: no pairs to analyze. With the current settings, there are %i glyphs for the left side and %i glyphs for the right side. Skipping this font." % (
+							thisFont.familyName,
+							len(firstList),
+							len(secondList),
+						)
+					)
+					continue
 
-			# get list of glyph names:
-			firstList = self.listOfNamesForCategories(
-				thisFont, firstCategory, firstSubCategory, script, excludedGlyphNameParts, excludeNonExporting, pathGlyphsOnly, limitLeftSuffixes
-			)
-			secondList = self.listOfNamesForCategories(
-				thisFont, secondCategory, secondSubCategory, script, excludedGlyphNameParts, excludeNonExporting, pathGlyphsOnly, limitRightSuffixes
-			)
+				crashes = {}  # left glyph name -> right glyph names (in order, each only once, even if they collide in more than one master)
+				processedMasterIDs = []
+				for thisFontMaster in masters:
+					thisFontMasterID = thisFontMaster.id
+					if reportInMacroWindow:
+						print("%s, master %s:\n" % (thisFont.familyName, thisFontMaster.name))
 
-			directionSensitive = False
-			if self.w.directionSensitive.get() == 1:
-				directionSensitive = True
+					ignoreIntervals = sortedIntervalsFromString(self.pref("ignoreIntervals"), thisFont, thisFontMasterID)
+					minDistance = 0.0
+					try:
+						minDistance = distanceFromEntry(self.pref("minDistance"), thisFont, thisFontMasterID)
+					except Exception as e:
+						print("⚠️ Warning: Could not read min distance entry. Will default to 0.\n%s" % e)
+						import traceback
+						print(traceback.format_exc())
+						print()
 
-			if not firstList or not secondList:
-				Message(
-					title="Error: could not find any pairs",
-					message="The criteria for glyph selection are too strict. With the current settings, there are %i glyphs for the left side in the current font, and %i glyphs for the right side."
-					% (
-						len(firstList),
-						len(secondList),
-					),
-					OKButton=None,
-				)
+					if reportInMacroWindow:
+						print("Minimum Distance: %i\n" % minDistance)
+						print("Left glyphs:\n%s\n" % ", ".join(firstList))
+						print("Right glyphs:\n%s\n" % ", ".join(secondList))
 
-			if self.pref("reportCrashesInMacroWindow"):
-				print("Minimum Distance: %i\n" % minDistance)
-				print("Left glyphs:\n%s\n" % ", ".join(firstList))
-				print("Right glyphs:\n%s\n" % ", ".join(secondList))
+					for firstGlyphName in firstList:
+						# update progress bar:
+						self.w.bar.set(int(100 * (float(analyzedPairs) / max(totalPairs, 1))))
+						analyzedPairs += len(secondList)
+						# determine left glyph:
+						leftLayer = thisFont.glyphs[firstGlyphName].layers[thisFontMasterID].copyDecomposedLayer()
+						leftLayer.decomposeSmartOutlines()
 
-			tabString = "\n"
-			crashCount = 0
-			numOfGlyphs = len(firstList)
-			for index in range(numOfGlyphs):
-				# update progress bar:
-				self.w.bar.set(int(100 * (float(index) / numOfGlyphs)))
-				# determine left glyph:
-				firstGlyphName = firstList[index]
-				leftLayer = thisFont.glyphs[firstGlyphName].layers[thisFontMasterID].copyDecomposedLayer()
-				leftLayer.decomposeSmartOutlines()
+						# cycle through right glyphs:
+						for secondGlyphName in secondList:
+							rightLayer = thisFont.glyphs[secondGlyphName].layers[thisFontMasterID].copyDecomposedLayer()
+							rightLayer.decomposeSmartOutlines()
+							kerning = effectiveKerning(firstGlyphName, secondGlyphName, thisFont, thisFontMasterID, directionSensitive)
+							distanceBetweenShapes = minDistanceBetweenTwoLayers(leftLayer, rightLayer, interval=step, kerning=kerning, report=False, ignoreIntervals=ignoreIntervals)
+							if distanceBetweenShapes is not None and distanceBetweenShapes < minDistance:
+								totalCrashCount += 1
+								crashes.setdefault(firstGlyphName, {})[secondGlyphName] = None
+								if reportInMacroWindow:
+									print("- %s %s: %i" % (firstGlyphName, secondGlyphName, distanceBetweenShapes))
+					processedMasterIDs.append(thisFontMasterID)
 
-				# cycle through right glyphs:
-				for secondGlyphName in secondList:
-					rightLayer = thisFont.glyphs[secondGlyphName].layers[thisFontMasterID].copyDecomposedLayer()
-					rightLayer.decomposeSmartOutlines()
-					kerning = effectiveKerning(firstGlyphName, secondGlyphName, thisFont, thisFontMasterID, directionSensitive)
-					distanceBetweenShapes = minDistanceBetweenTwoLayers(leftLayer, rightLayer, interval=step, kerning=kerning, report=False, ignoreIntervals=ignoreIntervals)
-					if distanceBetweenShapes is not None and distanceBetweenShapes < minDistance:
-						crashCount += 1
-						tabString += "/%s/%s/space" % (firstGlyphName, secondGlyphName)
-						if self.pref("reportCrashesInMacroWindow"):
-							print("- %s %s: %i" % (firstGlyphName, secondGlyphName, distanceBetweenShapes))
-				tabString += "\n"
-
-			# clean up the tab string:
-			tabString = tabString[:-6].replace("/space\n", "\n")
-			while "\n\n" in tabString:
-				tabString = tabString.replace("\n\n", "\n")
-			tabString = tabString[1:]
+				# one tab per font, with the collisions of all its masters:
+				if crashes:
+					tabString = "\n".join("/space".join("/%s/%s" % (left, right) for right in rights) for left, rights in crashes.items())
+					if len(tabString) > 40:
+						# disable reporters (avoid slowdown)
+						Glyphs.defaults["visibleReporters"] = None
+					if self.pref("reuseCurrentTab") and thisFont.currentTab:
+						tab = thisFont.currentTab
+						tab.text = tabString
+					else:
+						tab = thisFont.newTab(tabString)
+					# the tab has its own master; make it show a master that was checked:
+					checkedIndexes = [i for i, thisMaster in enumerate(thisFont.masters) if thisMaster.id in processedMasterIDs]
+					tab.masterIndex = thisFont.masterIndex if thisFont.masterIndex in checkedIndexes else checkedIndexes[0]
 
 			# update progress bar:
 			self.w.bar.set(100)
+
+			if analyzedPairs == 0:
+				Message(
+					title="Error: could not find any pairs",
+					message="The criteria for glyph selection are too strict. With the current settings, there are no glyph pairs to analyze.",
+					OKButton=None,
+				)
 
 			# take time:
 			end = timer()
@@ -431,29 +542,13 @@ class KernCrasher(mekkaObject):
 			else:
 				timereport = "%i seconds" % seconds
 
-			# open new Edit tab:
-			if tabString:
-				if len(tabString) > 40:
-					# disable reporters (avoid slowdown)
-					Glyphs.defaults["visibleReporters"] = None
-				report = f'{crashCount} kerning crashes have been found. Time elapsed: {timereport}.'
-				if self.pref("reuseCurrentTab") and thisFont.currentTab:
-					tab = thisFont.currentTab
-					tab.text = tabString
-				else:
-					tab = thisFont.newTab(tabString)
-				# the tab has its own master; make it show the master that was checked:
-				tab.masterIndex = thisFontMasterIndex
-			# or report that nothing was found:
+			if totalCrashCount:
+				report = "%i kerning crashes have been found. Time elapsed: %s." % (totalCrashCount, timereport)
 			else:
-				report = 'No collisions found. Time elapsed: %s. Congrats!' % timereport
-
-			# Notification:
-			# notificationTitle = "KernCrasher: %s (%s)" % (thisFont.familyName, thisFontMaster.name)
-			# Glyphs.showNotification(notificationTitle, report)
+				report = "No collisions found. Time elapsed: %s. Congrats!" % timereport
 
 			# Report in Macro Window:
-			if self.pref("reportCrashesInMacroWindow"):
+			if reportInMacroWindow:
 				print(report)
 				Glyphs.showMacroWindow()
 
