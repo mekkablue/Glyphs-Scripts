@@ -24,15 +24,15 @@ alignmentOptions = (
 
 alignmentDict = {
 	"Left": LEFT,
-	"Center": RIGHT,
-	"Right": CENTER,
+	"Center": CENTER,
+	"Right": RIGHT,
 	"None": NOALIGN,
 }
 
 alignmentLookupDict = {
 	LEFT: "Left",
-	RIGHT: "Center",
-	CENTER: "Right",
+	CENTER: "Center",
+	RIGHT: "Right",
 	NOALIGN: "None",
 }
 
@@ -72,25 +72,27 @@ class CapAndCornerManager(mekkaObject):
 		inset = 15
 
 		self.w.descriptionText = vanilla.TextBox("auto", "Batch-edit in frontmost font", sizeStyle="small", selectable=True)
+		self.w.descriptionText.setToolTip("Changes the settings of one special component in all glyphs of the frontmost font, in all masters and layers.")
 
 		self.w.componentName = vanilla.ComboBox("auto", self.cornersOfFrontmostFont(), sizeStyle="small", callback=self.SavePreferences)
-		self.w.componentName.setToolTip("Batch-edit all instances of this special component. Can be a Brush, Segment, Cap and Corner component.")
+		self.w.componentName.setToolTip("The special component to edit, e.g. _cap.name or _corner.name. All its instances in the font are changed. Can be a brush, segment, cap or corner component.")
 		self.w.updateComponentNames = UpdateButton("auto", callback=self.updateUI)
-		self.w.updateComponentNames.setToolTip("Update the list of available components for the frontmost font.")
+		self.w.updateComponentNames.setToolTip("Refreshes the list of special components from the frontmost font.")
 
 		self.w.shouldAlign = vanilla.CheckBox("auto", "Align", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.alignment = vanilla.PopUpButton("auto", alignmentOptions, sizeStyle="small", callback=self.SavePreferences)
-		tooltip = "Alignment options for Cap and Corner components."
+		tooltip = "Sets the alignment of cap and corner components. Only for _cap and _corner components; off leaves the alignment as is."
 		self.w.shouldAlign.setToolTip(tooltip)
 		self.w.alignment.setToolTip(tooltip)
 
 		self.w.shouldFit = vanilla.CheckBox("auto", "Fit Cap", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.fit = vanilla.PopUpButton("auto", ("Off (don’t fit)", "On (do fit)"), sizeStyle="small", callback=self.SavePreferences)
-		tooltip = "Fit option for Cap components."
+		tooltip = "Turns the fit option of cap components on or off. Only for _cap components; off leaves the fit as is."
 		self.w.shouldFit.setToolTip(tooltip)
 		self.w.fit.setToolTip(tooltip)
 
 		self.w.shouldScale = vanilla.CheckBox("auto", "Scale", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.shouldScale.setToolTip("Sets the scale of the components. Horizontal scale is ignored for fitted caps. Off leaves the scale as is.")
 		self.w.scaleH = vanilla.EditText("auto", "100", callback=self.SavePreferences, sizeStyle="small")
 		self.w.scaleH.setToolTip("Horizontal scale for components in percent. 100 means unscaled.")
 		self.w.scaleV = vanilla.EditText("auto", "100", callback=self.SavePreferences, sizeStyle="small")
@@ -100,6 +102,7 @@ class CapAndCornerManager(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Apply", callback=self.CapAndCornerManagerMain)
+		self.w.runButton.setToolTip("Applies the checked settings to all instances of the component, and opens a tab with the affected glyphs.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; hug so the window is as tall as its content
