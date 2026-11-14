@@ -377,7 +377,6 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **New Tabs with Punctuation Kern Strings:** Outputs several tabs with kern strings with punctuation.
 * **Partial Compress:** Compress kerning, but for certain glyphs only.
 * **Remove Kerning Between Categories:** Removes kerning between glyphs, categories, subcategories, scripts.
-* **Remove Kerning Exceptions:** Removes all kerning for the current master, except for group-to-group kerning. Be careful.
 * **Remove Kerning Pairs for Selected Glyphs:** Deletes all kerning pairs with the selected glyphs, for the current master only.
 * **Remove Orphaned Group Kerning:** Deletes all group kernings referring to groups that are not in the font.
 * **Remove Small Kerning Pairs:** Removes all kerning pairs in the current font master with a value smaller than specified, or a value equal to zero. Be careful.
