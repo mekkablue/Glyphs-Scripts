@@ -9,14 +9,45 @@ Optionally restrict to selected glyphs only.
 """
 
 import math
+import objc
 import vanilla
-from AppKit import NSAlert
-from Foundation import NSPoint
-from GlyphsApp import Glyphs, CORNER, CAP, Message
+from AppKit import (
+	NSAlert,
+	NSAlertFirstButtonReturn,
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityDefaultLow,
+	NSLayoutPriorityRequired,
+	NSLayoutPriorityWindowSizeStayPut,
+	NSSize,
+	NSTextAlignmentRight,
+	NSWindowStyleMaskResizable,
+)
+from Foundation import NSNumberFormatter, NSPoint
+from GlyphsApp import Glyphs, CORNER, CAP, BRUSH, SEGMENT, Message
 from mekkablue import mekkaObject, UpdateButton
 
 
-SPECIAL_PREFIXES = ("_cap.", "_corner.", "_segment.", "_brush.")
+SPECIAL_PREFIXES = ("_cap.", "_corner.", "_segment.", "_brush.", "_head.")
+
+# special components are hints in the layer, not regular components:
+# WORKAROUND (Glyphs 4.2, 4203): GlyphsApp has no constant for head hints; their hint type is 20. To be reported at https://github.com/schriftgestalt/GlyphsSDK/issues
+HEAD = 20
+hintTypes = {"_cap.": CAP, "_corner.": CORNER, "_segment.": SEGMENT, "_brush.": BRUSH, "_head.": HEAD}
+hintKindNames = {CAP: "cap", CORNER: "corner", SEGMENT: "segment", BRUSH: "brush", HEAD: "head"}
+
+scopeChoices = (
+	"Current master",
+	"⚠️ All masters of frontmost font",
+	"⚠️ Current masters of all open fonts",
+	"⚠️ All masters of all open fonts",
+)
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 def specialKind(name):
@@ -27,10 +58,22 @@ def specialKind(name):
 	return None
 
 
+def selectedGlyphsOfFont(thisFont):
+	"""The glyphs of the selected layers, each once, in the order of selection."""
+	glyphs = {}
+	for layer in thisFont.selectedLayers:
+		glyph = layer.parent
+		if glyph and glyph.id not in glyphs:
+			glyphs[glyph.id] = glyph
+	return list(glyphs.values())
+
+
 class FindReplaceComponents(mekkaObject):
 	prefDict = {
 		"findName": "",
 		"replaceName": "",
+		"popupScope": 1,
+		"showPrediction": True,
 		"selectedGlyphsOnly": False,
 		"includeBackgrounds": False,
 		"useAngleFilter": False,
@@ -40,116 +83,133 @@ class FindReplaceComponents(mekkaObject):
 
 	def __init__(self):
 		windowWidth = 370
-		windowHeight = 170
-		windowWidthResize = 600
-		windowHeightResize = 0
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Find and Replace Components",
-			minSize=(windowWidth, windowHeight),
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),
-			autosaveName=self.domain("mainwindow"),
+			autosaveName=self.domain("mainwindow"),  # stores last window position
 		)
 
-		linePos, inset, lineHeight = 12, 15, 22
+		inset = 15
 
 		# Find row
-		self.w.findLabel = vanilla.TextBox((inset, linePos + 5, 60, 17), "Find:", sizeStyle="small")
-		self.w.findName = vanilla.ComboBox(
-			(inset + 57, linePos - 1, -inset - 52, 24),
-			self.getFindItems(),
-			callback=self.findChanged,
-			sizeStyle="small",
-		)
-		self.w.findName.setToolTip(
-			"Component to find. Populated with all components currently used in the font, "
-			"plus all special (_cap.*, _corner.*, _segment.*, _brush.*) glyphs defined in the font. "
-			"Press ↺ to refresh the list."
-		)
-		self.w.updateFind = UpdateButton((-inset - 47, linePos + 1, -inset - 26, 18), callback=self.refreshFindItems)
-		self.w.updateFind.setToolTip("Refresh the Find list from the frontmost font.")
-		self.w.findConnector = vanilla.TextBox((-inset - 21, linePos + 4, -inset, 18), "┓", sizeStyle="small")
-		findBtnCenterY = linePos + 1 + 9
-		linePos += lineHeight + 6
+		tooltipText = "The component to find. The list has all components used in the font and all special glyphs (_cap.*, _corner.*, _segment.*, _brush.*, _head.*)."
+		self.w.findLabel = vanilla.TextBox("auto", "Find", sizeStyle="small")
+		self.w.findLabel.setToolTip(tooltipText)
+		self.w.findName = vanilla.ComboBox("auto", self.getFindItems(), callback=self.findChanged, sizeStyle="small")
+		self.w.findName.setToolTip(tooltipText)
+		self.w.updateFind = UpdateButton("auto", callback=self.refreshFindItems)
+		self.w.updateFind.setToolTip("Refreshes the Find list from the frontmost font. With ‘Selected glyphs only’, lists only components of the selection and picks the most frequent.")
 
 		# Replace row
-		self.w.replaceLabel = vanilla.TextBox((inset, linePos + 5, 60, 17), "Replace:", sizeStyle="small")
-		self.w.replaceName = vanilla.ComboBox(
-			(inset + 57, linePos - 1, -inset - 52, 24),
-			self.getReplaceItems(),
-			callback=self.SavePreferences,
-			sizeStyle="small",
-		)
-		self.w.replaceName.setToolTip(
-			"Replacement component name. Leave empty to remove the found component (button changes to Remove). "
-			"If a special component kind is selected in Find, only components of the same kind are listed. "
-			"Press ↺ to refresh the list."
-		)
-		self.w.updateReplace = UpdateButton((-inset - 47, linePos + 1, -inset - 26, 18), callback=self.refreshReplaceItems)
-		self.w.updateReplace.setToolTip("Refresh the Replace list from the frontmost font, filtered by the Find component kind.")
-		self.w.replaceConnector = vanilla.TextBox((-inset - 21, linePos + 5, -inset, 18), "┛", sizeStyle="small")
+		tooltipText = "The replacement component. Empty removes the found component. For special components, the list has only the same kind."
+		self.w.replaceLabel = vanilla.TextBox("auto", "Replace", sizeStyle="small")
+		self.w.replaceLabel.setToolTip(tooltipText)
+		self.w.replaceName = vanilla.ComboBox("auto", self.getReplaceItems(), callback=self.SavePreferences, sizeStyle="small")
+		self.w.replaceName.setToolTip(tooltipText)
+		self.w.updateReplace = UpdateButton("auto", callback=self.refreshReplaceItems)
+		self.w.updateReplace.setToolTip("Refreshes the Replace list from the frontmost font, filtered by the kind of the Find component.")
 
-		# Swap button added last so it renders on top of the box-drawing connectors
-		swapBtnY = (findBtnCenterY + linePos + 1 + 9) // 2 - 8
-		self.w.swapButton = vanilla.Button((-inset - 21, swapBtnY, -inset, 18), "↕", callback=self.swapFindReplace, sizeStyle="small")
-		self.w.swapButton.setToolTip("Swap the Find and Replace values.")
-		self.w.findConnector.getNSTextField().setAlphaValue_(0.3)
-		self.w.replaceConnector.getNSTextField().setAlphaValue_(0.3)
-		linePos += lineHeight + 6
+		# the swap button spans both rows
+		self.w.swapButton = vanilla.SquareButton("auto", "⇅", callback=self.swapFindReplace, sizeStyle="small")
+		self.w.swapButton.setToolTip("Swaps the Find and Replace values.")
 
 		# Scope row
-		self.w.selectedGlyphsOnly = vanilla.CheckBox(
-			(inset, linePos, 165, 18),
-			"Selected glyphs only",
-			sizeStyle="small",
-			value=False,
-			callback=self.SavePreferences,
-		)
-		self.w.selectedGlyphsOnly.setToolTip("Restrict replacement to the currently selected glyphs. By default the whole font is processed. All masters are always included to preserve interpolation compatibility.")
-		self.w.includeBackgrounds = vanilla.CheckBox(
-			(inset + 170, linePos, -inset, 18),
-			"Include backgrounds",
-			sizeStyle="small",
-			value=False,
-			callback=self.SavePreferences,
-		)
-		self.w.includeBackgrounds.setToolTip("Also process the background layer of every treated layer.")
-		linePos += lineHeight
+		tooltipText = "Which masters to change. ‘Current master’ also includes its brace and bracket layers. Selected glyphs and the other options below apply in every case."
+		self.w.scopeLabel = vanilla.TextBox("auto", "Scope", sizeStyle="small")
+		self.w.scopeLabel.setToolTip(tooltipText)
+		self.w.popupScope = vanilla.PopUpButton("auto", scopeChoices, callback=self.SavePreferences, sizeStyle="small")
+		self.w.popupScope.setToolTip(tooltipText)
+
+		self.w.selectedGlyphsOnly = vanilla.CheckBox("auto", "Selected glyphs only", sizeStyle="small", value=False, callback=self.SavePreferences)
+		self.w.selectedGlyphsOnly.setToolTip("Only changes the selected glyphs, not the whole font. Keep all masters in the scope, to stay interpolation compatible.")
+		self.w.includeBackgrounds = vanilla.CheckBox("auto", "Include backgrounds", sizeStyle="small", value=False, callback=self.SavePreferences)
+		self.w.includeBackgrounds.setToolTip("Also changes the background of every layer.")
 
 		# Angle filter row (only active for _corner.* components)
-		self.w.useAngleFilter = vanilla.CheckBox(
-			(inset, linePos, 190, 18),
-			"Replace corners only on angles",
-			sizeStyle="small",
-			value=False,
-			callback=self.SavePreferences,
-		)
-		self.w.useAngleFilter.setToolTip("Only available for _corner.* components. Restrict replacement to corners whose interior angle is larger or smaller than the threshold.")
-		self.w.largerOrSmaller = vanilla.PopUpButton(
-			(inset + 193, linePos, -inset - 48, 18),
-			("larger than", "smaller than"),
-			sizeStyle="small",
-			callback=self.SavePreferences,
-		)
-		self.w.largerOrSmaller.setToolTip("Replace at corners with angles larger or smaller than the threshold value.")
-		self.w.thresholdAngle = vanilla.EditText(
-			(-inset - 44, linePos, 30, 19),
-			"20",
-			sizeStyle="small",
-			callback=self.SavePreferences,
-		)
-		self.w.thresholdAngle.setToolTip("Interior angle threshold in degrees (0–360). The angle is measured at the corner node between its two neighbors.")
-		self.w.degreeLabel = vanilla.TextBox((-inset - 12, linePos + 2, 12, 14), "°", sizeStyle="small")
+		self.w.useAngleFilter = vanilla.CheckBox("auto", "Replace corners only on angles", sizeStyle="small", value=False, callback=self.SavePreferences)
+		self.w.useAngleFilter.setToolTip("Only for _corner.* components: changes only corners whose interior angle is larger or smaller than the threshold.")
+		self.w.largerOrSmaller = vanilla.PopUpButton("auto", ("larger than", "smaller than"), sizeStyle="small", callback=self.SavePreferences)
+		self.w.largerOrSmaller.setToolTip("Whether the corner angle has to be larger or smaller than the threshold.")
+		formatter = NSNumberFormatter.alloc().init()
+		formatter.setAllowsFloats_(False)  # integers only
+		formatter.setMinimum_(0)
+		formatter.setMaximum_(360)
+		self.w.thresholdAngle = SteppingEditText("auto", "20", callback=self.SavePreferences, sizeStyle="small", formatter=formatter)
+		self.w.thresholdAngle.setToolTip("Threshold for the interior angle in degrees (0–360), measured at the corner node between its two neighbors.")
+		self.w.degreeLabel = vanilla.TextBox("auto", "°", sizeStyle="small")
+		self.w.degreeLabel.setToolTip("Degrees.")
+
+		self.w.showPrediction = vanilla.CheckBox("auto", "Prediction: will replace – components", sizeStyle="small", value=True, callback=self.SavePreferences)
+		self.w.showPrediction.setToolTip("Counts how many components will be changed with the current settings, and shows it here. Turn off for large fonts, if it slows you down.")
 
 		# Status line and run button at bottom
-		self.w.statusLine = vanilla.TextBox((inset, -inset - 18, -inset - 90, 14), "", sizeStyle="small")
-		self.w.statusLine.setToolTip("Reports how many components were exchanged in the last run.")
-		self.w.runButton = vanilla.Button((-inset - 80, -inset - 22, -inset, -inset), "Replace", callback=self.run)
+		self.w.statusLine = vanilla.TextBox("auto", "", sizeStyle="small", selectable=True)
+		self.w.statusLine.setToolTip("How many components were changed in the last run.")
+		self.w.statusLine.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton = vanilla.Button("auto", "Replace", callback=self.run)
+		self.w.runButton.setToolTip("Replaces the found component in the chosen glyphs. With an empty Replace field, removes it (after a warning).")
 		self.w.setDefaultButton(self.w.runButton)
+		# the button keeps its width, the status line takes the leftover space:
+		self.w.runButton.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.statusLine.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
+		# checkboxes and square buttons stretch vertically by default; hug so the window is as tall as its content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# labels: right-aligned, same width, hugging their text
+		for labelName in ("findLabel", "replaceLabel", "scopeLabel"):
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		def alignedWith(viewName, referenceName, attribute):
+			return {"view1": getattr(self.w, viewName), "attribute1": attribute, "view2": getattr(self.w, referenceName), "attribute2": attribute}
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[findLabel]-gap-[findName]-gap-[updateFind]-gap-[swapButton(>=26)]-inset-|",
+				"H:|-inset-[replaceLabel]-gap-[replaceName]-gap-[updateReplace]-gap-[swapButton]-inset-|",
+				"H:|-inset-[scopeLabel]-gap-[popupScope]-inset-|",
+				"H:|-inset-[selectedGlyphsOnly]-gap-[includeBackgrounds]-(>=inset)-|",
+				"H:|-inset-[useAngleFilter]-gap-[largerOrSmaller]-gap-[thresholdAngle(46)]-gap-[degreeLabel]-inset-|",
+				"H:|-inset-[showPrediction]-(>=inset)-|",
+				"H:|-inset-[statusLine]-(>=gap)-[runButton(>=80)]-inset-|",
+				"V:|-inset-[findName]-row-[replaceName]-row-[popupScope]-checkGap-[selectedGlyphsOnly]-stackRow-[useAngleFilter]-stackRow-[showPrediction]-inset-[runButton]-inset-|",
+				alignedWith("scopeLabel", "popupScope", "centerY"),
+				alignedWith("statusLine", "runButton", "centerY"),
+				alignedWith("replaceLabel", "scopeLabel", "width"),
+				alignedWith("findLabel", "findName", "centerY"),
+				alignedWith("updateFind", "findName", "centerY"),
+				alignedWith("replaceLabel", "replaceName", "centerY"),
+				alignedWith("updateReplace", "replaceName", "centerY"),
+				alignedWith("includeBackgrounds", "selectedGlyphsOnly", "centerY"),
+				alignedWith("largerOrSmaller", "useAngleFilter", "centerY"),
+				alignedWith("thresholdAngle", "useAngleFilter", "centerY"),
+				alignedWith("degreeLabel", "useAngleFilter", "centerY"),
+				# the swap button reaches from the top of the Find row to the bottom of the Replace row:
+				{"view1": self.w.swapButton, "attribute1": "top", "view2": self.w.findName, "attribute2": "top"},
+				{"view1": self.w.swapButton, "attribute1": "bottom", "view2": self.w.replaceName, "attribute2": "bottom"},
+				alignedWith("replaceLabel", "findLabel", "width"),
+				alignedWith("updateReplace", "updateFind", "width"),
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6, "checkGap": 10, "stackRow": 8},
+		)
 
 		self.LoadPreferences()
 		self.w.open()
 		self.w.makeKey()
+
+		# make the window horizontally resizable, but keep the height that Auto Layout determined.
+		# (Content sizes set directly on the NSWindow, so the title bar is not counted twice.)
+		nsWindow = self.w.getNSWindow()
+		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
+		nsWindow.layoutIfNeeded()
+		contentSize = nsWindow.contentView().frame().size
+		nsWindow.setContentMinSize_(NSSize(contentSize.width, contentSize.height))
+		nsWindow.setContentMaxSize_(NSSize(contentSize.width + 1000, contentSize.height))
 
 	# -----------------------------------------------------------------------
 
@@ -161,7 +221,7 @@ class FindReplaceComponents(mekkaObject):
 			return
 
 		isCorner = findName.startswith("_corner.")
-		isEmpty = not replaceName or replaceName.strip() == ""
+		isEmpty = not replaceName.strip()
 
 		# Angle filter only makes sense for _corner.*
 		self.w.useAngleFilter.enable(isCorner)
@@ -174,6 +234,10 @@ class FindReplaceComponents(mekkaObject):
 
 		# Only enable the button when Find has a name and the two fields differ
 		self.w.runButton.enable(bool(findName.strip()) and (findName.strip() != replaceName.strip()))
+
+		# prediction in the checkbox title:
+		count = self.predictedCount() if self.w.showPrediction.get() else None
+		self.w.showPrediction.setTitle(f"Prediction: will {'remove' if (isEmpty and findName.strip()) else 'replace'} {'–' if count is None else f'{count:,}'} component{'' if count == 1 else 's'}")
 
 	# -----------------------------------------------------------------------
 
@@ -203,17 +267,9 @@ class FindReplaceComponents(mekkaObject):
 	def refreshFindItems(self, sender=None):
 		thisFont = Glyphs.font
 		if thisFont and self.prefBool("selectedGlyphsOnly"):
-			# Collect only the glyphs currently selected in the font
-			seenIDs = {}
-			for layer in thisFont.selectedLayers:
-				glyph = layer.parent
-				if glyph and glyph.id not in seenIDs:
-					seenIDs[glyph.id] = glyph
-			selectedGlyphs = list(seenIDs.values())
-
-			# Count how often each component name appears across all layers
+			# Count how often each component name appears across all layers of the selected glyphs
 			counts = {}
-			for glyph in selectedGlyphs:
+			for glyph in selectedGlyphsOfFont(thisFont):
 				for layer in glyph.layers:
 					for comp in layer.components:
 						name = comp.componentName
@@ -282,30 +338,32 @@ class FindReplaceComponents(mekkaObject):
 		a2 = math.degrees(math.atan2(v2.y, v2.x))
 		return (a1 - a2) % 360.0
 
-	def _replaceHintsInLayer(self, layer, findName, replaceName, hintType, useAngleFilter, smallerThan, thresholdAngle):
-		"""Replace or remove corner/cap hints in a layer. Returns (count, messages)."""
-		count = 0
+	def replaceHintsInLayer(self, layer, settings, hintType, dryRun=False):
+		"""Replace or remove corner/cap hints in a layer. Returns (count, messages). With dryRun, only counts."""
 		msgs = []
 		glyphName = layer.parent.name if layer.parent else "?"
 		layerName = layer.name or "—"
+		findName, replaceName = settings["findName"], settings["replaceName"]
 
 		indicesToProcess = []
 		for i, hint in enumerate(layer.hints):
 			if hint.type != hintType or hint.name != findName:
 				continue
-			if useAngleFilter and hintType == CORNER:
+			if settings["useAngleFilter"] and hintType == CORNER:
 				try:
 					node = hint.originNode
 					angle = self.angleBetweenVectors(node.prevNode, node, node.nextNode)
-					if smallerThan and angle >= thresholdAngle:
+					if settings["smallerThan"] and angle >= settings["thresholdAngle"]:
 						continue
-					if not smallerThan and angle <= thresholdAngle:
+					if not settings["smallerThan"] and angle <= settings["thresholdAngle"]:
 						continue
 				except (AttributeError, TypeError):
 					pass  # skip angle check if node geometry is unavailable
 			indicesToProcess.append(i)
 
 		count = len(indicesToProcess)
+		if dryRun:
+			return count, msgs
 		if replaceName:
 			for i in indicesToProcess:
 				layer.hints[i].name = replaceName
@@ -315,27 +373,27 @@ class FindReplaceComponents(mekkaObject):
 
 		if count > 0:
 			action = "Replaced" if replaceName else "Removed"
-			kind = "corner" if hintType == CORNER else "cap"
+			kind = hintKindNames[hintType]
 			msgs.append(f"\t✅ {action} {count} {kind} component{'s' if count != 1 else ''} in {glyphName}, layer: {layerName}")
 
 		return count, msgs
 
-	def _replaceComponentsInLayer(self, layer, findName, replaceName):
-		"""Replace or remove regular GSComponents in a layer. Returns (count, messages)."""
-		count = 0
+	def replaceComponentsInLayer(self, layer, settings, dryRun=False):
+		"""Replace or remove regular GSComponents in a layer. Returns (count, messages). With dryRun, only counts."""
 		msgs = []
 		glyphName = layer.parent.name if layer.parent else "?"
 		layerName = layer.name or "—"
+		findName, replaceName = settings["findName"], settings["replaceName"]
 
 		if replaceName and layer.parent and layer.parent.name == replaceName:
-			msgs.append(f"\t⚠️ Cannot insert {replaceName} into itself. Skipping {glyphName}, layer: {layerName}")
+			if not dryRun:
+				msgs.append(f"\t⚠️ Cannot insert {replaceName} into itself. Skipping {glyphName}, layer: {layerName}")
 			return 0, msgs
 
-		indicesToProcess = [
-			i for i, comp in enumerate(layer.components)
-			if comp.componentName == findName
-		]
+		indicesToProcess = [i for i, comp in enumerate(layer.components) if comp.componentName == findName]
 		count = len(indicesToProcess)
+		if dryRun:
+			return count, msgs
 
 		if replaceName:
 			for i in indicesToProcess:
@@ -354,14 +412,12 @@ class FindReplaceComponents(mekkaObject):
 
 		return count, msgs
 
-	def processLayer(self, layer, findName, replaceName, isCorner, isCap, useAngleFilter, smallerThan, thresholdAngle):
+	def processLayer(self, layer, settings, dryRun=False):
 		"""Dispatch to hint- or component-based replacement for one layer."""
 		try:
-			if isCorner or isCap:
-				hintType = CORNER if isCorner else CAP
-				return self._replaceHintsInLayer(layer, findName, replaceName, hintType, useAngleFilter, smallerThan, thresholdAngle)
-			else:
-				return self._replaceComponentsInLayer(layer, findName, replaceName)
+			if settings["hintType"] is not None:
+				return self.replaceHintsInLayer(layer, settings, settings["hintType"], dryRun)
+			return self.replaceComponentsInLayer(layer, settings, dryRun)
 		except Exception as e:
 			import traceback
 			glyphName = layer.parent.name if (layer and layer.parent) else "?"
@@ -369,98 +425,123 @@ class FindReplaceComponents(mekkaObject):
 
 	# -----------------------------------------------------------------------
 
+	def currentSettings(self):
+		findName = (self.pref("findName") or "").strip()
+		isCorner = findName.startswith("_corner.")
+		return {
+			"findName": findName,
+			"replaceName": (self.pref("replaceName") or "").strip(),
+			"hintType": hintTypes.get(specialKind(findName)),
+			"useAngleFilter": self.prefBool("useAngleFilter") and isCorner,
+			"smallerThan": bool(self.prefInt("largerOrSmaller")),
+			"thresholdAngle": self.prefFloat("thresholdAngle"),
+			"selectedGlyphsOnly": self.prefBool("selectedGlyphsOnly"),
+			"includeBackgrounds": self.prefBool("includeBackgrounds"),
+		}
+
+	def targets(self):
+		"""Returns (font, master IDs) tuples according to the scope. Master IDs are None for all masters."""
+		scope = self.prefInt("popupScope")
+		if scope in (0, 1):
+			fonts = [Glyphs.font] if Glyphs.font else []
+		else:
+			fonts = list(Glyphs.fonts)
+		targets = []
+		for thisFont in fonts:
+			masterIDs = None if scope in (1, 3) else [thisFont.selectedFontMaster.id]
+			targets.append((thisFont, masterIDs))
+		return targets
+
+	def processFont(self, thisFont, masterIDs, settings, dryRun=False):
+		"""Processes the glyphs and layers of one font. Returns (count, messages)."""
+		if settings["selectedGlyphsOnly"]:
+			glyphs = selectedGlyphsOfFont(thisFont)
+		else:
+			glyphs = list(thisFont.glyphs)
+
+		totalCount = 0
+		allMsgs = []
+		for glyph in glyphs:
+			for thisLayer in glyph.layers:
+				# a master ID restricts the layers to the master, and its brace and bracket layers:
+				if masterIDs is not None and thisLayer.associatedMasterId not in masterIDs:
+					continue
+				layersToProcess = [thisLayer]
+				if settings["includeBackgrounds"]:
+					layersToProcess.append(thisLayer.background)
+				for layerToProcess in layersToProcess:
+					count, msgs = self.processLayer(layerToProcess, settings, dryRun)
+					totalCount += count
+					allMsgs.extend(msgs)
+		return totalCount, allMsgs
+
+	def predictedCount(self):
+		"""How many components would be replaced or removed with the current settings."""
+		settings = self.currentSettings()
+		if not settings["findName"]:
+			return None
+		return sum(self.processFont(thisFont, masterIDs, settings, dryRun=True)[0] for thisFont, masterIDs in self.targets())
+
+	# -----------------------------------------------------------------------
+
 	def run(self, sender):
-		thisFont = Glyphs.font
-		if not thisFont:
+		self.SavePreferences()
+		targets = self.targets()
+		if not targets:
 			Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			return
 
-		self.SavePreferences()
-
-		findName = self.pref("findName").strip()
-		replaceName = self.pref("replaceName").strip()
-
+		settings = self.currentSettings()
+		findName, replaceName = settings["findName"], settings["replaceName"]
 		if not findName:
 			Message(title="No Component Selected", message="Please enter or select a component name in the 'Find' field.", OKButton=None)
 			return
 
 		isEmpty = replaceName == ""
-		isCorner = findName.startswith("_corner.")
-		isCap = findName.startswith("_cap.")
-		useAngleFilter = self.prefBool("useAngleFilter") and isCorner
-		smallerThan = bool(self.prefInt("largerOrSmaller"))
-		thresholdAngle = self.prefFloat("thresholdAngle")
-		selectedGlyphsOnly = self.prefBool("selectedGlyphsOnly")
-		includeBackgrounds = self.prefBool("includeBackgrounds")
-
 		if isEmpty:
 			alert = NSAlert.alloc().init()
 			alert.setMessageText_("Remove Components?")
-			scope = "the selected glyphs" if self.prefBool("selectedGlyphsOnly") else "the entire font"
+			scope = "the selected glyphs" if settings["selectedGlyphsOnly"] else "all glyphs"
 			alert.setInformativeText_(
 				f"The Replace field is empty. This will REMOVE all '{findName}' components "
-				f"from {scope}. This action cannot be undone easily.\n\nContinue?"
+				f"from {scope} in the chosen scope. This action cannot be undone easily.\n\nContinue?"
 			)
 			alert.addButtonWithTitle_("Remove")
 			alert.addButtonWithTitle_("Cancel")
-			if alert.runModal() != 1000:  # 1000 = NSAlertFirstButtonReturn
+			if alert.runModal() != NSAlertFirstButtonReturn:
 				return
 
 		Glyphs.clearLog()
-		print(f"Find and Replace Components — {thisFont.familyName}")
-		if thisFont.filepath:
-			print(thisFont.filepath)
-		else:
-			print("⚠️ Font has not been saved yet.")
-		print()
+		print("Find and Replace Components Report\n")
+		print(f"\t{findName} → {replaceName or '(remove)'}\n")
 
 		totalCount = 0
-		allMsgs = []
-
-		# Determine glyph scope: whole font or selected glyphs only.
-		# Always process ALL layers of each glyph to keep masters in sync.
-		if selectedGlyphsOnly:
-			seenIDs = {}
-			for layer in thisFont.selectedLayers:
-				glyph = layer.parent
-				if glyph and glyph.id not in seenIDs:
-					seenIDs[glyph.id] = glyph
-			glyphs = list(seenIDs.values())
-		else:
-			glyphs = list(thisFont.glyphs)
-
-		thisFont.disableUpdateInterface()
-		try:
-			for glyph in glyphs:
-				allMsgs.append(f"Processing {glyph.name}:")
-				for lyr in glyph.layers:
-					c, msgs = self.processLayer(lyr, findName, replaceName, isCorner, isCap, useAngleFilter, smallerThan, thresholdAngle)
-					totalCount += c
-					allMsgs.extend(msgs)
-					if includeBackgrounds:
-						c, msgs = self.processLayer(lyr.background, findName, replaceName, isCorner, isCap, useAngleFilter, smallerThan, thresholdAngle)
-						totalCount += c
-						allMsgs.extend(msgs)
-
-		except Exception as e:
-			Glyphs.showMacroWindow()
-			print("\n⚠️ Script Error:\n")
-			import traceback
-			print(traceback.format_exc())
-			raise e
-		finally:
-			thisFont.enableUpdateInterface()
-
-		print("\n".join(allMsgs))
+		for thisFont, masterIDs in targets:
+			print(f"📄 {thisFont.filepath.lastPathComponent() if thisFont.filepath else f'{thisFont.familyName} (unsaved)'}")
+			thisFont.disableUpdateInterface()
+			try:
+				count, msgs = self.processFont(thisFont, masterIDs, settings)
+			except Exception:
+				Glyphs.showMacroWindow()
+				print("\n⚠️ Script Error:\n")
+				import traceback
+				print(traceback.format_exc())
+				raise
+			finally:
+				thisFont.enableUpdateInterface()
+			totalCount += count
+			print("\n".join(msgs) if msgs else "\t☑️ Nothing found.")
+			print()
 
 		action = "Removed" if isEmpty else "Replaced"
-		noun = "hint" if (isCorner or isCap) else "component"
+		noun = "hint" if settings["hintType"] is not None else "component"
 		summary = f"{action} {totalCount} {noun}{'s' if totalCount != 1 else ''}"
-		print(f"\nDone. {summary}.")
+		print(f"Done. {summary}.")
 
 		self.w.statusLine.set(f"↔ {summary}.")
+		self.updateUI()
 		Glyphs.showNotification(
-			f"{thisFont.familyName}: {noun}s {action.lower()}",
+			f"{noun}s {action.lower()}",
 			f"{summary} in total. Details in Macro Window.",
 		)
 
