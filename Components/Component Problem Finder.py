@@ -5,38 +5,62 @@ Find and report possible issues with components and corner components.
 
 import vanilla
 from timeit import default_timer as timer
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message, CORNER
 from mekkablue import mekkaObject, camelCaseSplit, reportTimeInNaturalLanguage
 
 
 def orthodoxComponentsForGlyph(thisGlyph):
+	"""Names of the components in the glyph’s recipe (Glyph Info), or None if it has no recipe."""
 	glyphInfo = thisGlyph.glyphInfo
 	if glyphInfo:
 		componentInfo = glyphInfo.components
 		if componentInfo:
-			glyphNameTuple = tuple(c.name for c in componentInfo)
-			return glyphNameTuple
+			return tuple(c.name for c in componentInfo)
 	return None
 
 
 def nameStrippedOfSuffixes(glyphName):
+	"""'a.sc' becomes 'a'; a name without period stays as it is (find() gives -1, and -1 % (len + 1) is len)."""
 	return glyphName[:glyphName.find(".") % (len(glyphName) + 1)]
 
 
 def layerAdheresToStructure(thisLayer, glyphNameTuple):
+	"""True if the layer has the components of the recipe, in the same order, ignoring suffixes."""
 	layerComponents = thisLayer.components
-	numOfLayerComponents = len(layerComponents)
-	if numOfLayerComponents != len(glyphNameTuple):
+	if len(layerComponents) != len(glyphNameTuple):
 		return False
-	for i in range(numOfLayerComponents):
-		thisComponentName = thisLayer.components[i].componentName
-		orthodoxComponentName = glyphNameTuple[i]
+	for thisComponent, orthodoxComponentName in zip(layerComponents, glyphNameTuple):
+		thisComponentName = thisComponent.componentName
 		if thisComponentName != orthodoxComponentName:
-			componentBaseName = nameStrippedOfSuffixes(thisComponentName)
-			orthodoxBaseName = nameStrippedOfSuffixes(orthodoxComponentName)
-			if componentBaseName != orthodoxBaseName:
+			if nameStrippedOfSuffixes(thisComponentName) != nameStrippedOfSuffixes(orthodoxComponentName):
 				return False
 	return True
+
+
+# (preference name, checkbox title, tooltip), in groups separated by lines in the window:
+checkGroups = (
+	(
+		("composablesWithoutComponents", "Composable glyphs without components", "Glyphs that could be built from components, according to their recipe in Glyph Info, but have none."),
+		("unusualComponents", "Unusual composites (or wrong order)", "Composites whose components differ from the recipe in Glyph Info, or are in a different order."),
+		("lockedComponents", "Locked components", "Glyphs with a locked component on any layer."),
+		("nestedComponents", "Nested components", "Glyphs with components that themselves contain components."),
+		("orphanedComponents", "Orphaned components", "Glyphs with components that reference glyphs missing from the font."),
+		("emptyComponents", "Empty components", "Glyphs with components that point to layers without shapes."),
+		("unalignedComponents", "Unaligned components", "Glyphs with components that have automatic alignment turned off."),
+	),
+	(
+		("scaledComponents", "Scaled components", "Glyphs with components that are not at their original size. Useful for tracing bugs in variable fonts."),
+		("unproportionallyScaledComponents", "Only unproportionally scaled (h≠v)", "Only components scaled differently horizontally and vertically. Useful for checking TrueType exports and variable fonts."),
+		("rotatedComponents", "Rotated components", "Glyphs with rotated components, or components flipped both horizontally and vertically. Check their alignment."),
+		("mirroredComponents", "Flipped components", "Glyphs with components flipped either horizontally or vertically."),
+		("shiftedComponents", "Shifted (but undistorted) components", "Glyphs with unscaled, unrotated components that are not positioned at x=0 y=0."),
+	),
+	(
+		("detachedCornerComponents", "Detached corner components", "Glyphs with corner components that lost their connection point."),
+		("transformedCornerComponents", "Transformed corner components", "Glyphs with corner components that are not at 100% scale."),
+	),
+)
 
 
 class ComponentProblemFinder(mekkaObject):
@@ -48,144 +72,94 @@ class ComponentProblemFinder(mekkaObject):
 		"orphanedComponents": False,
 		"emptyComponents": False,
 		"unalignedComponents": False,
-		"scaledComponents": False,
-		"unproportionallyScaledComponents": False,
+		"scaledComponents": True,
+		"unproportionallyScaledComponents": True,
 		"rotatedComponents": False,
 		"mirroredComponents": False,
 		"shiftedComponents": False,
 		"detachedCornerComponents": False,
 		"transformedCornerComponents": False,
-		"includeAllGlyphs": False,
-		"includeNonExporting": False,
-		"reuseTab": False,
+		"includeAllGlyphs": True,
+		"includeNonExporting": True,
+		"reuseTab": True,
 		"verbose": False,
 	}
-	prefs = (  # used to enable/disable UI
-		"composablesWithoutComponents",
-		"unusualComponents",
-		"lockedComponents",
-		"nestedComponents",
-		"orphanedComponents",
-		"emptyComponents",
-		"unalignedComponents",
-		"scaledComponents",
-		"unproportionallyScaledComponents",
-		"rotatedComponents",
-		"mirroredComponents",
-		"shiftedComponents",
-		"detachedCornerComponents",
-		"transformedCornerComponents",
-	)
+	# the problems to look for; used to enable/disable the run button:
+	prefs = tuple(prefName for group in checkGroups for prefName, title, tooltip in group)
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 280
-		windowHeight = 500
+		windowWidth = 300
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Component Problem Finder",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		inset, indent = 15, 30
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "New tab with glyphs containing components:", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		self.w.descriptionText = vanilla.TextBox("auto", "New tab with glyphs containing components", sizeStyle='small', selectable=True)
+		self.w.descriptionText.setToolTip("Finds glyphs with the checked problems and lists them in a tab, grouped by problem.")
 
-		self.w.composablesWithoutComponents = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Composable glyphs without components", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.composablesWithoutComponents.setToolTip("Lists glyphs that could be component-based (because they have a recipe in Glyph Info), but are lacking components.")
-		linePos += lineHeight
+		# checkboxes for the problems, with a line between the groups:
+		verticalChain = "V:|-inset-[descriptionText]"
+		rules = ["H:|-inset-[descriptionText]-inset-|"]
+		for groupIndex, group in enumerate(checkGroups):
+			if groupIndex:
+				lineName = f"line{groupIndex}"
+				setattr(self.w, lineName, vanilla.HorizontalLine("auto"))
+				rules.append(f"H:|-inset-[{lineName}]-inset-|")
+				verticalChain += f"-lineGap-[{lineName}(1)]-lineGap-"
+			else:
+				verticalChain += "-headlineGap-"
+			for checkIndex, (prefName, title, tooltip) in enumerate(group):
+				setattr(self.w, prefName, vanilla.CheckBox("auto", title, value=self.prefDict[prefName], callback=self.SavePreferences, sizeStyle='small'))
+				getattr(self.w, prefName).setToolTip(tooltip)
+				rules.append(f"H:|-{indent if prefName == 'unproportionallyScaledComponents' else 'inset'}-[{prefName}]-(>=inset)-|")
+				verticalChain += f"-checkRow-[{prefName}]" if checkIndex else f"[{prefName}]"
 
-		self.w.unusualComponents = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Unusual composites (or wrong order)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.unusualComponents.setToolTip("Lists composite glyphs that contain components different from the default recipe in Glyph Info.")
-		linePos += lineHeight
-
-		self.w.lockedComponents = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Locked components", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.lockedComponents.setToolTip("Lists glyphs that contain a locked component on any of its layers.")
-		linePos += lineHeight
-
-		self.w.nestedComponents = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Nested components", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.nestedComponents.setToolTip("Lists glyphs that contain components, which in turn contain components.")
-		linePos += lineHeight
-
-		self.w.orphanedComponents = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Orphaned components", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.orphanedComponents.setToolTip("Lists glyphs that contain components referencing glyphs that do not exist in the font (anymore).")
-		linePos += lineHeight
-
-		self.w.emptyComponents = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Empty components", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.emptyComponents.setToolTip("Lists glyphs that contain components pointing to empty layers (layers without shapes).")
-		linePos += lineHeight
-
-		self.w.unalignedComponents = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Unaligned components", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.unalignedComponents.setToolTip("Lists glyphs that contain unaligned components.")
-		linePos += lineHeight
-
-		# Line Separator:
-		self.w.line_transformedComponents = vanilla.HorizontalLine((inset, linePos + 3, -inset, 1))
-		linePos += int(lineHeight / 2)
-
-		self.w.scaledComponents = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Scaled components", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.scaledComponents.setToolTip("Lists all components that are not at their original size. Useful for bug tracing in variable fonts.")
-		linePos += lineHeight
-
-		self.w.unproportionallyScaledComponents = vanilla.CheckBox((inset * 2, linePos - 1, -inset, 20), "Only unproportionally scaled (h≠v)", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.unproportionallyScaledComponents.setToolTip("Lists glyphs that contain components that are not scaled the same horizontally and vertically. Useful for double checking in TT exports and variable fonts.")
-		linePos += lineHeight
-
-		self.w.rotatedComponents = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Rotated components", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.rotatedComponents.setToolTip("Lists all glyphs that contain rotated components, or components that are flipped BOTH horizontally and vertically. May be a good idea to check their alignment.")
-		linePos += lineHeight
-
-		self.w.mirroredComponents = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Flipped components", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.mirroredComponents.setToolTip("Lists all glyphs containing components that are mirrored EITHER horizontally or vertically.")
-		linePos += lineHeight
-
-		self.w.shiftedComponents = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Shifted (but undistorted) components", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.shiftedComponents.setToolTip("Lists all glyphs containing unaligned components that are not positioned at x=0 y=0.")
-		linePos += lineHeight
-
-		# Line Separator:
-		self.w.line_cornerComponents = vanilla.HorizontalLine((inset, linePos + 3, -inset, 1))
-		linePos += int(lineHeight / 2)
-
-		self.w.detachedCornerComponents = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Detached corner components", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.detachedCornerComponents.setToolTip("Lists all glyphs containing corner components that have lost their connection point.")
-		linePos += lineHeight
-
-		self.w.transformedCornerComponents = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Transformed corner components", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.transformedCornerComponents.setToolTip("Lists all glyphs containing corner components that are not at 100%% scale.")
-		linePos += lineHeight
-
-		# Line Separator:
-		self.w.line_scriptOptions = vanilla.HorizontalLine((inset, linePos + 3, -inset, 1))
-		linePos += int(lineHeight / 2)
-
-		# Script Options:
-		self.w.includeAllGlyphs = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Check all glyphs in font (recommended)", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeAllGlyphs.setToolTip("If enabled, will ignore your current glyph selection, and simply go through the complete font. Recommended. May still ignore non-exporting glyph, see following option.")
-		linePos += lineHeight
-
-		self.w.includeNonExporting = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Include non-exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeNonExporting.setToolTip("If disabled, will ignore glyphs that are set to not export.")
-		linePos += lineHeight
-
-		self.w.reuseTab = vanilla.CheckBox((inset + 2, linePos, 125, 20), "Reuse existing tab", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reuseTab.setToolTip("If enabled, will only open a new tab if none is open. Recommended.")
-		
-		self.w.verbose = vanilla.CheckBox((inset+140, linePos, -inset, 20), "Verbose (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.verbose.setToolTip("Will do verbose reporting in the Macro Window and the status line of this window. Slows down the script significantly, so activate only for small fonts.")
-		linePos += lineHeight
+		# script options:
+		self.w.lineOptions = vanilla.HorizontalLine("auto")
+		self.w.includeAllGlyphs = vanilla.CheckBox("auto", "Check all glyphs in font (recommended)", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeAllGlyphs.setToolTip("Ignores the glyph selection and checks the whole font. Non-exporting glyphs follow the next option.")
+		self.w.includeNonExporting = vanilla.CheckBox("auto", "Include non-exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeNonExporting.setToolTip("If off, glyphs that do not export are skipped.")
+		self.w.reuseTab = vanilla.CheckBox("auto", "Reuse existing tab", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reuseTab.setToolTip("Shows the result in the current tab, and opens a new tab only if none is open. Recommended.")
+		self.w.verbose = vanilla.CheckBox("auto", "Verbose (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.verbose.setToolTip("Reports every glyph in the Macro Window and the status line. Slow, so use it only for small fonts.")
 
 		# Progress Bar and Status text:
-		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
+		self.w.progress = vanilla.ProgressBar("auto")
 		self.w.progress.set(0)  # set progress indicator to zero
-		self.w.status = vanilla.TextBox((inset, -18 - inset, -inset - 100, 14), "🤖 Ready.", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle='small', selectable=True)
+		self.w.status.setToolTip("Progress and result of the last run.")
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Open Tab", callback=self.ComponentProblemFinderMain)
+		self.w.runButton = vanilla.Button("auto", "Open Tab", callback=self.ComponentProblemFinderMain)
+		self.w.runButton.setToolTip("Checks the glyphs for the selected problems and opens a tab with the affected glyphs.")
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; hug so the window is as tall as its content:
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		verticalChain += "-lineGap-[lineOptions(1)]-lineGap-[includeAllGlyphs]-checkRow-[includeNonExporting]-checkRow-[reuseTab]-checkRow-[verbose]-barGap-[progress(16)]-inset-[runButton]-inset-|"
+		rules += [
+			"H:|-inset-[lineOptions]-inset-|",
+			"H:|-inset-[includeAllGlyphs]-(>=inset)-|",
+			"H:|-inset-[includeNonExporting]-(>=inset)-|",
+			"H:|-inset-[reuseTab]-(>=inset)-|",
+			"H:|-inset-[verbose]-(>=inset)-|",
+			"H:|-inset-[progress]-inset-|",
+			"H:|-inset-[status]-gap-[runButton(>=100)]-inset-|",
+			verticalChain,
+			{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
+		]
+		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "headlineGap": 10, "lineGap": 8, "checkRow": 5, "barGap": 14})
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -195,14 +169,8 @@ class ComponentProblemFinder(mekkaObject):
 		self.w.makeKey()
 
 	def updateUI(self, sender=None):
-		shouldEnableRunButton = any([bool(Glyphs.defaults[self.domain(p)]) for p in self.prefs])
-		self.w.runButton.enable(shouldEnableRunButton)
-
+		self.w.runButton.enable(any(self.prefBool(prefName) for prefName in self.prefs))
 		self.w.unproportionallyScaledComponents.enable(self.w.scaledComponents.get())
-
-	def callMethodWithArg(self, methodName, arg):
-		method = getattr(self, methodName)
-		return method(arg)
 
 	def glyphHas_composablesWithoutComponents(self, thisGlyph):
 		for thisLayer in thisGlyph.layers:
@@ -255,22 +223,18 @@ class ComponentProblemFinder(mekkaObject):
 
 	def glyphHas_emptyComponents(self, thisGlyph):
 		for thisLayer in thisGlyph.layers:
-			theseComponents = thisLayer.components
-			if theseComponents:
-				for thisComponent in theseComponents:
-					if thisComponent.componentLayer and not thisComponent.componentLayer.shapes:
-						print("\t🫙 empty component %s on layer: %s" % (thisComponent.componentName, thisLayer.name))
-						return True
+			for thisComponent in thisLayer.components:
+				if thisComponent.componentLayer and not thisComponent.componentLayer.shapes:
+					print("\t🫙 empty component %s on layer: %s" % (thisComponent.componentName, thisLayer.name))
+					return True
 		return False
 
 	def glyphHas_unalignedComponents(self, thisGlyph):
 		for thisLayer in thisGlyph.layers:
-			theseComponents = thisLayer.components
-			if theseComponents:
-				for thisComponent in theseComponents:
-					if thisComponent.alignment == -1:
-						print("\t🤪 unaligned component %s on layer: %s" % (thisComponent.componentName, thisLayer.name))
-						return True
+			for thisComponent in thisLayer.components:
+				if thisComponent.alignment == -1:
+					print("\t🤪 unaligned component %s on layer: %s" % (thisComponent.componentName, thisLayer.name))
+					return True
 		return False
 
 	def glyphHas_scaledComponents(self, thisGlyph, unproportional=False):
@@ -281,8 +245,7 @@ class ComponentProblemFinder(mekkaObject):
 					scaled = (hScale * vScale > 0.0) and (abs(hScale) != 1.0 or abs(vScale) != 1.0)
 					if scaled:
 						if unproportional:
-							unproportionallyScaled = abs(hScale) != abs(vScale)
-							if unproportionallyScaled:
+							if abs(hScale) != abs(vScale):
 								print("\t🤪 unproportionally scaled component %s on layer: %s" % (thisComponent.componentName, thisLayer.name))
 								return True
 						else:
@@ -316,8 +279,7 @@ class ComponentProblemFinder(mekkaObject):
 		for thisLayer in thisGlyph.layers:
 			for thisComponent in thisLayer.components:
 				hScale, vScale = thisComponent.scale
-				degrees = thisComponent.rotation
-				if hScale == 1.0 and vScale == 1.0 and degrees == 0.0:
+				if hScale == 1.0 and vScale == 1.0 and thisComponent.rotation == 0.0:
 					x, y = thisComponent.position
 					if x != 0 or y != 0:
 						print("\t🏗 shifted component %s on layer: %s" % (thisComponent.componentName, thisLayer.name))
@@ -326,22 +288,20 @@ class ComponentProblemFinder(mekkaObject):
 
 	def glyphHas_detachedCornerComponents(self, thisGlyph):
 		for thisLayer in thisGlyph.layers:
-			for h in thisLayer.hints:
-				if h.type == CORNER:
-					if not h.originNode:
-						print("\t🚨 detached corner component %s on layer: %s" % (h.name, thisLayer.name))
-						return True
+			for thisHint in thisLayer.hints:
+				if thisHint.type == CORNER and not thisHint.originNode:
+					print("\t🚨 detached corner component %s on layer: %s" % (thisHint.name, thisLayer.name))
+					return True
 		return False
 
 	def glyphHas_transformedCornerComponents(self, thisGlyph):
 		for thisLayer in thisGlyph.layers:
 			for thisHint in thisLayer.hints:
-				if thisHint.type == CORNER:
-					if abs(thisHint.scale.x) != 1.0 or abs(thisHint.scale.y) != 1.0:
-						thisLayer.selection = None
-						thisHint.selected = True
-						print("\t🦄 transformed corner component %s on layer: %s" % (thisHint.name, thisLayer.name))
-						return True
+				if thisHint.type == CORNER and (abs(thisHint.scale.x) != 1.0 or abs(thisHint.scale.y) != 1.0):
+					thisLayer.selection = None
+					thisHint.selected = True
+					print("\t🦄 transformed corner component %s on layer: %s" % (thisHint.name, thisLayer.name))
+					return True
 		return False
 
 	def ComponentProblemFinderMain(self, sender=None):
@@ -354,84 +314,65 @@ class ComponentProblemFinder(mekkaObject):
 
 			# update settings to the latest user input:
 			self.SavePreferences()
-			verbose = self.pref("verbose")
+			verbose = self.prefBool("verbose")
 
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+				return
+
+			print("Component Problem Finder Report\n")
+			print(f"📄 {thisFont.filepath.lastPathComponent() if thisFont.filepath else f'{thisFont.familyName} (unsaved)'}\n")
+
+			if self.prefBool("includeAllGlyphs"):
+				glyphs = thisFont.glyphs
 			else:
-				print("Component Problem Finder Report for %s" % thisFont.familyName)
-				if thisFont.filepath:
-					print(thisFont.filepath)
-				else:
-					print("⚠️ The font file has not been saved yet.")
-				print()
+				glyphs = [layer.parent for layer in thisFont.selectedLayers]
 
-				if self.pref("includeAllGlyphs"):
-					glyphs = thisFont.glyphs
-				else:
-					glyphs = [layer.parent for layer in thisFont.selectedLayers]
+			enabledPrefNames = [prefName for prefName in self.prefs if self.prefBool(prefName)]
+			affectedGlyphNames = {prefName: [] for prefName in enabledPrefNames}
+			shouldIncludeNonExporting = self.prefBool("includeNonExporting")
 
-				enabledPrefNames = [p for p in self.prefs if self.pref(p)]
-				glyphDict = {}
-				for dictKey in enabledPrefNames:
-					glyphDict[dictKey] = []
-
-				shouldIncludeNonExporting = self.pref("includeNonExporting")
-
-				glyphCount = len(glyphs)
-				for i, thisGlyph in enumerate(glyphs):
-					self.w.progress.set(100 * i / glyphCount)
-					if verbose:
-						report = "🔠 %s" % thisGlyph.name
-						print(report)
-						self.w.status.set(report)
-
-					if shouldIncludeNonExporting or thisGlyph.export:
-						for prefName in enabledPrefNames:
-							if Glyphs.defaults[self.domain(prefName)]:
-								methodName = "glyphHas_%s" % prefName
-								isAffected = self.callMethodWithArg(methodName, thisGlyph)
-								if isAffected:
-									glyphDict[prefName].append(thisGlyph.name)
-				
-				report = ""
-				for prefName in enabledPrefNames:
-					affectedGlyphs = glyphDict[prefName]
-					if affectedGlyphs:
-						report += "\n%s:\n%s\n" % (
-							" ".join(camelCaseSplit(prefName)).capitalize(),
-							"/" + "/".join(affectedGlyphs),
-						)
+			glyphCount = len(glyphs)
+			for index, thisGlyph in enumerate(glyphs):
+				self.w.progress.set(100 * index / glyphCount)
 				if verbose:
-					print(report)
+					print(f"🔠 {thisGlyph.name}")
+					self.w.status.set(f"🔠 {thisGlyph.name}")
 
-				if self.pref("reuseTab") and thisFont.currentTab:
-					newTab = thisFont.currentTab
-				else:
-					newTab = thisFont.newTab()
+				if shouldIncludeNonExporting or thisGlyph.export:
+					for prefName in enabledPrefNames:
+						if getattr(self, f"glyphHas_{prefName}")(thisGlyph):
+							affectedGlyphNames[prefName].append(thisGlyph.name)
 
-				newTab.text = report.strip()
+			# one paragraph per problem, for the tab and the Macro Window:
+			tabText = ""
+			for prefName in enabledPrefNames:
+				names = affectedGlyphNames[prefName]
+				title = " ".join(camelCaseSplit(prefName)).capitalize()
+				if names:
+					tabText += f"\n{title}:\n/{'/'.join(names)}\n"
+				print(f"{'⚠️' if names else '✅'} {title}: {len(names)}")
 
-				# take time:
-				end = timer()
-				timereport = reportTimeInNaturalLanguage(end - start)
-				print("Time elapsed: %s" % timereport)
+			if self.prefBool("reuseTab") and thisFont.currentTab:
+				newTab = thisFont.currentTab
+			else:
+				newTab = thisFont.newTab()
+			newTab.text = tabText.strip()
 
-				self.w.status.set("✅ Done. %s." % timereport)
-				self.w.progress.set(100)
+			# take time:
+			timereport = reportTimeInNaturalLanguage(timer() - start)
+			print(f"\nTime elapsed: {timereport}")
+			self.w.status.set(f"✅ Done. {timereport}.")
+			self.w.progress.set(100)
 
 			# Final report:
-			Glyphs.showNotification(
-				"%s: Done" % (thisFont.familyName),
-				"Component Problem Finder is finished. Details in Macro Window",
-			)
-			print("\nDone.")
+			Glyphs.showNotification(thisFont.familyName, "Component Problem Finder is finished. Details in Macro Window.")
 
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print("Component Problem Finder Error: %s" % e)
+			print(f"Component Problem Finder Error: {e}")
 			import traceback
 			print(traceback.format_exc())
 
