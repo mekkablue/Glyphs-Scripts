@@ -31,6 +31,13 @@ from mekkablue import mekkaObject, UpdateButton
 
 SPECIAL_PREFIXES = ("_cap.", "_corner.", "_segment.", "_brush.", "_head.")
 
+scopeChoices = (
+	"Current master",
+	"⚠️ All masters of frontmost font",
+	"⚠️ Current masters of all open fonts",
+	"⚠️ All masters of all open fonts",
+)
+
 
 class SteppingEditText(vanilla.EditText):
 	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
