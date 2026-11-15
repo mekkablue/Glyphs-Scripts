@@ -27,6 +27,7 @@ asciiOperators = "~^"
 figureNames = ("zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine")
 zeroCandidates = ("zero.tf", "zero.tosf", "zero")  # for ‘same as zero’, in order of preference
 fallbackStroke = 80  # if the master has no horizontal stem
+fallbackPlusWidth = 550  # for ‘same as zero’, if the font has no zero
 minusTabScale = 0.735  # zoom of the tab for editing the minus
 
 # Proportions of the shapes, relative to the stroke or to the length of the bars:
@@ -600,7 +601,7 @@ class BuildMathOperators(mekkaObject):
 		self.w.widthLabel = vanilla.TextBox("auto", "Plus width:", sizeStyle="small")
 		self.w.widthLabel.setToolTip(tooltipText)
 		self.w.widthMode = vanilla.PopUpButton("auto", ("Number", "Same as zero", "Same as glyph…"), callback=self.SavePreferences, sizeStyle="small")
-		self.w.widthMode.setToolTip("Number: width in units. Same as zero: width of zero.tf, or else zero.tosf, or else zero, in each master. Same as glyph: width of the glyph in the field.")
+		self.w.widthMode.setToolTip("Number: width in units. Same as zero: width of zero.tf, or else zero.tosf, or else zero, in each master (%i if the font has no zero). Same as glyph: width of the glyph in the field." % fallbackPlusWidth)
 		self.w.plusWidth = SteppingEditText("auto", "600", formatter=integerFormatter(1), callback=self.SavePreferences, sizeStyle="small")
 		self.w.plusWidth.setToolTip("Width of the plus in units. Use the arrow keys to step.")
 		self.w.plusWidthGlyph = vanilla.EditText("auto", "zero.tf", callback=self.SavePreferences, sizeStyle="small")
@@ -797,6 +798,7 @@ class BuildMathOperators(mekkaObject):
 			self.w.figureStyle.set(self.figureSuffixes.index(storedSuffix))
 		self.updateUI()
 
+		self.draw()  # show the current values right away; the previous outlines go to the background if that option is on
 		self.w.open()
 		self.w.makeKey()
 
@@ -962,6 +964,8 @@ class BuildMathOperators(mekkaObject):
 			glyph = font.glyphs[name] if name else None
 			if glyph is not None:
 				return int(round(glyph.layers[master.id].width)), None
+		if widthMode == 1:
+			return fallbackPlusWidth, None  # no zero at all
 		return None, "no %s to take the width from" % " or ".join(name for name in names if name)
 
 	def centerOf(self, font, master, settings):
