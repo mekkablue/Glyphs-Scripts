@@ -1,6 +1,6 @@
 # MenuTitle: Build Math Operators
 __doc__ = """
-Draws the math operators +−×÷=≠±≈¬ (optionally also <>≤≥ and ~^) from a few measurements: the stroke, the width of the plus, the sidebearings, and the height they are centered on. Or builds them from the stroke and length of your own minus. A live preview redraws the glyphs as you change the values.
+Draws +−×÷=≠±≈¬ (optionally also <>≤≥ and ~^) from a few measurements, or from the thickness of your minus. With live preview.
 """
 
 import math
