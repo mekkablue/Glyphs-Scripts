@@ -593,6 +593,18 @@ Glyphs.showNotification("My Script", "Brief summary. Details in Macro Window.")
 - Use emojis (`⚠️ ✅ ❌ ☑️ 💾 ↔️ 🔠`) and indentation for scannability.
 - **Do not** open the Macro Window automatically unless reporting is the script's entire purpose.
 - Notify the user via `Glyphs.showNotification()` for completion messages.
+- **Status line conventions.** The status line in a script window starts with an emoji that tells the state:
+  - `🤖 Ready.` — the script is waiting for the user.
+  - `⚠️` prefixes a warning.
+  - `❌` prefixes an error.
+  - `✅` plus a statistic means the script is finished, e.g. `✅ Replaced 3 components.`
+  - `🔮` prefixes a prediction of what the script will do, e.g. `🔮 Will change 100 glyphs.`
+  - `🛠️` prefixes an action report while the script is busy, e.g. `🛠️ Processing 123 glyphs…`
+  - `🔠` plus a glyph name reports the glyph the script is working on, e.g. `🔠 adieresis`. Set it for every glyph
+    (and redraw the status line, see `setStatus()` in KernCrasher), so that after a crash the status line shows the
+    last glyph the script worked on.
+
+  Do not use these seven emojis for anything else in a status line.
 - **Name unsaved fonts by their family name.** A font without a file path has no file name to report. Print
   `f"{font.familyName} (unsaved)"` instead, never a placeholder like `<UNSAVED DOCUMENT>`:
 

@@ -147,7 +147,7 @@ class KernCrasher(mekkaObject):
 		self.w.bar = vanilla.ProgressBar("auto")
 
 		# Status line, with the prediction:
-		self.w.statusText = vanilla.TextBox("auto", "🔢 Will analyze – pairs.", sizeStyle='small')
+		self.w.statusText = vanilla.TextBox("auto", "🔮 Will analyze – pairs.", sizeStyle='small')
 		self.w.statusText.setToolTip("Before you run: how many glyph pairs will be measured with the current settings, across all masters and fonts of the chosen scope. While running: how many pairs are being analyzed. Afterwards: how many collisions were found.")
 		self.w.statusText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
@@ -254,7 +254,7 @@ class KernCrasher(mekkaObject):
 
 	def updateUI(self, sender=None):
 		pairCount = self.predictedPairCount()
-		self.w.statusText.set(f"🔢 Will analyze {pairCount:,} pair{'' if pairCount == 1 else 's'}.")
+		self.w.statusText.set(f"🔮 Will analyze {pairCount:,} pair{'' if pairCount == 1 else 's'}.")
 
 	def setStatus(self, text):
 		"""Sets the status line and redraws it right away, so it shows while the script is busy."""

@@ -127,7 +127,7 @@ class FindReplaceComponents(mekkaObject):
 		self.w.degreeLabel = vanilla.TextBox("auto", "°", sizeStyle="small")
 		self.w.degreeLabel.setToolTip("Degrees.")
 
-		self.w.showPrediction = vanilla.CheckBox("auto", "Prediction: will replace – components", sizeStyle="small", value=True, callback=self.SavePreferences)
+		self.w.showPrediction = vanilla.CheckBox("auto", "🔮 Will replace – components", sizeStyle="small", value=True, callback=self.SavePreferences)
 		self.w.showPrediction.setToolTip("Counts how many components will be changed with the current settings, and shows it here. Turn off for large fonts, if it slows you down.")
 
 		# Status line and run button at bottom
@@ -224,7 +224,7 @@ class FindReplaceComponents(mekkaObject):
 
 		# prediction in the checkbox title:
 		count = self.predictedCount() if self.w.showPrediction.get() else None
-		self.w.showPrediction.setTitle(f"Prediction: will {'remove' if (isEmpty and findName.strip()) else 'replace'} {'–' if count is None else f'{count:,}'} component{'' if count == 1 else 's'}")
+		self.w.showPrediction.setTitle(f"🔮 Will {'remove' if (isEmpty and findName.strip()) else 'replace'} {'–' if count is None else f'{count:,}'} component{'' if count == 1 else 's'}")
 
 	# -----------------------------------------------------------------------
 
