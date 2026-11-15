@@ -19,7 +19,7 @@ from AppKit import (
 	NSLineBreakByTruncatingTail,
 	NSTextAlignmentRight,
 )
-from Foundation import NSAffineTransform, NSNumberFormatter, NSPoint
+from Foundation import NSNumberFormatter, NSPoint
 
 mathOperators = "+−×÷=≠±≈¬"
 lessGreater = "<>≤≥"
@@ -30,7 +30,6 @@ fallbackStroke = 80  # if the master has no horizontal stem
 minusTabScale = 0.735  # zoom of the tab for editing the minus
 
 # Proportions of the shapes, relative to the stroke or to the length of the bars:
-gapRatio = 1.2  # space between the bars of = ≠ ≈, in strokes. For ÷ ± ≤ ≥ the Distance field decides
 multiplyScale = 0.9  # bounding box of × relative to the length of the bars
 chevronAngle = 30.0  # angle of the arms of < and > against the horizontal axis, in degrees
 caretAngle = 45.0  # angle of the arms of ^ against the vertical axis, in degrees
@@ -225,18 +224,18 @@ def waveOutline(length, stroke):
 class Proportions(object):
 	"""The dimensions all shapes of one master are built from. Whole units; italic angle 0 draws upright."""
 
-	def __init__(self, length, stroke, overshoot, italicAngle, adaptPlusMinus, distance, miter, correction):
+	def __init__(self, length, stroke, overshoot, italicAngle, adaptPlusMinus, distance, secondaryDistance, miter, correction):
 		self.length = int(round(length))
 		self.stroke = int(round(stroke))
 		self.overshoot = overshoot
 		self.tangent = math.tan(math.radians(italicAngle))
-		# a slanted vertical stem needs to be wider to look as strong as the horizontal stroke:
-		self.verticalStroke = int(round(stroke / math.cos(math.radians(italicAngle))))
-		self.gap = int(round(gapRatio * stroke))
-		self.distance = int(round(distance))
+		self.distance = int(round(distance))  # between the bars of = ≠ ≈
+		self.secondaryDistance = int(round(secondaryDistance))  # in ÷ ± ≤ ≥
 		self.miter = miter / 100.0
 		self.correction = correction / 100.0
 		self.adaptPlusMinus = adaptPlusMinus
+		# a slanted vertical stem needs to be wider to look as strong as the horizontal stroke:
+		self.verticalStroke = int(round(self.corrected((0, 1))))
 
 	def slant(self, contour):
 		if not self.tangent:
@@ -272,7 +271,8 @@ def multiplyShapes(p):
 def divideShapes(p):
 	shapes = minusShapes(p)
 	diameter = int(round(p.stroke + 2 * p.overshoot))
-	offset = p.stroke / 2.0 + p.distance + diameter / 2.0
+	# the overshoot of the dots eats into the distance, so the distance is the one of a dot as wide as the stroke:
+	offset = p.stroke / 2.0 + max(p.secondaryDistance - p.overshoot, 1) + diameter / 2.0
 	for sign in (1, -1):
 		# the dots follow the slant, but stay round:
 		shapes.append(ellipseOutline(span(sign * offset * p.tangent, diameter), span(sign * offset, diameter)))
@@ -280,7 +280,7 @@ def divideShapes(p):
 
 
 def equalShapes(p):
-	height = 2 * p.stroke + p.gap
+	height = 2 * p.stroke + p.distance
 	top = int(round(height / 2.0))
 	xSpan = span(0, p.length)
 	return [
@@ -291,7 +291,7 @@ def equalShapes(p):
 
 def notEqualShapes(p):
 	shapes = equalShapes(p)
-	halfHeight = p.stroke + p.gap / 2.0 + slashOverhang * p.stroke
+	halfHeight = p.stroke + p.distance / 2.0 + slashOverhang * p.stroke
 	slashStroke = p.corrected((math.cos(math.radians(slashAngle)), math.sin(math.radians(slashAngle))))
 	halfWidth = slashStroke / math.sin(math.radians(slashAngle)) / 2.0  # horizontal half width for the stroke thickness
 	run = halfHeight / math.tan(math.radians(slashAngle))
@@ -304,10 +304,10 @@ def notEqualShapes(p):
 
 def plusMinusShapes(p):
 	if p.adaptPlusMinus:
-		stemLength = max(p.length - p.distance - p.stroke, 2 * p.stroke)  # as tall as the plus
+		stemLength = max(p.length - p.secondaryDistance - p.stroke, 2 * p.stroke)  # as tall as the plus
 	else:
 		stemLength = p.length
-	height = stemLength + p.distance + p.stroke
+	height = stemLength + p.secondaryDistance + p.stroke
 	top = int(round(height / 2.0))
 	bottom = top - height
 	plus = crossOutline(p.length, stemLength, p.stroke, p.verticalStroke, centerY=top - stemLength / 2.0)
@@ -327,7 +327,7 @@ def logicalNotShapes(p):
 
 def approxEqualShapes(p):
 	wave, thickness = waveOutline(p.length, p.stroke)
-	offset = (thickness + p.gap) / 2.0
+	offset = (thickness + p.distance) / 2.0
 	return [p.slant(translate(wave, 0, offset)), p.slant(translate(wave, 0, -offset))]
 
 
@@ -363,7 +363,7 @@ def lessShapes(p):
 
 def chevronWithBar(p, mirrored):
 	"""< or > with a bar underneath. Same total height as the plain chevron, so the chevron gets flatter."""
-	barBlock = p.distance + p.stroke
+	barBlock = p.secondaryDistance + p.stroke
 
 	def heightOf(contour):
 		minX, minY, maxX, maxY = bounds([contour])
@@ -437,7 +437,7 @@ def placedShapes(character, plan):
 	for lengthChange in (0, -1, 1):
 		p = Proportions(
 			plan["length"] + lengthChange, plan["stroke"], plan["overshoot"], plan["italicAngle"], plan["adaptPlusMinus"],
-			plan["distance"], plan["miter"], plan["correction"],
+			plan["distance"], plan["secondaryDistance"], plan["miter"], plan["correction"],
 		)
 		contours = [counterclockwise(contour) for contour in shapeBuilders[character](p)]
 		if character == "^":
@@ -527,6 +527,7 @@ class BuildMathOperators(mekkaObject):
 		"sidebearing": 70,
 		"overshoot": 10,
 		"distance": 100,
+		"distance2": 100,
 		"miter": 80,
 		"wiper": 100,
 		"italic": True,
@@ -559,7 +560,7 @@ class BuildMathOperators(mekkaObject):
 		)
 
 		self.w.drawMode = vanilla.VerticalRadioGroup("auto", ("Draw from scratch", "Take from minus"), callback=self.SavePreferences, sizeStyle="small")
-		self.w.drawMode.setToolTip("From scratch: stroke and sidebearings come from the fields below. From minus: stroke and length are measured on your minus, and all other operators are built from them.")
+		self.w.drawMode.setToolTip("From scratch: the stroke comes from the field below. From minus: the stroke is the thickness of your minus. The minus itself is redrawn like all other operators, so only its thickness counts.")
 
 		tooltipText = "Width of the plus. All other operators get the same width, and RSB =|."
 		self.w.widthLabel = vanilla.TextBox("auto", "Plus width:", sizeStyle="small")
@@ -581,14 +582,14 @@ class BuildMathOperators(mekkaObject):
 		self.w.centerGlyphs = vanilla.EditText("auto", "n, zero, eight", callback=self.SavePreferences, sizeStyle="small")
 		self.w.centerGlyphs.setToolTip("Comma-separated glyph names. The average of the vertical centers of their bounding boxes is the center height.")
 
-		tooltipText = "Distance between the shape and the edge of the glyph, on each side, in units. Not used if you take the shapes from the minus."
+		tooltipText = "Distance between the shape and the edge of the glyph, on each side, in units."
 		self.w.sidebearingLabel = vanilla.TextBox("auto", "Sidebearings:", sizeStyle="small")
 		self.w.sidebearingLabel.setToolTip(tooltipText)
 		self.w.sidebearing = SteppingEditText("auto", "70", formatter=integerFormatter(0), callback=self.SavePreferences, sizeStyle="small")
 		self.w.sidebearing.setToolTip(tooltipText)
 		self.w.sidebearingText = vanilla.TextBox("auto", "units, left and right", sizeStyle="small")
 
-		tooltipText = "Stroke thickness in units. Preset with the first horizontal stem of the current master. Not used if you take the shapes from the minus."
+		tooltipText = "Stroke thickness in units. Preset with the first horizontal stem of the current master. Not used if you take the thickness from the minus."
 		self.w.strokeLabel = vanilla.TextBox("auto", "Stroke:", sizeStyle="small")
 		self.w.strokeLabel.setToolTip(tooltipText)
 		self.w.stroke = SteppingEditText("auto", "80", formatter=integerFormatter(1), callback=self.SavePreferences, sizeStyle="small")
@@ -604,12 +605,19 @@ class BuildMathOperators(mekkaObject):
 		self.w.overshoot.setToolTip(tooltipText)
 		self.w.overshootText = vanilla.TextBox("auto", "units, dots in ÷, apex of <>≤≥", sizeStyle="small")
 
-		tooltipText = "Space between the dots and the minus in ÷, between the plus and the minus in ±, and between the chevron and the bar in ≤ ≥. In units, from edge to edge."
+		tooltipText = "Space between the bars of = ≠ ≈, from edge to edge, in units."
 		self.w.distanceLabel = vanilla.TextBox("auto", "Distance:", sizeStyle="small")
 		self.w.distanceLabel.setToolTip(tooltipText)
 		self.w.distance = SteppingEditText("auto", "100", formatter=integerFormatter(1), callback=self.SavePreferences, sizeStyle="small")
 		self.w.distance.setToolTip(tooltipText)
-		self.w.distanceText = vanilla.TextBox("auto", "units, in ÷ ± ≤ ≥", sizeStyle="small")
+		self.w.distanceText = vanilla.TextBox("auto", "units, between the bars of = ≠ ≈", sizeStyle="small")
+
+		tooltipText = "Space between the plus and the minus in ±, between the chevron and the bar in ≤ ≥, and between the dots and the minus in ÷. In units, from edge to edge. In ÷ the overshoot of the dots is subtracted: the distance is the one of a dot that is as wide as the stroke."
+		self.w.distance2Label = vanilla.TextBox("auto", "Distance 2:", sizeStyle="small")
+		self.w.distance2Label.setToolTip(tooltipText)
+		self.w.distance2 = SteppingEditText("auto", "100", formatter=integerFormatter(1), callback=self.SavePreferences, sizeStyle="small")
+		self.w.distance2.setToolTip(tooltipText)
+		self.w.distance2Text = vanilla.TextBox("auto", "units, in ÷ ± ≤ ≥", sizeStyle="small")
 
 		tooltipText = "Cuts off the pointed apex of < > ≤ ≥ with a vertical line (parallel to the italic angle in slanted masters), so that the blunt end is this percentage of the stroke tall. 0 keeps the sharp point."
 		self.w.miterLabel = vanilla.TextBox("auto", "Miter:", sizeStyle="small")
@@ -618,7 +626,7 @@ class BuildMathOperators(mekkaObject):
 		self.w.miter.setToolTip(tooltipText)
 		self.w.miterText = vanilla.TextBox("auto", "% of the stroke, in <>≤≥", sizeStyle="small")
 
-		tooltipText = "Slanting thins strokes that are neither horizontal nor vertical, like the arms of × (windshield-wiper effect). This corrects the thickness of diagonal strokes in ×, ≠, < > ≤ ≥ and ^. 100 is full correction, 0 is the pure geometric slant. Vertical strokes are always corrected when italic angle is respected."
+		tooltipText = "Slanting thins strokes that are neither horizontal nor vertical, like the arms of × (windshield-wiper effect). This corrects the thickness of vertical and diagonal strokes in + × ≠ ± ¬ < > ≤ ≥ and ^. 100 is full correction, 0 is the pure geometric slant. Without ‘Respect italic angle’ all operators are upright."
 		self.w.wiperLabel = vanilla.TextBox("auto", "Wiper correction:", sizeStyle="small")
 		self.w.wiperLabel.setToolTip(tooltipText)
 		self.w.wiper = SteppingEditText("auto", "100", formatter=integerFormatter(0, 100), callback=self.SavePreferences, sizeStyle="small")
@@ -648,7 +656,7 @@ class BuildMathOperators(mekkaObject):
 		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
 
 		self.w.editMinusButton = vanilla.Button("auto", "Edit minus", callback=self.editMinus, sizeStyle="small")
-		self.w.editMinusButton.setToolTip("Switches to ‘Take from minus’ and shows the minus in a tab for editing, in all fonts of the scope (an existing minus tab is reused). After editing, click Draw to rebuild the other operators.")
+		self.w.editMinusButton.setToolTip("Switches to ‘Take from minus’ and shows the minus in a tab for editing, in all fonts of the scope (an existing minus tab is reused). Change the thickness of the minus, then click Draw to redraw all operators with it.")
 		self.w.tabButton = vanilla.Button("auto", "Open Tab", callback=self.openTab)
 		self.w.tabButton.setToolTip("Opens a new Edit tab with the operators.")
 		self.w.drawButton = vanilla.Button("auto", "Draw", callback=self.drawButtonCallback)
@@ -656,7 +664,7 @@ class BuildMathOperators(mekkaObject):
 		self.w.setDefaultButton(self.w.drawButton)
 
 		# secondary info text takes a semantic color:
-		for hint in (self.w.sidebearingText, self.w.strokeText, self.w.overshootText, self.w.distanceText, self.w.miterText, self.w.wiperText):
+		for hint in (self.w.sidebearingText, self.w.strokeText, self.w.overshootText, self.w.distanceText, self.w.distance2Text, self.w.miterText, self.w.wiperText):
 			hint.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
 		# the status line shortens instead of widening the window:
 		self.w.status.getNSTextField().setLineBreakMode_(NSLineBreakByTruncatingTail)
@@ -665,7 +673,7 @@ class BuildMathOperators(mekkaObject):
 		self.w.descriptionText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# the labels end at one x-position:
-		labelNames = ("widthLabel", "centerLabel", "sidebearingLabel", "strokeLabel", "overshootLabel", "distanceLabel", "miterLabel", "wiperLabel", "scopeLabel")
+		labelNames = ("widthLabel", "centerLabel", "sidebearingLabel", "strokeLabel", "overshootLabel", "distanceLabel", "distance2Label", "miterLabel", "wiperLabel", "scopeLabel")
 		widestLabel = "wiperLabel"
 		for labelName in labelNames:
 			nsLabel = getattr(self.w, labelName).getNSTextField()
@@ -694,6 +702,7 @@ class BuildMathOperators(mekkaObject):
 			"H:|-inset-[strokeLabel]-gap-[stroke(60)]-gap-[resetStroke]-gap-[strokeText]-(>=inset)-|",
 			"H:|-inset-[overshootLabel]-gap-[overshoot(60)]-gap-[overshootText]-(>=inset)-|",
 			"H:|-inset-[distanceLabel]-gap-[distance(60)]-gap-[distanceText]-(>=inset)-|",
+			"H:|-inset-[distance2Label]-gap-[distance2(60)]-gap-[distance2Text]-(>=inset)-|",
 			"H:|-inset-[miterLabel]-gap-[miter(60)]-gap-[miterText]-(>=inset)-|",
 			"H:|-inset-[wiperLabel]-gap-[wiper(60)]-gap-[wiperText]-(>=inset)-|",
 			"H:|-inset-[italic]-gap-[includeLessGreater]-(>=inset)-|",
@@ -702,7 +711,7 @@ class BuildMathOperators(mekkaObject):
 			"H:|-inset-[status]-inset-|",
 			"H:|-inset-[tabButton]-(>=inset)-[drawButton(>=70)]-inset-|",
 			(
-				"V:|-inset-[descriptionText(42)]-row-[drawMode(radioHeight)]-section-[widthMode]-row-[centerMode]-section-[sidebearing]-row-[stroke]-row-[overshoot]-row-[distance]-row-[miter]-row-[wiper]"
+				"V:|-inset-[descriptionText(42)]-row-[drawMode(radioHeight)]-section-[widthMode]-row-[centerMode]-section-[sidebearing]-row-[stroke]-row-[overshoot]-row-[distance]-row-[distance2]-row-[miter]-row-[wiper]"
 				"-section-[italic]-checkRow-[adaptPlusMinus]-section-[scope]-section-[overwrite]-checkRow-[backup]-section-[status]-inset-[drawButton]-inset-|"
 			),
 			"V:[tabButton]-inset-|",
@@ -729,6 +738,7 @@ class BuildMathOperators(mekkaObject):
 			("stroke", ("strokeLabel", "resetStroke", "strokeText")),
 			("overshoot", ("overshootLabel", "overshootText")),
 			("distance", ("distanceLabel", "distanceText")),
+			("distance2", ("distance2Label", "distance2Text")),
 			("miter", ("miterLabel", "miterText")),
 			("wiper", ("wiperLabel", "wiperText")),
 			("scope", ("scopeLabel", )),
@@ -754,7 +764,7 @@ class BuildMathOperators(mekkaObject):
 
 	def updateUI(self, sender=None):
 		fromScratch = self.w.drawMode.get() == 0
-		for field in (self.w.sidebearing, self.w.stroke, self.w.resetStroke):
+		for field in (self.w.stroke, self.w.resetStroke):
 			field.enable(fromScratch)
 		widthMode = self.w.widthMode.get()
 		self.w.plusWidth.enable(widthMode == 0)
@@ -858,13 +868,14 @@ class BuildMathOperators(mekkaObject):
 				"sidebearing": int(round(float(self.pref("sidebearing")))),
 				"overshoot": int(round(float(self.pref("overshoot")))),
 				"distance": int(round(float(self.pref("distance")))),
+				"secondaryDistance": int(round(float(self.pref("distance2")))),
 				"miter": float(self.pref("miter")),
 				"wiper": float(self.pref("wiper")),
 				"plusWidth": int(round(float(self.pref("plusWidth")))),
 			}
 		except (TypeError, ValueError):
 			return None
-		if settings["stroke"] < 1 or settings["plusWidth"] < 1 or settings["sidebearing"] < 0 or settings["overshoot"] < 0 or settings["distance"] < 1 or settings["miter"] < 0 or not 0 <= settings["wiper"] <= 100:
+		if settings["stroke"] < 1 or settings["plusWidth"] < 1 or settings["sidebearing"] < 0 or settings["overshoot"] < 0 or settings["distance"] < 1 or settings["secondaryDistance"] < 1 or settings["miter"] < 0 or not 0 <= settings["wiper"] <= 100:
 			return None
 		settings["takeFromMinus"] = self.prefInt("drawMode") == 1 and not forceFromScratch
 		settings["widthMode"] = self.prefInt("widthMode")
@@ -954,11 +965,10 @@ class BuildMathOperators(mekkaObject):
 			minusLayer = minusGlyph.layers[master.id] if minusGlyph is not None else None
 			if minusLayer is None or len(minusLayer.shapes) == 0:
 				return None, "the minus has no outlines. Draw it first, or draw from scratch"
-			stroke = int(round(minusLayer.bounds.size.height))
-			length = int(round(minusLayer.bounds.size.width - stroke * overhang))
+			stroke = int(round(minusLayer.bounds.size.height))  # only the thickness counts, the minus is redrawn
 		else:
 			stroke = settings["stroke"]
-			length = int(round(width - 2 * settings["sidebearing"] - stroke * overhang))
+		length = int(round(width - 2 * settings["sidebearing"] - stroke * overhang))
 		if length < 2 * stroke:
 			return None, "width %i leaves bars of only %i units for a stroke of %i" % (width, length, stroke)
 
@@ -970,6 +980,7 @@ class BuildMathOperators(mekkaObject):
 			"length": length,
 			"overshoot": settings["overshoot"],
 			"distance": settings["distance"],
+			"secondaryDistance": settings["secondaryDistance"],
 			"miter": settings["miter"],
 			"correction": settings["wiper"],
 			"italicAngle": italicAngle,
@@ -989,16 +1000,6 @@ class BuildMathOperators(mekkaObject):
 		for shape in layer.shapes:
 			layer.background.shapes.append(shape.copy())
 		layer.background.decomposeComponents()
-
-	def centerExistingLayer(self, layer, plan):
-		"""Moves the outlines of a layer (the minus that we take from) onto the center height and into the middle of the width."""
-		layerBounds = layer.bounds
-		shiftX = (plan["width"] - (2 * layerBounds.origin.x + layerBounds.size.width)) / 2.0
-		shiftY = round(plan["centerY"] - (layerBounds.origin.y + layerBounds.size.height / 2.0))
-		if shiftX or shiftY:
-			transform = NSAffineTransform.transform()
-			transform.translateXBy_yBy_(shiftX, shiftY)
-			layer.applyTransform(transform.transformStruct())
 
 	def drawFont(self, font, masterIDs, settings, report):
 		"""Draws the operators in the masters of the font. All masters or none, so they stay compatible. Returns (layer count, problems)."""
@@ -1045,17 +1046,14 @@ class BuildMathOperators(mekkaObject):
 						glyph.rightMetricsKey = "=|"
 						glyph.widthMetricsKey = None
 					self.drawnLayers.add(layer.layerId)
-					if settings["takeFromMinus"] and character == "−":
-						self.centerExistingLayer(layer, plan)
-					else:
-						if settings["backup"]:
-							self.backUp(glyph, layer)
-						layer.shapes = None
-						for contour in placedShapes(character, plan):
-							layer.shapes.append(pathFromContour(contour))
-						if character == "≠":
-							layer.removeOverlap()  # the slash crosses both bars
-							layer.roundCoordinates()
+					if settings["backup"]:
+						self.backUp(glyph, layer)
+					layer.shapes = None
+					for contour in placedShapes(character, plan):
+						layer.shapes.append(pathFromContour(contour))
+					if character == "≠":
+						layer.removeOverlap()  # the slash crosses both bars
+						layer.roundCoordinates()
 					layer.width = plan["width"]
 					layer.updateMetrics()
 					layer.syncMetrics()
