@@ -695,22 +695,26 @@ class BuildMathOperators(mekkaObject):
 			"H:|-inset-[distanceLabel]-gap-[distance(60)]-gap-[distanceText]-(>=inset)-|",
 			"H:|-inset-[miterLabel]-gap-[miter(60)]-gap-[miterText]-(>=inset)-|",
 			"H:|-inset-[wiperLabel]-gap-[wiper(60)]-gap-[wiperText]-(>=inset)-|",
-			"H:|-inset-[italic]-(>=inset)-|",
-			"H:|-inset-[adaptPlusMinus]-(>=inset)-|",
-			"H:|-inset-[includeLessGreater]-(>=inset)-|",
-			"H:|-inset-[includeAscii]-(>=inset)-|",
-			"H:|-inset-[overwrite]-(>=inset)-|",
-			"H:|-indent-[backup]-(>=inset)-|",
+			"H:|-inset-[italic]-gap-[includeLessGreater]-(>=inset)-|",
+			"H:|-inset-[adaptPlusMinus]-gap-[includeAscii]-(>=inset)-|",
 			"H:|-inset-[scopeLabel]-gap-[scope]-inset-|",
 			"H:|-inset-[status]-inset-|",
 			"H:|-inset-[editMinusButton]-gap-[tabButton]-(>=inset)-[drawButton(>=70)]-inset-|",
 			(
 				"V:|-inset-[descriptionText(42)]-row-[drawMode(radioHeight)]-section-[widthMode]-row-[centerMode]-section-[sidebearing]-row-[stroke]-row-[overshoot]-row-[distance]-row-[miter]-row-[wiper]"
-				"-section-[italic]-checkRow-[adaptPlusMinus]-checkRow-[includeLessGreater]-checkRow-[includeAscii]-checkRow-[overwrite]-checkRow-[backup]-section-[scope]-section-[status]-inset-[drawButton]-inset-|"
+				"-section-[italic]-checkRow-[adaptPlusMinus]-section-[scope]-section-[overwrite]-checkRow-[backup]-section-[status]-inset-[drawButton]-inset-|"
 			),
 			"V:[editMinusButton]-inset-|",
 			"V:[tabButton]-inset-|",
 			aligned("widthMode", "centerMode", "width"),
+			# two columns of options; the second column follows the widest checkbox of the first
+			aligned("adaptPlusMinus", "italic", "width"),
+			aligned("includeLessGreater", "italic", "centerY"),
+			aligned("includeAscii", "adaptPlusMinus", "centerY"),
+			aligned("includeAscii", "includeLessGreater", "leading"),
+			# the overwrite options sit under the Scope popup
+			aligned("overwrite", "scope", "leading"),
+			aligned("backup", "scope", "leading"),
 			aligned("plusWidth", "figureStyle", "width"),
 			aligned("plusWidthGlyph", "centerGlyphs", "width"),
 		]
@@ -730,7 +734,7 @@ class BuildMathOperators(mekkaObject):
 		for fieldName, otherNames in rowFields:
 			for otherName in otherNames:
 				rules.append(aligned(otherName, fieldName, "centerY"))
-		self.w.addAutoPosSizeRules(rules, metrics={"inset": 15, "gap": 8, "row": 8, "section": 12, "checkRow": 5, "indent": 33, "radioHeight": self.w.drawMode.getFittingHeight()})
+		self.w.addAutoPosSizeRules(rules, metrics={"inset": 15, "gap": 8, "row": 8, "section": 12, "checkRow": 5, "radioHeight": self.w.drawMode.getFittingHeight()})
 
 		# the stroke is a property of the font, not of this script, so it is preset and not remembered:
 		self.w.stroke.set(str(self.presetStroke(font)))
