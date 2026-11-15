@@ -9,6 +9,8 @@ import vanilla
 from mekkablue import mekkaObject, newGlyphWithName, UpdateButton
 from GlyphsApp import Glyphs, GSPath, GSNode, GSLINE, GSCURVE, GSOFFCURVE, GSMetricsTypeCapHeight, GSMetricsTypexHeight, Message
 from AppKit import (
+	NSAlert,
+	NSAlertFirstButtonReturn,
 	NSColor,
 	NSLayoutConstraintOrientationHorizontal,
 	NSLayoutConstraintOrientationVertical,
@@ -17,7 +19,9 @@ from AppKit import (
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
 	NSLineBreakByTruncatingTail,
+	NSSize,
 	NSTextAlignmentRight,
+	NSWindowStyleMaskResizable,
 )
 from Foundation import NSNumberFormatter, NSPoint
 
@@ -702,7 +706,7 @@ class BuildMathOperators(mekkaObject):
 
 		self.w.italic = vanilla.CheckBox("auto", "Respect italic angle", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.italic.setToolTip("Slants the shapes by the italic angle of each master (plus the angle adjustment), and corrects the stroke weight for the slant. Off: all operators are upright, and the two fields behind are disabled.")
-		self.w.adaptPlusMinus = vanilla.CheckBox("auto", "Adapt height", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.adaptPlusMinus = vanilla.CheckBox("auto", "Adapt ± height", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.adaptPlusMinus.setToolTip("Adapt height in ±: shortens the vertical stroke of the plus in ±, so that ± is as tall as the plus. Off: ± is a full plus with a minus underneath, and taller than the plus.")
 		self.w.includeLessGreater = vanilla.CheckBox("auto", lessGreater, value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.includeLessGreater.setToolTip("Also draws less, greater, lessequal and greaterequal.")
@@ -713,6 +717,8 @@ class BuildMathOperators(mekkaObject):
 		self.w.overwrite.setToolTip("Replaces the outlines of operators that already have some. Off: layers with outlines are left alone, and only empty layers are drawn. Layers drawn by this script in this session can always be redrawn by the live preview.")
 		self.w.backup = vanilla.CheckBox("auto", "Backup in background", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.backup.setToolTip("Before a layer is overwritten for the first time in this session, copies its outlines into the background. Does nothing if the background already holds something.")
+		self.w.clearBackgroundsButton = vanilla.Button("auto", "Clear backgrounds", callback=self.clearBackgrounds, sizeStyle="mini")
+		self.w.clearBackgroundsButton.setToolTip("Empties the background of the operators in the scope (the glyphs of the Draw row), in the masters of the scope. Asks for confirmation first.")
 
 		tooltipText = "Which fonts and masters are drawn. Stroke, sidebearings and overshoot are the same in all masters of the scope."
 		self.w.scopeLabel = vanilla.TextBox("auto", "Scope", sizeStyle="small")
@@ -798,6 +804,8 @@ class BuildMathOperators(mekkaObject):
 			aligned("multiplyExtensionLabel", "kneeCapLabel", "width"),
 			# the button sits next to the last radio button, the one for the minus:
 			aligned("editMinusButton", "drawMode", "bottom"),
+			"H:[backup]-gap-[clearBackgroundsButton]-(>=inset)-|",
+			aligned("clearBackgroundsButton", "backup", "centerY"),
 			# everything in the Draw row sits on the vertical center of its first checkbox
 			aligned("drawLabel", "includeLessGreater", "centerY"),
 			aligned("operatorsText", "includeLessGreater", "centerY"),
@@ -826,7 +834,7 @@ class BuildMathOperators(mekkaObject):
 		for fieldName, otherNames in rowFields:
 			for otherName in otherNames:
 				rules.append(aligned(otherName, fieldName, "centerY"))
-		self.w.addAutoPosSizeRules(rules, metrics={"inset": 15, "gap": 8, "row": 8, "section": 12, "checkRow": 5, "tight": 4, "pair": 10, "fieldWidth": 35, "radioHeight": self.w.drawMode.getFittingHeight()})
+		self.w.addAutoPosSizeRules(rules, metrics={"inset": 15, "gap": 8, "row": 8, "section": 12, "checkRow": 5, "tight": 4, "pair": 5, "fieldWidth": 35, "radioHeight": self.w.drawMode.getFittingHeight()})
 
 		# the stroke is a property of the font, not of this script, so it is preset and not remembered:
 		self.w.stroke.set(str(self.presetStroke(font)))
@@ -840,6 +848,15 @@ class BuildMathOperators(mekkaObject):
 		self.draw()  # show the current values right away; the previous outlines go to the background if that option is on
 		self.w.open()
 		self.w.makeKey()
+
+		# make the window horizontally resizable, but keep the height that Auto Layout determined.
+		# (Content sizes set directly on the NSWindow, so the title bar is not counted twice.)
+		nsWindow = self.w.getNSWindow()
+		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
+		nsWindow.layoutIfNeeded()
+		contentSize = nsWindow.contentView().frame().size
+		nsWindow.setContentMinSize_(NSSize(contentSize.width, contentSize.height))
+		nsWindow.setContentMaxSize_(NSSize(contentSize.width + 1000, contentSize.height))
 
 	# ------------------------------------------------------------------ UI
 
@@ -916,6 +933,38 @@ class BuildMathOperators(mekkaObject):
 		fonts = sorted((scopeFont for scopeFont, masterIDs in self.targets(self.prefInt("scope"))), key=lambda scopeFont: scopeFont == font)
 		for scopeFont in fonts:
 			self.showMinus(scopeFont)
+
+	def clearBackgrounds(self, sender):
+		"""Empties the background of the operators in the scope, after asking."""
+		settings = self.settings()
+		if settings is None:
+			self.setStatus("⚠️ Please enter numbers in the fields.")
+			return
+		layers = []
+		for font, masterIDs in self.targets(settings["scope"]):
+			for character in settings["characters"]:
+				glyph = font.glyphs[Glyphs.niceGlyphName(character)]
+				if glyph is None:
+					continue
+				for master in font.masters:
+					if masterIDs is None or master.id in masterIDs:
+						layer = glyph.layers[master.id]
+						if len(layer.background.shapes) > 0:
+							layers.append((glyph, layer))
+		if not layers:
+			self.setStatus("ℹ️ No backgrounds to clear.")
+			return
+		alert = NSAlert.alloc().init()
+		alert.setMessageText_("Clear backgrounds?")
+		alert.setInformativeText_("This empties the background of %i layers of the operators in the scope, including backups made by this script. This cannot be undone easily.\n\nContinue?" % len(layers))
+		alert.addButtonWithTitle_("Clear")
+		alert.addButtonWithTitle_("Cancel")
+		if alert.runModal() != NSAlertFirstButtonReturn:
+			return
+		for glyph, layer in layers:
+			layer.background.clear()
+			self.backedUp.discard((glyph.name, layer.layerId))  # a later draw may back up again
+		self.setStatus("✅ Cleared %i backgrounds." % len(layers))
 
 	def lacksMinus(self, font, masterIDs):
 		minusGlyph = font.glyphs["minus"]
