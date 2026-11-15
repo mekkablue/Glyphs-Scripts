@@ -464,7 +464,7 @@ shapeBuilders = {
 
 def placedShapes(character, plan):
 	"""
-	The contours of the operator for one master: centered in the width, on the center height, rounded to whole units.
+	The contours of the operator for one master: centered in the width, on the center height (raised by the lift), rounded to whole units.
 	Everything is built and centered by its bounding box, so LSB and RSB are equal (RSB =|).
 	A bounding box with the wrong parity cannot be centered on whole units, so we try a bar one unit shorter or longer.
 	"""
@@ -475,15 +475,26 @@ def placedShapes(character, plan):
 		if character == "^":
 			shiftY = plan["capHeight"] - bounds(contours)[3]  # the tip touches the cap height
 		else:
-			shiftY = plan["centerY"]
-			if character == "±":
-				shiftY = max(shiftY, -bounds(contours)[1])  # never sink under the baseline
+			shiftY = plan["centerY"] + plan.get("lift", 0)
 		contours = [mapPoints(contour, lambda x, y: (round(x), round(y + shiftY))) for contour in contours]
 		minX, minY, maxX, maxY = bounds(contours)
 		if (width - (maxX - minX)) % 2 == 0:
 			break
 	shiftX = (width - minX - maxX) / 2.0
 	return [translate(contour, shiftX, 0) for contour in contours]
+
+
+centeredOperators = mathOperators + lessGreater + "~"  # all operators on the common center, the caret hangs from the cap height
+
+
+def baselineLift(plan):
+	"""
+	How far all centered operators have to be raised together, so that the lowest of them does not end up below the
+	baseline. They all keep their common center. The whole set counts, drawn now or not, so ticking <>≤≥ or ~^ later
+	does not move the operators that are drawn already.
+	"""
+	lowest = min(bounds(placedShapes(character, dict(plan, lift=0)))[1] for character in centeredOperators)
+	return max(0, -lowest)
 
 
 # ------------------------------------------------------------------------------
@@ -628,7 +639,7 @@ class BuildMathOperators(mekkaObject):
 		self.w.plusWidthGlyph = vanilla.EditText("auto", "zero.tf", callback=self.SavePreferences, sizeStyle="small")
 		self.w.plusWidthGlyph.setToolTip("Name of the glyph whose width the plus takes.")
 
-		tooltipText = "The operators are vertically centered on this height. The caret ^ is the exception: its tip touches the cap height."
+		tooltipText = "The operators are vertically centered on this height, all on the same center. If the lowest of all operators (drawn now or not) would end up below the baseline, all are raised together until it touches the baseline. The caret ^ is the exception: its tip touches the cap height."
 		self.w.centerLabel = vanilla.TextBox("auto", "Center on", sizeStyle="small")
 		self.w.centerLabel.setToolTip(tooltipText)
 		self.w.centerMode = vanilla.PopUpButton("auto", ("Half cap height", "Half x-height", "Center of figures", "Center of glyphs"), callback=self.SavePreferences, sizeStyle="small")
@@ -1114,7 +1125,7 @@ class BuildMathOperators(mekkaObject):
 		if length < 2 * stroke:
 			return None, "width %i leaves bars of only %i units for a stroke of %i" % (width, length, stroke)
 
-		return {
+		plan = {
 			"width": width,
 			"centerY": centerY,
 			"capHeight": capHeight,
@@ -1132,7 +1143,9 @@ class BuildMathOperators(mekkaObject):
 			"correction": settings["wiper"],
 			"italicAngle": italicAngle,
 			"adaptPlusMinus": settings["adaptPlusMinus"],
-		}, None
+		}
+		plan["lift"] = baselineLift(plan)
+		return plan, None
 
 	# ------------------------------------------------------------------ Drawing
 
@@ -1203,7 +1216,7 @@ class BuildMathOperators(mekkaObject):
 					layer.syncMetrics()
 					count += 1
 				if report:
-					print("\t✅ %s: width %i, stroke %i, bars %i, centered on %i" % (master.name, plan["width"], plan["stroke"], plan["length"], plan["centerY"]))
+					print("\t✅ %s: width %i, stroke %i, bars %i, centered on %i%s" % (master.name, plan["width"], plan["stroke"], plan["length"], plan["centerY"], (", all raised by %i to keep the lowest on the baseline" % plan["lift"]) if plan["lift"] else ""))
 		finally:
 			font.enableUpdateInterface()
 		if font.currentTab:
