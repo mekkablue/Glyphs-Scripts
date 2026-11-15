@@ -27,6 +27,7 @@ asciiOperators = "~^"
 figureNames = ("zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine")
 zeroCandidates = ("zero.tf", "zero.tosf", "zero")  # for ‘same as zero’, in order of preference
 fallbackStroke = 80  # if the master has no horizontal stem
+minusTabScale = 0.735  # zoom of the tab for editing the minus
 
 # Proportions of the shapes, relative to the stroke or to the length of the bars:
 gapRatio = 1.2  # space between the bars of = ≠ ≈, in strokes. For ÷ ± ≤ ≥ the Distance field decides
@@ -646,8 +647,8 @@ class BuildMathOperators(mekkaObject):
 
 		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
 
-		self.w.editMinusButton = vanilla.Button("auto", "Edit Minus", callback=self.editMinus)
-		self.w.editMinusButton.setToolTip("Switches to ‘Take from minus’ and opens a tab with the minus for editing. After editing, click Draw to rebuild the other operators.")
+		self.w.editMinusButton = vanilla.Button("auto", "Edit minus", callback=self.editMinus, sizeStyle="small")
+		self.w.editMinusButton.setToolTip("Switches to ‘Take from minus’ and shows the minus in a tab for editing, in all fonts of the scope (an existing minus tab is reused). After editing, click Draw to rebuild the other operators.")
 		self.w.tabButton = vanilla.Button("auto", "Open Tab", callback=self.openTab)
 		self.w.tabButton.setToolTip("Opens a new Edit tab with the operators.")
 		self.w.drawButton = vanilla.Button("auto", "Draw", callback=self.drawButtonCallback)
@@ -686,7 +687,7 @@ class BuildMathOperators(mekkaObject):
 
 		rules = [
 			"H:|-inset-[descriptionText]-inset-|",
-			"H:|-inset-[drawMode]-(>=inset)-|",
+			"H:|-inset-[drawMode]-gap-[editMinusButton]-(>=inset)-|",
 			"H:|-inset-[widthLabel]-gap-[widthMode]-gap-[plusWidth(>=60)]-gap-[plusWidthGlyph(>=90)]-inset-|",
 			"H:|-inset-[centerLabel]-gap-[centerMode]-gap-[figureStyle(>=60)]-gap-[centerGlyphs(>=90)]-inset-|",
 			"H:|-inset-[sidebearingLabel]-gap-[sidebearing(60)]-gap-[sidebearingText]-(>=inset)-|",
@@ -699,14 +700,15 @@ class BuildMathOperators(mekkaObject):
 			"H:|-inset-[adaptPlusMinus]-gap-[includeAscii]-(>=inset)-|",
 			"H:|-inset-[scopeLabel]-gap-[scope]-inset-|",
 			"H:|-inset-[status]-inset-|",
-			"H:|-inset-[editMinusButton]-gap-[tabButton]-(>=inset)-[drawButton(>=70)]-inset-|",
+			"H:|-inset-[tabButton]-(>=inset)-[drawButton(>=70)]-inset-|",
 			(
 				"V:|-inset-[descriptionText(42)]-row-[drawMode(radioHeight)]-section-[widthMode]-row-[centerMode]-section-[sidebearing]-row-[stroke]-row-[overshoot]-row-[distance]-row-[miter]-row-[wiper]"
 				"-section-[italic]-checkRow-[adaptPlusMinus]-section-[scope]-section-[overwrite]-checkRow-[backup]-section-[status]-inset-[drawButton]-inset-|"
 			),
-			"V:[editMinusButton]-inset-|",
 			"V:[tabButton]-inset-|",
 			aligned("widthMode", "centerMode", "width"),
+			# the button sits next to the last radio button, the one for the minus:
+			aligned("editMinusButton", "drawMode", "bottom"),
 			# two columns of options; the second column follows the widest checkbox of the first
 			aligned("adaptPlusMinus", "italic", "width"),
 			aligned("includeLessGreater", "italic", "centerY"),
@@ -812,13 +814,39 @@ class BuildMathOperators(mekkaObject):
 		font = Glyphs.font
 		if not font:
 			return
-		minusGlyph = font.glyphs["minus"]
-		if minusGlyph is None or len(minusGlyph.layers[font.selectedFontMaster.id].shapes) == 0:
-			self.draw(forceFromScratch=True)  # nothing to edit yet, so start with a drawn minus
+		# fonts without a minus in the masters of the scope have nothing to edit yet, so start with a drawn minus there:
+		lacking = [scopeFont for scopeFont, masterIDs in self.targets(self.prefInt("scope")) if self.lacksMinus(scopeFont, masterIDs)]
+		if lacking:
+			self.draw(forceFromScratch=True, onlyFonts=lacking)
 		self.w.drawMode.set(1)
 		self.SavePreferences()
-		tab = font.newTab("/minus")
-		tab.textCursor = 0
+		# every font of the scope shows its minus, the current font last so that it stays in front:
+		fonts = sorted((scopeFont for scopeFont, masterIDs in self.targets(self.prefInt("scope"))), key=lambda scopeFont: scopeFont == font)
+		for scopeFont in fonts:
+			self.showMinus(scopeFont)
+
+	def lacksMinus(self, font, masterIDs):
+		minusGlyph = font.glyphs["minus"]
+		for master in font.masters:
+			if masterIDs is None or master.id in masterIDs:
+				if minusGlyph is None or len(minusGlyph.layers[master.id].shapes) == 0:
+					return True
+		return False
+
+	def showMinus(self, font):
+		"""Selects the tab with the minus in the font (or opens it), with the minus open for editing, zoomed and centered."""
+		tab = None
+		for existingTab in font.tabs:
+			if existingTab.text.strip() in ("/minus", "−"):
+				tab = existingTab
+				break
+		if tab is None:
+			tab = font.newTab("/minus")
+		else:
+			font.currentTab = tab
+		tab.textCursor = 0  # the minus is the active layer
+		tab.scale = minusTabScale
+		tab.initialZoom()
 
 	# ------------------------------------------------------------------ Settings and plans
 
@@ -1040,13 +1068,15 @@ class BuildMathOperators(mekkaObject):
 			font.currentTab.redraw()
 		return count, skipped, []
 
-	def draw(self, report=False, forceFromScratch=False):
+	def draw(self, report=False, forceFromScratch=False, onlyFonts=None):
 		"""Draws the operators in the scope. Quiet for the live preview, with a report for the Draw button."""
 		settings = self.settings(forceFromScratch)
 		if settings is None:
 			self.setStatus("⚠️ Please enter numbers in the fields.")
 			return
 		targets = self.targets(settings["scope"])
+		if onlyFonts is not None:
+			targets = [(font, masterIDs) for font, masterIDs in targets if font in onlyFonts]
 		if not targets:
 			self.setStatus("⚠️ No font open.")
 			return
