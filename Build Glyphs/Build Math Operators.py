@@ -884,7 +884,7 @@ class BuildMathOperators(mekkaObject):
 		return False
 
 	def showMinus(self, font):
-		"""Selects the tab with the minus in the font (or opens it), with the minus open for editing, zoomed and centered."""
+		"""Selects the tab with the minus in the font (or opens it), with the minus open for editing, the select tool active, zoomed and centered."""
 		tab = None
 		for existingTab in font.tabs:
 			if existingTab.text.strip() in ("/minus", "−"):
@@ -895,6 +895,7 @@ class BuildMathOperators(mekkaObject):
 		else:
 			font.currentTab = tab
 		tab.textCursor = 0  # the minus is the active layer
+		font.tool = "SelectTool"  # ready for moving points
 		tab.scale = minusTabScale
 		tab.initialZoom()
 
