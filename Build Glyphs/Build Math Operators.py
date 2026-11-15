@@ -455,6 +455,8 @@ class BuildMathOperators(mekkaObject):
 		"adaptPlusMinus": True,
 		"includeLessGreater": False,
 		"includeAscii": False,
+		"overwrite": True,
+		"backup": True,
 		"scope": 0,
 	}
 
@@ -467,12 +469,13 @@ class BuildMathOperators(mekkaObject):
 			autosaveName=self.domain("mainwindow"),  # stores last window position
 		)
 		self.backedUp = set()  # layers whose previous outlines we already looked at in this session
+		self.drawnLayers = set()  # layers drawn by this script in this session: the live preview may always redraw them
 		font = Glyphs.font
 		self.figureSuffixes = figureSuffixesOfFont(font)
 
 		self.w.descriptionText = vanilla.TextBox(
 			"auto",
-			"Draws +−×÷=≠±≈¬ with the widths, sidebearings and heights below. Changes show live in the font. The previous outlines of a layer are kept in its background.",
+			"Draws +−×÷=≠±≈¬ with the widths, sidebearings and heights below. Changes show live in the font.",
 			sizeStyle="small",
 			selectable=True,
 		)
@@ -532,6 +535,11 @@ class BuildMathOperators(mekkaObject):
 		self.w.includeAscii = vanilla.CheckBox("auto", "Include %s" % asciiOperators, value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.includeAscii.setToolTip("Also draws asciitilde and asciicircum.")
 
+		self.w.overwrite = vanilla.CheckBox("auto", "Overwrite existing", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.overwrite.setToolTip("Replaces the outlines of operators that already have some. Off: layers with outlines are left alone, and only empty layers are drawn. Layers drawn by this script in this session can always be redrawn by the live preview.")
+		self.w.backup = vanilla.CheckBox("auto", "Backup in background", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.backup.setToolTip("Before a layer is overwritten for the first time in this session, copies its outlines into the background. Does nothing if the background already holds something.")
+
 		tooltipText = "Which fonts and masters are drawn. Stroke, sidebearings and overshoot are the same in all masters of the scope."
 		self.w.scopeLabel = vanilla.TextBox("auto", "Scope:", sizeStyle="small")
 		self.w.scopeLabel.setToolTip(tooltipText)
@@ -590,12 +598,14 @@ class BuildMathOperators(mekkaObject):
 			"H:|-inset-[adaptPlusMinus]-(>=inset)-|",
 			"H:|-inset-[includeLessGreater]-(>=inset)-|",
 			"H:|-inset-[includeAscii]-(>=inset)-|",
+			"H:|-inset-[overwrite]-(>=inset)-|",
+			"H:|-indent-[backup]-(>=inset)-|",
 			"H:|-inset-[scopeLabel]-gap-[scope]-inset-|",
 			"H:|-inset-[status]-inset-|",
 			"H:|-inset-[editMinusButton]-gap-[tabButton]-(>=inset)-[drawButton(>=70)]-inset-|",
 			(
 				"V:|-inset-[descriptionText(42)]-row-[drawMode(radioHeight)]-section-[widthMode]-row-[centerMode]-section-[sidebearing]-row-[stroke]-row-[overshoot]"
-				"-section-[italic]-checkRow-[adaptPlusMinus]-checkRow-[includeLessGreater]-checkRow-[includeAscii]-section-[scope]-section-[status]-inset-[drawButton]-inset-|"
+				"-section-[italic]-checkRow-[adaptPlusMinus]-checkRow-[includeLessGreater]-checkRow-[includeAscii]-checkRow-[overwrite]-checkRow-[backup]-section-[scope]-section-[status]-inset-[drawButton]-inset-|"
 			),
 			"V:[editMinusButton]-inset-|",
 			"V:[tabButton]-inset-|",
@@ -616,7 +626,7 @@ class BuildMathOperators(mekkaObject):
 		for fieldName, otherNames in rowFields:
 			for otherName in otherNames:
 				rules.append(aligned(otherName, fieldName, "centerY"))
-		self.w.addAutoPosSizeRules(rules, metrics={"inset": 15, "gap": 8, "row": 8, "section": 12, "checkRow": 5, "radioHeight": self.w.drawMode.getFittingHeight()})
+		self.w.addAutoPosSizeRules(rules, metrics={"inset": 15, "gap": 8, "row": 8, "section": 12, "checkRow": 5, "indent": 33, "radioHeight": self.w.drawMode.getFittingHeight()})
 
 		# the stroke is a property of the font, not of this script, so it is preset and not remembered:
 		self.w.stroke.set(str(self.presetStroke(font)))
@@ -642,6 +652,7 @@ class BuildMathOperators(mekkaObject):
 		centerMode = self.w.centerMode.get()
 		self.w.figureStyle.enable(centerMode == 2)
 		self.w.centerGlyphs.enable(centerMode == 3)
+		self.w.backup.enable(self.w.overwrite.get())
 
 	def SavePreferences(self, sender=None):
 		super().SavePreferences(sender)
@@ -721,6 +732,8 @@ class BuildMathOperators(mekkaObject):
 		settings["centerMode"] = self.prefInt("centerMode")
 		settings["centerGlyphs"] = str(self.pref("centerGlyphs"))
 		settings["figureSuffix"] = self.figureSuffix()
+		settings["overwrite"] = self.prefBool("overwrite")
+		settings["backup"] = self.prefBool("backup") and settings["overwrite"]
 		settings["italic"] = self.prefBool("italic")
 		settings["adaptPlusMinus"] = self.prefBool("adaptPlusMinus")
 		characters = mathOperators
@@ -855,7 +868,7 @@ class BuildMathOperators(mekkaObject):
 			else:
 				plans.append((master, plan))
 		if problems:
-			return 0, problems
+			return 0, 0, problems
 
 		glyphs = {}
 		for character in settings["characters"]:
@@ -867,22 +880,33 @@ class BuildMathOperators(mekkaObject):
 				if report:
 					print("\t🔠 Created %s" % glyphName)
 			glyphs[character] = glyph
-			# the same keys in all masters; the width comes from the plus:
-			glyph.leftMetricsKey = None
-			glyph.rightMetricsKey = "=|"
-			glyph.widthMetricsKey = None
 
 		count = 0
+		skipped = 0
+		keyed = set()
 		font.disableUpdateInterface()
 		try:
 			for master, plan in plans:
 				for character, glyph in glyphs.items():
 					self.setStatus("🔠 %s" % glyph.name)
 					layer = glyph.layers[master.id]
+					if not settings["overwrite"] and len(layer.shapes) > 0 and layer.layerId not in self.drawnLayers:
+						skipped += 1  # has outlines that are not ours
+						if report:
+							print("\t☑️ %s (%s): has outlines, skipped" % (glyph.name, master.name))
+						continue
+					if glyph.name not in keyed:
+						keyed.add(glyph.name)
+						# the same keys in all masters; the width comes from the plus:
+						glyph.leftMetricsKey = None
+						glyph.rightMetricsKey = "=|"
+						glyph.widthMetricsKey = None
+					self.drawnLayers.add(layer.layerId)
 					if settings["takeFromMinus"] and character == "−":
 						self.centerExistingLayer(layer, plan)
 					else:
-						self.backUp(glyph, layer)
+						if settings["backup"]:
+							self.backUp(glyph, layer)
 						layer.shapes = None
 						for contour in placedShapes(character, plan):
 							layer.shapes.append(pathFromContour(contour))
@@ -899,7 +923,7 @@ class BuildMathOperators(mekkaObject):
 			font.enableUpdateInterface()
 		if font.currentTab:
 			font.currentTab.redraw()
-		return count, []
+		return count, skipped, []
 
 	def draw(self, report=False, forceFromScratch=False):
 		"""Draws the operators in the scope. Quiet for the live preview, with a report for the Draw button."""
@@ -916,13 +940,14 @@ class BuildMathOperators(mekkaObject):
 			Glyphs.clearLog()
 			print("Build Math Operators\n")
 		self.setStatus("🛠️ Drawing…")
-		total, firstProblem = 0, None
+		total, skipped, firstProblem = 0, 0, None
 		for font, masterIDs in targets:
 			if report:
 				fileName = font.filepath.lastPathComponent() if font.filepath else f"{font.familyName} (unsaved)"
 				print(f"📄 {fileName}")
-			count, problems = self.drawFont(font, masterIDs, settings, report)
+			count, skippedCount, problems = self.drawFont(font, masterIDs, settings, report)
 			total += count
+			skipped += skippedCount
 			for problem in problems:
 				firstProblem = firstProblem or f"{font.familyName}: {problem}"
 				if report:
@@ -932,7 +957,7 @@ class BuildMathOperators(mekkaObject):
 		if firstProblem:
 			self.setStatus(f"⚠️ {firstProblem}")
 		else:
-			self.setStatus(f"✅ Drew {total} layers.")
+			self.setStatus(f"✅ Drew {total} layers" + (f", skipped {skipped} with outlines." if skipped else "."))
 			if report:
 				Glyphs.showNotification("Build Math Operators", "Drew %i layers. Details in Macro Window." % total)
 
