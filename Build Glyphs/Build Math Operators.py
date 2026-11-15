@@ -251,6 +251,7 @@ class Proportions(object):
 		self.overshoot = plan["overshoot"]  # of the dots in ÷
 		self.kneeCap = plan["kneeCap"]  # of the inner apex in < > ≤ ≥
 		self.slashOverhang = plan["slashOverhang"]  # of the slash in ≠
+		self.slashStrokeChange = plan["slashStrokeChange"]  # stroke width of the slash in ≠, relative to the stroke
 		self.multiplyExtension = plan["multiplyExtension"]  # of the arms of ×
 		self.miter = plan["miter"] / 100.0
 		self.correction = plan["correction"] / 100.0
@@ -262,16 +263,17 @@ class Proportions(object):
 			return contour
 		return mapPoints(contour, lambda x, y: (x + y * self.tangent, y))
 
-	def corrected(self, direction):
+	def corrected(self, direction, stroke=None):
 		"""
 		The thickness to draw a stroke with that direction (before slanting), so that it is as strong as the
 		stroke after slanting. Slanting stretches the direction vector by `factor`, and thus thins the stroke by
 		the same factor (windshield-wiper effect). Correction 0 is the pure geometric slant, 1 is full correction.
+		A stroke that is not the main stroke can be given.
 		"""
 		directionX, directionY = direction
 		length = math.hypot(directionX, directionY)
 		factor = math.hypot(directionX / length + directionY / length * self.tangent, directionY / length)
-		return self.stroke * (1 + self.correction * (factor - 1))
+		return (self.stroke if stroke is None else stroke) * (1 + self.correction * (factor - 1))
 
 
 def minusShapes(p):
@@ -313,7 +315,7 @@ def equalShapes(p):
 def notEqualShapes(p):
 	shapes = equalShapes(p)
 	halfHeight = p.stroke + p.barDistance / 2.0 + p.slashOverhang  # the slash reaches beyond the bars by its overhang
-	slashStroke = p.corrected((math.cos(math.radians(slashAngle)), math.sin(math.radians(slashAngle))))
+	slashStroke = p.corrected((math.cos(math.radians(slashAngle)), math.sin(math.radians(slashAngle))), max(p.stroke + p.slashStrokeChange, 1))
 	halfWidth = slashStroke / math.sin(math.radians(slashAngle)) / 2.0  # horizontal half width for the stroke thickness
 	run = halfHeight / math.tan(math.radians(slashAngle))
 	shapes.append(p.slant(polygon((
@@ -558,6 +560,7 @@ class BuildMathOperators(mekkaObject):
 		"dotOvershoot": 10,
 		"kneeCap": 10,
 		"slashOverhang": 80,
+		"slashStroke": 0,
 		"multiplyExtension": 0,
 		"miter": 80,
 		"wiper": 100,
@@ -571,7 +574,7 @@ class BuildMathOperators(mekkaObject):
 	}
 
 	def __init__(self):
-		windowWidth = 520
+		windowWidth = 540
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
@@ -645,12 +648,13 @@ class BuildMathOperators(mekkaObject):
 		addField("shapeDistance", "±≤≥", 100, "Space between the plus and the minus in ±, and between the chevron and the bar in ≤ ≥, from edge to edge, in units.", 1)
 		addField("barDistance", "=≠≈", 100, "Space between the two horizontals in = ≠ ≈, from edge to edge, in units.", 1)
 
-		tooltipText = "Optical corrections, in units: the overshoot of the dots in ÷, the knee caps of < > ≤ ≥, the overhang of the slash in ≠, and the extra extension of ×."
+		tooltipText = "Optical corrections, in units: the overshoot of the dots in ÷, the knee caps of < > ≤ ≥, the overhang and the stroke width of the slash in ≠, and the extra extension of ×."
 		self.w.correctionsLabel = vanilla.TextBox("auto", "Corrections:", sizeStyle="small")
 		self.w.correctionsLabel.setToolTip(tooltipText)
 		addField("dotOvershoot", "÷", 10, "Overshoot of the dots in ÷: each dot is as wide as the stroke plus twice this value, so the circles do not look smaller than the bar.", 0)
 		addField("kneeCap", "<>≤≥", 10, "Knee cap of < > ≤ ≥: the inner apex point is drawn this many units toward the cut-off outer apex, to lighten the joint of the arms. The shape itself does not overshoot the bars.", 0)
 		addField("slashOverhang", "≠", 80, "How far the slash of ≠ reaches beyond the outer edges of the two bars, in units.", 0)
+		addField("slashStroke", "/", 0, "Stroke width change of the slash in ≠, in units, added to the stroke (negative: thinner).", -100, 100)
 		addField("multiplyExtension", "×", 0, "Extra extension of × : each end of each arm is extended by this many units (negative: shortened), since diagonals look shorter than horizontals.", -200, 200)
 
 		tooltipText = "Cuts off the pointed apex of < > ≤ ≥ with a vertical line (parallel to the italic angle in slanted masters), so that the blunt end is this percentage of the stroke tall. 0 keeps the sharp point."
@@ -714,7 +718,7 @@ class BuildMathOperators(mekkaObject):
 			nsLabel.setAlignment_(NSTextAlignmentRight)
 			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
 			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
-		for fieldName in ("dotDistance", "shapeDistance", "barDistance", "dotOvershoot", "kneeCap", "slashOverhang", "multiplyExtension"):
+		for fieldName in ("dotDistance", "shapeDistance", "barDistance", "dotOvershoot", "kneeCap", "slashOverhang", "slashStroke", "multiplyExtension"):
 			nsLabel = getattr(self.w, fieldName + "Label").getNSTextField()
 			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
 			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
@@ -739,7 +743,7 @@ class BuildMathOperators(mekkaObject):
 			"H:|-inset-[sidebearingLabel]-gap-[sidebearing(60)]-gap-[sidebearingText]-(>=inset)-|",
 			"H:|-inset-[strokeLabel]-gap-[stroke(60)]-gap-[resetStroke]-gap-[strokeText]-(>=inset)-|",
 			"H:|-inset-[distancesLabel]-gap-[dotDistanceLabel]-tight-[dotDistance(fieldWidth)]-pair-[shapeDistanceLabel]-tight-[shapeDistance(fieldWidth)]-pair-[barDistanceLabel]-tight-[barDistance(fieldWidth)]-(>=inset)-|",
-			"H:|-inset-[correctionsLabel]-gap-[dotOvershootLabel]-tight-[dotOvershoot(fieldWidth)]-pair-[kneeCapLabel]-tight-[kneeCap(fieldWidth)]-pair-[slashOverhangLabel]-tight-[slashOverhang(fieldWidth)]-pair-[multiplyExtensionLabel]-tight-[multiplyExtension(fieldWidth)]-(>=inset)-|",
+			"H:|-inset-[correctionsLabel]-gap-[dotOvershootLabel]-tight-[dotOvershoot(fieldWidth)]-pair-[kneeCapLabel]-tight-[kneeCap(fieldWidth)]-pair-[slashOverhangLabel]-tight-[slashOverhang(fieldWidth)]-pair-[slashStrokeLabel]-tight-[slashStroke(fieldWidth)]-pair-[multiplyExtensionLabel]-tight-[multiplyExtension(fieldWidth)]-(>=inset)-|",
 			"H:|-inset-[miterLabel]-gap-[miter(60)]-gap-[miterText]-(>=inset)-|",
 			"H:|-inset-[wiperLabel]-gap-[wiper(60)]-gap-[wiperText]-(>=inset)-|",
 			"H:|-inset-[italic]-gap-[includeLessGreater]-(>=inset)-|",
@@ -774,7 +778,7 @@ class BuildMathOperators(mekkaObject):
 			("sidebearing", ("sidebearingLabel", "sidebearingText")),
 			("stroke", ("strokeLabel", "resetStroke", "strokeText")),
 			("dotDistance", ("distancesLabel", "dotDistanceLabel", "shapeDistanceLabel", "shapeDistance", "barDistanceLabel", "barDistance")),
-			("dotOvershoot", ("correctionsLabel", "dotOvershootLabel", "kneeCapLabel", "kneeCap", "slashOverhangLabel", "slashOverhang", "multiplyExtensionLabel", "multiplyExtension")),
+			("dotOvershoot", ("correctionsLabel", "dotOvershootLabel", "kneeCapLabel", "kneeCap", "slashOverhangLabel", "slashOverhang", "slashStrokeLabel", "slashStroke", "multiplyExtensionLabel", "multiplyExtension")),
 			("miter", ("miterLabel", "miterText")),
 			("wiper", ("wiperLabel", "wiperText")),
 			("scope", ("scopeLabel", )),
@@ -908,6 +912,7 @@ class BuildMathOperators(mekkaObject):
 				"overshoot": int(round(float(self.pref("dotOvershoot")))),
 				"kneeCap": int(round(float(self.pref("kneeCap")))),
 				"slashOverhang": int(round(float(self.pref("slashOverhang")))),
+				"slashStrokeChange": int(round(float(self.pref("slashStroke")))),
 				"multiplyExtension": int(round(float(self.pref("multiplyExtension")))),
 				"miter": float(self.pref("miter")),
 				"wiper": float(self.pref("wiper")),
@@ -1026,6 +1031,7 @@ class BuildMathOperators(mekkaObject):
 			"overshoot": settings["overshoot"],
 			"kneeCap": settings["kneeCap"],
 			"slashOverhang": settings["slashOverhang"],
+			"slashStrokeChange": settings["slashStrokeChange"],
 			"multiplyExtension": settings["multiplyExtension"],
 			"miter": settings["miter"],
 			"correction": settings["wiper"],
