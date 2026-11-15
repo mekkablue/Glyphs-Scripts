@@ -575,7 +575,7 @@ class BuildMathOperators(mekkaObject):
 	}
 
 	def __init__(self):
-		windowWidth = 540
+		windowWidth = 500
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
@@ -634,29 +634,33 @@ class BuildMathOperators(mekkaObject):
 		self.w.strokeText = vanilla.TextBox("auto", "units, first horizontal stem", sizeStyle="small")
 
 		# distances and corrections: one row each, the fields are labeled with the glyphs they are for
-		def addField(name, glyphs, value, tooltipText, minimum, maximum=None):
-			label = vanilla.TextBox("auto", glyphs, sizeStyle="small")
-			label.setToolTip(tooltipText)
-			setattr(self.w, name + "Label", label)
+		def addField(name, glyphs, value, tooltipText, minimum, maximum=999):
+			"""A stepping field wide enough for three figures, with a mini label behind it that names the glyphs it is for."""
+			if glyphs:
+				label = vanilla.TextBox("auto", glyphs, sizeStyle="small")
+				label.setToolTip(tooltipText)
+				setattr(self.w, name + "Label", label)
 			field = SteppingEditText("auto", str(value), formatter=integerFormatter(minimum, maximum), callback=self.SavePreferences, sizeStyle="small")
 			field.setToolTip(tooltipText)
 			setattr(self.w, name, field)
 
-		tooltipText = "Distances between shapes, in units, from edge to edge: for the dots in ÷, for the shapes in ± ≤ ≥, and for the two horizontals in = ≠ ≈."
+		tooltipText = "Distances between shapes, in units, from edge to edge: for the dots in ÷, for the two horizontals in = ≠ ≈, and for the shapes in ± ≤ ≥."
 		self.w.distancesLabel = vanilla.TextBox("auto", "Distance:", sizeStyle="small")
 		self.w.distancesLabel.setToolTip(tooltipText)
 		addField("dotDistance", "÷", 100, "Space between the dots and the bar in ÷, from edge to edge, in units. The overshoot of the dots is subtracted: the distance is the one of a dot that is as wide as the stroke.", 1)
-		addField("shapeDistance", "±≤≥", 100, "Space between the plus and the minus in ±, and between the chevron and the bar in ≤ ≥, from edge to edge, in units.", 1)
 		addField("barDistance", "=≠≈", 100, "Space between the two horizontals in = ≠ ≈, from edge to edge, in units.", 1)
+		addField("shapeDistance", "±≤≥", 100, "Space between the plus and the minus in ±, and between the chevron and the bar in ≤ ≥, from edge to edge, in units.", 1)
 
-		tooltipText = "Optical corrections, in units: the overshoot of the dots in ÷, the knee caps of < > ≤ ≥, the overhang and the stroke width of the slash in ≠, and the extra extension of ×."
+		tooltipText = "Optical corrections, in units: the overshoot of the dots in ÷, the extra extension of ×, the knee caps of < > ≤ ≥, and the overhang and the stroke width of the slash in ≠."
 		self.w.correctionsLabel = vanilla.TextBox("auto", "Corrections:", sizeStyle="small")
 		self.w.correctionsLabel.setToolTip(tooltipText)
 		addField("dotOvershoot", "÷", 10, "Overshoot of the dots in ÷: each dot is as wide as the stroke plus twice this value, so the circles do not look smaller than the bar.", 0)
+		addField("multiplyExtension", "×", 0, "Extra extension of ×: each end of each arm is extended by this many units (negative: shortened), since diagonals look shorter than horizontals.", -99, 99)
 		addField("kneeCap", "<>≤≥", 10, "Knee cap of < > ≤ ≥: the inner apex point is drawn this many units toward the cut-off outer apex, to lighten the joint of the arms. The shape itself does not overshoot the bars.", 0)
-		addField("slashOverhang", "≠", 80, "How far the slash of ≠ reaches beyond the outer edges of the two bars, in units.", 0)
-		addField("slashStroke", "/", 0, "Stroke width change of the slash in ≠, in units, added to the stroke (negative: thinner).", -100, 100)
-		addField("multiplyExtension", "×", 0, "Extra extension of × : each end of each arm is extended by this many units (negative: shortened), since diagonals look shorter than horizontals.", -200, 200)
+		addField("slashOverhang", None, 80, "Overhang of the slash in ≠: how far it reaches beyond the outer edges of the two bars, in units.", 0)
+		addField("slashStroke", None, 0, "Stroke width change of the slash in ≠, in units, added to the stroke (negative: thinner).", -99, 99)
+		self.w.slashLabel = vanilla.TextBox("auto", "≠", sizeStyle="small")
+		self.w.slashLabel.setToolTip("The slash in ≠. First field: how far it reaches beyond the bars. Second field: change of its stroke width. Both in units.")
 
 		tooltipText = "Cuts off the pointed apex of < > ≤ ≥ with a vertical line (parallel to the italic angle in slanted masters), so that the blunt end is this percentage of the stroke tall. 0 keeps the sharp point."
 		self.w.miterLabel = vanilla.TextBox("auto", "Miter:", sizeStyle="small")
@@ -719,8 +723,8 @@ class BuildMathOperators(mekkaObject):
 			nsLabel.setAlignment_(NSTextAlignmentRight)
 			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
 			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
-		for fieldName in ("dotDistance", "shapeDistance", "barDistance", "dotOvershoot", "kneeCap", "slashOverhang", "slashStroke", "multiplyExtension"):
-			nsLabel = getattr(self.w, fieldName + "Label").getNSTextField()
+		for labelName in ("dotDistanceLabel", "barDistanceLabel", "shapeDistanceLabel", "dotOvershootLabel", "multiplyExtensionLabel", "kneeCapLabel", "slashLabel"):
+			nsLabel = getattr(self.w, labelName).getNSTextField()
 			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
 			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 		# the fields behind the popups: the one for glyph names stretches, the number does not
@@ -743,8 +747,8 @@ class BuildMathOperators(mekkaObject):
 			"H:|-inset-[centerLabel]-gap-[centerMode]-gap-[figureStyle(>=60)]-gap-[centerGlyphs(>=90)]-inset-|",
 			"H:|-inset-[sidebearingLabel]-gap-[sidebearing(60)]-gap-[sidebearingText]-(>=inset)-|",
 			"H:|-inset-[strokeLabel]-gap-[stroke(60)]-gap-[resetStroke]-gap-[strokeText]-(>=inset)-|",
-			"H:|-inset-[distancesLabel]-gap-[dotDistanceLabel]-tight-[dotDistance(fieldWidth)]-pair-[shapeDistanceLabel]-tight-[shapeDistance(fieldWidth)]-pair-[barDistanceLabel]-tight-[barDistance(fieldWidth)]-(>=inset)-|",
-			"H:|-inset-[correctionsLabel]-gap-[dotOvershootLabel]-tight-[dotOvershoot(fieldWidth)]-pair-[kneeCapLabel]-tight-[kneeCap(fieldWidth)]-pair-[slashOverhangLabel]-tight-[slashOverhang(fieldWidth)]-pair-[slashStrokeLabel]-tight-[slashStroke(fieldWidth)]-pair-[multiplyExtensionLabel]-tight-[multiplyExtension(fieldWidth)]-(>=inset)-|",
+			"H:|-inset-[distancesLabel]-gap-[dotDistance(fieldWidth)]-tight-[dotDistanceLabel]-pair-[barDistance(fieldWidth)]-tight-[barDistanceLabel]-pair-[shapeDistance(fieldWidth)]-tight-[shapeDistanceLabel]-(>=inset)-|",
+			"H:|-inset-[correctionsLabel]-gap-[dotOvershoot(fieldWidth)]-tight-[dotOvershootLabel]-pair-[multiplyExtension(fieldWidth)]-tight-[multiplyExtensionLabel]-pair-[kneeCap(fieldWidth)]-tight-[kneeCapLabel]-pair-[slashOverhang(fieldWidth)]-tight-[slashStroke(fieldWidth)]-tight-[slashLabel]-(>=inset)-|",
 			"H:|-inset-[miterLabel]-gap-[miter(60)]-gap-[miterText]-(>=inset)-|",
 			"H:|-inset-[wiperLabel]-gap-[wiper(60)]-gap-[wiperText]-(>=inset)-|",
 			"H:|-inset-[italic]-gap-[includeLessGreater]-(>=inset)-|",
@@ -758,6 +762,10 @@ class BuildMathOperators(mekkaObject):
 			),
 			"V:[tabButton]-inset-|",
 			aligned("widthMode", "centerMode", "width"),
+			# the first three fields of the two lines stand above each other: their mini labels share a width
+			aligned("dotOvershootLabel", "dotDistanceLabel", "width"),
+			aligned("multiplyExtensionLabel", "barDistanceLabel", "width"),
+			aligned("kneeCapLabel", "shapeDistanceLabel", "width"),
 			# the button sits next to the last radio button, the one for the minus:
 			aligned("editMinusButton", "drawMode", "bottom"),
 			# two columns of options; the second column follows the widest checkbox of the first
@@ -778,8 +786,8 @@ class BuildMathOperators(mekkaObject):
 			("centerMode", ("centerLabel", "figureStyle", "centerGlyphs")),
 			("sidebearing", ("sidebearingLabel", "sidebearingText")),
 			("stroke", ("strokeLabel", "resetStroke", "strokeText")),
-			("dotDistance", ("distancesLabel", "dotDistanceLabel", "shapeDistanceLabel", "shapeDistance", "barDistanceLabel", "barDistance")),
-			("dotOvershoot", ("correctionsLabel", "dotOvershootLabel", "kneeCapLabel", "kneeCap", "slashOverhangLabel", "slashOverhang", "slashStrokeLabel", "slashStroke", "multiplyExtensionLabel", "multiplyExtension")),
+			("dotDistance", ("distancesLabel", "dotDistanceLabel", "barDistance", "barDistanceLabel", "shapeDistance", "shapeDistanceLabel")),
+			("dotOvershoot", ("correctionsLabel", "dotOvershootLabel", "multiplyExtension", "multiplyExtensionLabel", "kneeCap", "kneeCapLabel", "slashOverhang", "slashStroke", "slashLabel")),
 			("miter", ("miterLabel", "miterText")),
 			("wiper", ("wiperLabel", "wiperText")),
 			("scope", ("scopeLabel", )),
@@ -787,7 +795,7 @@ class BuildMathOperators(mekkaObject):
 		for fieldName, otherNames in rowFields:
 			for otherName in otherNames:
 				rules.append(aligned(otherName, fieldName, "centerY"))
-		self.w.addAutoPosSizeRules(rules, metrics={"inset": 15, "gap": 8, "row": 8, "section": 12, "checkRow": 5, "tight": 4, "pair": 14, "fieldWidth": 50, "radioHeight": self.w.drawMode.getFittingHeight()})
+		self.w.addAutoPosSizeRules(rules, metrics={"inset": 15, "gap": 8, "row": 8, "section": 12, "checkRow": 5, "tight": 4, "pair": 14, "fieldWidth": 35, "radioHeight": self.w.drawMode.getFittingHeight()})
 
 		# the stroke is a property of the font, not of this script, so it is preset and not remembered:
 		self.w.stroke.set(str(self.presetStroke(font)))
