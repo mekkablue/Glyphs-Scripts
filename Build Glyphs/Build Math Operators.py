@@ -832,7 +832,7 @@ class BuildMathOperators(mekkaObject):
 		for fieldName, otherNames in rowFields:
 			for otherName in otherNames:
 				rules.append(aligned(otherName, fieldName, "centerY"))
-		self.w.addAutoPosSizeRules(rules, metrics={"inset": 15, "gap": 8, "row": 8, "section": 12, "checkRow": 5, "tight": 4, "pair": 5, "fieldWidth": 35, "radioHeight": self.w.drawMode.getFittingHeight()})
+		self.w.addAutoPosSizeRules(rules, metrics={"inset": 15, "gap": 8, "row": 8, "section": 12, "checkRow": 5, "tight": 5, "pair": 7, "fieldWidth": 35, "radioHeight": self.w.drawMode.getFittingHeight()})
 
 		# the stroke is a property of the font, not of this script, so it is preset and not remembered:
 		self.w.stroke.set(str(self.presetStroke(font)))
