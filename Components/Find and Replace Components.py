@@ -25,24 +25,11 @@ from AppKit import (
 	NSWindowStyleMaskResizable,
 )
 from Foundation import NSNumberFormatter, NSPoint
-from GlyphsApp import Glyphs, CORNER, CAP, BRUSH, SEGMENT, Message
+from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, UpdateButton
 
 
 SPECIAL_PREFIXES = ("_cap.", "_corner.", "_segment.", "_brush.", "_head.")
-
-# special components are hints in the layer, not regular components:
-# WORKAROUND (Glyphs 4.2, 4203): GlyphsApp has no constant for head hints; their hint type is 20. To be reported at https://github.com/schriftgestalt/GlyphsSDK/issues
-HEAD = 20
-hintTypes = {"_cap.": CAP, "_corner.": CORNER, "_segment.": SEGMENT, "_brush.": BRUSH, "_head.": HEAD}
-hintKindNames = {CAP: "cap", CORNER: "corner", SEGMENT: "segment", BRUSH: "brush", HEAD: "head"}
-
-scopeChoices = (
-	"Current master",
-	"⚠️ All masters of frontmost font",
-	"⚠️ Current masters of all open fonts",
-	"⚠️ All masters of all open fonts",
-)
 
 
 class SteppingEditText(vanilla.EditText):
@@ -338,8 +325,12 @@ class FindReplaceComponents(mekkaObject):
 		a2 = math.degrees(math.atan2(v2.y, v2.x))
 		return (a1 - a2) % 360.0
 
-	def replaceHintsInLayer(self, layer, settings, hintType, dryRun=False):
-		"""Replace or remove corner/cap hints in a layer. Returns (count, messages). With dryRun, only counts."""
+	def replaceHintsInLayer(self, layer, settings, dryRun=False):
+		"""
+		Replace or remove special components (cap, corner, segment, brush, head) in a layer. They are hints,
+		and found by their name alone, which is unique to each kind (_cap.xxx, _corner.xxx, …).
+		Returns (count, messages). With dryRun, only counts.
+		"""
 		msgs = []
 		glyphName = layer.parent.name if layer.parent else "?"
 		layerName = layer.name or "—"
@@ -347,9 +338,9 @@ class FindReplaceComponents(mekkaObject):
 
 		indicesToProcess = []
 		for i, hint in enumerate(layer.hints):
-			if hint.type != hintType or hint.name != findName:
+			if hint.name != findName:
 				continue
-			if settings["useAngleFilter"] and hintType == CORNER:
+			if settings["useAngleFilter"]:
 				try:
 					node = hint.originNode
 					angle = self.angleBetweenVectors(node.prevNode, node, node.nextNode)
@@ -373,7 +364,7 @@ class FindReplaceComponents(mekkaObject):
 
 		if count > 0:
 			action = "Replaced" if replaceName else "Removed"
-			kind = hintKindNames[hintType]
+			kind = settings["kindName"]
 			msgs.append(f"\t✅ {action} {count} {kind} component{'s' if count != 1 else ''} in {glyphName}, layer: {layerName}")
 
 		return count, msgs
@@ -415,8 +406,8 @@ class FindReplaceComponents(mekkaObject):
 	def processLayer(self, layer, settings, dryRun=False):
 		"""Dispatch to hint- or component-based replacement for one layer."""
 		try:
-			if settings["hintType"] is not None:
-				return self.replaceHintsInLayer(layer, settings, settings["hintType"], dryRun)
+			if settings["kindName"]:
+				return self.replaceHintsInLayer(layer, settings, dryRun)
 			return self.replaceComponentsInLayer(layer, settings, dryRun)
 		except Exception as e:
 			import traceback
@@ -431,7 +422,7 @@ class FindReplaceComponents(mekkaObject):
 		return {
 			"findName": findName,
 			"replaceName": (self.pref("replaceName") or "").strip(),
-			"hintType": hintTypes.get(specialKind(findName)),
+			"kindName": (specialKind(findName) or "")[1:-1],  # "_cap." becomes "cap"
 			"useAngleFilter": self.prefBool("useAngleFilter") and isCorner,
 			"smallerThan": bool(self.prefInt("largerOrSmaller")),
 			"thresholdAngle": self.prefFloat("thresholdAngle"),
@@ -534,11 +525,11 @@ class FindReplaceComponents(mekkaObject):
 			print()
 
 		action = "Removed" if isEmpty else "Replaced"
-		noun = "hint" if settings["hintType"] is not None else "component"
+		noun = "hint" if settings["kindName"] else "component"
 		summary = f"{action} {totalCount} {noun}{'s' if totalCount != 1 else ''}"
 		print(f"Done. {summary}.")
 
-		self.w.statusLine.set(f"↔ {summary}.")
+		self.w.statusLine.set(f"✅ {summary}.")
 		self.updateUI()
 		Glyphs.showNotification(
 			f"{noun}s {action.lower()}",
