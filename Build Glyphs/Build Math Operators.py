@@ -68,16 +68,12 @@ def rectangle(xSpan, ySpan):
 	return polygon(((xSpan[0], ySpan[0]), (xSpan[1], ySpan[0]), (xSpan[1], ySpan[1]), (xSpan[0], ySpan[1])))
 
 
-def crossOutline(horizontalLength, verticalLength, horizontalStroke, verticalStroke, centerY=0):
-	"""A plus as one 12-point contour."""
-	left, right = span(0, horizontalLength)
-	barLow, barHigh = span(centerY, horizontalStroke)
-	stemLeft, stemRight = span(0, verticalStroke)
-	bottom, top = span(centerY, verticalLength)
-	return polygon((
-		(left, barLow), (stemLeft, barLow), (stemLeft, bottom), (stemRight, bottom), (stemRight, barLow), (right, barLow),
-		(right, barHigh), (stemRight, barHigh), (stemRight, top), (stemLeft, top), (stemLeft, barHigh), (left, barHigh),
-	))
+def crossShapes(horizontalLength, verticalLength, horizontalStroke, verticalStroke, centerY=0):
+	"""A plus as two overlapping bars. The overlap stays, it is not merged into one contour."""
+	return [
+		rectangle(span(0, horizontalLength), span(centerY, horizontalStroke)),
+		rectangle(span(0, verticalStroke), span(centerY, verticalLength)),
+	]
 
 
 def ellipseOutline(xSpan, ySpan):
@@ -244,16 +240,20 @@ def waveOutline(length, stroke):
 class Proportions(object):
 	"""The dimensions all shapes of one master are built from. Whole units; italic angle 0 draws upright."""
 
-	def __init__(self, length, stroke, overshoot, italicAngle, adaptPlusMinus, distance, secondaryDistance, miter, correction):
-		self.length = int(round(length))
-		self.stroke = int(round(stroke))
-		self.overshoot = overshoot
-		self.tangent = math.tan(math.radians(italicAngle))
-		self.distance = int(round(distance))  # between the bars of = ≠ ≈
-		self.secondaryDistance = int(round(secondaryDistance))  # in ÷ ± ≤ ≥
-		self.miter = miter / 100.0
-		self.correction = correction / 100.0
-		self.adaptPlusMinus = adaptPlusMinus
+	def __init__(self, plan):
+		self.length = int(round(plan["length"]))
+		self.stroke = int(round(plan["stroke"]))
+		self.tangent = math.tan(math.radians(plan["italicAngle"]))
+		self.adaptPlusMinus = plan["adaptPlusMinus"]
+		self.dotDistance = int(round(plan["dotDistance"]))  # between dots and bar in ÷
+		self.shapeDistance = int(round(plan["shapeDistance"]))  # between the shapes in ± ≤ ≥
+		self.barDistance = int(round(plan["barDistance"]))  # between the two horizontals in = ≠ ≈
+		self.overshoot = plan["overshoot"]  # of the dots in ÷
+		self.kneeCap = plan["kneeCap"]  # of the inner apex in < > ≤ ≥
+		self.slashOverhang = plan["slashOverhang"]  # of the slash in ≠
+		self.multiplyExtension = plan["multiplyExtension"]  # of the arms of ×
+		self.miter = plan["miter"] / 100.0
+		self.correction = plan["correction"] / 100.0
 		# a slanted vertical stem needs to be wider to look as strong as the horizontal stroke:
 		self.verticalStroke = int(round(self.corrected((0, 1))))
 
@@ -279,20 +279,21 @@ def minusShapes(p):
 
 
 def plusShapes(p):
-	return [p.slant(crossOutline(p.length, p.length, p.stroke, p.verticalStroke))]
+	return [p.slant(bar) for bar in crossShapes(p.length, p.length, p.stroke, p.verticalStroke)]
 
 
 def multiplyShapes(p):
-	armLength = math.sqrt(2.0) * p.length * multiplyScale - p.stroke
+	armLength = math.sqrt(2.0) * p.length * multiplyScale - p.stroke + 2 * p.multiplyExtension
 	# after rotating, the horizontal bar runs up to the right, the vertical bar up to the left:
-	return [p.slant(rotate(crossOutline(armLength, armLength, p.corrected((1, 1)), p.corrected((-1, 1))), 45))]
+	arms = crossShapes(armLength, armLength, p.corrected((1, 1)), p.corrected((-1, 1)))
+	return [p.slant(rotate(arm, 45)) for arm in arms]
 
 
 def divideShapes(p):
 	shapes = minusShapes(p)
 	diameter = int(round(p.stroke + 2 * p.overshoot))
 	# the overshoot of the dots eats into the distance, so the distance is the one of a dot as wide as the stroke:
-	offset = p.stroke / 2.0 + max(p.secondaryDistance - p.overshoot, 1) + diameter / 2.0
+	offset = p.stroke / 2.0 + max(p.dotDistance - p.overshoot, 1) + diameter / 2.0
 	for sign in (1, -1):
 		# the dots follow the slant, but stay round:
 		shapes.append(ellipseOutline(span(sign * offset * p.tangent, diameter), span(sign * offset, diameter)))
@@ -300,7 +301,7 @@ def divideShapes(p):
 
 
 def equalShapes(p):
-	height = 2 * p.stroke + p.distance
+	height = 2 * p.stroke + p.barDistance
 	top = int(round(height / 2.0))
 	xSpan = span(0, p.length)
 	return [
@@ -311,7 +312,7 @@ def equalShapes(p):
 
 def notEqualShapes(p):
 	shapes = equalShapes(p)
-	halfHeight = p.stroke + p.distance / 2.0 + p.secondaryDistance  # the slash reaches beyond the bars by the secondary distance
+	halfHeight = p.stroke + p.barDistance / 2.0 + p.slashOverhang  # the slash reaches beyond the bars by its overhang
 	slashStroke = p.corrected((math.cos(math.radians(slashAngle)), math.sin(math.radians(slashAngle))))
 	halfWidth = slashStroke / math.sin(math.radians(slashAngle)) / 2.0  # horizontal half width for the stroke thickness
 	run = halfHeight / math.tan(math.radians(slashAngle))
@@ -324,30 +325,29 @@ def notEqualShapes(p):
 
 def plusMinusShapes(p):
 	if p.adaptPlusMinus:
-		stemLength = max(p.length - p.secondaryDistance - p.stroke, 2 * p.stroke)  # as tall as the plus
+		stemLength = max(p.length - p.shapeDistance - p.stroke, 2 * p.stroke)  # as tall as the plus
 	else:
 		stemLength = p.length
-	height = stemLength + p.secondaryDistance + p.stroke
+	height = stemLength + p.shapeDistance + p.stroke
 	top = int(round(height / 2.0))
 	bottom = top - height
-	plus = crossOutline(p.length, stemLength, p.stroke, p.verticalStroke, centerY=top - stemLength / 2.0)
+	plus = crossShapes(p.length, stemLength, p.stroke, p.verticalStroke, centerY=top - stemLength / 2.0)
 	minus = rectangle(span(0, p.length), (bottom, bottom + p.stroke))
-	return [p.slant(plus), p.slant(minus)]
+	return [p.slant(bar) for bar in plus] + [p.slant(minus)]
 
 
 def logicalNotShapes(p):
 	left, right = span(0, p.length)
 	barLow, barHigh = span(0, p.stroke)
 	legLow = barLow - int(round(logicalNotLeg * p.length))
-	stemLeft = right - p.verticalStroke
-	return [p.slant(polygon((
-		(left, barLow), (stemLeft, barLow), (stemLeft, legLow), (right, legLow), (right, barHigh), (left, barHigh),
-	)))]
+	bar = rectangle((left, right), (barLow, barHigh))
+	leg = rectangle((right - p.verticalStroke, right), (legLow, barHigh))  # reaches up into the bar
+	return [p.slant(bar), p.slant(leg)]
 
 
 def approxEqualShapes(p):
 	wave, thickness = waveOutline(p.length, p.stroke)
-	offset = (thickness + p.distance) / 2.0
+	offset = (thickness + p.barDistance) / 2.0
 	return [p.slant(translate(wave, 0, offset)), p.slant(translate(wave, 0, -offset))]
 
 
@@ -369,14 +369,14 @@ def chevronShape(p, mirrored, angle=chevronAngle):
 	apex point toward the cut, so the joint of the arms does not get too heavy.
 	"""
 	upperStroke, lowerStroke = chevronStrokes(p, angle, mirrored)
-	outline = chevronOutline(angle, upperStroke, lowerStroke, p.miter * p.stroke, width=p.length, innerShift=p.overshoot)
+	outline = chevronOutline(angle, upperStroke, lowerStroke, p.miter * p.stroke, width=p.length, innerShift=p.kneeCap)
 	return mirrorHorizontally(outline) if mirrored else outline
 
 
 def chevronFits(p, mirrored, angle):
 	"""Whether a chevron at that angle can be as narrow as the bars are long. A flat chevron with a pointed apex cannot."""
 	upperStroke, lowerStroke = chevronStrokes(p, angle, mirrored)
-	points = chevronPoints(1.0, angle, upperStroke, lowerStroke, p.miter * p.stroke, p.overshoot)
+	points = chevronPoints(1.0, angle, upperStroke, lowerStroke, p.miter * p.stroke, p.kneeCap)
 	xs = [x for x, y in points]
 	return max(xs) - min(xs) <= p.length
 
@@ -391,7 +391,7 @@ def lessShapes(p):
 
 def chevronWithBar(p, mirrored):
 	"""< or > with a bar underneath. Same total height as the plain chevron, so the chevron gets flatter."""
-	barBlock = p.secondaryDistance + p.stroke
+	barBlock = p.shapeDistance + p.stroke
 
 	def heightOf(contour):
 		minX, minY, maxX, maxY = bounds([contour])
@@ -463,15 +463,14 @@ def placedShapes(character, plan):
 	"""
 	width = plan["width"]
 	for lengthChange in (0, -1, 1):
-		p = Proportions(
-			plan["length"] + lengthChange, plan["stroke"], plan["overshoot"], plan["italicAngle"], plan["adaptPlusMinus"],
-			plan["distance"], plan["secondaryDistance"], plan["miter"], plan["correction"],
-		)
+		p = Proportions(dict(plan, length=plan["length"] + lengthChange))
 		contours = [counterclockwise(contour) for contour in shapeBuilders[character](p)]
 		if character == "^":
 			shiftY = plan["capHeight"] - bounds(contours)[3]  # the tip touches the cap height
 		else:
 			shiftY = plan["centerY"]
+			if character == "±":
+				shiftY = max(shiftY, -bounds(contours)[1])  # never sink under the baseline
 		contours = [mapPoints(contour, lambda x, y: (round(x), round(y + shiftY))) for contour in contours]
 		minX, minY, maxX, maxY = bounds(contours)
 		if (width - (maxX - minX)) % 2 == 0:
@@ -553,9 +552,13 @@ class BuildMathOperators(mekkaObject):
 		"centerMode": 0,
 		"centerGlyphs": "n, zero, eight",
 		"sidebearing": 70,
-		"overshoot": 10,
-		"distance": 100,
-		"distance2": 100,
+		"dotDistance": 100,
+		"shapeDistance": 100,
+		"barDistance": 100,
+		"dotOvershoot": 10,
+		"kneeCap": 10,
+		"slashOverhang": 80,
+		"multiplyExtension": 0,
 		"miter": 80,
 		"wiper": 100,
 		"italic": True,
@@ -568,7 +571,7 @@ class BuildMathOperators(mekkaObject):
 	}
 
 	def __init__(self):
-		windowWidth = 480
+		windowWidth = 520
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
@@ -626,26 +629,29 @@ class BuildMathOperators(mekkaObject):
 		self.w.resetStroke.setToolTip("Resets the stroke to the first horizontal stem of the current master.")
 		self.w.strokeText = vanilla.TextBox("auto", "units, first horizontal stem", sizeStyle="small")
 
-		tooltipText = "Optical compensation, in units. Each dot of ÷ is as wide as the stroke plus twice this value, so the circles do not look smaller than the bar. The inner apex point of < > ≤ ≥ is drawn this far toward the cut-off outer apex, to lighten the joint of the arms."
-		self.w.overshootLabel = vanilla.TextBox("auto", "Overshoot:", sizeStyle="small")
-		self.w.overshootLabel.setToolTip(tooltipText)
-		self.w.overshoot = SteppingEditText("auto", "10", formatter=integerFormatter(0), callback=self.SavePreferences, sizeStyle="small")
-		self.w.overshoot.setToolTip(tooltipText)
-		self.w.overshootText = vanilla.TextBox("auto", "units, dots in ÷, inner apex of <>≤≥", sizeStyle="small")
+		# distances and corrections: one row each, the fields are labeled with the glyphs they are for
+		def addField(name, glyphs, value, tooltipText, minimum, maximum=None):
+			label = vanilla.TextBox("auto", glyphs, sizeStyle="small")
+			label.setToolTip(tooltipText)
+			setattr(self.w, name + "Label", label)
+			field = SteppingEditText("auto", str(value), formatter=integerFormatter(minimum, maximum), callback=self.SavePreferences, sizeStyle="small")
+			field.setToolTip(tooltipText)
+			setattr(self.w, name, field)
 
-		tooltipText = "Space between the bars of = ≠ ≈, from edge to edge, in units."
-		self.w.distanceLabel = vanilla.TextBox("auto", "Distance:", sizeStyle="small")
-		self.w.distanceLabel.setToolTip(tooltipText)
-		self.w.distance = SteppingEditText("auto", "100", formatter=integerFormatter(1), callback=self.SavePreferences, sizeStyle="small")
-		self.w.distance.setToolTip(tooltipText)
-		self.w.distanceText = vanilla.TextBox("auto", "units, between the bars of = ≠ ≈", sizeStyle="small")
+		tooltipText = "Distances between shapes, in units, from edge to edge: for the dots in ÷, for the shapes in ± ≤ ≥, and for the two horizontals in = ≠ ≈."
+		self.w.distancesLabel = vanilla.TextBox("auto", "Distance:", sizeStyle="small")
+		self.w.distancesLabel.setToolTip(tooltipText)
+		addField("dotDistance", "÷", 100, "Space between the dots and the bar in ÷, from edge to edge, in units. The overshoot of the dots is subtracted: the distance is the one of a dot that is as wide as the stroke.", 1)
+		addField("shapeDistance", "±≤≥", 100, "Space between the plus and the minus in ±, and between the chevron and the bar in ≤ ≥, from edge to edge, in units.", 1)
+		addField("barDistance", "=≠≈", 100, "Space between the two horizontals in = ≠ ≈, from edge to edge, in units.", 1)
 
-		tooltipText = "Space between the plus and the minus in ±, between the chevron and the bar in ≤ ≥, and between the dots and the minus in ÷. Also how far the slash of ≠ reaches beyond the bars. In units, from edge to edge. In ÷ the overshoot of the dots is subtracted: the distance is the one of a dot that is as wide as the stroke."
-		self.w.distance2Label = vanilla.TextBox("auto", "Distance 2:", sizeStyle="small")
-		self.w.distance2Label.setToolTip(tooltipText)
-		self.w.distance2 = SteppingEditText("auto", "100", formatter=integerFormatter(1), callback=self.SavePreferences, sizeStyle="small")
-		self.w.distance2.setToolTip(tooltipText)
-		self.w.distance2Text = vanilla.TextBox("auto", "units, in ÷ ± ≤ ≥, slash of ≠", sizeStyle="small")
+		tooltipText = "Optical corrections, in units: the overshoot of the dots in ÷, the knee caps of < > ≤ ≥, the overhang of the slash in ≠, and the extra extension of ×."
+		self.w.correctionsLabel = vanilla.TextBox("auto", "Corrections:", sizeStyle="small")
+		self.w.correctionsLabel.setToolTip(tooltipText)
+		addField("dotOvershoot", "÷", 10, "Overshoot of the dots in ÷: each dot is as wide as the stroke plus twice this value, so the circles do not look smaller than the bar.", 0)
+		addField("kneeCap", "<>≤≥", 10, "Knee cap of < > ≤ ≥: the inner apex point is drawn this many units toward the cut-off outer apex, to lighten the joint of the arms. The shape itself does not overshoot the bars.", 0)
+		addField("slashOverhang", "≠", 80, "How far the slash of ≠ reaches beyond the outer edges of the two bars, in units.", 0)
+		addField("multiplyExtension", "×", 0, "Extra extension of × : each end of each arm is extended by this many units (negative: shortened), since diagonals look shorter than horizontals.", -200, 200)
 
 		tooltipText = "Cuts off the pointed apex of < > ≤ ≥ with a vertical line (parallel to the italic angle in slanted masters), so that the blunt end is this percentage of the stroke tall. 0 keeps the sharp point."
 		self.w.miterLabel = vanilla.TextBox("auto", "Miter:", sizeStyle="small")
@@ -692,7 +698,7 @@ class BuildMathOperators(mekkaObject):
 		self.w.setDefaultButton(self.w.drawButton)
 
 		# secondary info text takes a semantic color:
-		for hint in (self.w.sidebearingText, self.w.strokeText, self.w.overshootText, self.w.distanceText, self.w.distance2Text, self.w.miterText, self.w.wiperText):
+		for hint in (self.w.sidebearingText, self.w.strokeText, self.w.miterText, self.w.wiperText):
 			hint.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
 		# the status line shortens instead of widening the window:
 		self.w.status.getNSTextField().setLineBreakMode_(NSLineBreakByTruncatingTail)
@@ -701,11 +707,15 @@ class BuildMathOperators(mekkaObject):
 		self.w.descriptionText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# the labels end at one x-position:
-		labelNames = ("widthLabel", "centerLabel", "sidebearingLabel", "strokeLabel", "overshootLabel", "distanceLabel", "distance2Label", "miterLabel", "wiperLabel", "scopeLabel")
+		labelNames = ("widthLabel", "centerLabel", "sidebearingLabel", "strokeLabel", "distancesLabel", "correctionsLabel", "miterLabel", "wiperLabel", "scopeLabel")
 		widestLabel = "wiperLabel"
 		for labelName in labelNames:
 			nsLabel = getattr(self.w, labelName).getNSTextField()
 			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+		for fieldName in ("dotDistance", "shapeDistance", "barDistance", "dotOvershoot", "kneeCap", "slashOverhang", "multiplyExtension"):
+			nsLabel = getattr(self.w, fieldName + "Label").getNSTextField()
 			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
 			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 		# the fields behind the popups: the one for glyph names stretches, the number does not
@@ -728,9 +738,8 @@ class BuildMathOperators(mekkaObject):
 			"H:|-inset-[centerLabel]-gap-[centerMode]-gap-[figureStyle(>=60)]-gap-[centerGlyphs(>=90)]-inset-|",
 			"H:|-inset-[sidebearingLabel]-gap-[sidebearing(60)]-gap-[sidebearingText]-(>=inset)-|",
 			"H:|-inset-[strokeLabel]-gap-[stroke(60)]-gap-[resetStroke]-gap-[strokeText]-(>=inset)-|",
-			"H:|-inset-[overshootLabel]-gap-[overshoot(60)]-gap-[overshootText]-(>=inset)-|",
-			"H:|-inset-[distanceLabel]-gap-[distance(60)]-gap-[distanceText]-(>=inset)-|",
-			"H:|-inset-[distance2Label]-gap-[distance2(60)]-gap-[distance2Text]-(>=inset)-|",
+			"H:|-inset-[distancesLabel]-gap-[dotDistanceLabel]-tight-[dotDistance(fieldWidth)]-pair-[shapeDistanceLabel]-tight-[shapeDistance(fieldWidth)]-pair-[barDistanceLabel]-tight-[barDistance(fieldWidth)]-(>=inset)-|",
+			"H:|-inset-[correctionsLabel]-gap-[dotOvershootLabel]-tight-[dotOvershoot(fieldWidth)]-pair-[kneeCapLabel]-tight-[kneeCap(fieldWidth)]-pair-[slashOverhangLabel]-tight-[slashOverhang(fieldWidth)]-pair-[multiplyExtensionLabel]-tight-[multiplyExtension(fieldWidth)]-(>=inset)-|",
 			"H:|-inset-[miterLabel]-gap-[miter(60)]-gap-[miterText]-(>=inset)-|",
 			"H:|-inset-[wiperLabel]-gap-[wiper(60)]-gap-[wiperText]-(>=inset)-|",
 			"H:|-inset-[italic]-gap-[includeLessGreater]-(>=inset)-|",
@@ -739,7 +748,7 @@ class BuildMathOperators(mekkaObject):
 			"H:|-inset-[status]-inset-|",
 			"H:|-inset-[tabButton]-(>=inset)-[drawButton(>=70)]-inset-|",
 			(
-				"V:|-inset-[descriptionText(42)]-row-[drawMode(radioHeight)]-section-[widthMode]-row-[centerMode]-section-[sidebearing]-row-[stroke]-row-[overshoot]-row-[distance]-row-[distance2]-row-[miter]-row-[wiper]"
+				"V:|-inset-[descriptionText(42)]-row-[drawMode(radioHeight)]-section-[widthMode]-row-[centerMode]-section-[sidebearing]-row-[stroke]-row-[dotDistance]-row-[dotOvershoot]-row-[miter]-row-[wiper]"
 				"-section-[italic]-checkRow-[adaptPlusMinus]-section-[scope]-section-[overwrite]-checkRow-[backup]-section-[status]-inset-[drawButton]-inset-|"
 			),
 			"V:[tabButton]-inset-|",
@@ -764,9 +773,8 @@ class BuildMathOperators(mekkaObject):
 			("centerMode", ("centerLabel", "figureStyle", "centerGlyphs")),
 			("sidebearing", ("sidebearingLabel", "sidebearingText")),
 			("stroke", ("strokeLabel", "resetStroke", "strokeText")),
-			("overshoot", ("overshootLabel", "overshootText")),
-			("distance", ("distanceLabel", "distanceText")),
-			("distance2", ("distance2Label", "distance2Text")),
+			("dotDistance", ("distancesLabel", "dotDistanceLabel", "shapeDistanceLabel", "shapeDistance", "barDistanceLabel", "barDistance")),
+			("dotOvershoot", ("correctionsLabel", "dotOvershootLabel", "kneeCapLabel", "kneeCap", "slashOverhangLabel", "slashOverhang", "multiplyExtensionLabel", "multiplyExtension")),
 			("miter", ("miterLabel", "miterText")),
 			("wiper", ("wiperLabel", "wiperText")),
 			("scope", ("scopeLabel", )),
@@ -774,7 +782,7 @@ class BuildMathOperators(mekkaObject):
 		for fieldName, otherNames in rowFields:
 			for otherName in otherNames:
 				rules.append(aligned(otherName, fieldName, "centerY"))
-		self.w.addAutoPosSizeRules(rules, metrics={"inset": 15, "gap": 8, "row": 8, "section": 12, "checkRow": 5, "radioHeight": self.w.drawMode.getFittingHeight()})
+		self.w.addAutoPosSizeRules(rules, metrics={"inset": 15, "gap": 8, "row": 8, "section": 12, "checkRow": 5, "tight": 4, "pair": 14, "fieldWidth": 50, "radioHeight": self.w.drawMode.getFittingHeight()})
 
 		# the stroke is a property of the font, not of this script, so it is preset and not remembered:
 		self.w.stroke.set(str(self.presetStroke(font)))
@@ -894,16 +902,22 @@ class BuildMathOperators(mekkaObject):
 			settings = {
 				"stroke": int(round(float(self.w.stroke.get()))),
 				"sidebearing": int(round(float(self.pref("sidebearing")))),
-				"overshoot": int(round(float(self.pref("overshoot")))),
-				"distance": int(round(float(self.pref("distance")))),
-				"secondaryDistance": int(round(float(self.pref("distance2")))),
+				"dotDistance": int(round(float(self.pref("dotDistance")))),
+				"shapeDistance": int(round(float(self.pref("shapeDistance")))),
+				"barDistance": int(round(float(self.pref("barDistance")))),
+				"overshoot": int(round(float(self.pref("dotOvershoot")))),
+				"kneeCap": int(round(float(self.pref("kneeCap")))),
+				"slashOverhang": int(round(float(self.pref("slashOverhang")))),
+				"multiplyExtension": int(round(float(self.pref("multiplyExtension")))),
 				"miter": float(self.pref("miter")),
 				"wiper": float(self.pref("wiper")),
 				"plusWidth": int(round(float(self.pref("plusWidth")))),
 			}
 		except (TypeError, ValueError):
 			return None
-		if settings["stroke"] < 1 or settings["plusWidth"] < 1 or settings["sidebearing"] < 0 or settings["overshoot"] < 0 or settings["distance"] < 1 or settings["secondaryDistance"] < 1 or settings["miter"] < 0 or not 0 <= settings["wiper"] <= 100:
+		distances = (settings["dotDistance"], settings["shapeDistance"], settings["barDistance"])
+		corrections = (settings["overshoot"], settings["kneeCap"], settings["slashOverhang"])
+		if settings["stroke"] < 1 or settings["plusWidth"] < 1 or settings["sidebearing"] < 0 or min(distances) < 1 or min(corrections) < 0 or settings["miter"] < 0 or not 0 <= settings["wiper"] <= 100:
 			return None
 		settings["takeFromMinus"] = self.prefInt("drawMode") == 1 and not forceFromScratch
 		settings["widthMode"] = self.prefInt("widthMode")
@@ -1006,9 +1020,13 @@ class BuildMathOperators(mekkaObject):
 			"capHeight": capHeight,
 			"stroke": stroke,
 			"length": length,
+			"dotDistance": settings["dotDistance"],
+			"shapeDistance": settings["shapeDistance"],
+			"barDistance": settings["barDistance"],
 			"overshoot": settings["overshoot"],
-			"distance": settings["distance"],
-			"secondaryDistance": settings["secondaryDistance"],
+			"kneeCap": settings["kneeCap"],
+			"slashOverhang": settings["slashOverhang"],
+			"multiplyExtension": settings["multiplyExtension"],
 			"miter": settings["miter"],
 			"correction": settings["wiper"],
 			"italicAngle": italicAngle,
@@ -1079,9 +1097,6 @@ class BuildMathOperators(mekkaObject):
 					layer.shapes = None
 					for contour in placedShapes(character, plan):
 						layer.shapes.append(pathFromContour(contour))
-					if character == "≠":
-						layer.removeOverlap()  # the slash crosses both bars
-						layer.roundCoordinates()
 					layer.width = plan["width"]
 					layer.updateMetrics()
 					layer.syncMetrics()
