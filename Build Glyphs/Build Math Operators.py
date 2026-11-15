@@ -657,7 +657,7 @@ class BuildMathOperators(mekkaObject):
 		self.w.sidebearingText = vanilla.TextBox("auto", "units, left and right", sizeStyle="small")
 
 		tooltipText = "Stroke thickness in units. Preset with the first horizontal stem of the current master. Not used if you take the thickness from the minus."
-		self.w.strokeLabel = vanilla.TextBox("auto", "Stroke", sizeStyle="small")
+		self.w.strokeLabel = vanilla.TextBox("auto", "Stroke width", sizeStyle="small")
 		self.w.strokeLabel.setToolTip(tooltipText)
 		self.w.stroke = SteppingEditText("auto", "80", formatter=integerFormatter(1), callback=self.SavePreferences, sizeStyle="small")
 		self.w.stroke.setToolTip(tooltipText)
@@ -740,6 +740,8 @@ class BuildMathOperators(mekkaObject):
 		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
 
 		self.w.editMinusButton = vanilla.Button("auto", "Edit minus", callback=self.editMinus, sizeStyle="small")
+		self.w.deriveValuesButton = vanilla.Button("auto", "Derive values", callback=self.deriveValues, sizeStyle="small")
+		self.w.deriveValuesButton.setToolTip("Fills in the width, the sidebearings and the stroke width from the minus of the current master, assuming that it is centered. Use it after you changed the minus.")
 		self.w.editMinusButton.setToolTip("Switches to ‘Derive from minus’ and shows the minus in a tab for editing, in all fonts of the scope (an existing minus tab is reused). Change the thickness of the minus, then click Draw to redraw all operators with it.")
 		self.w.tabButton = vanilla.Button("auto", "Open Tab", callback=self.openTab)
 		self.w.tabButton.setToolTip("Opens a new Edit tab with the operators.")
@@ -783,7 +785,7 @@ class BuildMathOperators(mekkaObject):
 
 		rules = [
 			"H:|-inset-[descriptionText]-inset-|",
-			"H:|-inset-[drawMode]-gap-[editMinusButton]-(>=inset)-|",
+			"H:|-inset-[drawMode]-gap-[editMinusButton]-gap-[deriveValuesButton]-(>=inset)-|",
 			"H:|-inset-[widthLabel]-gap-[widthMode]-gap-[plusWidth(>=60)]-gap-[plusWidthGlyph(>=90)]-inset-|",
 			"H:|-inset-[centerLabel]-gap-[centerMode]-gap-[figureStyle(>=60)]-gap-[centerGlyphs(>=90)]-inset-|",
 			"H:|-inset-[sidebearingLabel]-gap-[sidebearing(60)]-gap-[sidebearingText]-(>=inset)-|",
@@ -813,6 +815,7 @@ class BuildMathOperators(mekkaObject):
 			aligned("multiplyExtensionLabel", "barDistanceLabel", "width"),
 			# the button sits next to the last radio button, the one for the minus:
 			aligned("editMinusButton", "drawMode", "bottom"),
+			aligned("deriveValuesButton", "drawMode", "bottom"),
 			"H:[backup]-gap-[clearBackgroundsButton]-(>=inset)-|",
 			aligned("clearBackgroundsButton", "backup", "centerY"),
 			# everything in the Draw row sits on the vertical center of its first checkbox
@@ -893,10 +896,10 @@ class BuildMathOperators(mekkaObject):
 		self.lastDrawMode = mode
 		self.SavePreferences()
 		if loaded:
-			self.setStatus("✅ Derived from the minus: width %i, sidebearings %i." % loaded)
+			self.setStatus("✅ Derived from the minus: width %i, sidebearings %i, stroke width %i." % loaded)
 
 	def loadWidthFromMinus(self):
-		"""Fills the width and the sidebearings from the minus of the current master. Returns (width, sidebearing) or None."""
+		"""Fills the width, the sidebearings and the stroke width from the minus of the current master. Returns them, or None."""
 		font = Glyphs.font
 		if not font:
 			return None
@@ -906,10 +909,21 @@ class BuildMathOperators(mekkaObject):
 			return None
 		width = int(round(layer.width))
 		sidebearing = max(int(round(layer.LSB)), 0)  # the minus is assumed to be centered, so the left sidebearing is the one
+		stroke = max(int(round(layer.bounds.size.height)), 1)  # the thickness of the bar
 		self.w.widthMode.set(0)  # a number
 		self.w.plusWidth.set(str(width))
 		self.w.sidebearing.set(str(sidebearing))
-		return width, sidebearing
+		self.w.stroke.set(str(stroke))
+		return width, sidebearing, stroke
+
+	def deriveValues(self, sender):
+		"""The button: takes the values from the minus again, e.g. after it was edited."""
+		loaded = self.loadWidthFromMinus()
+		if loaded is None:
+			self.setStatus("⚠️ The minus has no outlines to take the values from.")
+			return
+		self.SavePreferences()
+		self.setStatus("✅ Derived from the minus: width %i, sidebearings %i, stroke width %i." % loaded)
 
 	def SavePreferences(self, sender=None):
 		super().SavePreferences(sender)
