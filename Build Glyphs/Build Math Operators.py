@@ -589,7 +589,7 @@ class BuildMathOperators(mekkaObject):
 
 		self.w.descriptionText = vanilla.TextBox(
 			"auto",
-			"Draws +−×÷=≠±≈¬ with the widths, sidebearings and heights below. Changes show live in the font.",
+			"Draws the math operators with the widths, sidebearings and heights below. Changes show live in the font.",
 			sizeStyle="small",
 			selectable=True,
 		)
@@ -597,8 +597,14 @@ class BuildMathOperators(mekkaObject):
 		self.w.drawMode = vanilla.VerticalRadioGroup("auto", ("Draw from scratch", "Take from minus"), callback=self.SavePreferences, sizeStyle="small")
 		self.w.drawMode.setToolTip("From scratch: the stroke comes from the field below. From minus: the stroke is the thickness of your minus. The minus itself is redrawn like all other operators, so only its thickness counts.")
 
+		tooltipText = "The operators that are drawn. Tick the boxes behind them to draw the less and greater symbols, and asciitilde and asciicircum as well."
+		self.w.drawLabel = vanilla.TextBox("auto", "Draw", sizeStyle="small")
+		self.w.drawLabel.setToolTip(tooltipText)
+		self.w.operatorsText = vanilla.TextBox("auto", mathOperators, sizeStyle="small")
+		self.w.operatorsText.setToolTip(tooltipText)
+
 		tooltipText = "Width of the plus. All other operators get the same width, and RSB =|."
-		self.w.widthLabel = vanilla.TextBox("auto", "Plus width:", sizeStyle="small")
+		self.w.widthLabel = vanilla.TextBox("auto", "Plus width", sizeStyle="small")
 		self.w.widthLabel.setToolTip(tooltipText)
 		self.w.widthMode = vanilla.PopUpButton("auto", ("Number", "Same as zero", "Same as glyph…"), callback=self.SavePreferences, sizeStyle="small")
 		self.w.widthMode.setToolTip("Number: width in units. Same as zero: width of zero.tf, or else zero.tosf, or else zero, in each master (%i if the font has no zero). Same as glyph: width of the glyph in the field." % fallbackPlusWidth)
@@ -608,7 +614,7 @@ class BuildMathOperators(mekkaObject):
 		self.w.plusWidthGlyph.setToolTip("Name of the glyph whose width the plus takes.")
 
 		tooltipText = "The operators are vertically centered on this height. The caret ^ is the exception: its tip touches the cap height."
-		self.w.centerLabel = vanilla.TextBox("auto", "Center on:", sizeStyle="small")
+		self.w.centerLabel = vanilla.TextBox("auto", "Center on", sizeStyle="small")
 		self.w.centerLabel.setToolTip(tooltipText)
 		self.w.centerMode = vanilla.PopUpButton("auto", ("Half cap height", "Half x-height", "Center of figures", "Center of glyphs"), callback=self.SavePreferences, sizeStyle="small")
 		self.w.centerMode.setToolTip(tooltipText)
@@ -618,14 +624,14 @@ class BuildMathOperators(mekkaObject):
 		self.w.centerGlyphs.setToolTip("Comma-separated glyph names. The average of the vertical centers of their bounding boxes is the center height.")
 
 		tooltipText = "Distance between the shape and the edge of the glyph, on each side, in units."
-		self.w.sidebearingLabel = vanilla.TextBox("auto", "Sidebearings:", sizeStyle="small")
+		self.w.sidebearingLabel = vanilla.TextBox("auto", "Sidebearings", sizeStyle="small")
 		self.w.sidebearingLabel.setToolTip(tooltipText)
 		self.w.sidebearing = SteppingEditText("auto", "70", formatter=integerFormatter(0), callback=self.SavePreferences, sizeStyle="small")
 		self.w.sidebearing.setToolTip(tooltipText)
 		self.w.sidebearingText = vanilla.TextBox("auto", "units, left and right", sizeStyle="small")
 
 		tooltipText = "Stroke thickness in units. Preset with the first horizontal stem of the current master. Not used if you take the thickness from the minus."
-		self.w.strokeLabel = vanilla.TextBox("auto", "Stroke:", sizeStyle="small")
+		self.w.strokeLabel = vanilla.TextBox("auto", "Stroke", sizeStyle="small")
 		self.w.strokeLabel.setToolTip(tooltipText)
 		self.w.stroke = SteppingEditText("auto", "80", formatter=integerFormatter(1), callback=self.SavePreferences, sizeStyle="small")
 		self.w.stroke.setToolTip(tooltipText)
@@ -645,14 +651,14 @@ class BuildMathOperators(mekkaObject):
 			setattr(self.w, name, field)
 
 		tooltipText = "Distances between shapes, in units, from edge to edge: for the dots in ÷, for the two horizontals in = ≠ ≈, and for the shapes in ± ≤ ≥."
-		self.w.distancesLabel = vanilla.TextBox("auto", "Distance:", sizeStyle="small")
+		self.w.distancesLabel = vanilla.TextBox("auto", "Distance", sizeStyle="small")
 		self.w.distancesLabel.setToolTip(tooltipText)
 		addField("dotDistance", "÷", 100, "Space between the dots and the bar in ÷, from edge to edge, in units. The overshoot of the dots is subtracted: the distance is the one of a dot that is as wide as the stroke.", 1)
 		addField("barDistance", "=≠≈", 100, "Space between the two horizontals in = ≠ ≈, from edge to edge, in units.", 1)
 		addField("shapeDistance", "±≤≥", 100, "Space between the plus and the minus in ±, and between the chevron and the bar in ≤ ≥, from edge to edge, in units.", 1)
 
 		tooltipText = "Optical corrections, in units: the overshoot of the dots in ÷, the extra extension of ×, the knee caps of < > ≤ ≥, and the overhang and the stroke width of the slash in ≠."
-		self.w.correctionsLabel = vanilla.TextBox("auto", "Corrections:", sizeStyle="small")
+		self.w.correctionsLabel = vanilla.TextBox("auto", "Corrections", sizeStyle="small")
 		self.w.correctionsLabel.setToolTip(tooltipText)
 		addField("dotOvershoot", "÷", 10, "Overshoot of the dots in ÷: each dot is as wide as the stroke plus twice this value, so the circles do not look smaller than the bar.", 0)
 		addField("multiplyExtension", "×", 0, "Extra extension of ×: each end of each arm is extended by this many units (negative: shortened), since diagonals look shorter than horizontals.", -99, 99)
@@ -663,14 +669,14 @@ class BuildMathOperators(mekkaObject):
 		self.w.slashLabel.setToolTip("The slash in ≠. First field: how far it reaches beyond the bars. Second field: change of its stroke width. Both in units.")
 
 		tooltipText = "Cuts off the pointed apex of < > ≤ ≥ with a vertical line (parallel to the italic angle in slanted masters), so that the blunt end is this percentage of the stroke tall. 0 keeps the sharp point."
-		self.w.miterLabel = vanilla.TextBox("auto", "Miter:", sizeStyle="small")
+		self.w.miterLabel = vanilla.TextBox("auto", "Miter", sizeStyle="small")
 		self.w.miterLabel.setToolTip(tooltipText)
 		self.w.miter = SteppingEditText("auto", "80", formatter=integerFormatter(0, 200), callback=self.SavePreferences, sizeStyle="small")
 		self.w.miter.setToolTip(tooltipText)
 		self.w.miterText = vanilla.TextBox("auto", "% of the stroke, in <>≤≥", sizeStyle="small")
 
 		tooltipText = "Slanting thins strokes that are neither horizontal nor vertical, like the arms of × (windshield-wiper effect). This corrects the thickness of vertical and diagonal strokes in + × ≠ ± ¬ < > ≤ ≥ and ^. 100 is full correction, 0 is the pure geometric slant. Without ‘Respect italic angle’ all operators are upright."
-		self.w.wiperLabel = vanilla.TextBox("auto", "Wiper correction:", sizeStyle="small")
+		self.w.wiperLabel = vanilla.TextBox("auto", "Wiper correction", sizeStyle="small")
 		self.w.wiperLabel.setToolTip(tooltipText)
 		self.w.wiper = SteppingEditText("auto", "100", formatter=integerFormatter(0, 100), callback=self.SavePreferences, sizeStyle="small")
 		self.w.wiper.setToolTip(tooltipText)
@@ -680,9 +686,9 @@ class BuildMathOperators(mekkaObject):
 		self.w.italic.setToolTip("Slants the shapes by the italic angle of each master, and widens vertical strokes so that they keep the thickness of the horizontal ones. Off: upright shapes.")
 		self.w.adaptPlusMinus = vanilla.CheckBox("auto", "Adapt height in ±", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.adaptPlusMinus.setToolTip("Shortens the vertical stroke of the plus in ±, so that ± is as tall as the plus. Off: ± is a full plus with a minus underneath, and taller than the plus.")
-		self.w.includeLessGreater = vanilla.CheckBox("auto", "Include %s" % lessGreater, value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.includeLessGreater = vanilla.CheckBox("auto", lessGreater, value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.includeLessGreater.setToolTip("Also draws less, greater, lessequal and greaterequal.")
-		self.w.includeAscii = vanilla.CheckBox("auto", "Include %s" % asciiOperators, value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.includeAscii = vanilla.CheckBox("auto", asciiOperators, value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.includeAscii.setToolTip("Also draws asciitilde and asciicircum.")
 
 		self.w.overwrite = vanilla.CheckBox("auto", "Overwrite existing", value=True, callback=self.SavePreferences, sizeStyle="small")
@@ -691,7 +697,7 @@ class BuildMathOperators(mekkaObject):
 		self.w.backup.setToolTip("Before a layer is overwritten for the first time in this session, copies its outlines into the background. Does nothing if the background already holds something.")
 
 		tooltipText = "Which fonts and masters are drawn. Stroke, sidebearings and overshoot are the same in all masters of the scope."
-		self.w.scopeLabel = vanilla.TextBox("auto", "Scope:", sizeStyle="small")
+		self.w.scopeLabel = vanilla.TextBox("auto", "Scope", sizeStyle="small")
 		self.w.scopeLabel.setToolTip(tooltipText)
 		self.w.scope = vanilla.PopUpButton("auto", scopeChoices, callback=self.SavePreferences, sizeStyle="small")
 		self.w.scope.setToolTip(tooltipText)
@@ -716,7 +722,7 @@ class BuildMathOperators(mekkaObject):
 		self.w.descriptionText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# the labels end at one x-position:
-		labelNames = ("widthLabel", "centerLabel", "sidebearingLabel", "strokeLabel", "distancesLabel", "correctionsLabel", "miterLabel", "wiperLabel", "scopeLabel")
+		labelNames = ("drawLabel", "widthLabel", "centerLabel", "sidebearingLabel", "strokeLabel", "distancesLabel", "correctionsLabel", "miterLabel", "wiperLabel", "scopeLabel")
 		widestLabel = "wiperLabel"
 		for labelName in labelNames:
 			nsLabel = getattr(self.w, labelName).getNSTextField()
@@ -751,13 +757,14 @@ class BuildMathOperators(mekkaObject):
 			"H:|-inset-[correctionsLabel]-gap-[dotOvershoot(fieldWidth)]-tight-[dotOvershootLabel]-pair-[multiplyExtension(fieldWidth)]-tight-[multiplyExtensionLabel]-pair-[kneeCap(fieldWidth)]-tight-[kneeCapLabel]-pair-[slashOverhang(fieldWidth)]-tight-[slashStroke(fieldWidth)]-tight-[slashLabel]-(>=inset)-|",
 			"H:|-inset-[miterLabel]-gap-[miter(60)]-gap-[miterText]-(>=inset)-|",
 			"H:|-inset-[wiperLabel]-gap-[wiper(60)]-gap-[wiperText]-(>=inset)-|",
-			"H:|-inset-[italic]-gap-[includeLessGreater]-(>=inset)-|",
-			"H:|-inset-[adaptPlusMinus]-gap-[includeAscii]-(>=inset)-|",
+			"H:|-inset-[italic]-(>=inset)-|",
+			"H:|-inset-[adaptPlusMinus]-(>=inset)-|",
+			"H:|-inset-[drawLabel]-gap-[operatorsText]-gap-[includeLessGreater]-gap-[includeAscii]-(>=inset)-|",
 			"H:|-inset-[scopeLabel]-gap-[scope]-inset-|",
 			"H:|-inset-[status]-inset-|",
 			"H:|-inset-[tabButton]-(>=inset)-[drawButton(>=70)]-inset-|",
 			(
-				"V:|-inset-[descriptionText(42)]-row-[drawMode(radioHeight)]-section-[widthMode]-row-[centerMode]-section-[sidebearing]-row-[stroke]-row-[dotDistance]-row-[dotOvershoot]-row-[miter]-row-[wiper]"
+				"V:|-inset-[descriptionText(42)]-row-[drawMode(radioHeight)]-section-[includeLessGreater]-row-[widthMode]-row-[centerMode]-section-[sidebearing]-row-[stroke]-row-[dotDistance]-row-[dotOvershoot]-row-[miter]-row-[wiper]"
 				"-section-[italic]-checkRow-[adaptPlusMinus]-section-[scope]-section-[overwrite]-checkRow-[backup]-section-[status]-inset-[drawButton]-inset-|"
 			),
 			"V:[tabButton]-inset-|",
@@ -768,11 +775,10 @@ class BuildMathOperators(mekkaObject):
 			aligned("kneeCapLabel", "shapeDistanceLabel", "width"),
 			# the button sits next to the last radio button, the one for the minus:
 			aligned("editMinusButton", "drawMode", "bottom"),
-			# two columns of options; the second column follows the widest checkbox of the first
-			aligned("adaptPlusMinus", "italic", "width"),
-			aligned("includeLessGreater", "italic", "centerY"),
-			aligned("includeAscii", "adaptPlusMinus", "centerY"),
-			aligned("includeAscii", "includeLessGreater", "leading"),
+			# everything in the Draw row sits on the vertical center of its first checkbox
+			aligned("drawLabel", "includeLessGreater", "centerY"),
+			aligned("operatorsText", "includeLessGreater", "centerY"),
+			aligned("includeAscii", "includeLessGreater", "centerY"),
 			# the overwrite options sit under the Scope popup
 			aligned("overwrite", "scope", "leading"),
 			aligned("backup", "scope", "leading"),
