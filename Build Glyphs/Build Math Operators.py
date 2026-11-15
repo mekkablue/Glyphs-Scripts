@@ -29,7 +29,7 @@ zeroCandidates = ("zero.tf", "zero.tosf", "zero")  # for ‘same as zero’, in 
 fallbackStroke = 80  # if the master has no horizontal stem
 
 # Proportions of the shapes, relative to the stroke or to the length of the bars:
-gapRatio = 1.2  # space between bars (= ≠ ± ≤ ≥), and between the dots and the bar of ÷, in strokes
+gapRatio = 1.2  # space between the bars of = ≠ ≈, in strokes. For ÷ ± ≤ ≥ the Distance field decides
 multiplyScale = 0.9  # bounding box of × relative to the length of the bars
 chevronAngle = 30.0  # angle of the arms of < and > against the horizontal axis, in degrees
 caretAngle = 45.0  # angle of the arms of ^ against the vertical axis, in degrees
@@ -132,48 +132,71 @@ def bounds(contours):
 	return min(xs), min(ys), max(xs), max(ys)
 
 
-def chevronRun(axisExtent, angle, stroke):
-	"""Horizontal run of the centerline of one arm, if the chevron is axisExtent wide."""
-	sine = math.sin(math.radians(angle))
-	return max(axisExtent - (stroke / 2.0) * (sine + 1.0 / sine), 1.0)
+def intersection(pointA, directionA, pointB, directionB):
+	"""Intersection of two lines, each given by a point and a direction."""
+	determinant = directionA[0] * directionB[1] - directionA[1] * directionB[0]
+	parameter = ((pointB[0] - pointA[0]) * directionB[1] - (pointB[1] - pointA[1]) * directionB[0]) / determinant
+	return pointA[0] + parameter * directionA[0], pointA[1] + parameter * directionA[1]
 
 
-def chevronHeight(axisExtent, angle, stroke):
-	theta = math.radians(angle)
-	return 2.0 * (chevronRun(axisExtent, angle, stroke) * math.tan(theta) + (stroke / 2.0) * math.cos(theta))
-
-
-def chevronOutline(axisExtent, angle, stroke):
-	"""A mitered ‘>’ (tip pointing right) of that width, with butt ends, centered on (0, 0)."""
+def chevronPoints(run, angle, upperStroke, lowerStroke, cutThickness):
+	"""
+	A mitered ‘>’ (tip pointing right) as a list of points. The centerlines of its arms meet at (0, 0), each arm runs
+	`run` units to the left. The arms may differ in stroke. If cutThickness is more than 0, the pointy outer tip is cut
+	off by a vertical line, at the place where the blunt end is that tall.
+	"""
 	theta = math.radians(angle)
 	sine, cosine = math.sin(theta), math.cos(theta)
-	half = stroke / 2.0
-	miter = half / sine
-	run = chevronRun(axisExtent, angle, stroke)
-	rise = run * math.tan(theta)
-	tipX = -axisExtent / 2.0 + run + half * sine  # x of the centerline tip
-	return polygon((
-		(tipX + miter, 0),
-		(tipX - run + half * sine, rise + half * cosine),
-		(tipX - run - half * sine, rise - half * cosine),
-		(tipX - miter, 0),
-		(tipX - run - half * sine, -rise + half * cosine),
-		(tipX - run + half * sine, -rise - half * cosine),
-	))
+	tangent = sine / cosine
+	upperDirection, lowerDirection = (-cosine, sine), (-cosine, -sine)
+	upperNormal, lowerNormal = (sine, cosine), (sine, -cosine)  # point to the outer side of the arm
+	halfUpper, halfLower = upperStroke / 2.0, lowerStroke / 2.0
+
+	def offset(normal, distance):
+		return normal[0] * distance, normal[1] * distance
+
+	outerUpper, outerLower = offset(upperNormal, halfUpper), offset(lowerNormal, halfLower)
+	innerUpper, innerLower = offset(upperNormal, -halfUpper), offset(lowerNormal, -halfLower)
+	outerTip = intersection(outerUpper, upperDirection, outerLower, lowerDirection)
+	innerTip = intersection(innerUpper, upperDirection, innerLower, lowerDirection)
+
+	rise = run * tangent
+	endUpper, endLower = (-run, rise), (-run, -rise)
+	endPoints = (
+		(endUpper[0] + outerUpper[0], endUpper[1] + outerUpper[1]),
+		(endUpper[0] + innerUpper[0], endUpper[1] + innerUpper[1]),
+		innerTip,
+		(endLower[0] + innerLower[0], endLower[1] + innerLower[1]),
+		(endLower[0] + outerLower[0], endLower[1] + outerLower[1]),
+	)
+
+	if cutThickness > 0:
+		# the vertical distance between the outer edges grows linearly with the distance from the outer tip:
+		cutX = (outerUpper[1] - outerLower[1] + tangent * (outerUpper[0] + outerLower[0]) - cutThickness) / (2.0 * tangent)
+		# never cut beyond the inner tip, that would tear the stroke apart:
+		cutX = min(max(cutX, innerTip[0] + 0.05 * (outerTip[0] - innerTip[0])), outerTip[0])
+		upperY = outerUpper[1] + tangent * (outerUpper[0] - cutX)
+		lowerY = outerLower[1] - tangent * (outerLower[0] - cutX)
+		return [(cutX, upperY)] + list(endPoints) + [(cutX, lowerY)]
+	return [outerTip] + list(endPoints)
 
 
-def solveChevronAngle(axisExtent, stroke, targetHeight):
-	"""Angle at which the chevron is targetHeight tall. The taller the chevron, the larger the angle."""
-	low, high = 5.0, chevronAngle
-	if chevronHeight(axisExtent, low, stroke) >= targetHeight:
-		return low
-	for _ in range(40):
-		middle = (low + high) / 2.0
-		if chevronHeight(axisExtent, middle, stroke) < targetHeight:
-			low = middle
-		else:
-			high = middle
-	return (low + high) / 2.0
+def chevronOutline(angle, upperStroke, lowerStroke, cutThickness, width=None, height=None):
+	"""A ‘>’ of that bounding box width, or else height, centered on (0, 0). The run of the arms is found by measuring."""
+	probeRun = 100.0
+
+	def measured(run):
+		points = chevronPoints(run, angle, upperStroke, lowerStroke, cutThickness)
+		xs, ys = [x for x, y in points], [y for x, y in points]
+		return points, min(xs), max(xs), min(ys), max(ys)
+
+	points, minX, maxX, minY, maxY = measured(probeRun)
+	if width is not None:
+		run = probeRun + width - (maxX - minX)  # width grows by one unit per unit of run
+	else:
+		run = probeRun + (height - (maxY - minY)) / (2.0 * math.tan(math.radians(angle)))  # height by two tangents per unit
+	points, minX, maxX, minY, maxY = measured(max(run, 1.0))
+	return polygon([(x - (minX + maxX) / 2.0, y - (minY + maxY) / 2.0) for x, y in points])
 
 
 def waveOutline(length, stroke):
@@ -201,7 +224,7 @@ def waveOutline(length, stroke):
 class Proportions(object):
 	"""The dimensions all shapes of one master are built from. Whole units; italic angle 0 draws upright."""
 
-	def __init__(self, length, stroke, overshoot, italicAngle, adaptPlusMinus):
+	def __init__(self, length, stroke, overshoot, italicAngle, adaptPlusMinus, distance, miter, correction):
 		self.length = int(round(length))
 		self.stroke = int(round(stroke))
 		self.overshoot = overshoot
@@ -209,12 +232,26 @@ class Proportions(object):
 		# a slanted vertical stem needs to be wider to look as strong as the horizontal stroke:
 		self.verticalStroke = int(round(stroke / math.cos(math.radians(italicAngle))))
 		self.gap = int(round(gapRatio * stroke))
+		self.distance = int(round(distance))
+		self.miter = miter / 100.0
+		self.correction = correction / 100.0
 		self.adaptPlusMinus = adaptPlusMinus
 
 	def slant(self, contour):
 		if not self.tangent:
 			return contour
 		return mapPoints(contour, lambda x, y: (x + y * self.tangent, y))
+
+	def corrected(self, direction):
+		"""
+		The thickness to draw a stroke with that direction (before slanting), so that it is as strong as the
+		stroke after slanting. Slanting stretches the direction vector by `factor`, and thus thins the stroke by
+		the same factor (windshield-wiper effect). Correction 0 is the pure geometric slant, 1 is full correction.
+		"""
+		directionX, directionY = direction
+		length = math.hypot(directionX, directionY)
+		factor = math.hypot(directionX / length + directionY / length * self.tangent, directionY / length)
+		return self.stroke * (1 + self.correction * (factor - 1))
 
 
 def minusShapes(p):
@@ -227,13 +264,14 @@ def plusShapes(p):
 
 def multiplyShapes(p):
 	armLength = math.sqrt(2.0) * p.length * multiplyScale - p.stroke
-	return [p.slant(rotate(crossOutline(armLength, armLength, p.stroke, p.stroke), 45))]
+	# after rotating, the horizontal bar runs up to the right, the vertical bar up to the left:
+	return [p.slant(rotate(crossOutline(armLength, armLength, p.corrected((1, 1)), p.corrected((-1, 1))), 45))]
 
 
 def divideShapes(p):
 	shapes = minusShapes(p)
 	diameter = int(round(p.stroke + 2 * p.overshoot))
-	offset = p.stroke / 2.0 + p.gap + diameter / 2.0
+	offset = p.stroke / 2.0 + p.distance + diameter / 2.0
 	for sign in (1, -1):
 		# the dots follow the slant, but stay round:
 		shapes.append(ellipseOutline(span(sign * offset * p.tangent, diameter), span(sign * offset, diameter)))
@@ -253,7 +291,8 @@ def equalShapes(p):
 def notEqualShapes(p):
 	shapes = equalShapes(p)
 	halfHeight = p.stroke + p.gap / 2.0 + slashOverhang * p.stroke
-	halfWidth = p.stroke / math.sin(math.radians(slashAngle)) / 2.0  # horizontal half width for the stroke thickness
+	slashStroke = p.corrected((math.cos(math.radians(slashAngle)), math.sin(math.radians(slashAngle))))
+	halfWidth = slashStroke / math.sin(math.radians(slashAngle)) / 2.0  # horizontal half width for the stroke thickness
 	run = halfHeight / math.tan(math.radians(slashAngle))
 	shapes.append(p.slant(polygon((
 		(-run - halfWidth, -halfHeight), (-run + halfWidth, -halfHeight),
@@ -264,10 +303,10 @@ def notEqualShapes(p):
 
 def plusMinusShapes(p):
 	if p.adaptPlusMinus:
-		stemLength = max(p.length - p.gap - p.stroke, 2 * p.stroke)  # as tall as the plus
+		stemLength = max(p.length - p.distance - p.stroke, 2 * p.stroke)  # as tall as the plus
 	else:
 		stemLength = p.length
-	height = stemLength + p.gap + p.stroke
+	height = stemLength + p.distance + p.stroke
 	top = int(round(height / 2.0))
 	bottom = top - height
 	plus = crossOutline(p.length, stemLength, p.stroke, p.verticalStroke, centerY=top - stemLength / 2.0)
@@ -296,26 +335,59 @@ def tildeShapes(p):
 	return [p.slant(wave)]
 
 
+def chevronStrokes(p, angle, mirrored):
+	"""Thickness of the upper and the lower arm of < or >, corrected for the slant."""
+	directionX = math.cos(math.radians(angle)) * (1 if mirrored else -1)
+	directionY = math.sin(math.radians(angle))
+	return p.corrected((directionX, directionY)), p.corrected((directionX, -directionY))
+
+
+def chevronShape(p, mirrored, angle=chevronAngle):
+	"""
+	< or >, with the apex cut off by the Miter value. The apex reaches beyond the arm ends by the overshoot, since
+	a pointed shape looks shorter than it is.
+	"""
+	upperStroke, lowerStroke = chevronStrokes(p, angle, mirrored)
+	outline = chevronOutline(angle, upperStroke, lowerStroke, p.miter * p.stroke, width=p.length + p.overshoot)
+	return mirrorHorizontally(outline) if mirrored else outline
+
+
 def greaterShapes(p):
-	return [p.slant(chevronOutline(p.length, chevronAngle, p.stroke))]
+	return [p.slant(chevronShape(p, False))]
 
 
 def lessShapes(p):
-	return [p.slant(mirrorHorizontally(chevronOutline(p.length, chevronAngle, p.stroke)))]
+	return [p.slant(chevronShape(p, True))]
 
 
 def chevronWithBar(p, mirrored):
 	"""< or > with a bar underneath. Same total height as the plain chevron, so the chevron gets flatter."""
-	barBlock = p.gap + p.stroke
-	targetHeight = chevronHeight(p.length, chevronAngle, p.stroke) - barBlock
-	angle = solveChevronAngle(p.length, p.stroke, targetHeight)
-	height = chevronHeight(p.length, angle, p.stroke)
-	total = height + barBlock
-	chevron = translate(chevronOutline(p.length, angle, p.stroke), 0, total / 2.0 - height / 2.0)
-	if mirrored:
-		chevron = mirrorHorizontally(chevron)
+	barBlock = p.distance + p.stroke
+
+	def heightOf(contour):
+		minX, minY, maxX, maxY = bounds([contour])
+		return maxY - minY
+
+	targetHeight = heightOf(chevronShape(p, mirrored)) - barBlock
+	low, high = 5.0, chevronAngle
+	if heightOf(chevronShape(p, mirrored, low)) >= targetHeight:
+		angle = low
+	else:
+		for _ in range(30):
+			angle = (low + high) / 2.0
+			if heightOf(chevronShape(p, mirrored, angle)) < targetHeight:
+				low = angle
+			else:
+				high = angle
+		angle = (low + high) / 2.0
+	chevron = chevronShape(p, mirrored, angle)
+	minX, minY, maxX, maxY = bounds([chevron])
+	total = (maxY - minY) + barBlock
+	chevron = translate(chevron, 0, total / 2.0 - (maxY - minY) / 2.0)
 	bottom = int(round(-total / 2.0))
-	bar = rectangle(span(0, p.length), (bottom, bottom + p.stroke))
+	# the bar is as long as the arms reach, so only the apex overshoots:
+	barEnd = int(round(maxX if mirrored else minX + p.length))
+	bar = rectangle((barEnd - p.length, barEnd), (bottom, bottom + p.stroke))
 	return [p.slant(chevron), p.slant(bar)]
 
 
@@ -328,12 +400,11 @@ def greaterEqualShapes(p):
 
 
 def caretShapes(p):
-	"""A chevron pointing up, as wide as the bars are long."""
+	"""A chevron pointing up, as wide as the bars are long. Built as ‘>’ and rotated, so its arms run down to the sides."""
 	theta = math.radians(caretAngle)
-	sine, cosine = math.sin(theta), math.cos(theta)
-	armLength = (p.length / 2.0 - (p.stroke / 2.0) * cosine) / sine
-	axisExtent = armLength * cosine + (p.stroke / 2.0) * (sine + 1.0 / sine)
-	return [p.slant(rotate(chevronOutline(axisExtent, caretAngle, p.stroke), 90))]
+	upperStroke = p.corrected((-math.sin(theta), -math.cos(theta)))
+	lowerStroke = p.corrected((math.sin(theta), -math.cos(theta)))
+	return [p.slant(rotate(chevronOutline(caretAngle, upperStroke, lowerStroke, 0, height=p.length), 90))]
 
 
 shapeBuilders = {
@@ -363,7 +434,10 @@ def placedShapes(character, plan):
 	"""
 	width = plan["width"]
 	for lengthChange in (0, -1, 1):
-		p = Proportions(plan["length"] + lengthChange, plan["stroke"], plan["overshoot"], plan["italicAngle"], plan["adaptPlusMinus"])
+		p = Proportions(
+			plan["length"] + lengthChange, plan["stroke"], plan["overshoot"], plan["italicAngle"], plan["adaptPlusMinus"],
+			plan["distance"], plan["miter"], plan["correction"],
+		)
 		contours = [counterclockwise(contour) for contour in shapeBuilders[character](p)]
 		if character == "^":
 			shiftY = plan["capHeight"] - bounds(contours)[3]  # the tip touches the cap height
@@ -451,6 +525,9 @@ class BuildMathOperators(mekkaObject):
 		"centerGlyphs": "n, zero, eight",
 		"sidebearing": 70,
 		"overshoot": 10,
+		"distance": 100,
+		"miter": 80,
+		"wiper": 100,
 		"italic": True,
 		"adaptPlusMinus": True,
 		"includeLessGreater": False,
@@ -519,12 +596,33 @@ class BuildMathOperators(mekkaObject):
 		self.w.resetStroke.setToolTip("Resets the stroke to the first horizontal stem of the current master.")
 		self.w.strokeText = vanilla.TextBox("auto", "units, first horizontal stem", sizeStyle="small")
 
-		tooltipText = "How far the dots of ÷ overshoot: each dot is as wide as the stroke plus twice this value, so the circles do not look smaller than the bar."
+		tooltipText = "Optical compensation, in units. Each dot of ÷ is as wide as the stroke plus twice this value, so the circles do not look smaller than the bar. The apex of < > ≤ ≥ reaches this far beyond the ends of its arms."
 		self.w.overshootLabel = vanilla.TextBox("auto", "Overshoot:", sizeStyle="small")
 		self.w.overshootLabel.setToolTip(tooltipText)
 		self.w.overshoot = SteppingEditText("auto", "10", formatter=integerFormatter(0), callback=self.SavePreferences, sizeStyle="small")
 		self.w.overshoot.setToolTip(tooltipText)
-		self.w.overshootText = vanilla.TextBox("auto", "units, for the dots in ÷", sizeStyle="small")
+		self.w.overshootText = vanilla.TextBox("auto", "units, dots in ÷, apex of <>≤≥", sizeStyle="small")
+
+		tooltipText = "Space between the dots and the minus in ÷, between the plus and the minus in ±, and between the chevron and the bar in ≤ ≥. In units, from edge to edge."
+		self.w.distanceLabel = vanilla.TextBox("auto", "Distance:", sizeStyle="small")
+		self.w.distanceLabel.setToolTip(tooltipText)
+		self.w.distance = SteppingEditText("auto", "100", formatter=integerFormatter(1), callback=self.SavePreferences, sizeStyle="small")
+		self.w.distance.setToolTip(tooltipText)
+		self.w.distanceText = vanilla.TextBox("auto", "units, in ÷ ± ≤ ≥", sizeStyle="small")
+
+		tooltipText = "Cuts off the pointed apex of < > ≤ ≥ with a vertical line (parallel to the italic angle in slanted masters), so that the blunt end is this percentage of the stroke tall. 0 keeps the sharp point."
+		self.w.miterLabel = vanilla.TextBox("auto", "Miter:", sizeStyle="small")
+		self.w.miterLabel.setToolTip(tooltipText)
+		self.w.miter = SteppingEditText("auto", "80", formatter=integerFormatter(0, 200), callback=self.SavePreferences, sizeStyle="small")
+		self.w.miter.setToolTip(tooltipText)
+		self.w.miterText = vanilla.TextBox("auto", "% of the stroke, in <>≤≥", sizeStyle="small")
+
+		tooltipText = "Slanting thins strokes that are neither horizontal nor vertical, like the arms of × (windshield-wiper effect). This corrects the thickness of diagonal strokes in ×, ≠, < > ≤ ≥ and ^. 100 is full correction, 0 is the pure geometric slant. Vertical strokes are always corrected when italic angle is respected."
+		self.w.wiperLabel = vanilla.TextBox("auto", "Wiper correction:", sizeStyle="small")
+		self.w.wiperLabel.setToolTip(tooltipText)
+		self.w.wiper = SteppingEditText("auto", "100", formatter=integerFormatter(0, 100), callback=self.SavePreferences, sizeStyle="small")
+		self.w.wiper.setToolTip(tooltipText)
+		self.w.wiperText = vanilla.TextBox("auto", "% (100 = full, 0 = pure slant)", sizeStyle="small")
 
 		self.w.italic = vanilla.CheckBox("auto", "Respect italic angle", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.italic.setToolTip("Slants the shapes by the italic angle of each master, and widens vertical strokes so that they keep the thickness of the horizontal ones. Off: upright shapes.")
@@ -557,7 +655,7 @@ class BuildMathOperators(mekkaObject):
 		self.w.setDefaultButton(self.w.drawButton)
 
 		# secondary info text takes a semantic color:
-		for hint in (self.w.sidebearingText, self.w.strokeText, self.w.overshootText):
+		for hint in (self.w.sidebearingText, self.w.strokeText, self.w.overshootText, self.w.distanceText, self.w.miterText, self.w.wiperText):
 			hint.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
 		# the status line shortens instead of widening the window:
 		self.w.status.getNSTextField().setLineBreakMode_(NSLineBreakByTruncatingTail)
@@ -566,8 +664,8 @@ class BuildMathOperators(mekkaObject):
 		self.w.descriptionText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# the labels end at one x-position:
-		labelNames = ("widthLabel", "centerLabel", "sidebearingLabel", "strokeLabel", "overshootLabel", "scopeLabel")
-		widestLabel = "sidebearingLabel"
+		labelNames = ("widthLabel", "centerLabel", "sidebearingLabel", "strokeLabel", "overshootLabel", "distanceLabel", "miterLabel", "wiperLabel", "scopeLabel")
+		widestLabel = "wiperLabel"
 		for labelName in labelNames:
 			nsLabel = getattr(self.w, labelName).getNSTextField()
 			nsLabel.setAlignment_(NSTextAlignmentRight)
@@ -594,6 +692,9 @@ class BuildMathOperators(mekkaObject):
 			"H:|-inset-[sidebearingLabel]-gap-[sidebearing(60)]-gap-[sidebearingText]-(>=inset)-|",
 			"H:|-inset-[strokeLabel]-gap-[stroke(60)]-gap-[resetStroke]-gap-[strokeText]-(>=inset)-|",
 			"H:|-inset-[overshootLabel]-gap-[overshoot(60)]-gap-[overshootText]-(>=inset)-|",
+			"H:|-inset-[distanceLabel]-gap-[distance(60)]-gap-[distanceText]-(>=inset)-|",
+			"H:|-inset-[miterLabel]-gap-[miter(60)]-gap-[miterText]-(>=inset)-|",
+			"H:|-inset-[wiperLabel]-gap-[wiper(60)]-gap-[wiperText]-(>=inset)-|",
 			"H:|-inset-[italic]-(>=inset)-|",
 			"H:|-inset-[adaptPlusMinus]-(>=inset)-|",
 			"H:|-inset-[includeLessGreater]-(>=inset)-|",
@@ -604,7 +705,7 @@ class BuildMathOperators(mekkaObject):
 			"H:|-inset-[status]-inset-|",
 			"H:|-inset-[editMinusButton]-gap-[tabButton]-(>=inset)-[drawButton(>=70)]-inset-|",
 			(
-				"V:|-inset-[descriptionText(42)]-row-[drawMode(radioHeight)]-section-[widthMode]-row-[centerMode]-section-[sidebearing]-row-[stroke]-row-[overshoot]"
+				"V:|-inset-[descriptionText(42)]-row-[drawMode(radioHeight)]-section-[widthMode]-row-[centerMode]-section-[sidebearing]-row-[stroke]-row-[overshoot]-row-[distance]-row-[miter]-row-[wiper]"
 				"-section-[italic]-checkRow-[adaptPlusMinus]-checkRow-[includeLessGreater]-checkRow-[includeAscii]-checkRow-[overwrite]-checkRow-[backup]-section-[scope]-section-[status]-inset-[drawButton]-inset-|"
 			),
 			"V:[editMinusButton]-inset-|",
@@ -621,6 +722,9 @@ class BuildMathOperators(mekkaObject):
 			("sidebearing", ("sidebearingLabel", "sidebearingText")),
 			("stroke", ("strokeLabel", "resetStroke", "strokeText")),
 			("overshoot", ("overshootLabel", "overshootText")),
+			("distance", ("distanceLabel", "distanceText")),
+			("miter", ("miterLabel", "miterText")),
+			("wiper", ("wiperLabel", "wiperText")),
 			("scope", ("scopeLabel", )),
 		)
 		for fieldName, otherNames in rowFields:
@@ -653,6 +757,7 @@ class BuildMathOperators(mekkaObject):
 		self.w.figureStyle.enable(centerMode == 2)
 		self.w.centerGlyphs.enable(centerMode == 3)
 		self.w.backup.enable(self.w.overwrite.get())
+		self.w.wiper.enable(self.w.italic.get())
 
 	def SavePreferences(self, sender=None):
 		super().SavePreferences(sender)
@@ -720,11 +825,14 @@ class BuildMathOperators(mekkaObject):
 				"stroke": int(round(float(self.w.stroke.get()))),
 				"sidebearing": int(round(float(self.pref("sidebearing")))),
 				"overshoot": int(round(float(self.pref("overshoot")))),
+				"distance": int(round(float(self.pref("distance")))),
+				"miter": float(self.pref("miter")),
+				"wiper": float(self.pref("wiper")),
 				"plusWidth": int(round(float(self.pref("plusWidth")))),
 			}
 		except (TypeError, ValueError):
 			return None
-		if settings["stroke"] < 1 or settings["plusWidth"] < 1 or settings["sidebearing"] < 0 or settings["overshoot"] < 0:
+		if settings["stroke"] < 1 or settings["plusWidth"] < 1 or settings["sidebearing"] < 0 or settings["overshoot"] < 0 or settings["distance"] < 1 or settings["miter"] < 0 or not 0 <= settings["wiper"] <= 100:
 			return None
 		settings["takeFromMinus"] = self.prefInt("drawMode") == 1 and not forceFromScratch
 		settings["widthMode"] = self.prefInt("widthMode")
@@ -829,6 +937,9 @@ class BuildMathOperators(mekkaObject):
 			"stroke": stroke,
 			"length": length,
 			"overshoot": settings["overshoot"],
+			"distance": settings["distance"],
+			"miter": settings["miter"],
+			"correction": settings["wiper"],
 			"italicAngle": italicAngle,
 			"adaptPlusMinus": settings["adaptPlusMinus"],
 		}, None
