@@ -790,10 +790,12 @@ class BuildMathOperators(mekkaObject):
 			# the two italic fields are indented like the checkbox
 			aligned("wiper", "italic", "leading"),
 			aligned("angleAdjustment", "italic", "leading"),
-			# the first three fields of the two lines stand above each other: their mini labels share a width
-			aligned("dotOvershootLabel", "dotDistanceLabel", "width"),
-			aligned("multiplyExtensionLabel", "barDistanceLabel", "width"),
-			aligned("kneeCapLabel", "shapeDistanceLabel", "width"),
+			# the first three fields of both lines stand above each other, at equal distances: all their mini labels share one width
+			aligned("dotDistanceLabel", "kneeCapLabel", "width"),
+			aligned("barDistanceLabel", "kneeCapLabel", "width"),
+			aligned("shapeDistanceLabel", "kneeCapLabel", "width"),
+			aligned("dotOvershootLabel", "kneeCapLabel", "width"),
+			aligned("multiplyExtensionLabel", "kneeCapLabel", "width"),
 			# the button sits next to the last radio button, the one for the minus:
 			aligned("editMinusButton", "drawMode", "bottom"),
 			# everything in the Draw row sits on the vertical center of its first checkbox
@@ -824,7 +826,7 @@ class BuildMathOperators(mekkaObject):
 		for fieldName, otherNames in rowFields:
 			for otherName in otherNames:
 				rules.append(aligned(otherName, fieldName, "centerY"))
-		self.w.addAutoPosSizeRules(rules, metrics={"inset": 15, "gap": 8, "row": 8, "section": 12, "checkRow": 5, "tight": 4, "pair": 14, "fieldWidth": 35, "radioHeight": self.w.drawMode.getFittingHeight()})
+		self.w.addAutoPosSizeRules(rules, metrics={"inset": 15, "gap": 8, "row": 8, "section": 12, "checkRow": 5, "tight": 4, "pair": 10, "fieldWidth": 35, "radioHeight": self.w.drawMode.getFittingHeight()})
 
 		# the stroke is a property of the font, not of this script, so it is preset and not remembered:
 		self.w.stroke.set(str(self.presetStroke(font)))
