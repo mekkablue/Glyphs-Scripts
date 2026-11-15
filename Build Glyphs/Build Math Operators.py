@@ -34,7 +34,6 @@ multiplyScale = 0.9  # bounding box of × relative to the length of the bars
 chevronAngle = 30.0  # angle of the arms of < and > against the horizontal axis, in degrees
 caretAngle = 45.0  # angle of the arms of ^ against the vertical axis, in degrees
 slashAngle = 63.0  # angle of the slash in ≠ against the horizontal, in degrees
-slashOverhang = 0.8  # how far the slash of ≠ reaches beyond the bars, in strokes
 waveAmplitude = 0.09  # amplitude of the waves in ≈ and ~, relative to the length of the bars
 waveHandleStart = 0.33  # Bézier handle lengths (fraction of a quarter wave) that approximate a sine wave
 waveHandleEnd = 0.36
@@ -139,11 +138,12 @@ def intersection(pointA, directionA, pointB, directionB):
 	return pointA[0] + parameter * directionA[0], pointA[1] + parameter * directionA[1]
 
 
-def chevronPoints(run, angle, upperStroke, lowerStroke, cutThickness):
+def chevronPoints(run, angle, upperStroke, lowerStroke, cutThickness, innerShift=0):
 	"""
 	A mitered ‘>’ (tip pointing right) as a list of points. The centerlines of its arms meet at (0, 0), each arm runs
 	`run` units to the left. The arms may differ in stroke. If cutThickness is more than 0, the pointy outer tip is cut
-	off by a vertical line, at the place where the blunt end is that tall.
+	off by a vertical line, at the place where the blunt end is that tall. The inner apex point is drawn `innerShift`
+	units toward the outer apex, which lightens the joint of the arms.
 	"""
 	theta = math.radians(angle)
 	sine, cosine = math.sin(theta), math.cos(theta)
@@ -160,42 +160,62 @@ def chevronPoints(run, angle, upperStroke, lowerStroke, cutThickness):
 	outerTip = intersection(outerUpper, upperDirection, outerLower, lowerDirection)
 	innerTip = intersection(innerUpper, upperDirection, innerLower, lowerDirection)
 
+	apexX = outerTip[0]  # where the outer apex ends, at the tip or at the cut
+	if cutThickness > 0:
+		# the vertical distance between the outer edges grows linearly with the distance from the outer tip:
+		cutX = (outerUpper[1] - outerLower[1] + tangent * (outerUpper[0] + outerLower[0]) - cutThickness) / (2.0 * tangent)
+		# never cut beyond the inner tip, that would tear the stroke apart:
+		apexX = min(max(cutX, innerTip[0] + 0.05 * (outerTip[0] - innerTip[0])), outerTip[0])
+	# the inner apex moves toward the outer one, but never gets close enough to tear off the joint:
+	innerX = min(innerTip[0] + innerShift, apexX - 0.25 * min(upperStroke, lowerStroke))
+	innerPoint = (max(innerX, innerTip[0]), innerTip[1])
+
 	rise = run * tangent
 	endUpper, endLower = (-run, rise), (-run, -rise)
 	endPoints = (
 		(endUpper[0] + outerUpper[0], endUpper[1] + outerUpper[1]),
 		(endUpper[0] + innerUpper[0], endUpper[1] + innerUpper[1]),
-		innerTip,
+		innerPoint,
 		(endLower[0] + innerLower[0], endLower[1] + innerLower[1]),
 		(endLower[0] + outerLower[0], endLower[1] + outerLower[1]),
 	)
 
 	if cutThickness > 0:
-		# the vertical distance between the outer edges grows linearly with the distance from the outer tip:
-		cutX = (outerUpper[1] - outerLower[1] + tangent * (outerUpper[0] + outerLower[0]) - cutThickness) / (2.0 * tangent)
-		# never cut beyond the inner tip, that would tear the stroke apart:
-		cutX = min(max(cutX, innerTip[0] + 0.05 * (outerTip[0] - innerTip[0])), outerTip[0])
-		upperY = outerUpper[1] + tangent * (outerUpper[0] - cutX)
-		lowerY = outerLower[1] - tangent * (outerLower[0] - cutX)
-		return [(cutX, upperY)] + list(endPoints) + [(cutX, lowerY)]
+		upperY = outerUpper[1] + tangent * (outerUpper[0] - apexX)
+		lowerY = outerLower[1] - tangent * (outerLower[0] - apexX)
+		return [(apexX, upperY)] + list(endPoints) + [(apexX, lowerY)]
 	return [outerTip] + list(endPoints)
 
 
-def chevronOutline(angle, upperStroke, lowerStroke, cutThickness, width=None, height=None):
+def chevronOutline(angle, upperStroke, lowerStroke, cutThickness, width=None, height=None, innerShift=0):
 	"""A ‘>’ of that bounding box width, or else height, centered on (0, 0). The run of the arms is found by measuring."""
-	probeRun = 100.0
+	# the arm ends must be the leftmost points, otherwise the width does not grow with the run. That takes a long run at flat angles:
+	probeRun = 100.0 + 2.0 * max(upperStroke, lowerStroke) / math.sin(math.radians(angle))
 
 	def measured(run):
-		points = chevronPoints(run, angle, upperStroke, lowerStroke, cutThickness)
+		points = chevronPoints(run, angle, upperStroke, lowerStroke, cutThickness, innerShift)
 		xs, ys = [x for x, y in points], [y for x, y in points]
 		return points, min(xs), max(xs), min(ys), max(ys)
 
 	points, minX, maxX, minY, maxY = measured(probeRun)
 	if width is not None:
 		run = probeRun + width - (maxX - minX)  # width grows by one unit per unit of run
+		points, minX, maxX, minY, maxY = measured(max(run, 1.0))
+		if abs((maxX - minX) - width) > 0.01:
+			# with thick strokes at flat angles the inner apex is the leftmost point, and the width no longer
+			# grows with the run. The width never shrinks with the run, so search for it:
+			low, high = 1.0, 2.0 * width + probeRun
+			for _ in range(50):
+				middle = (low + high) / 2.0
+				points, minX, maxX, minY, maxY = measured(middle)
+				if maxX - minX < width:
+					low = middle
+				else:
+					high = middle
+			points, minX, maxX, minY, maxY = measured(high)
 	else:
 		run = probeRun + (height - (maxY - minY)) / (2.0 * math.tan(math.radians(angle)))  # height by two tangents per unit
-	points, minX, maxX, minY, maxY = measured(max(run, 1.0))
+		points, minX, maxX, minY, maxY = measured(max(run, 1.0))
 	return polygon([(x - (minX + maxX) / 2.0, y - (minY + maxY) / 2.0) for x, y in points])
 
 
@@ -291,7 +311,7 @@ def equalShapes(p):
 
 def notEqualShapes(p):
 	shapes = equalShapes(p)
-	halfHeight = p.stroke + p.distance / 2.0 + slashOverhang * p.stroke
+	halfHeight = p.stroke + p.distance / 2.0 + p.secondaryDistance  # the slash reaches beyond the bars by the secondary distance
 	slashStroke = p.corrected((math.cos(math.radians(slashAngle)), math.sin(math.radians(slashAngle))))
 	halfWidth = slashStroke / math.sin(math.radians(slashAngle)) / 2.0  # horizontal half width for the stroke thickness
 	run = halfHeight / math.tan(math.radians(slashAngle))
@@ -345,12 +365,20 @@ def chevronStrokes(p, angle, mirrored):
 
 def chevronShape(p, mirrored, angle=chevronAngle):
 	"""
-	< or >, with the apex cut off by the Miter value. The apex reaches beyond the arm ends by the overshoot, since
-	a pointed shape looks shorter than it is.
+	< or >, as wide as the bars are long, with the outer apex cut off by the Miter value. The overshoot draws the inner
+	apex point toward the cut, so the joint of the arms does not get too heavy.
 	"""
 	upperStroke, lowerStroke = chevronStrokes(p, angle, mirrored)
-	outline = chevronOutline(angle, upperStroke, lowerStroke, p.miter * p.stroke, width=p.length + p.overshoot)
+	outline = chevronOutline(angle, upperStroke, lowerStroke, p.miter * p.stroke, width=p.length, innerShift=p.overshoot)
 	return mirrorHorizontally(outline) if mirrored else outline
+
+
+def chevronFits(p, mirrored, angle):
+	"""Whether a chevron at that angle can be as narrow as the bars are long. A flat chevron with a pointed apex cannot."""
+	upperStroke, lowerStroke = chevronStrokes(p, angle, mirrored)
+	points = chevronPoints(1.0, angle, upperStroke, lowerStroke, p.miter * p.stroke, p.overshoot)
+	xs = [x for x, y in points]
+	return max(xs) - min(xs) <= p.length
 
 
 def greaterShapes(p):
@@ -370,7 +398,9 @@ def chevronWithBar(p, mirrored):
 		return maxY - minY
 
 	targetHeight = heightOf(chevronShape(p, mirrored)) - barBlock
-	low, high = 5.0, chevronAngle
+	low, high = 10.0, chevronAngle  # flatter chevrons are not worth having, the glyph gets taller instead
+	while low < high and not chevronFits(p, mirrored, low):
+		low += 1.0
 	if heightOf(chevronShape(p, mirrored, low)) >= targetHeight:
 		angle = low
 	else:
@@ -386,9 +416,7 @@ def chevronWithBar(p, mirrored):
 	total = (maxY - minY) + barBlock
 	chevron = translate(chevron, 0, total / 2.0 - (maxY - minY) / 2.0)
 	bottom = int(round(-total / 2.0))
-	# the bar is as long as the arms reach, so only the apex overshoots:
-	barEnd = int(round(maxX if mirrored else minX + p.length))
-	bar = rectangle((barEnd - p.length, barEnd), (bottom, bottom + p.stroke))
+	bar = rectangle(span(0, p.length), (bottom, bottom + p.stroke))
 	return [p.slant(chevron), p.slant(bar)]
 
 
@@ -598,12 +626,12 @@ class BuildMathOperators(mekkaObject):
 		self.w.resetStroke.setToolTip("Resets the stroke to the first horizontal stem of the current master.")
 		self.w.strokeText = vanilla.TextBox("auto", "units, first horizontal stem", sizeStyle="small")
 
-		tooltipText = "Optical compensation, in units. Each dot of ÷ is as wide as the stroke plus twice this value, so the circles do not look smaller than the bar. The apex of < > ≤ ≥ reaches this far beyond the ends of its arms."
+		tooltipText = "Optical compensation, in units. Each dot of ÷ is as wide as the stroke plus twice this value, so the circles do not look smaller than the bar. The inner apex point of < > ≤ ≥ is drawn this far toward the cut-off outer apex, to lighten the joint of the arms."
 		self.w.overshootLabel = vanilla.TextBox("auto", "Overshoot:", sizeStyle="small")
 		self.w.overshootLabel.setToolTip(tooltipText)
 		self.w.overshoot = SteppingEditText("auto", "10", formatter=integerFormatter(0), callback=self.SavePreferences, sizeStyle="small")
 		self.w.overshoot.setToolTip(tooltipText)
-		self.w.overshootText = vanilla.TextBox("auto", "units, dots in ÷, apex of <>≤≥", sizeStyle="small")
+		self.w.overshootText = vanilla.TextBox("auto", "units, dots in ÷, inner apex of <>≤≥", sizeStyle="small")
 
 		tooltipText = "Space between the bars of = ≠ ≈, from edge to edge, in units."
 		self.w.distanceLabel = vanilla.TextBox("auto", "Distance:", sizeStyle="small")
@@ -612,12 +640,12 @@ class BuildMathOperators(mekkaObject):
 		self.w.distance.setToolTip(tooltipText)
 		self.w.distanceText = vanilla.TextBox("auto", "units, between the bars of = ≠ ≈", sizeStyle="small")
 
-		tooltipText = "Space between the plus and the minus in ±, between the chevron and the bar in ≤ ≥, and between the dots and the minus in ÷. In units, from edge to edge. In ÷ the overshoot of the dots is subtracted: the distance is the one of a dot that is as wide as the stroke."
+		tooltipText = "Space between the plus and the minus in ±, between the chevron and the bar in ≤ ≥, and between the dots and the minus in ÷. Also how far the slash of ≠ reaches beyond the bars. In units, from edge to edge. In ÷ the overshoot of the dots is subtracted: the distance is the one of a dot that is as wide as the stroke."
 		self.w.distance2Label = vanilla.TextBox("auto", "Distance 2:", sizeStyle="small")
 		self.w.distance2Label.setToolTip(tooltipText)
 		self.w.distance2 = SteppingEditText("auto", "100", formatter=integerFormatter(1), callback=self.SavePreferences, sizeStyle="small")
 		self.w.distance2.setToolTip(tooltipText)
-		self.w.distance2Text = vanilla.TextBox("auto", "units, in ÷ ± ≤ ≥", sizeStyle="small")
+		self.w.distance2Text = vanilla.TextBox("auto", "units, in ÷ ± ≤ ≥, slash of ≠", sizeStyle="small")
 
 		tooltipText = "Cuts off the pointed apex of < > ≤ ≥ with a vertical line (parallel to the italic angle in slanted masters), so that the blunt end is this percentage of the stroke tall. 0 keeps the sharp point."
 		self.w.miterLabel = vanilla.TextBox("auto", "Miter:", sizeStyle="small")
