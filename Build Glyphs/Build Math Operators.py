@@ -502,6 +502,16 @@ def integerFormatter(minimum=None, maximum=None):
 	return formatter
 
 
+def decimalFormatter(minimum=None, maximum=None):
+	"""Number formatter that accepts decimals, optionally within a range."""
+	formatter = NSNumberFormatter.alloc().init()
+	if minimum is not None:
+		formatter.setMinimum_(minimum)
+	if maximum is not None:
+		formatter.setMaximum_(maximum)
+	return formatter
+
+
 def metricPosition(font, master, metricType):
 	"""Returns the position of the (unfiltered) metric of that type in the master, or None."""
 	for metric in font.metrics:
@@ -564,8 +574,9 @@ class BuildMathOperators(mekkaObject):
 		"slashStroke": 0,
 		"multiplyExtension": 0,
 		"miter": 80,
-		"wiper": 100,
 		"italic": True,
+		"wiper": 100,
+		"angleAdjustment": -1,
 		"adaptPlusMinus": True,
 		"includeLessGreater": False,
 		"includeAscii": False,
@@ -675,17 +686,24 @@ class BuildMathOperators(mekkaObject):
 		self.w.miter.setToolTip(tooltipText)
 		self.w.miterText = vanilla.TextBox("auto", "% of the stroke, in <>≤≥", sizeStyle="small")
 
-		tooltipText = "Slanting thins strokes that are neither horizontal nor vertical, like the arms of × (windshield-wiper effect). This corrects the thickness of vertical and diagonal strokes in + × ≠ ± ¬ < > ≤ ≥ and ^. 100 is full correction, 0 is the pure geometric slant. Without ‘Respect italic angle’ all operators are upright."
-		self.w.wiperLabel = vanilla.TextBox("auto", "Wiper correction", sizeStyle="small")
-		self.w.wiperLabel.setToolTip(tooltipText)
+		tooltipText = "Slanting thins strokes that are neither horizontal nor vertical, like the arms of × (windshield-wiper effect). This corrects the thickness of vertical and diagonal strokes in + × ≠ ± ¬ < > ≤ ≥ and ^. 100 is full correction, 0 is the pure geometric slant."
 		self.w.wiper = SteppingEditText("auto", "100", formatter=integerFormatter(0, 100), callback=self.SavePreferences, sizeStyle="small")
 		self.w.wiper.setToolTip(tooltipText)
-		self.w.wiperText = vanilla.TextBox("auto", "% (100 = full, 0 = pure slant)", sizeStyle="small")
+		self.w.wiperText = vanilla.TextBox("auto", "% wiper correction", sizeStyle="small")
+		self.w.wiperText.setToolTip(tooltipText)
+
+		tooltipText = "Added to the italic angle of each slanted master, in degrees: a negative value slants the operators less than the font. Upright masters stay upright."
+		self.w.angleAdjustment = SteppingEditText("auto", "-1", formatter=decimalFormatter(-45, 45), callback=self.SavePreferences, sizeStyle="small")
+		self.w.angleAdjustment.setToolTip(tooltipText)
+		self.w.angleText = vanilla.TextBox("auto", "° angle adjustment", sizeStyle="small")
+		self.w.angleText.setToolTip(tooltipText)
+		self.w.italicLabel = vanilla.TextBox("auto", "Italic angle", sizeStyle="small")
+		self.w.italicLabel.setToolTip("Slants the operators like the font, with corrections for the loss of stroke weight.")
 
 		self.w.italic = vanilla.CheckBox("auto", "Respect italic angle", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.italic.setToolTip("Slants the shapes by the italic angle of each master, and widens vertical strokes so that they keep the thickness of the horizontal ones. Off: upright shapes.")
-		self.w.adaptPlusMinus = vanilla.CheckBox("auto", "Adapt height in ±", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.adaptPlusMinus.setToolTip("Shortens the vertical stroke of the plus in ±, so that ± is as tall as the plus. Off: ± is a full plus with a minus underneath, and taller than the plus.")
+		self.w.italic.setToolTip("Slants the shapes by the italic angle of each master (plus the angle adjustment), and corrects the stroke weight for the slant. Off: all operators are upright, and the two fields behind are disabled.")
+		self.w.adaptPlusMinus = vanilla.CheckBox("auto", "Adapt height", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.adaptPlusMinus.setToolTip("Adapt height in ±: shortens the vertical stroke of the plus in ±, so that ± is as tall as the plus. Off: ± is a full plus with a minus underneath, and taller than the plus.")
 		self.w.includeLessGreater = vanilla.CheckBox("auto", lessGreater, value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.includeLessGreater.setToolTip("Also draws less, greater, lessequal and greaterequal.")
 		self.w.includeAscii = vanilla.CheckBox("auto", asciiOperators, value=False, callback=self.SavePreferences, sizeStyle="small")
@@ -713,7 +731,7 @@ class BuildMathOperators(mekkaObject):
 		self.w.setDefaultButton(self.w.drawButton)
 
 		# secondary info text takes a semantic color:
-		for hint in (self.w.sidebearingText, self.w.strokeText, self.w.miterText, self.w.wiperText):
+		for hint in (self.w.sidebearingText, self.w.strokeText, self.w.miterText):
 			hint.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
 		# the status line shortens instead of widening the window:
 		self.w.status.getNSTextField().setLineBreakMode_(NSLineBreakByTruncatingTail)
@@ -722,8 +740,8 @@ class BuildMathOperators(mekkaObject):
 		self.w.descriptionText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# the labels end at one x-position:
-		labelNames = ("drawLabel", "widthLabel", "centerLabel", "sidebearingLabel", "strokeLabel", "distancesLabel", "correctionsLabel", "miterLabel", "wiperLabel", "scopeLabel")
-		widestLabel = "wiperLabel"
+		labelNames = ("drawLabel", "widthLabel", "centerLabel", "sidebearingLabel", "strokeLabel", "distancesLabel", "correctionsLabel", "miterLabel", "italicLabel", "scopeLabel")
+		widestLabel = "sidebearingLabel"
 		for labelName in labelNames:
 			nsLabel = getattr(self.w, labelName).getNSTextField()
 			nsLabel.setAlignment_(NSTextAlignmentRight)
@@ -753,22 +771,25 @@ class BuildMathOperators(mekkaObject):
 			"H:|-inset-[centerLabel]-gap-[centerMode]-gap-[figureStyle(>=60)]-gap-[centerGlyphs(>=90)]-inset-|",
 			"H:|-inset-[sidebearingLabel]-gap-[sidebearing(60)]-gap-[sidebearingText]-(>=inset)-|",
 			"H:|-inset-[strokeLabel]-gap-[stroke(60)]-gap-[resetStroke]-gap-[strokeText]-(>=inset)-|",
-			"H:|-inset-[distancesLabel]-gap-[dotDistance(fieldWidth)]-tight-[dotDistanceLabel]-pair-[barDistance(fieldWidth)]-tight-[barDistanceLabel]-pair-[shapeDistance(fieldWidth)]-tight-[shapeDistanceLabel]-(>=inset)-|",
+			"H:|-inset-[distancesLabel]-gap-[dotDistance(fieldWidth)]-tight-[dotDistanceLabel]-pair-[barDistance(fieldWidth)]-tight-[barDistanceLabel]-pair-[shapeDistance(fieldWidth)]-tight-[shapeDistanceLabel]-pair-[adaptPlusMinus]-(>=inset)-|",
 			"H:|-inset-[correctionsLabel]-gap-[dotOvershoot(fieldWidth)]-tight-[dotOvershootLabel]-pair-[multiplyExtension(fieldWidth)]-tight-[multiplyExtensionLabel]-pair-[kneeCap(fieldWidth)]-tight-[kneeCapLabel]-pair-[slashOverhang(fieldWidth)]-tight-[slashStroke(fieldWidth)]-tight-[slashLabel]-(>=inset)-|",
 			"H:|-inset-[miterLabel]-gap-[miter(60)]-gap-[miterText]-(>=inset)-|",
-			"H:|-inset-[wiperLabel]-gap-[wiper(60)]-gap-[wiperText]-(>=inset)-|",
-			"H:|-inset-[italic]-(>=inset)-|",
-			"H:|-inset-[adaptPlusMinus]-(>=inset)-|",
+			"H:|-inset-[italicLabel]-gap-[italic]-(>=inset)-|",
+			"H:[wiper(60)]-gap-[wiperText]-(>=inset)-|",
+			"H:[angleAdjustment(60)]-gap-[angleText]-(>=inset)-|",
 			"H:|-inset-[drawLabel]-gap-[operatorsText]-gap-[includeLessGreater]-gap-[includeAscii]-(>=inset)-|",
 			"H:|-inset-[scopeLabel]-gap-[scope]-inset-|",
 			"H:|-inset-[status]-inset-|",
 			"H:|-inset-[tabButton]-(>=inset)-[drawButton(>=70)]-inset-|",
 			(
-				"V:|-inset-[descriptionText(42)]-row-[drawMode(radioHeight)]-section-[includeLessGreater]-row-[widthMode]-row-[centerMode]-section-[sidebearing]-row-[stroke]-row-[dotDistance]-row-[dotOvershoot]-row-[miter]-row-[wiper]"
-				"-section-[italic]-checkRow-[adaptPlusMinus]-section-[scope]-section-[overwrite]-checkRow-[backup]-section-[status]-inset-[drawButton]-inset-|"
+				"V:|-inset-[descriptionText(42)]-row-[drawMode(radioHeight)]-section-[includeLessGreater]-row-[widthMode]-row-[centerMode]-section-[sidebearing]-row-[stroke]-row-[dotDistance]-row-[dotOvershoot]-row-[miter]"
+				"-section-[italic]-row-[wiper]-row-[angleAdjustment]-section-[scope]-section-[overwrite]-checkRow-[backup]-section-[status]-inset-[drawButton]-inset-|"
 			),
 			"V:[tabButton]-inset-|",
 			aligned("widthMode", "centerMode", "width"),
+			# the two italic fields are indented like the checkbox
+			aligned("wiper", "italic", "leading"),
+			aligned("angleAdjustment", "italic", "leading"),
 			# the first three fields of the two lines stand above each other: their mini labels share a width
 			aligned("dotOvershootLabel", "dotDistanceLabel", "width"),
 			aligned("multiplyExtensionLabel", "barDistanceLabel", "width"),
@@ -792,10 +813,12 @@ class BuildMathOperators(mekkaObject):
 			("centerMode", ("centerLabel", "figureStyle", "centerGlyphs")),
 			("sidebearing", ("sidebearingLabel", "sidebearingText")),
 			("stroke", ("strokeLabel", "resetStroke", "strokeText")),
-			("dotDistance", ("distancesLabel", "dotDistanceLabel", "barDistance", "barDistanceLabel", "shapeDistance", "shapeDistanceLabel")),
+			("dotDistance", ("distancesLabel", "dotDistanceLabel", "barDistance", "barDistanceLabel", "shapeDistance", "shapeDistanceLabel", "adaptPlusMinus")),
 			("dotOvershoot", ("correctionsLabel", "dotOvershootLabel", "multiplyExtension", "multiplyExtensionLabel", "kneeCap", "kneeCapLabel", "slashOverhang", "slashStroke", "slashLabel")),
 			("miter", ("miterLabel", "miterText")),
-			("wiper", ("wiperLabel", "wiperText")),
+			("italic", ("italicLabel", )),
+			("wiper", ("wiperText", )),
+			("angleAdjustment", ("angleText", )),
 			("scope", ("scopeLabel", )),
 		)
 		for fieldName, otherNames in rowFields:
@@ -829,7 +852,8 @@ class BuildMathOperators(mekkaObject):
 		self.w.figureStyle.enable(centerMode == 2)
 		self.w.centerGlyphs.enable(centerMode == 3)
 		self.w.backup.enable(self.w.overwrite.get())
-		self.w.wiper.enable(self.w.italic.get())
+		for field in (self.w.wiper, self.w.angleAdjustment):
+			field.enable(self.w.italic.get())
 
 	def SavePreferences(self, sender=None):
 		super().SavePreferences(sender)
@@ -933,13 +957,14 @@ class BuildMathOperators(mekkaObject):
 				"multiplyExtension": int(round(float(self.pref("multiplyExtension")))),
 				"miter": float(self.pref("miter")),
 				"wiper": float(self.pref("wiper")),
+				"angleAdjustment": float(self.pref("angleAdjustment")),
 				"plusWidth": int(round(float(self.pref("plusWidth")))),
 			}
 		except (TypeError, ValueError):
 			return None
 		distances = (settings["dotDistance"], settings["shapeDistance"], settings["barDistance"])
 		corrections = (settings["overshoot"], settings["kneeCap"], settings["slashOverhang"])
-		if settings["stroke"] < 1 or settings["plusWidth"] < 1 or settings["sidebearing"] < 0 or min(distances) < 1 or min(corrections) < 0 or settings["miter"] < 0 or not 0 <= settings["wiper"] <= 100:
+		if settings["stroke"] < 1 or settings["plusWidth"] < 1 or settings["sidebearing"] < 0 or min(distances) < 1 or min(corrections) < 0 or settings["miter"] < 0 or not 0 <= settings["wiper"] <= 100 or not -45 <= settings["angleAdjustment"] <= 45:
 			return None
 		settings["takeFromMinus"] = self.prefInt("drawMode") == 1 and not forceFromScratch
 		settings["widthMode"] = self.prefInt("widthMode")
@@ -1013,7 +1038,9 @@ class BuildMathOperators(mekkaObject):
 
 	def planMaster(self, font, master, settings):
 		"""Returns (plan, problem): all measurements needed to draw the operators in this master."""
-		italicAngle = master.italicAngle if settings["italic"] else 0.0
+		italicAngle = 0.0
+		if settings["italic"] and master.italicAngle:  # upright masters stay upright
+			italicAngle = master.italicAngle + settings["angleAdjustment"]
 		overhang = abs(math.tan(math.radians(italicAngle)))  # a slanted bar is wider than it is long
 
 		width, problem = self.widthOf(font, master, settings)
