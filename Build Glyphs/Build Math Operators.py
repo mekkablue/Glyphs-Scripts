@@ -654,7 +654,7 @@ class BuildMathOperators(mekkaObject):
 		self.w.distancesLabel = vanilla.TextBox("auto", "Distance", sizeStyle="small")
 		self.w.distancesLabel.setToolTip(tooltipText)
 		addField("dotDistance", "÷", 100, "Space between the dots and the bar in ÷, from edge to edge, in units. The overshoot of the dots is subtracted: the distance is the one of a dot that is as wide as the stroke.", 1)
-		addField("barDistance", "=≠≈", 100, "Space between the two horizontals in = ≠ ≈, from edge to edge, in units.", 1)
+		addField("barDistance", "=", 100, "Space between the two horizontals in = ≠ ≈, from edge to edge, in units.", 1)
 		addField("shapeDistance", "±≤≥", 100, "Space between the plus and the minus in ±, and between the chevron and the bar in ≤ ≥, from edge to edge, in units.", 1)
 
 		tooltipText = "Optical corrections, in units: the overshoot of the dots in ÷, the extra extension of ×, the knee caps of < > ≤ ≥, and the overhang and the stroke width of the slash in ≠."
