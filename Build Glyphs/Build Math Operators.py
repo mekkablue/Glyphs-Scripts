@@ -666,7 +666,7 @@ class BuildMathOperators(mekkaObject):
 			setattr(self.w, name, field)
 
 		tooltipText = "Distances between shapes, in units, from edge to edge: for the dots in ÷, for the two horizontals in = ≠ ≈, and for the shapes in ± ≤ ≥."
-		self.w.distancesLabel = vanilla.TextBox("auto", "Distance", sizeStyle="small")
+		self.w.distancesLabel = vanilla.TextBox("auto", "Distances", sizeStyle="small")
 		self.w.distancesLabel.setToolTip(tooltipText)
 		addField("dotDistance", "÷", 100, "Space between the dots and the bar in ÷, from edge to edge, in units. The overshoot of the dots is subtracted: the distance is the one of a dot that is as wide as the stroke.", 1)
 		addField("barDistance", "=", 100, "Space between the two horizontals in = ≠ ≈, from edge to edge, in units.", 1)
@@ -717,7 +717,7 @@ class BuildMathOperators(mekkaObject):
 		self.w.overwrite.setToolTip("Replaces the outlines of operators that already have some. Off: layers with outlines are left alone, and only empty layers are drawn. Layers drawn by this script in this session can always be redrawn by the live preview.")
 		self.w.backup = vanilla.CheckBox("auto", "Backup in background", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.backup.setToolTip("Before a layer is overwritten for the first time in this session, copies its outlines into the background. Does nothing if the background already holds something.")
-		self.w.clearBackgroundsButton = vanilla.Button("auto", "Clear backgrounds", callback=self.clearBackgrounds, sizeStyle="mini")
+		self.w.clearBackgroundsButton = vanilla.Button("auto", "Clear backgrounds", callback=self.clearBackgrounds, sizeStyle="small")
 		self.w.clearBackgroundsButton.setToolTip("Empties the background of the operators in the scope (the glyphs of the Draw row), in the masters of the scope. Asks for confirmation first.")
 
 		tooltipText = "Which fonts and masters are drawn. Stroke, sidebearings and overshoot are the same in all masters of the scope."
@@ -796,12 +796,10 @@ class BuildMathOperators(mekkaObject):
 			# the two italic fields are indented like the checkbox
 			aligned("wiper", "italic", "leading"),
 			aligned("angleAdjustment", "italic", "leading"),
-			# the first three fields of both lines stand above each other, at equal distances: all their mini labels share one width
-			aligned("dotDistanceLabel", "kneeCapLabel", "width"),
-			aligned("barDistanceLabel", "kneeCapLabel", "width"),
-			aligned("shapeDistanceLabel", "kneeCapLabel", "width"),
-			aligned("dotOvershootLabel", "kneeCapLabel", "width"),
-			aligned("multiplyExtensionLabel", "kneeCapLabel", "width"),
+			# the first three fields of both lines stand above each other. The mini labels keep their natural width, so every gap
+			# between an element and the next is the same. Only the labels of the columns above each other share a width:
+			aligned("dotOvershootLabel", "dotDistanceLabel", "width"),
+			aligned("multiplyExtensionLabel", "barDistanceLabel", "width"),
 			# the button sits next to the last radio button, the one for the minus:
 			aligned("editMinusButton", "drawMode", "bottom"),
 			"H:[backup]-gap-[clearBackgroundsButton]-(>=inset)-|",
