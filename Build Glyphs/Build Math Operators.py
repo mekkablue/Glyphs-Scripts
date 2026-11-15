@@ -619,7 +619,7 @@ class BuildMathOperators(mekkaObject):
 		self.w.operatorsText.setToolTip(tooltipText)
 
 		tooltipText = "Width of the plus. All other operators get the same width, and RSB =|."
-		self.w.widthLabel = vanilla.TextBox("auto", "Plus width", sizeStyle="small")
+		self.w.widthLabel = vanilla.TextBox("auto", "Width", sizeStyle="small")
 		self.w.widthLabel.setToolTip(tooltipText)
 		self.w.widthMode = vanilla.PopUpButton("auto", ("Number", "Same as zero", "Same as glyph…"), callback=self.SavePreferences, sizeStyle="small")
 		self.w.widthMode.setToolTip("Number: width in units. Same as zero: width of zero.tf, or else zero.tosf, or else zero, in each master (%i if the font has no zero). Same as glyph: width of the glyph in the field." % fallbackPlusWidth)
@@ -693,7 +693,7 @@ class BuildMathOperators(mekkaObject):
 		tooltipText = "Slanting thins strokes that are neither horizontal nor vertical, like the arms of × (windshield-wiper effect). This corrects the thickness of vertical and diagonal strokes in + × ≠ ± ¬ < > ≤ ≥ and ^. 100 is full correction, 0 is the pure geometric slant."
 		self.w.wiper = SteppingEditText("auto", "100", formatter=integerFormatter(0, 100), callback=self.SavePreferences, sizeStyle="small")
 		self.w.wiper.setToolTip(tooltipText)
-		self.w.wiperText = vanilla.TextBox("auto", "% wiper correction", sizeStyle="small")
+		self.w.wiperText = vanilla.TextBox("auto", "% windshield wiper correction", sizeStyle="small")
 		self.w.wiperText.setToolTip(tooltipText)
 
 		tooltipText = "Added to the italic angle of each slanted master, in degrees: a negative value slants the operators less than the font. Upright masters stay upright."
