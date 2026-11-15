@@ -620,8 +620,8 @@ class BuildMathOperators(mekkaObject):
 			selectable=True,
 		)
 
-		self.w.drawMode = vanilla.VerticalRadioGroup("auto", ("Draw from scratch", "Take from minus"), callback=self.SavePreferences, sizeStyle="small")
-		self.w.drawMode.setToolTip("From scratch: the stroke comes from the field below. From minus: the stroke is the thickness of your minus. The minus itself is redrawn like all other operators, so only its thickness counts.")
+		self.w.drawMode = vanilla.VerticalRadioGroup("auto", ("Draw from scratch", "Derive from minus"), callback=self.drawModeChanged, sizeStyle="small")
+		self.w.drawMode.setToolTip("From scratch: the stroke, width and sidebearings come from the fields. Derive from minus: the stroke is the thickness of your minus, and when you switch to it the width and the sidebearings are filled in from the minus, assuming it is centered. The minus itself is redrawn like all other operators, so afterwards only its thickness counts.")
 
 		tooltipText = "The operators that are drawn. Tick the boxes behind them to draw the less and greater symbols, and asciitilde and asciicircum as well."
 		self.w.drawLabel = vanilla.TextBox("auto", "Draw", sizeStyle="small")
@@ -740,7 +740,7 @@ class BuildMathOperators(mekkaObject):
 		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
 
 		self.w.editMinusButton = vanilla.Button("auto", "Edit minus", callback=self.editMinus, sizeStyle="small")
-		self.w.editMinusButton.setToolTip("Switches to ‘Take from minus’ and shows the minus in a tab for editing, in all fonts of the scope (an existing minus tab is reused). Change the thickness of the minus, then click Draw to redraw all operators with it.")
+		self.w.editMinusButton.setToolTip("Switches to ‘Derive from minus’ and shows the minus in a tab for editing, in all fonts of the scope (an existing minus tab is reused). Change the thickness of the minus, then click Draw to redraw all operators with it.")
 		self.w.tabButton = vanilla.Button("auto", "Open Tab", callback=self.openTab)
 		self.w.tabButton.setToolTip("Opens a new Edit tab with the operators.")
 		self.w.drawButton = vanilla.Button("auto", "Draw", callback=self.drawButtonCallback)
@@ -853,6 +853,7 @@ class BuildMathOperators(mekkaObject):
 		if storedSuffix in self.figureSuffixes:
 			self.w.figureStyle.set(self.figureSuffixes.index(storedSuffix))
 		self.updateUI()
+		self.lastDrawMode = self.w.drawMode.get()
 
 		self.draw()  # show the current values right away; the previous outlines go to the background if that option is on
 		self.w.open()
@@ -882,6 +883,33 @@ class BuildMathOperators(mekkaObject):
 		self.w.backup.enable(self.w.overwrite.get())
 		for field in (self.w.wiper, self.w.angleAdjustment):
 			field.enable(self.w.italic.get())
+
+	def drawModeChanged(self, sender):
+		"""Deriving from the minus starts with the width and the sidebearings of the minus."""
+		mode = self.w.drawMode.get()
+		loaded = None
+		if mode == 1 and getattr(self, "lastDrawMode", 0) != 1:
+			loaded = self.loadWidthFromMinus()
+		self.lastDrawMode = mode
+		self.SavePreferences()
+		if loaded:
+			self.setStatus("✅ Derived from the minus: width %i, sidebearings %i." % loaded)
+
+	def loadWidthFromMinus(self):
+		"""Fills the width and the sidebearings from the minus of the current master. Returns (width, sidebearing) or None."""
+		font = Glyphs.font
+		if not font:
+			return None
+		minusGlyph = font.glyphs["minus"]
+		layer = minusGlyph.layers[font.selectedFontMaster.id] if minusGlyph is not None else None
+		if layer is None or len(layer.shapes) == 0:
+			return None
+		width = int(round(layer.width))
+		sidebearing = max(int(round(layer.LSB)), 0)  # the minus is assumed to be centered, so the left sidebearing is the one
+		self.w.widthMode.set(0)  # a number
+		self.w.plusWidth.set(str(width))
+		self.w.sidebearing.set(str(sidebearing))
+		return width, sidebearing
 
 	def SavePreferences(self, sender=None):
 		super().SavePreferences(sender)
@@ -937,7 +965,7 @@ class BuildMathOperators(mekkaObject):
 		if lacking:
 			self.draw(forceFromScratch=True, onlyFonts=lacking)
 		self.w.drawMode.set(1)
-		self.SavePreferences()
+		self.drawModeChanged(None)
 		# every font of the scope shows its minus, the current font last so that it stays in front:
 		fonts = sorted((scopeFont for scopeFont, masterIDs in self.targets(self.prefInt("scope"))), key=lambda scopeFont: scopeFont == font)
 		for scopeFont in fonts:
