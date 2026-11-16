@@ -295,7 +295,7 @@ def drawStrokedSkeleton(font, master, layer, penData, size, maxStemFactor, close
 
 
 def notdefFrameInLayer(font, master, layer):
-	"""Fallback .notdef without a question mark: a rectangular frame of cap height, with the stem width of the master."""
+	"""Draws the tofu rectangle in the layer: a frame of cap height, with the stem width of the master."""
 	height = capHeightOf(master)
 	width = height * 0.6
 	stem = stemWidthForMaster(font, master, maxWidth=width * 0.2)
@@ -306,7 +306,6 @@ def notdefFrameInLayer(font, master, layer):
 			((stem, stem), (stem, height - stem), (width - stem, height - stem), (width - stem, stem)),  # counter, clockwise
 		),
 	)
-	layer.syncMetrics()
 
 
 def buildNotdef(font, override=False, backupLayers=False):
@@ -327,7 +326,9 @@ def buildNotdef(font, override=False, backupLayers=False):
 	if sourceLayer is None:
 		setMetrics(notdefGlyph, leftKey="=40")
 		for master in font.masters:
-			notdefFrameInLayer(font, master, notdefGlyph.layers[master.id])
+			notdefLayer = notdefGlyph.layers[master.id]
+			notdefFrameInLayer(font, master, notdefLayer)
+			notdefLayer.syncMetrics()
 		return
 
 	# build .notdef from question mark and circle:
@@ -345,6 +346,7 @@ def buildNotdef(font, override=False, backupLayers=False):
 		notdefLayer = notdefGlyph.layers[master.id]
 		for path in questionmarkLayer.paths:
 			notdefLayer.shapes.append(path.copy())
+		notdefFrameInLayer(font, master, notdefLayer.background)  # tofu rectangle as reference in the background
 		notdefLayer.syncMetrics()
 
 
@@ -648,67 +650,73 @@ def daggerdblPenData(width, height, stem, bar):
 
 
 def productPenData(width, height, stem, bar):
-	"""∏ as one polygon: a bar on top, overhanging two legs. Origin bottom left, outer contour counterclockwise."""
+	"""∏ as three overlapping rectangles: a bar on top and two legs reaching up through it. Origin bottom left, counterclockwise."""
 	overhang = bar * 0.6
 	legLeft = overhang
-	legRight = width - overhang
-	barBottom = height - bar
-	return ((
-		(legLeft, 0.0), (legLeft + stem, 0.0), (legLeft + stem, barBottom), (legRight - stem, barBottom), (legRight - stem, 0.0), (legRight, 0.0),
-		(legRight, barBottom), (width, barBottom), (width, height), (0.0, height), (0.0, barBottom), (legLeft, barBottom)
-	), )
+	legRight = width - overhang - stem
+	return (
+		((0.0, height - bar), (width, height - bar), (width, height), (0.0, height)),
+		((legLeft, 0.0), (legLeft + stem, 0.0), (legLeft + stem, height), (legLeft, height)),
+		((legRight, 0.0), (legRight + stem, 0.0), (legRight + stem, height), (legRight, height)),
+	)
 
 
 def summationPenData(width, height, stem, bar):
-	"""∑ as one polygon: two bars with tips, joined by two diagonals meeting at the right. Origin bottom left, outer contour counterclockwise."""
+	"""
+	∑ as two overlapping polygons, each a bar with a diagonal to the knee at two thirds of the width. Where the diagonals meet,
+	each reaches as a small triangle into the other (the kneecap). Origin bottom left, counterclockwise.
+	"""
 	diagonal = stem * 1.3  # horizontal thickness of the diagonals
-	tip = bar  # height of the little serifs at the right ends of the bars
-	apex = (width * 0.55, height * 0.5)
-	return ((
-		(0.0, 0.0), (width, 0.0), (width, bar + tip), (width - stem, bar + tip), (width - stem, bar), (diagonal, bar), apex, (diagonal, height - bar),
-		(width - stem, height - bar), (width - stem, height - bar - tip), (width, height - bar - tip), (width, height), (0.0, height),
-		(0.0, height - bar), (apex[0] - diagonal, apex[1]), (0.0, bar)
-	), )
+	middle = height * 0.5
+	cornerHeight = bar * 0.8  # the vertical segment at the left end is a bit shorter than the stroke
+	kneeX = width * 2.0 / 3.0
+	slope = (kneeX - diagonal) / (middle - cornerHeight)  # horizontal run per unit of height of the diagonal
+
+	def leftEdgeX(y):
+		return (height - cornerHeight - y) * slope
+
+	kneecap = (kneeX - diagonal * 0.5, middle - diagonal / (2.0 * slope))  # where the inner edge meets the other diagonal’s outer edge
+	upper = (
+		(0.0, height - cornerHeight),
+		(kneeX - diagonal, middle),
+		kneecap,
+		(kneeX, middle),
+		(leftEdgeX(height - bar) + diagonal, height - bar),
+		(width, height - bar),
+		(width, height),
+		(0.0, height),
+	)
+	lower = tuple((x, height - y) for x, y in reversed(upper))
+	return upper, lower
 
 
 def radicalPenData(width, height, stem, bar):
-	"""√ as one polygon: tick, heavy downstroke, light upstroke and the bar on top. Origin bottom left, outer contour counterclockwise."""
+	"""√ as two overlapping polygons: the downstroke, and the upstroke with the bar on top. Origin bottom left, counterclockwise."""
 	heavy = stem * 1.3  # horizontal thickness of the downstroke
 	light = stem * 0.7  # horizontal thickness of the upstroke
 	foot = stem * 0.4  # width of the flat bottom
-
-	# tick, from its left end up to the peak of the downstroke:
-	tickLeftBottom = height * 0.38
-	peakX = width * 0.17
-	peakY = tickLeftBottom + bar + height * 0.07
-	footLeftX = width * 0.30
-	footRightX = footLeftX + foot
-
-	# all slanted edges are written as x = x0 + slope * y:
-	downSlope = (peakX - footLeftX) / peakY
-	upSlope = (width * 0.55 - footRightX) / height
-	tickSlope = peakX / (peakY - tickLeftBottom - bar)  # bottom edge of the tick, parallel to its top edge
-
-	# inner vertex: the right edge of the downstroke meets the left edge of the upstroke:
-	vertexY = (footRightX - light - footLeftX - heavy) / (downSlope - upSlope)
-	vertex = (footLeftX + heavy + downSlope * vertexY, vertexY)
-
-	# where the bottom edge of the tick meets the left edge of the downstroke:
-	tickJoinY = (footLeftX + tickSlope * tickLeftBottom) / (tickSlope - downSlope)
-	tickJoin = (footLeftX + downSlope * tickJoinY, tickJoinY)
+	footLeft = width * 0.26
+	footRight = footLeft + foot
+	upstrokeTopLeft = width * 0.52
+	upstrokeTopRight = upstrokeTopLeft + light
 
 	def upstrokeRightX(y):
-		return footRightX + upSlope * y
+		return footRight + (upstrokeTopRight - footRight) * y / height
 
-	return ((
-		(footLeftX, 0.0), (footRightX, 0.0), (upstrokeRightX(height - bar), height - bar), (width, height - bar), (width, height),
-		(upstrokeRightX(height) - light, height), vertex, (peakX + heavy, peakY), (peakX, peakY), (0.0, tickLeftBottom + bar), (0.0, tickLeftBottom),
-		tickJoin
-	), )
+	downstroke = ((footLeft, 0.0), (footRight, 0.0), (heavy, height * 0.5), (0.0, height * 0.5))
+	upstroke = (
+		(footLeft, 0.0),
+		(footRight, 0.0),
+		(upstrokeRightX(height - bar), height - bar),
+		(width, height - bar),
+		(width, height),
+		(upstrokeTopLeft, height),
+	)
+	return downstroke, upstroke
 
 
 def buildPolygonSymbol(
-	font, glyphName, unicodeValue, penDataFunction, boxFunction, widthFactor, maxStemFactor, override=False, backupLayers=False
+	font, glyphName, unicodeValue, penDataFunction, boxFunction, widthFactor, maxStemFactor, override=False, backupLayers=False, rightKey="=|"
 ):
 	"""
 	Builds a polygon symbol in every master. boxFunction(master) returns (bottom, height); the width is a factor of the height;
@@ -717,7 +725,7 @@ def buildPolygonSymbol(
 	glyph = createGlyph(font, glyphName, unicodeValue, override=override, backupLayers=backupLayers)
 	if not glyph:
 		return
-	setMetrics(glyph, kerningGroup=glyphName)
+	setMetrics(glyph, rightKey=rightKey, kerningGroup=glyphName)
 
 	for master in font.masters:
 		layer = glyph.layers[master.id]
@@ -740,7 +748,7 @@ def buildProduct(font, override=False, backupLayers=False):
 
 
 def buildSummation(font, override=False, backupLayers=False):
-	buildPolygonSymbol(font, "summation", "2211", summationPenData, bigSymbolBoxOfMaster, 0.62, 0.12, override=override, backupLayers=backupLayers)
+	buildPolygonSymbol(font, "summation", "2211", summationPenData, bigSymbolBoxOfMaster, 0.527, 0.12, override=override, backupLayers=backupLayers)
 
 
 def buildDaggers(font, override=False, backupLayers=False):
@@ -749,7 +757,7 @@ def buildDaggers(font, override=False, backupLayers=False):
 
 
 def buildRadical(font, override=False, backupLayers=False):
-	buildPolygonSymbol(font, "radical", "221A", radicalPenData, bigSymbolBoxOfMaster, 0.70, 0.065, override=override, backupLayers=backupLayers)
+	buildPolygonSymbol(font, "radical", "221A", radicalPenData, bigSymbolBoxOfMaster, 0.5, 0.1, override=override, backupLayers=backupLayers, rightKey="=0")
 
 
 def tabStringForExistingGlyphs(font, glyphNames):
@@ -819,21 +827,21 @@ SYMBOLS = (
 	(
 		"buildProduct",
 		"product ∏",
-		"Will build product ∏: a polygon of 110% cap height, stems measured as for bar (slash, else master stems), horizontals at 85% of the stem. Respects the italic angle.",
+		"Will build product ∏: overlapping contours, 110% cap height, stems measured as for bar (slash, else master stems), horizontals at 85% of the stem. Respects the italic angle.",
 		buildProduct,
 		("product", ),
 	),
 	(
 		"buildSummation",
 		"summation ∑",
-		"Will build summation ∑: a polygon of 110% cap height, stems measured as for bar (slash, else master stems), horizontals at 85% of the stem. Respects the italic angle.",
+		"Will build summation ∑: overlapping contours, 110% cap height, stems measured as for bar (slash, else master stems), horizontals at 85% of the stem. Respects the italic angle.",
 		buildSummation,
 		("summation", ),
 	),
 	(
 		"buildRadical",
 		"radical √",
-		"Will build radical √: a polygon of 110% cap height, stems measured as for bar (slash, else master stems), horizontals at 85% of the stem. Respects the italic angle.",
+		"Will build radical √: overlapping contours, 110% cap height, stems measured as for bar (slash, else master stems), horizontals at 85% of the stem. Respects the italic angle.",
 		buildRadical,
 		("radical", ),
 	),
