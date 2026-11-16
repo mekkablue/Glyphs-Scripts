@@ -1,6 +1,6 @@
 # MenuTitle: Build Symbols
 __doc__ = """
-Creates an estimated glyph and draws an estimated sign in it. Does the same for bar and brokenbar, for which it respects standard stems and italic angle, and for emptyset, dottedCircle, currency, lozenge, product, summation, radical, partialdiff, dagger, daggerdbl and .notdef. Stem widths are measured on the slash, else taken from the master stems, else defaulted, so it also works in an empty font.
+Creates an estimated glyph and draws an estimated sign in it. Does the same for bar and brokenbar, for which it respects standard stems and italic angle, and for emptyset, dottedCircle, currency, lozenge, product, summation, radical, dagger, daggerdbl and .notdef. Stem widths are measured on the slash, else taken from the master stems, else defaulted, so it also works in an empty font.
 """
 
 import math
@@ -884,14 +884,12 @@ def tabStringForExistingGlyphs(font, glyphNames):
 
 # One entry per symbol, in the order of the checkboxes and of the build:
 # (preference name, checkbox title, tooltip, build function, glyph names)
+# The checkboxes fill a grid of four columns row by row. The symbols are sorted by Unicode (the lower one for pairs),
+# .notdef last; then regrouped by title width, three per column (the last column has two), widest column first, so the grid
+# is as narrow as possible. Within a column the symbols keep their Unicode order, and .notdef stays the last entry.
+# partialdiff ∂ is disabled for now: to enable it, add an entry for buildPartialdiff() ("buildPartialdiff", "partialdiff ∂",
+# a tooltip, buildPartialdiff, ("partialdiff", )) and sort it in.
 SYMBOLS = (
-	(
-		"buildEstimated",
-		"estimated ℮",
-		"℮, scaled to your lining zero if there is one.",
-		buildEstimated,
-		("estimated", ),
-	),
 	(
 		"buildBars",
 		"bar | brokenbar ¦",
@@ -900,18 +898,11 @@ SYMBOLS = (
 		("bar", "brokenbar"),
 	),
 	(
-		"buildEmptyset",
-		"emptyset ∅",
-		"∅: circle with slash, stem as in bar (max. 18% of height), between x-height and cap height plus your zero’s overshoot.",
-		buildEmptyset,
-		("emptyset", ),
-	),
-	(
-		"buildDottedCircle",
-		"dottedCircle ◌",
-		"◌: twelve dots, with top, bottom (and ogonekcomb) anchors.",
-		buildDottedCircle,
-		("dottedCircle", ),
+		"buildEstimated",
+		"estimated ℮",
+		"℮, scaled to your lining zero if there is one.",
+		buildEstimated,
+		("estimated", ),
 	),
 	(
 		"buildCurrency",
@@ -921,18 +912,11 @@ SYMBOLS = (
 		("currency", ),
 	),
 	(
-		"buildLozenge",
-		"lozenge ◊",
-		"◊: outlined diamond, 70% cap height, stem as in slash or master.",
-		buildLozenge,
-		("lozenge", ),
-	),
-	(
-		"buildPartialdiff",
-		"partialdiff ∂",
-		"∂: ring with an arm bending over to the left, cap height plus overshoot.",
-		buildPartialdiff,
-		("partialdiff", ),
+		"buildProduct",
+		"product ∏",
+		"∏: three overlapping rectangles, 110% cap height.",
+		buildProduct,
+		("product", ),
 	),
 	(
 		"buildDaggers",
@@ -942,18 +926,32 @@ SYMBOLS = (
 		("dagger", "daggerdbl"),
 	),
 	(
-		"buildNotdef",
-		".notdef",
-		".notdef: boldest question mark in a circle, tofu rectangle in the background. If there is no question mark (or it is empty), just the tofu rectangle.",
-		buildNotdef,
-		(".notdef", ),
+		"buildEmptyset",
+		"emptyset ∅",
+		"∅: circle with slash, stem as in bar (max. 18% of height), between x-height and cap height plus your zero’s overshoot.",
+		buildEmptyset,
+		("emptyset", ),
 	),
 	(
-		"buildProduct",
-		"product ∏",
-		"∏: three overlapping rectangles, 110% cap height.",
-		buildProduct,
-		("product", ),
+		"buildRadical",
+		"radical √",
+		"√: one contour with overlapping corners, 110% cap height, RSB =0.",
+		buildRadical,
+		("radical", ),
+	),
+	(
+		"buildLozenge",
+		"lozenge ◊",
+		"◊: outlined diamond, 70% cap height, stem as in slash or master.",
+		buildLozenge,
+		("lozenge", ),
+	),
+	(
+		"buildDottedCircle",
+		"dottedCircle ◌",
+		"◌: twelve dots, with top, bottom (and ogonekcomb) anchors.",
+		buildDottedCircle,
+		("dottedCircle", ),
 	),
 	(
 		"buildSummation",
@@ -963,11 +961,11 @@ SYMBOLS = (
 		("summation", ),
 	),
 	(
-		"buildRadical",
-		"radical √",
-		"√: one contour with overlapping corners, 110% cap height, RSB =0.",
-		buildRadical,
-		("radical", ),
+		"buildNotdef",
+		".notdef",
+		".notdef: boldest question mark in a circle, tofu rectangle in the background. If there is no question mark (or it is empty), just the tofu rectangle.",
+		buildNotdef,
+		(".notdef", ),
 	),
 )
 
@@ -1073,6 +1071,11 @@ class BuildSymbols(mekkaObject):
 			] + rowRules + columnRules + widthRules,
 			metrics={"inset": 15, "gap": 8, "row": 8},
 		)
+
+		# the window is as wide and as high as Auto Layout needs at least:
+		window = self.w.getNSWindow()
+		fittingSize = window.contentView().fittingSize()
+		window.setContentSize_((fittingSize.width, fittingSize.height))
 
 		# Load Settings:
 		self.LoadPreferences()
