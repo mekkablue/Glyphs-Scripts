@@ -45,6 +45,7 @@ multiplyScale = 0.9  # bounding box of × relative to the length of the bars
 caretAngle = 45.0  # angle of the arms of ^ against the vertical axis, in degrees
 waveHandleStart = 0.33  # Bézier handle lengths (fraction of a quarter wave) that approximate a sine wave
 waveHandleEnd = 0.36
+waveSlopeEase = 3.0  # on the slope the stroke is thinned by cos(slope angle / 3): the exact perpendicular thickness looks too heavy there
 waveCutLimit = 1.12  # the vertical cut at the ends of the waves is at most 12% longer than the stroke
 waveSpanHandle = 0.364  # handle length of the curve from a peak to the next trough (fraction of the span), best fit to a sine wave
 logicalNotLeg = 0.4  # length of the hook of ¬ relative to the length of the bars
@@ -247,7 +248,8 @@ def offsetHandles(span, amplitude, half, side):
 		dx = 3 * mt * mt * (p1[0] - p0[0]) + 6 * mt * t * (p2[0] - p1[0]) + 3 * t * t * (p3[0] - p2[0])
 		dy = 3 * mt * mt * (p1[1] - p0[1]) + 6 * mt * t * (p2[1] - p1[1]) + 3 * t * t * (p3[1] - p2[1])
 		length = math.hypot(dx, dy)
-		edgeX, edgeY = x + side * half * (-dy / length), y + side * half * (dx / length)  # offset along the normal that points up
+		lean = half * math.cos(math.atan2(abs(dy), dx) / waveSlopeEase)  # a little less than half the stroke on the slope
+		edgeX, edgeY = x + side * lean * (-dy / length), y + side * lean * (dx / length)  # offset along the normal that points up
 		# where on a cubic with horizontal handles is this height? (the height runs like 3t² - 2t³, which can be inverted)
 		fraction = min(max((top - edgeY) / (top - bottom), 0.0), 1.0)
 		tau = 0.5 - math.sin(math.asin(1.0 - 2.0 * fraction) / 3.0)
