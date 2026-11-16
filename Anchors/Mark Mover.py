@@ -17,7 +17,7 @@ def moveLayer(thisLayer, verticalShift):
 		horizontalShift = 0
 		italicAngle = thisLayer.master.italicAngle
 		if italicAngle != 0:
-			horizontalShift = italicize(NSPoint(0, verticalShift), italicAngle=italicAngle)
+			horizontalShift = italicize(NSPoint(0, verticalShift), italicAngle=italicAngle).x
 		shiftTransform = transform(shiftX=horizontalShift, shiftY=verticalShift)
 		shiftMatrix = shiftTransform.transformStruct()
 		thisLayer.applyTransform(shiftMatrix)
@@ -222,6 +222,7 @@ class MarkMover(mekkaObject):
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+				return
 			else:
 				print("Mark Mover Report for %s" % thisFont.familyName)
 				if thisFont.filepath:

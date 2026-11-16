@@ -8,7 +8,6 @@ Goes through selected glyphs and deletes all glyph layers which are not a Master
 from GlyphsApp import Glyphs
 
 Font = Glyphs.font
-selectedLayers = Font.selectedLayers
 
 
 def process(thisGlyph):
@@ -24,23 +23,27 @@ def process(thisGlyph):
 	return count
 
 
-Glyphs.clearLog()  # clears macro window log
+if Font is None:
+	print("⚠️ No font open.")
+else:
+	selectedLayers = Font.selectedLayers
+	Glyphs.clearLog()  # clears macro window log
 
-excludedGlyphNameBeginnings = ("_smart", "_part")
-for thisLayer in selectedLayers:
-	thisGlyph = thisLayer.parent
-	thisGlyphName = thisGlyph.name
+	excludedGlyphNameBeginnings = ("_smart", "_part")
+	for thisLayer in selectedLayers:
+		thisGlyph = thisLayer.parent
+		thisGlyphName = thisGlyph.name
 
-	nameIsAnException = False
-	for prefix in excludedGlyphNameBeginnings:
-		if thisGlyphName.startswith(prefix):
-			nameIsAnException = True
+		nameIsAnException = False
+		for prefix in excludedGlyphNameBeginnings:
+			if thisGlyphName.startswith(prefix):
+				nameIsAnException = True
 
-	if not nameIsAnException:
-		# thisGlyph.beginUndo()  # undo grouping causes crashes
-		count = process(thisGlyph)
-		if count > 0:
-			print("%s layers deleted in %s." % (count, thisGlyphName))
-		# thisGlyph.endUndo()  # undo grouping causes crashes
-	else:
-		print("Smart layers kept in %s." % (thisGlyphName))
+		if not nameIsAnException:
+			# thisGlyph.beginUndo()  # undo grouping causes crashes
+			count = process(thisGlyph)
+			if count > 0:
+				print("%s layers deleted in %s." % (count, thisGlyphName))
+			# thisGlyph.endUndo()  # undo grouping causes crashes
+		else:
+			print("Smart layers kept in %s." % (thisGlyphName))

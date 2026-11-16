@@ -22,14 +22,13 @@ def fixPSnames(otFont):
 		nameID = nameTableEntry.nameID
 		# print("CHECK3 nameID", nameID)  # DEBUG
 		nameValue = nameTableEntry.toStr()
-		oldName = nameValue
+		originalName = nameValue
 		# print("CHECK4 nameID", nameID, nameValue)  # DEBUG
 		if nameID in (4, 6, 17):
 			for oldParticle in ("Regular Italic", "RegularItalic"):
 				if oldParticle in nameValue:
 					nameValue = nameValue.replace(oldParticle, "Italic")
 		if nameID in (3, 6) or nameID > 255:
-			oldName = nameValue
 			if "Italic-" in nameValue and nameValue.count("Italic") > 1:
 				particles = nameValue.split("-")
 				for i in range(1, len(particles)):
@@ -37,10 +36,10 @@ def fixPSnames(otFont):
 					if len(particles[i]) == 0:
 						particles[i] = "Regular"
 				nameValue = "-".join(particles)
-		if nameValue != oldName:
+		if nameValue != originalName:
 			nameTableEntry.string = nameValue
 			anythingChanged = True
-			print(f"✅ Changed ID {nameID}: {oldName} → {nameValue}")
+			print(f"✅ Changed ID {nameID}: {originalName} → {nameValue}")
 	return anythingChanged
 
 

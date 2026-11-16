@@ -10,21 +10,22 @@ from GlyphsApp import Glyphs, Message
 Font = Glyphs.font  # frontmost font
 parameterName = "EditView Line Height"
 
-# set default height:
-if not Font.customParameters[parameterName]:
-	Font.customParameters[parameterName] = 1200
+if Font:
+	# set default height:
+	if not Font.customParameters[parameterName]:
+		Font.customParameters[parameterName] = 1200
 
-lineheight = Font.customParameters[parameterName]
+	lineheight = Font.customParameters[parameterName]
 
-if not lineheight > Font.upm * 10:
-	lineheight *= 1.25
-	lineheight = round(lineheight)
-	Font.customParameters[parameterName] = lineheight
-	if Font.currentTab:
-		if Glyphs.versionNumber >= 4.0:
-			Font.currentTab.redraw()
-		else:
-			Font.currentTab.forceRedraw()
-		Font.currentTab.reflow()
-else:
-	Message(title="Line Height Error", message="The line height exceeds the UPM more than tenfold already. Stop it now.", OKButton=None)
+	if not lineheight > Font.upm * 10:
+		lineheight *= 1.25
+		lineheight = round(lineheight)
+		Font.customParameters[parameterName] = lineheight
+		if Font.currentTab:
+			if Glyphs.versionNumber >= 4.0:
+				Font.currentTab.redraw()
+			else:
+				Font.currentTab.forceRedraw()
+			Font.currentTab.reflow()
+	else:
+		Message(title="Line Height Error", message="The line height exceeds the UPM more than tenfold already. Stop it now.", OKButton=None)

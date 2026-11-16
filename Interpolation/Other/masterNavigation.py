@@ -42,6 +42,8 @@ def showAllMastersOfGlyphs(glyphNames, openNewTab=True, avoidDuplicates=True):
 
 def glyphNameForIndexOffset(indexOffset):
 	thisFont = Glyphs.font  # frontmost font
+	if thisFont is None or not thisFont.selectedLayers:
+		return None
 	currentLayer = thisFont.selectedLayers[0]
 	currentGlyph = currentLayer.parent
 	glyphIndex = currentGlyph.glyphId()

@@ -78,7 +78,7 @@ def doTheyClick(leftLayer, rightLayer, requiredClicks=2, verbose=False):
 			if coord in rightCoordinates:
 				clickCount += 1
 	if clickCount < requiredClicks:
-		print("❌ %s does not click with a following %s (%s)." % (rightLayer.parent.name, leftLayer.parent.name, leftLayer.name))
+		print("❌ %s does not click with a following %s (%s)." % (leftLayer.parent.name, rightLayer.parent.name, leftLayer.name))
 		# print(rightCoordinates)
 		return False
 	else:
@@ -277,6 +277,8 @@ class PositionClicker(mekkaObject):
 					spaceLayer = newLineControlLayer()
 
 				referenceGlyph = thisFont.glyphs[referenceGlyphName]
+				if referenceGlyph is None:
+					raise ValueError(f"Reference glyph ‘{referenceGlyphName}’ not found in {thisFont.familyName}.")
 				try:
 					# GLYPHS 3
 					isRTL = referenceGlyph.direction == 2  # 0=LTR, 1=BiDi, 2=RTL

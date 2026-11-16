@@ -71,38 +71,42 @@ def addMissingBraceLayers(g, f):
 
 
 thisFont = Glyphs.font  # frontmost font
-selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
 Glyphs.clearLog()  # clears log in Macro window
 
-print("Adding missing brace layers...")
-for i, axis in enumerate(thisFont.axes):
-	print(f"Axis {i + 1}: {axis.axisTag}, {axis.name}")
-print()
+if thisFont is None:
+	print("⚠️ No font open.")
+else:
+	selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
 
-thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
-try:
-	for thisLayer in selectedLayers:
-		thisGlyph = thisLayer.parent
-		# beginUndo() raises an AttributeError if the glyph has no undo manager:
-		hasUndoManager = thisGlyph.undoManager() is not None
-		if hasUndoManager:
-			thisGlyph.beginUndo()  # begin undo grouping
-		try:
-			if thisGlyph.category == "Corner":
-				addMissingHeightWidth(thisGlyph, thisFont)
-			else:
-				addMissingBraceLayers(thisGlyph, thisFont)
-			print()
-		finally:
-			if hasUndoManager:
-				thisGlyph.endUndo()  # end undo grouping
-except Exception as e:
-	Glyphs.showMacroWindow()
-	print("\n⚠️ Error in script: Add Missing Brace Layers\n")
-	import traceback
-	print(traceback.format_exc())
+	print("Adding missing brace layers...")
+	for i, axis in enumerate(thisFont.axes):
+		print(f"Axis {i + 1}: {axis.axisTag}, {axis.name}")
 	print()
-	raise e
-finally:
-	print("Done.")
-	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
+
+	thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
+	try:
+		for thisLayer in selectedLayers:
+			thisGlyph = thisLayer.parent
+			# beginUndo() raises an AttributeError if the glyph has no undo manager:
+			hasUndoManager = thisGlyph.undoManager() is not None
+			if hasUndoManager:
+				thisGlyph.beginUndo()  # begin undo grouping
+			try:
+				if thisGlyph.category == "Corner":
+					addMissingHeightWidth(thisGlyph, thisFont)
+				else:
+					addMissingBraceLayers(thisGlyph, thisFont)
+				print()
+			finally:
+				if hasUndoManager:
+					thisGlyph.endUndo()  # end undo grouping
+	except Exception as e:
+		Glyphs.showMacroWindow()
+		print("\n⚠️ Error in script: Add Missing Brace Layers\n")
+		import traceback
+		print(traceback.format_exc())
+		print()
+		raise e
+	finally:
+		print("Done.")
+		thisFont.enableUpdateInterface()  # re-enables UI updates in Font View

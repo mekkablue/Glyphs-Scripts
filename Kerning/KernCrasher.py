@@ -391,7 +391,7 @@ class KernCrasher(mekkaObject):
 		return pairCount
 
 	def masterSwitch(self, sender=None):
-		if sender is self.w.nextButton:
+		if sender is self.w.nextButton and Glyphs.font:
 			Glyphs.font.masterIndex += 1
 
 	def splitString(self, string, delimiter=":", minimum=2):

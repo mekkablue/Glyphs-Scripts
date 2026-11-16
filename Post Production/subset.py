@@ -70,8 +70,8 @@ Examples:
 			for fmt in formats:
 				outPath = f'{fontName}.{fmt}'
 				print(f'Writing {outPath}')
-				saveOptions = subset.Options(flavor=fmt if fmt in ('woff', 'woff2') else None)
-				font.save(outPath, saveOptions)
+				font.flavor = fmt if fmt in ('woff', 'woff2') else None
+				font.save(outPath)
 				outputFonts.append(outPath)
 		except Exception as e:
 			print(f'Error processing {fontPath}: {e}', file=sys.stderr)
@@ -94,7 +94,7 @@ body {{ font-family: "{os.path.splitext(os.path.basename(outputFonts[0]))[0]}", 
 </div>
 </body>
 </html>'''
-		with open(htmlPath, 'w') as fh:
+		with open(htmlPath, 'w', encoding='utf-8') as fh:
 			fh.write(htmlContent)
 		print(f'Wrote test file: {htmlPath}')
 

@@ -140,7 +140,10 @@ def measureLayerAtHeightFromLeftOrRight(thisLayer, height, leftSide=True):
 	returnIndex = 1
 	if not leftSide:
 		returnIndex = -2
-	measurement = thisLayer.intersectionsBetweenPoints(NSPoint(leftX, y), NSPoint(rightX, y))[returnIndex].pointValue().x
+	intersections = thisLayer.intersectionsBetweenPoints(NSPoint(leftX, y), NSPoint(rightX, y))
+	if len(intersections) <= 2:  # only the start and end points of the slice: no outline at this height
+		return None
+	measurement = intersections[returnIndex].pointValue().x
 	if leftSide:
 		distance = measurement - leftX
 	else:
@@ -157,6 +160,8 @@ def minDistanceBetweenTwoLayers(comp1, comp2, interval=5.0):
 		height = bottomY + i * interval
 		left = measureLayerAtHeightFromLeftOrRight(comp1, height, leftSide=False)
 		right = measureLayerAtHeightFromLeftOrRight(comp2, height, leftSide=True)
+		if left is None or right is None:  # no outline at this height, e.g., gaps like in i or j
+			continue
 		total = left + right
 		if minDist is None or minDist > total:
 			minDist = total

@@ -4,7 +4,7 @@ Tries to give you a preliminary idea about how many and which languages are supp
 """
 
 from typing import Any
-from GlyphsApp import Glyphs
+from GlyphsApp import Glyphs, Message
 
 
 langdict: dict[str, dict[str, Any]] = {
@@ -1356,16 +1356,11 @@ langdict: dict[str, dict[str, Any]] = {
 }
 
 thisFont = Glyphs.font  # frontmost font
-thisFontMaster = thisFont.selectedFontMaster  # active master
-listOfCharacters = [g.name for g in thisFont.glyphs if g.unicode]
+listOfCharacters = [g.name for g in thisFont.glyphs if g.unicode] if thisFont else []
 
 supportedLanguages = []
 unsupportedLanguages = []
 missingGlyphs = []
-
-# brings macro window to front and clears its log:
-Glyphs.clearLog()
-Glyphs.showMacroWindow()
 
 
 def hexForChar(character):
@@ -1382,49 +1377,56 @@ def nameForChar(character):
 		unicodeValue = hexForChar(character)
 		if unicodeValue:
 			glyphInfo = Glyphs.glyphInfoForUnicode(unicodeValue)
-			return glyphInfo.name
+			return glyphInfo.name if glyphInfo else None
 	return None
 
 
-for thisLanguageKey in langdict.keys():
-	langinfo = langdict[thisLanguageKey]
-	letters: str = langinfo.get("letters", None)
-	if letters:
-		languageSupported = True
-		for thisChar in letters:
-			glyphName = nameForChar(thisChar)
-			if glyphName:
-				charInFont = glyphName in listOfCharacters
-				languageSupported = languageSupported and charInFont
-				if not charInFont:
-					if glyphName not in missingGlyphs:
-						missingGlyphs.append(glyphName)
-			else:
-				print(u"Warning: no hex code found for %s." % thisChar)
-				languageSupported = False
-		if languageSupported:
-			supportedLanguages.append(thisLanguageKey)
-		else:
-			unsupportedLanguages.append(thisLanguageKey)
-	else:
-		supportedLanguages.append(thisLanguageKey)
+if not thisFont:
+	Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+else:
+	# brings macro window to front and clears its log:
+	Glyphs.clearLog()
+	Glyphs.showMacroWindow()
 
-print("Language Report for %s:\n" % thisFont.familyName)
-print("%i languages supported:\n%s\n" % (len(supportedLanguages), ", ".join(sorted(supportedLanguages)).replace("_", " ").title()))
-print("%i languages unsupported:\n%s\n" % (len(unsupportedLanguages), ", ".join(sorted(unsupportedLanguages)).replace("_", " ").title()))
-
-if missingGlyphs:
-	print("Missing glyphs for complete support:\n/%s\n" % "/".join(missingGlyphs))
-
-	print("Missing glyphs by languages:\n")
-	for thisLanguageKey in unsupportedLanguages:
+	for thisLanguageKey in langdict.keys():
 		langinfo = langdict[thisLanguageKey]
-		missingString = ""
-		letters = langinfo.get("letters", None)
+		letters: str = langinfo.get("letters", None)
 		if letters:
-			for letter in letters:
-				glyphName = nameForChar(letter)
-				if glyphName and not (glyphName in listOfCharacters):
-					missingString += "/%s" % glyphName
-		if missingString:
-			print(u"%s (%i speakers): %s" % (langinfo["language"], langinfo["speakers"], missingString))
+			languageSupported = True
+			for thisChar in letters:
+				glyphName = nameForChar(thisChar)
+				if glyphName:
+					charInFont = glyphName in listOfCharacters
+					languageSupported = languageSupported and charInFont
+					if not charInFont:
+						if glyphName not in missingGlyphs:
+							missingGlyphs.append(glyphName)
+				else:
+					print(u"Warning: no hex code found for %s." % thisChar)
+					languageSupported = False
+			if languageSupported:
+				supportedLanguages.append(thisLanguageKey)
+			else:
+				unsupportedLanguages.append(thisLanguageKey)
+		else:
+			supportedLanguages.append(thisLanguageKey)
+
+	print("Language Report for %s:\n" % thisFont.familyName)
+	print("%i languages supported:\n%s\n" % (len(supportedLanguages), ", ".join(sorted(supportedLanguages)).replace("_", " ").title()))
+	print("%i languages unsupported:\n%s\n" % (len(unsupportedLanguages), ", ".join(sorted(unsupportedLanguages)).replace("_", " ").title()))
+
+	if missingGlyphs:
+		print("Missing glyphs for complete support:\n/%s\n" % "/".join(missingGlyphs))
+
+		print("Missing glyphs by languages:\n")
+		for thisLanguageKey in unsupportedLanguages:
+			langinfo = langdict[thisLanguageKey]
+			missingString = ""
+			letters = langinfo.get("letters", None)
+			if letters:
+				for letter in letters:
+					glyphName = nameForChar(letter)
+					if glyphName and not (glyphName in listOfCharacters):
+						missingString += "/%s" % glyphName
+			if missingString:
+				print(u"%s (%i speakers): %s" % (langinfo["language"], langinfo["speakers"], missingString))

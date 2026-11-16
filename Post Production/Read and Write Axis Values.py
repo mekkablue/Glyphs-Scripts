@@ -13,6 +13,7 @@ wdth; 75:75:90=Condensed, 90:100:110=Regular*, 110:150:150=Expanded
 ital; 0>1=Regular*
 """
 
+import os
 import fontTools
 from fontTools import ttLib
 from AppKit import NSString
@@ -63,10 +64,15 @@ def parameterToSTAT(variableFontExport, font, fontpath, fontFileName):
 
 			axisTag, axisValueCode = statCode.split(";")
 			axisTag = axisTag.strip()
+			axisIndex = None
 			for i, axisInfo in enumerate(axes):
 				if axisTag == axisInfo["tag"]:
 					axisIndex = i
 					break
+
+			if axisIndex is None:
+				print(f"⚠️ axis ‘{axisTag}’ not found in STAT table, skipping parameter.")
+				continue
 
 			if len(axisTag) > 4:
 				print(f"⚠️ axis tag ‘{axisTag}’ is too long, will shorten to first 4 characters.")
@@ -189,6 +195,10 @@ if Glyphs.versionNumber < 3.2:
 		message="This script requires app version 3.2 or later.",
 		OKButton=None,
 	)
+elif not Glyphs.font:
+	Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+elif not currentOTVarExportPath():
+	Message(title="No Export Path", message="Could not determine the folder of the most recent variable font export.", OKButton=None)
 else:
 	# brings macro window to front and clears its log:
 	Glyphs.clearLog()
@@ -221,6 +231,9 @@ else:
 		for suffix in suffixes:
 			fontFileName = otVarFileName(thisFont, thisInstance=variableFontExport, suffix=suffix)
 			fontpath = NSString.alloc().initWithString_(currentExportPath).stringByAppendingPathComponent_(fontFileName)
+			if not os.path.isfile(fontpath):
+				print(f"\n❌ No font file found, skipping: {fontpath}")
+				continue
 			font = ttLib.TTFont(fontpath)
 
 			msg = f"📄Processing: {fontpath}..."
@@ -239,4 +252,4 @@ else:
 	if variableFontSettings:
 		thisFont.parent.windowController().showFontInfoWindowWithTabSelected_(2)
 
-print("\n✅ Done.")
+	print("\n✅ Done.")

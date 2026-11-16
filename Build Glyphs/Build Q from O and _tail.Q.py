@@ -8,13 +8,15 @@ from GlyphsApp import Glyphs, GSComponent, Message
 from mekkablue import newAnchorWithName
 
 thisFont = Glyphs.font  # frontmost font
-Oglyph = thisFont.glyphs["O"]
-Qglyph = thisFont.glyphs["Q"]
-tailGlyph = thisFont.glyphs["_tail.Q"]
+Oglyph = thisFont.glyphs["O"] if thisFont else None
+Qglyph = thisFont.glyphs["Q"] if thisFont else None
+tailGlyph = thisFont.glyphs["_tail.Q"] if thisFont else None
 anchorName = "bottom"
 newAnchorName = "_" + anchorName
 
-if not Oglyph or not Qglyph or not tailGlyph:
+if thisFont is None:
+	Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+elif not Oglyph or not Qglyph or not tailGlyph:
 	Message(title="Missing glyphs", message="For this script, you need ‘O’, ‘Q’ and ‘_tail.Q’ in your font.", OKButton=None)
 else:
 	# del thisFont.glyphs["Q"]
@@ -25,7 +27,11 @@ else:
 
 		# if necessary, add anchors to _tail.Q
 		if not thisLayer.anchors[newAnchorName]:
-			defaultPosition = Oglyph.layers[masterID].anchors[anchorName].position
+			oAnchor = Oglyph.layers[masterID].anchors[anchorName]
+			if not oAnchor:
+				print(f"⚠️ O has no ‘{anchorName}’ anchor on the layer of master ‘{thisMaster.name}’, skipping _tail.Q layer ‘{thisLayer.name}’.")
+				continue
+			defaultPosition = oAnchor.position
 			newAnchor = newAnchorWithName(newAnchorName, defaultPosition)
 			thisLayer.anchors.append(newAnchor)
 

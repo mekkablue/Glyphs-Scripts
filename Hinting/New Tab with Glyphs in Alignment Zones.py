@@ -82,11 +82,14 @@ def glyphs3Solution(thisFont):
 
 
 thisFont = Glyphs.font  # frontmost font
-if Glyphs.versionNumber >= 3:
-	# Glyphs 3 code
-	tabText = glyphs3Solution(thisFont)
+if thisFont is None:
+	print("⚠️ No font open.")
 else:
-	# Glyphs 2 code
-	tabText = glyphs2Solution(thisFont)
+	if Glyphs.versionNumber >= 3:
+		# Glyphs 3 code
+		tabText = glyphs3Solution(thisFont)
+	else:
+		# Glyphs 2 code
+		tabText = glyphs2Solution(thisFont)
 
-thisFont.newTab(tabText)
+	thisFont.newTab(tabText)

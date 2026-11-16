@@ -8,9 +8,9 @@ Select two glyphs, e.g. ‘Ta’ (or place your cursor between them), run the sc
 from GlyphsApp import Glyphs, Message
 
 thisFont = Glyphs.font  # frontmost font
-tab = thisFont.currentTab
+tab = thisFont.currentTab if thisFont else None
 tabString = ""
-listOfSelectedLayers = thisFont.selectedLayers
+listOfSelectedLayers = thisFont.selectedLayers if thisFont else []
 firstGlyph, secondGlyph = None, None
 
 if len(listOfSelectedLayers) == 2:
@@ -18,7 +18,7 @@ if len(listOfSelectedLayers) == 2:
 	secondGlyph = listOfSelectedLayers[1].parent
 elif tab and tab.textRange == 0:
 	cursorPosition = tab.layersCursor
-	if cursorPosition > 0:
+	if 0 < cursorPosition < len(tab.layers):
 		firstGlyph = tab.layers[cursorPosition - 1].parent
 		secondGlyph = tab.layers[cursorPosition].parent
 
@@ -26,8 +26,15 @@ if firstGlyph and secondGlyph:
 	firstGroup = firstGlyph.rightKerningGroup
 	secondGroup = secondGlyph.leftKerningGroup
 
-	firstGlyphNames = [g.name for g in thisFont.glyphs if g.rightKerningGroup == firstGroup]
-	secondGlyphNames = [g.name for g in thisFont.glyphs if g.leftKerningGroup == secondGroup]
+	# glyphs without a group only stand for themselves:
+	if firstGroup:
+		firstGlyphNames = [g.name for g in thisFont.glyphs if g.rightKerningGroup == firstGroup]
+	else:
+		firstGlyphNames = [firstGlyph.name]
+	if secondGroup:
+		secondGlyphNames = [g.name for g in thisFont.glyphs if g.leftKerningGroup == secondGroup]
+	else:
+		secondGlyphNames = [secondGlyph.name]
 
 	for firstGlyphName in firstGlyphNames:
 		for secondGlyphName in secondGlyphNames:

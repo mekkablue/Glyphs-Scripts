@@ -77,7 +77,7 @@ def integerFormatter(minimum=None, maximum=None):
 
 class Alert(object):
 
-	def __init__(self, messageText="Are you sure?", informativeText="This cannot be undone.", buttons=["OK", "Cancel"]):
+	def __init__(self, messageText="Are you sure?", informativeText="This cannot be undone.", buttons=("OK", "Cancel")):
 		super(Alert, self).__init__()
 		self.messageText = messageText
 		self.informativeText = informativeText
@@ -326,11 +326,14 @@ class MetricsKeyManager(mekkaObject):
 			ap.displayAlert()
 			return ap.buttonPressed == NSAlertFirstButtonReturn
 
-		if not AskUser():
-			return
-
 		if not font:
 			font = Glyphs.font
+		if not font:
+			Message(title="Metrics Key Manager Error", message="No font open. Metrics keys can only be deleted in the frontmost font.", OKButton=None)
+			return
+
+		if not AskUser():
+			return
 
 		print("Deleting Metrics Keys...")
 		for g in font.glyphs:
@@ -348,6 +351,8 @@ class MetricsKeyManager(mekkaObject):
 		threshold = self.prefInt("symmetricThreshold")
 		if not font:
 			font = Glyphs.font
+		if not font:
+			return []
 
 		glyphNames = []
 		for g in font.glyphs:

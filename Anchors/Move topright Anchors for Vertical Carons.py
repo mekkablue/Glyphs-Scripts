@@ -9,8 +9,7 @@ from Foundation import NSPoint, NSMutableArray
 from GlyphsApp import Glyphs
 
 thisFont = Glyphs.font  # frontmost font
-thisFontMaster = thisFont.selectedFontMaster  # active master
-selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
+selectedLayers = thisFont.selectedLayers if thisFont else ()  # active layers of selected glyphs
 
 
 def sliceIntersections(thisLayer, startPoint, endPoint):
@@ -68,28 +67,29 @@ def process(thisLayer):
 		print("  ❓ %s: no anchor topright or _topright found." % thisLayer.name)
 
 
-try:
-	thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
+if thisFont:
+	try:
+		thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 
-	Glyphs.clearLog()  # clears macro window log
-	print("Move vertical caron anchors to x-height intersection:")
+		Glyphs.clearLog()  # clears macro window log
+		print("Move vertical caron anchors to x-height intersection:")
 
-	for thisGlyph in [layer.parent for layer in selectedLayers]:
-		print("\n🔠 Glyph: %s" % thisGlyph.name)
-		# thisGlyph.beginUndo()  # undo grouping causes crashes
-		for thisLayer in thisGlyph.layers:
-			if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
-				process(thisLayer)
-		# thisGlyph.endUndo()  # undo grouping causes crashes
+		for thisGlyph in [layer.parent for layer in selectedLayers]:
+			print("\n🔠 Glyph: %s" % thisGlyph.name)
+			# thisGlyph.beginUndo()  # undo grouping causes crashes
+			for thisLayer in thisGlyph.layers:
+				if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
+					process(thisLayer)
+			# thisGlyph.endUndo()  # undo grouping causes crashes
 
-	print("\nDone.")
+		print("\nDone.")
 
-except Exception as e:
-	Glyphs.showMacroWindow()
-	print("\n⚠️ Script Error:\n")
-	print(e)
-	print()
-	import traceback
-	print(traceback.format_exc())
-finally:
-	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
+	except Exception as e:
+		Glyphs.showMacroWindow()
+		print("\n⚠️ Script Error:\n")
+		print(e)
+		print()
+		import traceback
+		print(traceback.format_exc())
+	finally:
+		thisFont.enableUpdateInterface()  # re-enables UI updates in Font View

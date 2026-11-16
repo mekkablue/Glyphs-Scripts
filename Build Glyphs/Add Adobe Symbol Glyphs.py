@@ -127,22 +127,24 @@ else:
 		if symbolFont:
 			print(f"🥂 Reopened OTF: {symbolFont.familyName} {symbolFont.instances[0].name}")
 			font.disableUpdateInterface()
-			for g in symbolFont.glyphs:
-				niceName = Glyphs.niceGlyphName(g.name).replace("Omega", "Ohm").replace("Delta", "increment")
-				if niceName in symbolGlyphNames:
-					targetGlyph = font.glyphs[niceName]
-					if not targetGlyph:
-						print(f"🌟 Creating {niceName}...")
-						targetGlyph = GSGlyph()
-						targetGlyph.name = niceName
-						font.glyphs.append(targetGlyph)
-					targetLayer = targetGlyph.layers[master.id]
-					if targetLayer and not targetLayer.shapes:
-						print(f"🔤 Adding shapes: {niceName}, layer {targetLayer.name}")
-						symbolLayer = g.layers[0]
-						targetLayer.shapes = symbolLayer.shapes
-						targetLayer.width = symbolLayer.width
-			symbolFont.close(ignoreChanges=True)
-			font.enableUpdateInterface()
+			try:
+				for g in symbolFont.glyphs:
+					niceName = Glyphs.niceGlyphName(g.name).replace("Omega", "Ohm").replace("Delta", "increment")
+					if niceName in symbolGlyphNames:
+						targetGlyph = font.glyphs[niceName]
+						if not targetGlyph:
+							print(f"🌟 Creating {niceName}...")
+							targetGlyph = GSGlyph()
+							targetGlyph.name = niceName
+							font.glyphs.append(targetGlyph)
+						targetLayer = targetGlyph.layers[master.id]
+						if targetLayer and not targetLayer.shapes:
+							print(f"🔤 Adding shapes: {niceName}, layer {targetLayer.name}")
+							symbolLayer = g.layers[0]
+							targetLayer.shapes = symbolLayer.shapes
+							targetLayer.width = symbolLayer.width
+			finally:
+				symbolFont.close(ignoreChanges=True)
+				font.enableUpdateInterface()
 
 	print("\n✅ Done.")

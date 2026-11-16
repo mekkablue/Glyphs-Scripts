@@ -10,7 +10,7 @@ from GlyphsApp import Glyphs, GSAnchor
 
 
 thisFont = Glyphs.font  # frontmost font
-selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
+selectedLayers = thisFont.selectedLayers if thisFont else ()  # active layers of selected glyphs
 
 
 def allAnchorsOfThisGlyph(thisGlyph):
@@ -131,23 +131,24 @@ def process(thisGlyph):
 	return reportString
 
 
-try:
-	thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
-	for thisLayer in selectedLayers:
-		thisGlyph = thisLayer.parent
-		print(thisGlyph.name)
-		# thisGlyph.beginUndo()  # undo grouping causes crashes
-		print(process(thisGlyph))
-		# thisGlyph.endUndo()  # undo grouping causes crashes
-	if thisFont.currentTab and thisFont.currentTab.graphicView():
-		thisFont.currentTab.graphicView().redraw()
-		thisFont.currentTab.reflow()
-except Exception as e:
-	Glyphs.showMacroWindow()
-	print("\n⚠️ Script Error:\n")
-	print(e)
-	print()
-	import traceback
-	print(traceback.format_exc())
-finally:
-	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
+if thisFont:
+	try:
+		thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
+		for thisLayer in selectedLayers:
+			thisGlyph = thisLayer.parent
+			print(thisGlyph.name)
+			# thisGlyph.beginUndo()  # undo grouping causes crashes
+			print(process(thisGlyph))
+			# thisGlyph.endUndo()  # undo grouping causes crashes
+		if thisFont.currentTab and thisFont.currentTab.graphicView():
+			thisFont.currentTab.graphicView().redraw()
+			thisFont.currentTab.reflow()
+	except Exception as e:
+		Glyphs.showMacroWindow()
+		print("\n⚠️ Script Error:\n")
+		print(e)
+		print()
+		import traceback
+		print(traceback.format_exc())
+	finally:
+		thisFont.enableUpdateInterface()  # re-enables UI updates in Font View

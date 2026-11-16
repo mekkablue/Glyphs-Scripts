@@ -9,7 +9,7 @@ import vanilla
 from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 from mekkablue import mekkaObject, newAnchorWithName
 from Foundation import NSPoint
-from GlyphsApp import Glyphs, GSAnchor, GSPath, GSNode, GSOFFCURVE, GSBIDI, GSLTR, GSRTL
+from GlyphsApp import Glyphs, GSAnchor, GSPath, GSNode, GSOFFCURVE, GSBIDI, GSLTR
 
 
 class ExitEntryManager(mekkaObject):

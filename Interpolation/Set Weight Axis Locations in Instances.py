@@ -111,6 +111,8 @@ for idx, i in enumerate(Font.instances):
 if Glyphs.versionNumber >= 4:
 	# GLYPHS 4
 	Message(title="Set Weight Axis Locations in Instances", message="This script is a helper for Glyphs 2 and 3. It is not meant for Glyphs 4 and does nothing there.", OKButton=None)
+elif Glyphs.font is None:
+	Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 else:
 	thisFont = Glyphs.font  # frontmost font
 	Glyphs.clearLog()  # clears log in Macro window
@@ -120,7 +122,7 @@ else:
 		# set instances:
 		for i, thisInstance in enumerate(thisFont.instances):
 			if thisInstance.type == 0:
-				print("ℹ️ Instance %i: wght=%i (%s)" % (i, process(thisInstance), thisInstance.name))
+				print("ℹ️ Instance %i: wght=%s (%s)" % (i, process(thisInstance), thisInstance.name))
 
 		# set masters if possible:
 		for thisMaster in thisFont.masters:

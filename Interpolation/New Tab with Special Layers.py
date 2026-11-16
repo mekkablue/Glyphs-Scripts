@@ -10,17 +10,20 @@ from GlyphsApp import Glyphs, Message
 
 Glyphs.clearLog()  # clears log of Macro window
 thisFont = Glyphs.font  # frontmost font
-affectedLayers = []
-for thisGlyph in thisFont.glyphs:  # loop through all glyphs
-	for thisLayer in thisGlyph.layers:  # loop through all layers
-		# collect affected layers:
-		if thisLayer.isSpecialLayer:
-			affectedLayers.append(thisLayer)
-
-# open a new tab with the affected layers:
-if affectedLayers:
-	newTab = thisFont.newTab()
-	newTab.layers = affectedLayers
-# otherwise send a message:
+if thisFont is None:
+	Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 else:
-	Message(title="Nothing Found", message="Could not find any bracket or brace layers in the font.", OKButton=None)
+	affectedLayers = []
+	for thisGlyph in thisFont.glyphs:  # loop through all glyphs
+		for thisLayer in thisGlyph.layers:  # loop through all layers
+			# collect affected layers:
+			if thisLayer.isSpecialLayer:
+				affectedLayers.append(thisLayer)
+
+	# open a new tab with the affected layers:
+	if affectedLayers:
+		newTab = thisFont.newTab()
+		newTab.layers = affectedLayers
+	# otherwise send a message:
+	else:
+		Message(title="Nothing Found", message="Could not find any bracket or brace layers in the font.", OKButton=None)

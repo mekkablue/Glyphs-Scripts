@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 from AppKit import NSPoint, NSNotFound
 from mekkablue import caseDict
 from GlyphsApp import Glyphs, GSLayer, GSPath, GSNode, GSLINE
@@ -224,7 +222,7 @@ def isHeightInIntervals(height, ignoreIntervals):
 	return False
 
 
-def minDistanceBetweenTwoLayers(leftLayer, rightLayer, interval=5.0, kerning=0.0, report=False, ignoreIntervals=[]):
+def minDistanceBetweenTwoLayers(leftLayer, rightLayer, interval=5.0, kerning=0.0, report=False, ignoreIntervals=()):
 	# correction = leftLayer.RSB+rightLayer.LSB
 	if Glyphs.versionNumber >= 3.2:
 		leftBounds, rightBounds = leftLayer.fastBounds(), rightLayer.fastBounds()
@@ -267,10 +265,8 @@ def sortedIntervalsFromString(intervals="", font=None, mID=None):
 							loEnd = int(layer.bounds.origin.y)
 						else:
 							raise Exception(f"Cannot find glyph with name: {loEnd} for lower end of interval")
-							continue
 					else:
 						raise Exception(f"Cannot interpret lower end of ignore interval: {loEnd}. No font or master specified.")
-						continue
 
 					if hiEnd.isdigit():
 						hiEnd = int(hiEnd)
@@ -280,10 +276,8 @@ def sortedIntervalsFromString(intervals="", font=None, mID=None):
 							hiEnd = int(layer.bounds.origin.y + layer.bounds.size.height)
 						else:
 							raise Exception(f"Cannot find glyph with name: {hiEnd} for higher end of interval")
-							continue
 					else:
 						raise Exception(f"Cannot interpret higher end of ignore interval: {hiEnd}. No font or master specified.")
-						continue
 
 					intervalTuple = tuple(sorted([loEnd, hiEnd]))
 					ignoreIntervals.append(intervalTuple)
@@ -316,7 +310,10 @@ def distanceFromEntry(entry, font, masterID, default=0.0):
 			return default
 		leftLayer = glyphs[0].layers[masterID]
 		rightLayer = glyphs[1].layers[masterID]
-		distance = minDistanceBetweenTwoLayers(leftLayer, rightLayer, interval=2.0) + correction
+		distance = minDistanceBetweenTwoLayers(leftLayer, rightLayer, interval=2.0)
+		if distance is None:  # the layers cannot be measured, e.g. because they are empty
+			return default
+		distance += correction
 		print(f"‘{entry}’ = {distance}")
 	return distance
 

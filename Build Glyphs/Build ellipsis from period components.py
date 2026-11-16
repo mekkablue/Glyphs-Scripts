@@ -15,10 +15,7 @@ shiftKeyPressed = keysPressed & NSEventModifierFlagShift == NSEventModifierFlagS
 keepSidebearingsSnug = optionKeyPressed & shiftKeyPressed
 
 thisFont = Glyphs.font  # frontmost font
-if thisFont is None:
-	Message(title="No Font Open", message="This script requires a font. Open a font source and try again.", OKButton=None)
-	raise SystemExit
-period = thisFont.glyphs["period"]
+period = thisFont.glyphs["period"] if thisFont else None
 
 
 def decomposeGlyphsContaining(font, componentName, exceptions=()):
@@ -39,60 +36,61 @@ def decomposeGlyphsContaining(font, componentName, exceptions=()):
 	return glyphNames
 
 
-if not period:
+if thisFont is None:
+	Message(title="No Font Open", message="This script requires a font. Open a font source and try again.", OKButton=None)
+elif not period:
 	Message(title="Build ellipsis Script Error", message="No period glyph in font. Add it and try again.", OKButton=None)
-	raise SystemExit
+else:
+	ellipsis = thisFont.glyphs["ellipsis"]
+	if not ellipsis:
+		print("⚙️ Creating ellipsis glyph (did not exist)")
+		ellipsis = newGlyphWithName("ellipsis")
+		thisFont.glyphs.append(ellipsis)
 
-ellipsis = thisFont.glyphs["ellipsis"]
-if not ellipsis:
-	print("⚙️ Creating ellipsis glyph (did not exist)")
-	ellipsis = newGlyphWithName("ellipsis")
-	thisFont.glyphs.append(ellipsis)
+	# decomposing non-ellipsis components:
+	decomposedGlyphs = decomposeGlyphsContaining(thisFont, period.name, exceptions=(ellipsis.name, ))
+	if decomposedGlyphs:
+		print("⚠️ Decomposed %s components in %i glyph%s: %s" % (period.name, len(decomposedGlyphs), "" if len(decomposedGlyphs) == 1 else "s", ", ".join(decomposedGlyphs)))
 
-# decomposing non-ellipsis components:
-decomposedGlyphs = decomposeGlyphsContaining(thisFont, period.name, exceptions=(ellipsis.name, ))
-if decomposedGlyphs:
-	print("⚠️ Decomposed %s components in %i glyph%s: %s" % (period.name, len(decomposedGlyphs), "" if len(decomposedGlyphs) == 1 else "s", ", ".join(decomposedGlyphs)))
+	thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
+	try:
+		for thisMaster in thisFont.masters:
+			print(f"Ⓜ️ {thisMaster.name}")
+			print("   Adding #exit and #entry in period...")
+			mID = thisMaster.id
+			periodLayer = period.layers[mID]
+			distance = periodLayer.width - int((periodLayer.width - periodLayer.bounds.size.width) * 0.3)
+			for anchorName, anchorX in zip(("#entry", "#exit"), (0, distance)):
+				anchor = GSAnchor()
+				anchor.name = anchorName
+				anchor.position = NSPoint(anchorX, 0)
+				periodLayer.anchors.append(anchor)
 
-thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
-try:
-	for thisMaster in thisFont.masters:
-		print(f"Ⓜ️ {thisMaster.name}")
-		print("   Adding #exit and #entry in period...")
-		mID = thisMaster.id
-		periodLayer = period.layers[mID]
-		distance = periodLayer.width - int((periodLayer.width - periodLayer.bounds.size.width) * 0.3)
-		for anchorName, anchorX in zip(("#entry", "#exit"), (0, distance)):
-			anchor = GSAnchor()
-			anchor.name = anchorName
-			anchor.position = NSPoint(anchorX, 0)
-			periodLayer.anchors.append(anchor)
+			print("   Backing up ellipsis...")
+			ellipsisLayer = ellipsis.layers[mID]
+			ellipsisLayer.swapForegroundWithBackground()
+			ellipsisLayer.background.decomposeComponents()
+			ellipsisLayer.shapes = None
+			for i in range(3):
+				ellipsisLayer.shapes.append(GSComponent(period.name))
+			for thisComponent in ellipsisLayer.components:
+				thisComponent.setDisableAlignment_(False)
+			ellipsisLayer.updateMetrics()
 
-		print("   Backing up ellipsis...")
-		ellipsisLayer = ellipsis.layers[mID]
-		ellipsisLayer.swapForegroundWithBackground()
-		ellipsisLayer.background.decomposeComponents()
-		ellipsisLayer.shapes = None
-		for i in range(3):
-			ellipsisLayer.shapes.append(GSComponent(period.name))
-		for thisComponent in ellipsisLayer.components:
-			thisComponent.setDisableAlignment_(False)
-		ellipsisLayer.updateMetrics()
+		if not keepSidebearingsSnug:
+			print("🔢 Setting Metrics Keys for ellipsis...")
+			ellipsis.leftMetricsKey = "=+20"
+			ellipsis.rightMetricsKey = "=+20"
 
-	if not keepSidebearingsSnug:
-		print("🔢 Setting Metrics Keys for ellipsis...")
-		ellipsis.leftMetricsKey = "=+20"
-		ellipsis.rightMetricsKey = "=+20"
+		thisFont.newTab(".…")
+		print("✅ Done.")
 
-	thisFont.newTab(".…")
-	print("✅ Done.")
-
-except Exception as e:
-	Glyphs.showMacroWindow()
-	print("\n⚠️ Error in script: Build ellipsis from period components\n")
-	import traceback
-	print(traceback.format_exc())
-	print()
-	raise e
-finally:
-	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
+	except Exception as e:
+		Glyphs.showMacroWindow()
+		print("\n⚠️ Error in script: Build ellipsis from period components\n")
+		import traceback
+		print(traceback.format_exc())
+		print()
+		raise e
+	finally:
+		thisFont.enableUpdateInterface()  # re-enables UI updates in Font View

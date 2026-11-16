@@ -5,7 +5,7 @@ __doc__ = """
 Looks for anchors not on the grid and rounds their coordinate to the closest grid.
 """
 
-from GlyphsApp import Glyphs
+from GlyphsApp import Glyphs, Message
 
 
 def process(thisLayer):
@@ -36,34 +36,37 @@ def process(thisLayer):
 
 
 thisFont = Glyphs.font
-thisFont.disableUpdateInterface()
-try:
-	selectedLayers = thisFont.selectedLayers
-	pixelwidth = thisFont.gridLength
+if thisFont:
+	thisFont.disableUpdateInterface()
+	try:
+		selectedLayers = thisFont.selectedLayers
+		pixelwidth = thisFont.gridLength
 
-	# report:
-	Glyphs.clearLog()
-	print("Aligning anchors to grid in font: %s" % thisFont.familyName)
-	print("Processing: %i glyph%s" % (len(selectedLayers), "" if len(selectedLayers) == 1 else "s"))
-	print("Grid: %i\n" % pixelwidth)
+		# report:
+		Glyphs.clearLog()
+		print("Aligning anchors to grid in font: %s" % thisFont.familyName)
+		print("Processing: %i glyph%s" % (len(selectedLayers), "" if len(selectedLayers) == 1 else "s"))
+		print("Grid: %i\n" % pixelwidth)
 
-	# process and keep count:
-	anchorCount = 0
-	for thisLayer in selectedLayers:
-		anchorCount += process(thisLayer)
+		# process and keep count:
+		anchorCount = 0
+		for thisLayer in selectedLayers:
+			anchorCount += process(thisLayer)
 
-	# report:
-	print("\nMoved %i anchors. Done." % anchorCount)
-	Glyphs.showNotification(
-		"Grid-aligned anchors in %s" % (thisFont.familyName),
-		"Aligned %i anchors in %i selected glyphs. Details in Macro Window." % (anchorCount, len(selectedLayers)),
-	)
-except Exception as e:
-	Glyphs.showMacroWindow()
-	print("\n⚠️ Script Error:\n")
-	import traceback
-	print(traceback.format_exc())
-	print()
-	raise e
-finally:
-	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
+		# report:
+		print("\nMoved %i anchors. Done." % anchorCount)
+		Glyphs.showNotification(
+			"Grid-aligned anchors in %s" % (thisFont.familyName),
+			"Aligned %i anchors in %i selected glyphs. Details in Macro Window." % (anchorCount, len(selectedLayers)),
+		)
+	except Exception as e:
+		Glyphs.showMacroWindow()
+		print("\n⚠️ Script Error:\n")
+		import traceback
+		print(traceback.format_exc())
+		print()
+		raise e
+	finally:
+		thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
+else:
+	Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)

@@ -116,13 +116,17 @@ class RealignStackingAnchors(mekkaObject):
 			self.SavePreferences()
 
 			whichAnchorPairs = self.pref("whichAnchorPairs")
-			anchorPairs = [a.strip() for a in whichAnchorPairs.split(",")]
+			anchorPairs = [a.strip() for a in whichAnchorPairs.split(",") if a.strip()]
 			allGlyphs = self.pref("allGlyphs")
 			limitToCombiningMarks = self.pref("limitToCombiningMarks")
 			includeNonExporting = self.pref("includeNonExporting")
 			allFonts = self.pref("allFonts")
 			movedAnchorCount = 0
 			glyphCount = 0
+
+			if Glyphs.font is None:
+				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+				return
 
 			if allFonts:
 				theseFonts = Glyphs.fonts

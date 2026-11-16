@@ -8,25 +8,28 @@ from mekkablue import newLineControlLayer
 
 thisFont = Glyphs.font
 
-cutoff = []
-names = []
-for i, l in enumerate(thisFont.currentTab.layers):
-	if isinstance(l, GSControlLayer):
-		cutoff.append(i)
-	else:
-		if not cutoff:
-			names.append(l.parent.name)
+if thisFont is None or thisFont.currentTab is None:
+	print("⚠️ Open a font with an Edit tab first.")
+else:
+	cutoff = []
+	names = []
+	for i, l in enumerate(thisFont.currentTab.layers):
+		if isinstance(l, GSControlLayer):
+			cutoff.append(i)
+		else:
+			if not cutoff:
+				names.append(l.parent.name)
 
-theseLayers = []
-for m in thisFont.masters:
-	for gname in names:
-		layer = thisFont.glyphs[gname].layers[m.id]
-		# print(layer)
-		theseLayers.append(layer)
+	theseLayers = []
+	for m in thisFont.masters:
+		for gname in names:
+			layer = thisFont.glyphs[gname].layers[m.id]
+			# print(layer)
+			theseLayers.append(layer)
 
-	theseLayers.append(newLineControlLayer())
+		theseLayers.append(newLineControlLayer())
 
-if theseLayers:
-	thisTab = thisFont.currentTab
-	# TabLayersProxy has no extend(), so rebuild the whole list in one go:
-	thisTab.layers = theseLayers
+	if theseLayers:
+		thisTab = thisFont.currentTab
+		# TabLayersProxy has no extend(), so rebuild the whole list in one go:
+		thisTab.layers = theseLayers

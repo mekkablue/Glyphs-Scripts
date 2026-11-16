@@ -8,23 +8,11 @@ Deletes all group kernings referring to groups that are not (anymore) in the fon
 from GlyphsApp import Glyphs
 
 thisFont = Glyphs.font  # frontmost font
-selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
-
-# collect group names:
-leftGroups = []
-rightGroups = []
-for thisGlyph in thisFont.glyphs:
-	leftGroups.append(thisGlyph.leftKerningGroup)
-	rightGroups.append(thisGlyph.rightKerningGroup)
-
-leftGroups = tuple(set(leftGroups))
-rightGroups = tuple(set(rightGroups))
 
 # brings macro window to front and clears its log:
 Glyphs.clearLog()
 Glyphs.showMacroWindow()
 print("REMOVING ORPHANED GROUP KERNING")
-print("Found: %s left groups, %s right groups." % (len(leftGroups), len(rightGroups)))
 
 # Glyphs.removeKerningForPair(FontMasterId, LeftKey, RightKey)
 # Removes the kerning for the two specified glyphs (LeftKey or RightKey is the glyphname) or a kerning group key (@MMK_X_XX).
@@ -55,8 +43,15 @@ def nameForKerningKey(kerningKey):
 
 deletionCount = 0
 
+if thisFont is None:
+	print("⚠️ No font open.")
+else:
+	# collect group names:
+	leftGroups = tuple(set(g.leftKerningGroup for g in thisFont.glyphs))
+	rightGroups = tuple(set(g.rightKerningGroup for g in thisFont.glyphs))
+	print("Found: %s left groups, %s right groups." % (len(leftGroups), len(rightGroups)))
 
-for thisMaster in thisFont.masters:
+for thisMaster in (thisFont.masters if thisFont else ()):
 	toBeDeleted = []
 	thisMasterID = thisMaster.id
 	print("\nMaster ‘%s’" % thisMaster.name)

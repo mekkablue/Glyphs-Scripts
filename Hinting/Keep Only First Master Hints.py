@@ -8,17 +8,20 @@ In selected glyphs, delete all hints in all layers except for the first master. 
 from GlyphsApp import Glyphs
 
 Font = Glyphs.font
-selectedLayers = Font.selectedLayers
-selectedGlyphs = [layer.parent for layer in selectedLayers]
-firstMasterName = Font.masters[0].name
 
 Glyphs.clearLog()
-print("Only keeping first-master hints in:")
+if Font is None:
+	print("⚠️ No font open.")
+else:
+	selectedGlyphs = [layer.parent for layer in Font.selectedLayers]
+	firstMasterName = Font.masters[0].name
 
-for thisGlyph in selectedGlyphs:
-	print("- %s" % thisGlyph.name)
-	layersToBeProcessed = [layer for layer in thisGlyph.layers if not layer.name.startswith(firstMasterName)]
-	for layer in layersToBeProcessed:
-		layer.hints = None
+	print("Only keeping first-master hints in:")
 
-print("Done.")
+	for thisGlyph in selectedGlyphs:
+		print("- %s" % thisGlyph.name)
+		layersToBeProcessed = [layer for layer in thisGlyph.layers if not layer.name.startswith(firstMasterName)]
+		for layer in layersToBeProcessed:
+			layer.hints = None
+
+	print("Done.")

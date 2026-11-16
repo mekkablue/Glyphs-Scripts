@@ -1,7 +1,9 @@
 # MenuTitle: Print Window
-"""Print the frontmost window."""
-
 from __future__ import print_function
+__doc__ = """
+Print the frontmost window.
+"""
+
 from GlyphsApp import Glyphs, Message
 
 doc = Glyphs.currentDocument

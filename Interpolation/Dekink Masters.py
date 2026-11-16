@@ -128,7 +128,7 @@ else:
 
 			# find the position in the triplet and the ratio between the 3 points:
 
-			if thisNode.connection != GSSMOOTH and thisNode.prevNode.connection == GSSMOOTH:
+			if thisNode.connection != GSSMOOTH and thisNode.prevNode and thisNode.prevNode.prevNode and thisNode.prevNode.connection == GSSMOOTH:
 				# third in the triplet:
 				node0 = thisNode.prevNode.prevNode
 				node1 = thisNode.prevNode
@@ -139,7 +139,7 @@ else:
 				referenceIndex1 = indexOfNode(thisPath, node0)
 				referenceIndex2 = indexOfNode(thisPath, node1)
 
-			elif thisNode.connection != GSSMOOTH and thisNode.nextNode.connection == GSSMOOTH:
+			elif thisNode.connection != GSSMOOTH and thisNode.nextNode and thisNode.nextNode.nextNode and thisNode.nextNode.connection == GSSMOOTH:
 				# first in the triplet:
 				node0 = thisNode  # move this node
 				node1 = thisNode.nextNode
@@ -150,7 +150,7 @@ else:
 				referenceIndex1 = indexOfNode(thisPath, node2)
 				referenceIndex2 = indexOfNode(thisPath, node1)
 
-			elif thisNode.connection == GSSMOOTH:
+			elif thisNode.connection == GSSMOOTH and thisNode.prevNode and thisNode.nextNode:
 				# middle of the triplet:
 				node0 = thisNode.prevNode
 				node1 = thisNode  # move this node

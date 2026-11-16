@@ -439,10 +439,10 @@ class Bumper(mekkaObject):
 			roundValue = 1.0
 		roundValue = max(roundValue, 1.0)
 
-		# check for existing kerning:
-		kerningExists = existingKerning < 1000000  # NSNotDefined constant
-		if not kerningExists:
-			existingKerning = 0
+		# check for an existing pair. existingKerning is the effective kerning (kernanalysis.effectiveKerning
+		# returns 0 if there is none), so it cannot tell us whether this very pair is already in the font:
+		explicitKerning = thisFont.kerningForPair(thisMasterID, leftSide, rightSide)
+		kerningExists = explicitKerning is not None and explicitKerning < 1000000  # NSNotFound in Glyphs 2
 		newKernValue = round((minMaxDistance - distanceBetweenShapes + existingKerning) / roundValue, 0) * roundValue
 
 		# add only if it is OK:

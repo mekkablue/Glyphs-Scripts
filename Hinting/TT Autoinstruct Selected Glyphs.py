@@ -12,7 +12,6 @@ Glyphs.registerDefault("com.mekkablue.ttAutoinstructSelectedGlyphs.alwaysUseNoSt
 shouldSetStemsToNoStem = Glyphs.defaults["com.mekkablue.ttAutoinstructSelectedGlyphs.alwaysUseNoStem"]
 
 thisFont = Glyphs.font  # frontmost font
-selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
 
 
 def setHintsToNoStem(thisLayer):
@@ -31,48 +30,53 @@ def setHintsToNoStem(thisLayer):
 	return returnValue
 
 
-# brings macro window to front and clears its log:
-Glyphs.clearLog()
-Glyphs.showMacroWindow()
-print("TT Autoinstruct: %s" % thisFont.familyName)
-thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
-try:
-	Tool = NSClassFromString("GlyphsToolTrueTypeInstructor").alloc().init()
-	if Tool:
-		Tool.autohintLayers_(selectedLayers)
-		for thisLayer in selectedLayers:
-			hintCount = len([h for h in thisLayer.hints if h.type in (TTANCHOR, TTSTEM, TTALIGN, TTINTERPOLATE, TTDIAGONAL, TTDELTA)])
-			print("\n🔠 %s\n   Layer ‘%s’ has %i TT instruction%s." % (
-				thisLayer.parent.name,
-				thisLayer.name,
-				hintCount,
-				"" if hintCount == 1 else "s",
-			))
-			if shouldSetStemsToNoStem:
-				setHintsToNoStem(thisLayer)
-	else:
-		Message("TT Autoinstruct Error", "The TT Instructor Tool could not be accessed.", OKButton=None)
+if thisFont is None:
+	print("⚠️ No font open.")
+else:
+	selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
 
-except Exception as e:
+	# brings macro window to front and clears its log:
+	Glyphs.clearLog()
 	Glyphs.showMacroWindow()
-	print("\n⚠️ Script Error:\n")
-	import traceback
-	print(traceback.format_exc())
-	print()
-	raise e
+	print("TT Autoinstruct: %s" % thisFont.familyName)
+	thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
+	try:
+		Tool = NSClassFromString("GlyphsToolTrueTypeInstructor").alloc().init()
+		if Tool:
+			Tool.autohintLayers_(selectedLayers)
+			for thisLayer in selectedLayers:
+				hintCount = len([h for h in thisLayer.hints if h.type in (TTANCHOR, TTSTEM, TTALIGN, TTINTERPOLATE, TTDIAGONAL, TTDELTA)])
+				print("\n🔠 %s\n   Layer ‘%s’ has %i TT instruction%s." % (
+					thisLayer.parent.name,
+					thisLayer.name,
+					hintCount,
+					"" if hintCount == 1 else "s",
+				))
+				if shouldSetStemsToNoStem:
+					setHintsToNoStem(thisLayer)
+		else:
+			Message("TT Autoinstruct Error", "The TT Instructor Tool could not be accessed.", OKButton=None)
 
-finally:
-	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
+	except Exception as e:
+		Glyphs.showMacroWindow()
+		print("\n⚠️ Script Error:\n")
+		import traceback
+		print(traceback.format_exc())
+		print()
+		raise e
 
-# Floating notification:
-Glyphs.showNotification(
-	"TT-Autoinstructed %s" % (thisFont.familyName),
-	"Processed %i glyph%s, details in Macro Window." % (
+	finally:
+		thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
+
+	# Floating notification:
+	Glyphs.showNotification(
+		"TT-Autoinstructed %s" % (thisFont.familyName),
+		"Processed %i glyph%s, details in Macro Window." % (
+			len(selectedLayers),
+			"" if len(selectedLayers) == 1 else "s",
+		),
+	)
+	print("\nProcessed %i glyph%s." % (
 		len(selectedLayers),
 		"" if len(selectedLayers) == 1 else "s",
-	),
-)
-print("\nProcessed %i glyph%s." % (
-	len(selectedLayers),
-	"" if len(selectedLayers) == 1 else "s",
-))
+	))

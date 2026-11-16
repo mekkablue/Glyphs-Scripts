@@ -71,7 +71,7 @@ class FvarBuilder:
 				return 1.0
 			return 0.0
 		elif tag == 'slnt':
-			return abs(font['post'].italicAngle)
+			return float(font['post'].italicAngle)
 		elif tag == 'opsz':
 			return float(font['size'].subfamilyIdentifier)
 

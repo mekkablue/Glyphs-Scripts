@@ -8,7 +8,7 @@ Opens a new tab containing all members of the left and right kerning groups of t
 from GlyphsApp import Glyphs, Message
 
 thisFont = Glyphs.font  # frontmost font
-thisGlyph = thisFont.selectedLayers[0].parent
+thisGlyph = thisFont.selectedLayers[0].parent if thisFont and thisFont.selectedLayers else None
 
 if thisGlyph:
 	leftGroup = thisGlyph.leftKerningGroup
@@ -18,9 +18,10 @@ if thisGlyph:
 	rightGroupText = "right:\n"
 
 	for g in thisFont.glyphs:
-		if g.leftKerningGroup == leftGroup:
+		# glyphs without a group only stand for themselves:
+		if (leftGroup and g.leftKerningGroup == leftGroup) or (not leftGroup and g.name == thisGlyph.name):
 			leftGroupText += "/%s" % g.name
-		if g.rightKerningGroup == rightGroup:
+		if (rightGroup and g.rightKerningGroup == rightGroup) or (not rightGroup and g.name == thisGlyph.name):
 			rightGroupText += "/%s" % g.name
 
 	thisFont.newTab("%s %s\n\n%s %s" % (thisGlyph.name, leftGroupText, thisGlyph.name, rightGroupText))

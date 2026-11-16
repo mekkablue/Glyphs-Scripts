@@ -255,6 +255,7 @@ class NewTabwithOverkernedPairs(mekkaObject):
 
 							leftWidth = None
 							rightWidth = None
+							groupName = None
 							try:
 								# collect widths for comparison
 								if leftKey[0] == "@":

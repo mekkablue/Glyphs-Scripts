@@ -154,6 +154,9 @@ class OffsetPixelRows(mekkaObject):
 				pixelWidth = self.prefInt("pixelWidth")
 				pixelName = self.pref("pixelName")
 				rhythm = self.prefInt("rhythm")
+				if rhythm == 0:
+					Message(title="Invalid Rhythm", message="The line rhythm must not be 0. Use 2 or higher, or a negative number for moving to the left.", OKButton=None)
+					return
 				shouldResetGrid = self.pref("shouldResetGrid")
 				currentMasterID = thisFont.selectedFontMaster.id
 

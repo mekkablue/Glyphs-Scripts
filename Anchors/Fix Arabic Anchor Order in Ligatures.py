@@ -9,8 +9,7 @@ from mekkablue import newAnchorWithName
 
 
 Font = Glyphs.font
-FontMaster = Font.selectedFontMaster
-selectedLayers = Font.selectedLayers
+selectedLayers = Font.selectedLayers if Font else ()
 
 
 def makeAnchor(thisLayer, anchorName, x, y):
@@ -49,15 +48,16 @@ def process(thisLayer):
 	addListOfAnchors(thisLayer, "bottom", bottomAnchorCoords)
 
 
-Font.disableUpdateInterface()
-try:
-	for thisLayer in selectedLayers:
-		thisGlyph = thisLayer.parent
-		thisGlyphName = thisGlyph.name
-		if "-ar" in thisGlyphName and "_" in thisGlyphName:
-			print("Processing", thisGlyphName)
-			process(thisLayer)
-except Exception as e:
-	raise e
-finally:
-	Font.enableUpdateInterface()
+if Font:
+	Font.disableUpdateInterface()
+	try:
+		for thisLayer in selectedLayers:
+			thisGlyph = thisLayer.parent
+			thisGlyphName = thisGlyph.name
+			if "-ar" in thisGlyphName and "_" in thisGlyphName:
+				print("Processing", thisGlyphName)
+				process(thisLayer)
+	except Exception as e:
+		raise e
+	finally:
+		Font.enableUpdateInterface()

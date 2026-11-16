@@ -176,7 +176,9 @@ class Rotator(mekkaObject):
 		# update settings to the latest user input:
 		self.SavePreferences()
 
-		selectedLayers = Glyphs.currentDocument.selectedLayers()
+		if not Glyphs.font:
+			return
+		selectedLayers = Glyphs.font.selectedLayers
 		originatingButton = sender.getTitle()
 
 		if "ccw" in originatingButton:
@@ -203,7 +205,6 @@ class Rotator(mekkaObject):
 		for thisLayer in selectedLayers:
 			# rotate individually selected nodes and components
 			try:
-				thisGlyph = thisLayer.parent
 				selectionCounts = selectionCounts and bool(thisLayer.selection)  # True only if both are True
 				RotationTransform = self.rotationTransform(rotationCenter, rotationDegrees, rotationDirection)
 				# print("rotationCenter, rotationDegrees, rotationDirection:", rotationCenter, rotationDegrees, rotationDirection) # DEBUG

@@ -19,6 +19,22 @@ parser.add_argument(
 
 def fixGDEFinFont(font):
 	"""Takes a ttLib.TTFont as argument."""
+	legacyMarks = (
+		"dieresis",
+		"dotaccent",
+		"grave",
+		"acute",
+		"hungarumlaut",
+		"circumflex",
+		"caron",
+		"breve",
+		"ring",
+		"tilde",
+		"macron",
+		"cedilla",
+		"ogonek",
+		"uni02BB"
+	)
 	madeChanges = False
 
 	if "GDEF" not in font.keys():
@@ -30,22 +46,6 @@ def fixGDEFinFont(font):
 		print("⚠️ No MarkGlyphSetsDef found in GDEF table.")
 	else:
 		print("Scanning MarkGlyphSetsDef...")
-		legacyMarks = (
-			"dieresis",
-			"dotaccent",
-			"grave",
-			"acute",
-			"hungarumlaut",
-			"circumflex",
-			"caron",
-			"breve",
-			"ring",
-			"tilde",
-			"macron",
-			"cedilla",
-			"ogonek",
-			"uni02BB"
-		)
 		for coverage in gdef.MarkGlyphSetsDef.Coverage:
 			for i in range(len(coverage.glyphs) - 1, -1, -1):
 				glyph = coverage.glyphs[i]

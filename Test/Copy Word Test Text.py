@@ -4,113 +4,116 @@ Copies a test text for Microsoft Word into the clipboard.
 """
 
 from AppKit import NSStringPboardType, NSPasteboard
-from GlyphsApp import Glyphs
+from GlyphsApp import Glyphs, Message
 from mekkablue import setClipboard
 
 thisFont = Glyphs.font  # frontmost font
-Glyphs.clearLog()  # clears macro window log
-print("Copy Word Test Text")
-print("Font: %s\n" % thisFont.familyName)
+if thisFont:
+	Glyphs.clearLog()  # clears macro window log
+	print("Copy Word Test Text")
+	print("Font: %s\n" % thisFont.familyName)
 
-glyphs = [g for g in thisFont.glyphs if g.unicode and g.export and g.subCategory != "Nonspacing"]
-glyphnames = [g.name for g in glyphs]
+	glyphs = [g for g in thisFont.glyphs if g.unicode and g.export and g.subCategory != "Nonspacing"]
+	glyphnames = [g.name for g in glyphs]
 
-copyString = u""
+	copyString = u""
 
-# CHARSET:
-lastCategory = None
-errorCount = 0
-for i, currGlyph in enumerate(glyphs):
-	print("🔠 %s" % currGlyph.name)
-	if currGlyph.category not in ("Number", ):
-		currCategory = currGlyph.subCategory
-	elif currGlyph.name in ("fraction", ):
-		currCategory = "Number"
-	else:
-		currCategory = currGlyph.category
+	# CHARSET:
+	lastCategory = None
+	errorCount = 0
+	for i, currGlyph in enumerate(glyphs):
+		print("🔠 %s" % currGlyph.name)
+		if currGlyph.category not in ("Number", ):
+			currCategory = currGlyph.subCategory
+		elif currGlyph.name in ("fraction", ):
+			currCategory = "Number"
+		else:
+			currCategory = currGlyph.category
 
-	if currCategory != lastCategory:
-		caseChange = lastCategory in ("Uppercase", "Lowercase") and currGlyph.script == "latin"
-		numberSwitch = "Number" in (lastCategory, currCategory)
-		if caseChange or numberSwitch:
-			copyString += "\n"
+		if currCategory != lastCategory:
+			caseChange = lastCategory in ("Uppercase", "Lowercase") and currGlyph.script == "latin"
+			numberSwitch = "Number" in (lastCategory, currCategory)
+			if caseChange or numberSwitch:
+				copyString += "\n"
 
-	charString = currGlyph.glyphInfo.unicharString()
-	if not charString:
-		if not currGlyph.unicode:
+		glyphInfo = currGlyph.glyphInfo
+		charString = glyphInfo.unicharString() if glyphInfo else None
+		if not charString and currGlyph.unicode:
+			unicodeInfo = Glyphs.glyphInfoForUnicode(currGlyph.unicode)
+			charString = unicodeInfo.unicharString() if unicodeInfo else None
+		if not charString:
 			print("⚠️ Cannot determine character for glyph: %s. Skipping." % currGlyph.name)
 			errorCount += 1
-			break
-		else:
-			Glyphs.glyphInfoForUnicode(currGlyph.unicode).unicharString()
-	else:
+			continue
 		copyString += charString.replace(u"⁄", u" ⁄ ")  # extra space for fraction
 		if currGlyph.name == "ldot":
 			copyString += "l"
 		elif currGlyph.name == "Ldot":
 			copyString += "L"
 
-	lastCategory = currCategory
+		lastCategory = currCategory
 
-print("\n👨‍💻 Analysing OT features...")
-# FEATURESET:
-copyString += "\n\n"
-for feature in thisFont.features:
-	print("\t%s" % feature.name)
-	if "ss" in feature.name or "lig" in feature.name:
-		testtext = u""
+	print("\n👨‍💻 Analysing OT features...")
+	# FEATURESET:
+	copyString += "\n\n"
+	for feature in thisFont.features:
+		print("\t%s" % feature.name)
+		if "ss" in feature.name or "lig" in feature.name:
+			testtext = u""
 
-		# scan feature code for substitutions:
-		if "sub " in feature.code:
-			lines = feature.code.splitlines()
-			for line in lines:
-				if line and line.startswith("sub "):  # find a sub line
-					line = line[4:line.find("by")]  # get the glyphnames between sub and by
-					featureglyphnames = line.replace("'", "").split(" ")  # remove contextual tick, split them at the spaces
-					for glyphname in featureglyphnames:
-						if glyphname:  # exclude a potential empty string
-							# suffixed glyphs:
-							if "." in glyphname:
-								glyphname = glyphname[:glyphname.find(".")]
+			# scan feature code for substitutions:
+			if "sub " in feature.code:
+				lines = feature.code.splitlines()
+				for line in lines:
+					if line and line.startswith("sub "):  # find a sub line
+						line = line[4:line.find("by")]  # get the glyphnames between sub and by
+						featureglyphnames = line.replace("'", "").split(" ")  # remove contextual tick, split them at the spaces
+						for glyphname in featureglyphnames:
+							if glyphname:  # exclude a potential empty string
+								# suffixed glyphs:
+								if "." in glyphname:
+									glyphname = glyphname[:glyphname.find(".")]
 
-							# ligatures:
-							if "_" in glyphname:
-								# add spaces between ligatures
-								glyphname += "_space"
-								if testtext[-1] != " ":
-									testtext += " "
+								# ligatures:
+								if "_" in glyphname:
+									# add spaces between ligatures
+									glyphname += "_space"
+									if testtext and testtext[-1] != " ":
+										testtext += " "
 
-							# split ligature name, if any:
-							subglyphnames = glyphname.split("_")
-							for subglyphname in subglyphnames:
-								gInfo = Glyphs.glyphInfoForName(subglyphname)
-								if gInfo and gInfo.subCategory != "Nonspacing":
-									try:
-										testtext += gInfo.unicharString()
-									except:
-										pass
+								# split ligature name, if any:
+								subglyphnames = glyphname.split("_")
+								for subglyphname in subglyphnames:
+									gInfo = Glyphs.glyphInfoForName(subglyphname)
+									if gInfo and gInfo.subCategory != "Nonspacing":
+										try:
+											testtext += gInfo.unicharString()
+										except:
+											pass
 
-					# pad ligature letters in spaces:
-					if "lig" in feature.name:
-						testtext += " "
+						# pad ligature letters in spaces:
+						if "lig" in feature.name:
+							testtext += " "
 
-			if feature.name == "case":
-				testtext = u"HO".join(testtext) + "HO"
+				if feature.name == "case":
+					testtext = u"HO".join(testtext) + "HO"
 
-		copyString += u"%s: %s\n" % (feature.name, testtext)
+			copyString += u"%s: %s\n" % (feature.name, testtext)
 
-copyString += "\n\n"
+	copyString += "\n\n"
 
-print("\n💕 Copying test text into clipboard...")
-if not setClipboard(copyString):
-	print("⚠️ Could not set clipboard to ‘%s...’" % (copyString[:12]))
+	print("\n💕 Copying test text into clipboard...")
+	if not setClipboard(copyString):
+		print("⚠️ Could not set clipboard to ‘%s...’" % (copyString[:12]))
 
-print("Done.")
-# Floating notification:
-Glyphs.showNotification(
-	u"%s: Ready for Pasting" % (thisFont.familyName),
-	u"Test text for MS Word in clipboard. Encountered %i error%s processing the font. Details in Macro Window." % (
-		errorCount,
-		"" if errorCount == 1 else "s",
-	),
-)
+	print("Done.")
+	# Floating notification:
+	Glyphs.showNotification(
+		u"%s: Ready for Pasting" % (thisFont.familyName),
+		u"Test text for MS Word in clipboard. Encountered %i error%s processing the font. Details in Macro Window." % (
+			errorCount,
+			"" if errorCount == 1 else "s",
+		),
+	)
+else:
+	Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)

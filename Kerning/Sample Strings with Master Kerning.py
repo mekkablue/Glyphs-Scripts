@@ -155,9 +155,9 @@ class SampleStringsWithMasterKerning(mekkaObject):
 				if not font.glyphs[glyphName] or glyphName not in names:
 					glyphName = None
 			if not glyphName:
-				for name in names:
-					if font.glyphs[name]:
-						glyphName = name
+				for candidate in names:
+					if font.glyphs[candidate]:
+						glyphName = candidate
 						break
 		else:
 			glyph = font.glyphForId_(name)
@@ -167,7 +167,7 @@ class SampleStringsWithMasterKerning(mekkaObject):
 		if glyphName:
 			return glyphName
 		else:
-			print("⚠️ No glyph found for: {name}")
+			print(f"⚠️ No glyph found for: {name}")
 			return None
 
 	def contextForGlyphs(self, leftName, rightName, font):
@@ -197,10 +197,13 @@ class SampleStringsWithMasterKerning(mekkaObject):
 			self.SavePreferences()
 
 			thisFont = Glyphs.font  # frontmost font
+			if thisFont is None:
+				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+				return
 			thisMaster = thisFont.selectedFontMaster
 			print(f"Sample Strings with Master Kerning Report for {thisFont.familyName}")
-			if thisFont.filepath:
-				print(thisFont.filepath)
+			fileName = thisFont.filepath.lastPathComponent() if thisFont.filepath else f"{thisFont.familyName} (unsaved)"
+			print(f"📄 {fileName}")
 			print(f"Ⓜ️ Master: ‘{thisMaster.name}’")
 			print()
 

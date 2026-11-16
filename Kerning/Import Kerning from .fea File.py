@@ -38,11 +38,11 @@ def importFeaFileToMaster(font, master, filePath, isRTL=False):
 		return
 
 	kerningLines = []
-	feaFile = open(filePath)
-	currentLine = feaFile.readline()
+	with open(filePath, encoding="utf-8") as feaFile:
+		feaLines = feaFile.readlines()
 	groupNameDict = {}
-	while (currentLine != ""): # end of file
-		if (currentLine[0] == "@"):
+	for currentLine in feaLines:
+		if currentLine.startswith("@"):
 			while "  " in currentLine:
 				currentLine = currentLine.replace("  ", " ")
 			groupName = currentLine[currentLine.find("@"):currentLine.find("=")].strip()
@@ -79,7 +79,6 @@ def importFeaFileToMaster(font, master, filePath, isRTL=False):
 			groupNameDict[oldGroupName] = newGroupName
 		elif currentLine.strip().find("pos") == 0:
 			kerningLines.append(currentLine.strip())
-		currentLine = feaFile.readline() # read the next line
 
 	if len(kerningLines) > 0:
 		for i in range(len(kerningLines) - 1, -1, -1):

@@ -1,6 +1,4 @@
 # MenuTitle: Report Instance Interpolations
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Outputs master coefficients for each instance in Macro Window. Tells you which masters are involved in interpolating a specific instance, and to which extent.
 """
@@ -34,19 +32,17 @@ else:
 	Glyphs.clearLog()
 	Glyphs.showMacroWindow()
 	print("Instance Report for %s" % thisFont.familyName)
-	if thisFont.filepath:
-		print("📄 %s" % thisFont.filepath.lastPathComponent())
-	else:
-		print("⚠️ The font file has not been saved yet.")
+	fileName = thisFont.filepath.lastPathComponent() if thisFont.filepath else f"{thisFont.familyName} (unsaved)"
+	print(f"📄 {fileName}")
 
-for thisInstance in thisFont.instances:
-	if Glyphs.buildNumber > 3198:
-		instanceIsExporting = thisInstance.exports
-	else:
-		instanceIsExporting = thisInstance.active
-	print("\n%s %s %s" % (
-		"🟢" if instanceIsExporting else "🚫",
-		thisInstance.familyName,
-		thisInstance.name,
-	))
-	reportCoefficients(thisInstance)
+	for thisInstance in thisFont.instances:
+		if Glyphs.buildNumber > 3198:
+			instanceIsExporting = thisInstance.exports
+		else:
+			instanceIsExporting = thisInstance.active
+		print("\n%s %s %s" % (
+			"🟢" if instanceIsExporting else "🚫",
+			thisInstance.familyName,
+			thisInstance.name,
+		))
+		reportCoefficients(thisInstance)

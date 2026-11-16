@@ -91,6 +91,8 @@ def match(first, second):
 
 
 def camelCaseSplit(string: str) -> list[str]:
+	if not string:
+		return []
 	words = [[string[0]]]
 	for c in string[1:]:
 		if words[-1][-1].islower() and c.isupper():

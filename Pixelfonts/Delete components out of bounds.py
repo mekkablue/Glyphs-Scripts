@@ -6,7 +6,7 @@ Looks for components out of bounds.
 """
 
 from math import fabs
-from GlyphsApp import Glyphs
+from GlyphsApp import Glyphs, Message
 
 
 def scanOutOfBounds(thisLayer):
@@ -57,38 +57,41 @@ def process(thisLayer):
 
 
 thisFont = Glyphs.font
-thisFont.disableUpdateInterface()
-try:
-	selectedLayers = thisFont.selectedLayers
-	outOfBounds = Glyphs.defaults["com.mekkablue.DeleteComponentsOutOfBounds.threshold"]
-	if not outOfBounds:
-		outOfBounds = 3000.0
+if thisFont:
+	thisFont.disableUpdateInterface()
+	try:
+		selectedLayers = thisFont.selectedLayers
+		outOfBounds = Glyphs.defaults["com.mekkablue.DeleteComponentsOutOfBounds.threshold"]
+		if not outOfBounds:
+			outOfBounds = 3000.0
 
-	# report:
-	Glyphs.clearLog()
-	print("Deleting out-of-bounds components in font: %s" % thisFont.familyName)
-	print("Threshold: %.1f" % outOfBounds)
-	print('\nHint: set a different threshold by running this line in the Macro Window, e.g. 1000u:')
-	print('Glyphs.defaults["com.mekkablue.DeleteComponentsOutOfBounds.threshold"] = 1000\n')
+		# report:
+		Glyphs.clearLog()
+		print("Deleting out-of-bounds components in font: %s" % thisFont.familyName)
+		print("Threshold: %.1f" % outOfBounds)
+		print('\nHint: set a different threshold by running this line in the Macro Window, e.g. 1000u:')
+		print('Glyphs.defaults["com.mekkablue.DeleteComponentsOutOfBounds.threshold"] = 1000\n')
 
-	componentCount = 0
-	for thisLayer in selectedLayers:
-		componentCount += process(thisLayer)
+		componentCount = 0
+		for thisLayer in selectedLayers:
+			componentCount += process(thisLayer)
 
-	# report:
-	print("\nDeleted %i components. Done." % componentCount)
-	Glyphs.showNotification(
-		"Components out off bounds: %s" % (thisFont.familyName),
-		"Deleted %i components in %i selected glyphs. Details in Macro Window." % (componentCount, len(selectedLayers)),
-	)
+		# report:
+		print("\nDeleted %i components. Done." % componentCount)
+		Glyphs.showNotification(
+			"Components out off bounds: %s" % (thisFont.familyName),
+			"Deleted %i components in %i selected glyphs. Details in Macro Window." % (componentCount, len(selectedLayers)),
+		)
 
-except Exception as e:
-	Glyphs.showMacroWindow()
-	print("\n⚠️ Script Error:\n")
-	import traceback
-	print(traceback.format_exc())
-	print()
-	raise e
+	except Exception as e:
+		Glyphs.showMacroWindow()
+		print("\n⚠️ Script Error:\n")
+		import traceback
+		print(traceback.format_exc())
+		print()
+		raise e
 
-finally:
-	thisFont.enableUpdateInterface()
+	finally:
+		thisFont.enableUpdateInterface()
+else:
+	Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)

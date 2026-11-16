@@ -53,43 +53,46 @@ def maxZoneForBlueScale(blueScale):
 	return zoneSize
 
 
-# open Font Info at Font tab:
 thisFont = Glyphs.font  # frontmost font
-thisFont.parent.windowController().showFontInfoWindowWithTabSelected_(0) # font tab index
+if thisFont is None:
+	print("⚠️ No font open.")
+else:
+	# open Font Info at Font tab:
+	thisFont.parent.windowController().showFontInfoWindowWithTabSelected_(0) # font tab index
 
-# prepare Macro window:
-Glyphs.clearLog()
-Glyphs.showMacroWindow()
-setMacroDivider()
+	# prepare Macro window:
+	Glyphs.clearLog()
+	Glyphs.showMacroWindow()
+	setMacroDivider()
 
-print(f"📄 {thisFont.familyName}")
-# save old blueScale:
-if thisFont.customParameters["blueScale"]:
-	print(f"💾 Existing blueScale {float(thisFont.customParameters['blueScale'])} stored in font parameter ‘OLD blueScale’.")
-	thisFont.customParameters["OLD blueScale"] = thisFont.customParameters["blueScale"]
-	thisFont.customParameterForKey_("OLD blueScale").active = False
+	print(f"📄 {thisFont.familyName}")
+	# save old blueScale:
+	if thisFont.customParameters["blueScale"]:
+		print(f"💾 Existing blueScale {float(thisFont.customParameters['blueScale'])} stored in font parameter ‘OLD blueScale’.")
+		thisFont.customParameters["OLD blueScale"] = thisFont.customParameters["blueScale"]
+		thisFont.customParameterForKey_("OLD blueScale").active = False
 
-minSize = 16
-maxSize = maxPPMforOvershootSuppressionInFont(thisFont)
-maxBlueScale = maxBlueScaleForFont(thisFont)
-thisFont.customParameters["blueScale"] = maxBlueScale
-print(f"✅ Max blueScale: {maxBlueScale} (max {maxSize} PPM, largest zone {int(maxZoneInFont(thisFont))}u)\n")
+	minSize = 16
+	maxSize = maxPPMforOvershootSuppressionInFont(thisFont)
+	maxBlueScale = maxBlueScaleForFont(thisFont)
+	thisFont.customParameters["blueScale"] = maxBlueScale
+	print(f"✅ Max blueScale: {maxBlueScale} (max {maxSize} PPM, largest zone {int(maxZoneInFont(thisFont))}u)\n")
 
-if maxSize > minSize:
-	print("Possible font size limits for overshoot suppression:")
-	print()
-	print("    PPM    96dpi  144dpi  300dpi  600dpi  blueScale  max zone")
-	print("------- -------- ------- ------- ------- ---------- ---------")
-	for size in range(minSize, maxSize + 1):
-		# for size in range(30,71,2):
-		print(
-			"%4i px  % 4.0f pt % 4.0f pt % 4.0f pt % 4.0f pt    %.5f     %3i u" % (
-				size,
-				(size / 96.0) * 72.0,
-				(size / 144.0) * 72.0,
-				(size / 300.0) * 72.0,
-				(size / 600.0) * 72.0,
-				blueScaleForPPMsize(size),
-				maxZoneForBlueScale(blueScaleForPPMsize(size)),
+	if maxSize > minSize:
+		print("Possible font size limits for overshoot suppression:")
+		print()
+		print("    PPM    96dpi  144dpi  300dpi  600dpi  blueScale  max zone")
+		print("------- -------- ------- ------- ------- ---------- ---------")
+		for size in range(minSize, maxSize + 1):
+			# for size in range(30,71,2):
+			print(
+				"%4i px  % 4.0f pt % 4.0f pt % 4.0f pt % 4.0f pt    %.5f     %3i u" % (
+					size,
+					(size / 96.0) * 72.0,
+					(size / 144.0) * 72.0,
+					(size / 300.0) * 72.0,
+					(size / 600.0) * 72.0,
+					blueScaleForPPMsize(size),
+					maxZoneForBlueScale(blueScaleForPPMsize(size)),
+				)
 			)
-		)

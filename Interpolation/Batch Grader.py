@@ -665,27 +665,27 @@ class BatchGrader(mekkaObject):
 			codeLine = codeLine[: codeLine.find("#")]
 		codeLine = codeLine.strip()
 		if not codeLine:
-			return
+			return gradeCount
 
 		if ":" not in codeLine:
 			print(f"⚠️ Could not parse (missing colon): {codeLine}\n")
-			return
+			return gradeCount
 
 		masterName, axes = codeLine.split(":", 1)
 		masterName = masterName.strip()
 		master = thisFont.fontMasterForName_(masterName)
 		if not master:
 			print(f"⚠️ No master called ‘{masterName}’")
-			return
+			return gradeCount
 
 		if self.shouldExcludeMaster(master):
-			return
+			return gradeCount
 
 		weightedAxes = master.axes[:]
 		axisCodes = [a.strip() for a in axes.split(",") if "=" in a]
 		if not axisCodes:
 			print(f"⚠️ Could not parse: {codeLine}\n")
-			return
+			return gradeCount
 
 		gradeCount += 1
 		print(f"{gradeCount}. {codeLine}")
@@ -723,7 +723,7 @@ class BatchGrader(mekkaObject):
 			print(f"⚠️ Could not interpolate ‘{codeLine}’: Glyphs returned no font for this axis combination.")
 			print(f"\tMasters available for interpolation ({len(subsettedFont.masters)}): {subsettedMasterNames}")
 			print("\tCheck that at least two of these masters differ only in the axis you are grading, and that no axis value in the recipe falls outside their range.\n")
-			return
+			return gradeCount
 
 		# get the graded master
 		gradeMaster = self.gradeMaster(thisFont, master, grade, gradeAxisIdx, searchFor, replaceWith)
@@ -751,6 +751,7 @@ class BatchGrader(mekkaObject):
 						gradeLayer.applyTransform((1, 0, 0, 1, offCenter // 2, 0))
 		print()
 		del pool
+		return gradeCount
 
 	def addGradedBraceLayers(self, thisFont, gradeAxis, grade):
 		if not self.pref("addGradedBraceLayers"):
@@ -809,7 +810,7 @@ class BatchGrader(mekkaObject):
 			onlyCurrentGlyph = self.prefBool("onlyCurrentGlyph")
 			onlyGlyphName = None
 			if onlyCurrentGlyph:
-				layer = thisFont.currentTab.activeLayer()
+				layer = thisFont.currentTab.activeLayer() if thisFont.currentTab else None
 				if layer:
 					onlyGlyphName = layer.parent.name
 
@@ -822,7 +823,7 @@ class BatchGrader(mekkaObject):
 			axisIndex = 0
 
 			for axis in thisFont.axes:
-				if axis.axisTag == "GRAD":
+				if axis.axisTag == gradeAxis.axisTag:
 					skipAxisIndexes.append(axisIndex)
 				axisIndex += 1
 				weightedAxes.append(0)
@@ -844,7 +845,7 @@ class BatchGrader(mekkaObject):
 						fontWithoutGrades.removeGlyph_(glyph)
 
 			for codeLine in graderCode.splitlines():
-				self.processCodeLine(codeLine, thisFont, fontWithoutGrades, grade, gradeAxisIdx, searchFor, replaceWith, keepCenteredGlyphsCentered, keepCenteredThreshold, onlyGlyphName, gradeCount)
+				gradeCount = self.processCodeLine(codeLine, thisFont, fontWithoutGrades, grade, gradeAxisIdx, searchFor, replaceWith, keepCenteredGlyphsCentered, keepCenteredThreshold, onlyGlyphName, gradeCount)
 
 			# add missing axis locations if base master has axis locations:
 			self.addMissingAxisLocations(thisFont, gradeAxis)

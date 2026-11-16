@@ -8,11 +8,14 @@ Opens new tab with layers with deltas.
 from GlyphsApp import Glyphs, TTDELTA
 
 font = Glyphs.font
-layersWithDelta = []
-for thisGlyph in font.glyphs:
-	for thisLayer in thisGlyph.layers:
-		for thisHint in thisLayer.hints:
-			if thisHint.type == TTDELTA:
-				if thisLayer not in layersWithDelta:
-					layersWithDelta.append(thisLayer)
-font.newTab(layersWithDelta)
+if font is None:
+	print("⚠️ No font open.")
+else:
+	layersWithDelta = []
+	for thisGlyph in font.glyphs:
+		for thisLayer in thisGlyph.layers:
+			for thisHint in thisLayer.hints:
+				if thisHint.type == TTDELTA:
+					if thisLayer not in layersWithDelta:
+						layersWithDelta.append(thisLayer)
+	font.newTab(layersWithDelta)

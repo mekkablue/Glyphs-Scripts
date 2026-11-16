@@ -9,14 +9,9 @@ from GlyphsApp import Glyphs, GSHint, GSNode
 
 
 Font = Glyphs.font
-FontMaster = Font.selectedFontMaster
-thisLayer = Font.selectedLayers[0]
-try:
-	# until v2.1:
-	selection = thisLayer.selection()
-except:
-	# since v2.2:
-	selection = thisLayer.selection
+FontMaster = Font.selectedFontMaster if Font else None
+thisLayer = Font.selectedLayers[0] if Font and Font.selectedLayers else None
+selection = thisLayer.selection if thisLayer else []
 
 thisSelection = [n for n in selection if isinstance(n, GSNode)]
 numberOfSelectedNodes = len(thisSelection)
@@ -52,7 +47,7 @@ if numberOfSelectedNodes == 1:
 		newHint.horizontal = True
 		thisLayer.hints.append(newHint)
 
-elif numberOfSelectedNodes % 2 == 0:
+elif numberOfSelectedNodes and numberOfSelectedNodes % 2 == 0:
 	# Determine horizontal/vertical hints:
 	xCoordinates = sorted([n.x for n in thisSelection])
 	yCoordinates = sorted([n.y for n in thisSelection])

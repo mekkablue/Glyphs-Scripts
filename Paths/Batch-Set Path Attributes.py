@@ -255,10 +255,11 @@ class BatchSetPathAttributes(mekkaObject):
 						self.setPref("lineJoin", int(lineJoin))
 
 					strokeWidth = currentPath.attributeForKey_("strokeWidth")
-					self.setPref("strokeWidth", strokeWidth)
+					if strokeWidth is not None:
+						self.setPref("strokeWidth", strokeWidth)
 
 					strokeHeight = currentPath.attributeForKey_("strokeHeight")
-					self.setPref("strokeHeight", strokeHeight)
+					self.setPref("strokeHeight", "" if strokeHeight is None else strokeHeight)
 
 					strokePos = currentPath.attributeForKey_("strokePos")
 					strokePosPrefValue = None

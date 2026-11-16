@@ -160,7 +160,7 @@ def wdthAdjust(font, gradeMaster, baseMaster, scope=[]):
 		refLayer = refFont.glyphs[glyph.name].layers[0]
 		if refLayer.width == gradeLayer.width or not gradeLayer.shapes:
 			# width cannot be interpolated, so just fix SBs:
-			fitSidebearings(gradeLayer, targetWidth=baseLayer)
+			fitSidebearings(gradeLayer, targetWidth=baseLayer.width)
 			print(f"⚠️ could not interpolate wdth, just fitted SBs: {glyph.name}")
 			continue
 
@@ -387,6 +387,8 @@ class AddGrade(mekkaObject):
 
 	def updateFromButton(self, sender=None):
 		font = Glyphs.font
+		if font is None and sender == self.w.updateWeight:
+			return
 		if sender == self.w.updateWeight:
 			# get current master:
 			masterIndex = self.w.baseMaster.get()
@@ -411,11 +413,6 @@ class AddGrade(mekkaObject):
 			limitToSelectedGlyphs = self.prefBool("limitToSelectedGlyphs")
 
 			thisFont = Glyphs.font  # frontmost font
-			if limitToSelectedGlyphs:
-				glyphNames = [layer.parent.name for layer in thisFont.selectedLayers]
-			else:
-				glyphNames = [g.name for g in thisFont.glyphs]
-
 			if thisFont is None:
 				Message(
 					title="No Font Open",
@@ -423,6 +420,11 @@ class AddGrade(mekkaObject):
 					OKButton=None,
 				)
 			else:
+				if limitToSelectedGlyphs:
+					glyphNames = [layer.parent.name for layer in thisFont.selectedLayers]
+				else:
+					glyphNames = [g.name for g in thisFont.glyphs]
+
 				reportName = reportFontName(thisFont)
 				print(f"Add Grade Report for {reportName}")
 				print()

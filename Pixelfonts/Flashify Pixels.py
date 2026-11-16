@@ -5,7 +5,7 @@ __doc__ = """
 Adds small bridges to diagonal pixel connections (where two pixel corners touch). Otherwise your counters may be lost in the Flash text engine (hence the name of the script).
 """
 
-from GlyphsApp import Glyphs, GSPath, GSNode, GSLINE
+from GlyphsApp import Glyphs, GSPath, GSNode, GSLINE, Message
 
 
 def karo(x, y):
@@ -50,29 +50,32 @@ def process(thisLayer):
 
 Glyphs.clearLog()
 thisFont = Glyphs.font
-print("Flashifying %s...\n" % thisFont.familyName)
+if thisFont:
+	print("Flashifying %s...\n" % thisFont.familyName)
 
-thisFont.disableUpdateInterface()
-try:
-	oldGridstep = thisFont.grid
-	if oldGridstep > 1:
-		thisFont.grid = 1
-	layers = thisFont.selectedLayers
-	totalCount = 0
-	for thisLayer in layers:
-		karoCount = process(thisLayer)
-		totalCount += karoCount
-		print("🔠 Added %i diamonds in %s" % (karoCount, thisLayer.parent.name))
-	print("\nDone. Total diamond count: %i." % totalCount)
-except Exception as e:
-	Glyphs.showMacroWindow()
-	print("\n⚠️ Script Error:\n")
-	import traceback
-	print(traceback.format_exc())
-	print()
-	raise e
+	thisFont.disableUpdateInterface()
+	try:
+		oldGridstep = thisFont.grid
+		if oldGridstep > 1:
+			thisFont.grid = 1
+		layers = thisFont.selectedLayers
+		totalCount = 0
+		for thisLayer in layers:
+			karoCount = process(thisLayer)
+			totalCount += karoCount
+			print("🔠 Added %i diamonds in %s" % (karoCount, thisLayer.parent.name))
+		print("\nDone. Total diamond count: %i." % totalCount)
+	except Exception as e:
+		Glyphs.showMacroWindow()
+		print("\n⚠️ Script Error:\n")
+		import traceback
+		print(traceback.format_exc())
+		print()
+		raise e
 
-finally:
-	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
+	finally:
+		thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
 
-# thisFont.grid = oldGridstep
+	# thisFont.grid = oldGridstep
+else:
+	Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)

@@ -56,41 +56,45 @@ def process(Layer):
 
 
 thisFont = Glyphs.font  # frontmost font
-selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
 Glyphs.clearLog()  # clears log in Macro window
 
-totalCount = 0
-for selectedLayer in selectedLayers:
-	thisGlyph = selectedLayer.parent
-	print("%s:" % thisGlyph.name)
-	# thisGlyph.beginUndo()  # undo grouping causes crashes
-	for thisLayer in thisGlyph.layers:
-		totalCount += process(thisLayer)
-	# thisGlyph.endUndo()  # undo grouping causes crashes
-
-if totalCount:
-	Message(
-		title="%i Zero Delta%s Deleted" % (
-			totalCount,
-			"" if totalCount == 1 else "s",
-		),
-		message="Deleted %i TT delta hint%s with zero offset in %i selected glyph%s (%s%s). Detailed report in Macro Window." % (
-			totalCount,
-			"" if totalCount == 1 else "s",
-			len(selectedLayers),
-			"" if len(selectedLayers) == 1 else "s",
-			", ".join([layer.parent.name for layer in selectedLayers[:min(20, len(selectedLayers))]]),
-			",..." if len(selectedLayers) > 20 else "",
-		),
-		OKButton=u"👍🏻 OK",
-	)
+if thisFont is None:
+	print("⚠️ No font open.")
 else:
-	Message(
-		title="No Zero Deltas",
-		message="No TT delta hints with zero offset were found in selected glyph%s (%s%s)." % (
-			"" if len(selectedLayers) == 1 else "s",
-			", ".join([layer.parent.name for layer in selectedLayers[:min(20, len(selectedLayers))]]),
-			",..." if len(selectedLayers) > 20 else "",
-		),
-		OKButton=u"🍸 Cheers"
-	)
+	selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
+
+	totalCount = 0
+	for selectedLayer in selectedLayers:
+		thisGlyph = selectedLayer.parent
+		print("%s:" % thisGlyph.name)
+		# thisGlyph.beginUndo()  # undo grouping causes crashes
+		for thisLayer in thisGlyph.layers:
+			totalCount += process(thisLayer)
+		# thisGlyph.endUndo()  # undo grouping causes crashes
+
+	if totalCount:
+		Message(
+			title="%i Zero Delta%s Deleted" % (
+				totalCount,
+				"" if totalCount == 1 else "s",
+			),
+			message="Deleted %i TT delta hint%s with zero offset in %i selected glyph%s (%s%s). Detailed report in Macro Window." % (
+				totalCount,
+				"" if totalCount == 1 else "s",
+				len(selectedLayers),
+				"" if len(selectedLayers) == 1 else "s",
+				", ".join([layer.parent.name for layer in selectedLayers[:min(20, len(selectedLayers))]]),
+				",..." if len(selectedLayers) > 20 else "",
+			),
+			OKButton=u"👍🏻 OK",
+		)
+	else:
+		Message(
+			title="No Zero Deltas",
+			message="No TT delta hints with zero offset were found in selected glyph%s (%s%s)." % (
+				"" if len(selectedLayers) == 1 else "s",
+				", ".join([layer.parent.name for layer in selectedLayers[:min(20, len(selectedLayers))]]),
+				",..." if len(selectedLayers) > 20 else "",
+			),
+			OKButton=u"🍸 Cheers"
+		)

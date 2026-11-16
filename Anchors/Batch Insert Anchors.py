@@ -14,7 +14,7 @@ from AppKit import (
 	NSWindowStyleMaskResizable,
 )
 from Foundation import NSPoint
-from GlyphsApp import Glyphs, GSAnchor
+from GlyphsApp import Glyphs, GSAnchor, Message
 from mekkablue import mekkaObject
 
 xPositions = ("Center of width", "LSB", "RSB", "Bbox left edge", "Bbox horizontal center", "Bbox right edge")
@@ -133,6 +133,9 @@ class BatchInsertAnchor(mekkaObject):
 			self.SavePreferences()
 
 			thisFont = Glyphs.font  # frontmost font
+			if not thisFont:
+				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+				return
 			print("Batch Insert Anchor Report for %s" % thisFont.familyName)
 			print(thisFont.filepath)
 			print()

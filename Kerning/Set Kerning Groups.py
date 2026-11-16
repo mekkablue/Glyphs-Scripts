@@ -889,35 +889,10 @@ DefaultKeys = {
 
 
 def KeysForGlyph(Glyph):
+	"""Returns (left group, right group) of the glyph; False for a missing group."""
 	if Glyph is None:
 		return ()
-	global DefaultKeys
-	LeftKey = False
-	RightKey = False
-	try:
-		LeftKey = Glyph.leftKerningGroup
-	except:
-		print(traceback.format_exc())
-	try:
-		RightKey = Glyph.rightKerningGroup
-	except:
-		print(traceback.format_exc())
-	try:
-		if len(LeftKey < 1):
-			LeftKey = False
-	except TypeError:
-		pass
-	except:
-		print(traceback.format_exc())
-	try:
-		if len(RightKey < 1):
-			RightKey = False
-	except TypeError:
-		pass
-	except:
-		print(traceback.format_exc())
-
-	return (LeftKey, RightKey)
+	return (Glyph.leftKerningGroup or False, Glyph.rightKerningGroup or False)
 
 
 def updateKeyGlyphsForSelected():
@@ -1049,6 +1024,9 @@ def updateKeyGlyphsForSelected():
 def main():
 	Glyphs.clearLog()
 	print("Detailed Report for ‘Set Kerning Groups’:\n")
+	if Glyphs.font is None:
+		print("⚠️ No font open.")
+		return
 	updateKeyGlyphsForSelected()
 	print("\nDone.")
 

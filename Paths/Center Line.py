@@ -4,7 +4,7 @@ Will create center lines between selected segments and their opposites. Hold dow
 """
 
 from AppKit import NSPoint, NSPointInRect, NSEvent, NSNonZeroWindingRule
-from GlyphsApp import CORNER, LINE, OFFCURVE, Glyphs, GSBackgroundLayer, GSLayer, GSPath, GSPathSegment, addPoints, distance, scalePoint
+from GlyphsApp import CORNER, LINE, OFFCURVE, Glyphs, GSBackgroundLayer, GSLayer, GSPath, GSPathSegment, Message, addPoints, distance, scalePoint
 from copy import copy
 
 Glyphs.clearLog()
@@ -699,7 +699,6 @@ def cleanup(layer, threshold=40):
 		if path.closed:
 			continue
 		for isEnd in (True, False):
-			endLabel = "END" if isEnd else "START"
 			segIndex = len(path.segments) - 1 if isEnd else 0
 			seg = path.segments[segIndex]
 			segChord = distance(seg.objects()[0].position, seg.objects()[-1].position)
@@ -853,27 +852,30 @@ else:
 	print("Building in foreground:")
 
 font = Glyphs.font
-smallestStem = None
-for m in font.masters:
-	for s in m.stems:
-		if smallestStem is None or s < smallestStem:
-			smallestStem = s
-if smallestStem is None:
-	smallestStem = 40
-	print("⚠️ No stem value found, using fallback 40.")
+if not font:
+	Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 else:
-	print(f"↔️ Smallest stem: {smallestStem}")
+	smallestStem = None
+	for m in font.masters:
+		for s in m.stems:
+			if smallestStem is None or s < smallestStem:
+				smallestStem = s
+	if smallestStem is None:
+		smallestStem = 40
+		print("⚠️ No stem value found, using fallback 40.")
+	else:
+		print(f"↔️ Smallest stem: {smallestStem}")
 
-selectedLayers = font.selectedLayers
-for selectedLayer in selectedLayers:
-	if not isinstance(selectedLayer, GSLayer):
-		continue
-	selectionMatters = selectedLayer.selection != () and len(selectedLayers) == 1
-	print(f"🔡 {selectedLayer.parent.name}{' (selection matters)' if selectionMatters else ''}")
-	createCenterLinesForSelectedSegments(
-		selectedLayer,
-		inBackground=buildInBackground,
-		selectionMatters=selectionMatters,
-		threshold=smallestStem,
-		)
-print("✅ Done.")
+	selectedLayers = font.selectedLayers
+	for selectedLayer in selectedLayers:
+		if not isinstance(selectedLayer, GSLayer):
+			continue
+		selectionMatters = len(selectedLayer.selection) > 0 and len(selectedLayers) == 1
+		print(f"🔡 {selectedLayer.parent.name}{' (selection matters)' if selectionMatters else ''}")
+		createCenterLinesForSelectedSegments(
+			selectedLayer,
+			inBackground=buildInBackground,
+			selectionMatters=selectionMatters,
+			threshold=smallestStem,
+			)
+	print("✅ Done.")

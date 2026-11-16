@@ -209,7 +209,7 @@ class BraceLayerManager(mekkaObject):
 			"" if count == 1 else "s",
 		)
 		if len(fonts) > 1:
-			reportMsg += " in %i fonts"
+			reportMsg += " in %i fonts" % len(fonts)
 		Glyphs.showNotification(
 			"Brace & Bracket Layer Update Done",
 			"%s. Details in Macro Window" % reportMsg,
@@ -265,6 +265,9 @@ class BraceLayerManager(mekkaObject):
 		if "coordinates" not in layer.attributes.keys():
 			return True, count
 
+		if axisID not in layer.attributes["coordinates"].keys():
+			return True, count
+
 		currentPos = float(layer.attributes["coordinates"][axisID])
 		if currentPos == float(searchFor):
 			if replaceWith is not None:
@@ -287,11 +290,11 @@ class BraceLayerManager(mekkaObject):
 		if axisID not in axisRules.keys():
 			print(f"⚠️ Could not find bracket layers for axis ‘{layer.font.axisForId_(axisID).name}’ (index {axisIndex}) in {layer.parent.name}. Did you select the correct axis?")
 			Glyphs.showMacroWindow()
-			return False
+			return False, count
 
 		axisLimits = dict(axisRules[axisID])  # issues with native NSDictionary
 		if not axisLimits:
-			return
+			return True, count
 
 		for border in ("min", "max"):
 			if border in axisLimits.keys():

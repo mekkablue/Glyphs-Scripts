@@ -18,7 +18,7 @@ accentsToBeMoved = (
 newAnchor = "top_viet"
 
 Font = Glyphs.font
-selectedGlyphs = [x.parent for x in Font.selectedLayers]
+selectedGlyphs = [x.parent for x in Font.selectedLayers] if Font else ()
 
 
 def baseHasAnchor(thisComponent, masterID, anchorToLookFor="top_viet"):

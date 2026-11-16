@@ -47,6 +47,9 @@ else:
 	suffixes = ("otf", "ttf", "woff", "woff2")
 	fontpaths = []
 	for exportPath in currentExportPaths:
+		if not exportPath or not os.path.isdir(exportPath):
+			print(f"⚠️ Export folder not found, skipping: {exportPath}")
+			continue
 		for file in os.listdir(exportPath):
 			for suffix in suffixes:
 				if file.endswith(f".{suffix}"):
@@ -105,4 +108,4 @@ else:
 			print("💾 Saved file.")
 		print()
 
-print("✅ Done.")
+	print("✅ Done.")

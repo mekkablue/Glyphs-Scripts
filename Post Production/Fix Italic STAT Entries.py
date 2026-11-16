@@ -3,6 +3,7 @@ __doc__ = """
 For every axis, renames normal STAT entries to ‘Regular’ (also makes changes in name table if necessary), and makes them elidable (Flags=2). Typically only necessary in italic OTVAR exports with 2 or more axes. Also, fixes Format1/3 duplicates (if a Format 3 exists, there must be no equivalent Format 1 entry).
 """
 
+import os
 from fontTools import ttLib
 from AppKit import NSString
 from otvarLib import currentOTVarExportPath, otVarFileName
@@ -23,7 +24,7 @@ def fixDuplicatesFormat1and3(axes, axisValueArray, changesMade=False):
 	# go again and delete format 1 entries with same values:
 	if format3entries:
 		newAxisValues = []  # ttLib.tables.otTables.AxisValueArray()
-		for statEntry in statTable.AxisValueArray.AxisValue:
+		for statEntry in axisValueArray.AxisValue:
 			axisTag = axes[statEntry.AxisIndex]
 			if statEntry.Format == 1:
 				axisTag = axes[statEntry.AxisIndex]
@@ -50,6 +51,10 @@ if Glyphs.versionNumber < 3.2:
 		message="This script requires app version 3.2 or later. In Glyphs > Settings > Updates, activate Cutting Edge Versions, and check for updates.",
 		OKButton=None,
 	)
+elif not Glyphs.font:
+	Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+elif not currentOTVarExportPath():
+	Message(title="No Export Path", message="Could not determine the folder of the most recent variable font export.", OKButton=None)
 else:
 	# brings macro window to front and clears its log:
 	Glyphs.clearLog()
@@ -78,6 +83,9 @@ else:
 		for suffix in suffixes:
 			fontpath = NSString.alloc().initWithString_(currentExportPath).stringByAppendingPathComponent_(otVarFileName(thisFont, thisInstance=variableFontExport, suffix=suffix))
 			print(f"\nProcessing: {fontpath}...")
+			if not os.path.isfile(fontpath):
+				print("❌ No font file found. Skipping.")
+				continue
 			font = ttLib.TTFont(fontpath)
 			changesMade = False
 

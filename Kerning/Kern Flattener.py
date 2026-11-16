@@ -151,86 +151,89 @@ rđ źcìķīżcź āļø nîuìłsżóïsļrļšaīųsģīgįæ ėznìō żęô
 เสเทเพเฟเฬเฬเทเอเฮ
 """
 
-Glyphs.clearLog()  # clears macro window log
-gposFeatures = ("kern", "cpsp", "mark", "mkmk")
-count = 0
-thisFont = Glyphs.font.copy()
-newKerning = {}
-for master in thisFont.masters:
-	newKerning[master.id] = {}
+if Glyphs.font is None:
+	print("⚠️ No font open.")
+else:
+	Glyphs.clearLog()  # clears macro window log
+	gposFeatures = ("kern", "cpsp", "mark", "mkmk")
+	count = 0
+	thisFont = Glyphs.font.copy()
+	newKerning = {}
+	for master in thisFont.masters:
+		newKerning[master.id] = {}
 
-print("KERN FLATTENER\nRebuilding kerning with encoded glyphs only in old-style kern table, plus settings for MS Office compatibility\n")
-for i, line in enumerate(worthKeepingText.splitlines()):
-	if line:  # skip empties
-		# print(i+7, len(line), line[:19])  # DEBUG
-		for i in range(0, len(line), 2):
-			leftChar, rightChar = line[i], line[i + 1]
-			leftUnicode, rightUnicode = "%04X" % ord(leftChar), "%04X" % ord(rightChar)
-			leftGlyph, rightGlyph = thisFont.glyphForUnicode_(leftUnicode), thisFont.glyphForUnicode_(rightUnicode)
-			if leftGlyph and leftGlyph.unicode and rightGlyph and rightGlyph.unicode:
-				leftID, rightID = leftGlyph.id, rightGlyph.id
-				for thisMaster in thisFont.masters:
-					mID = thisMaster.id
-					leftLayer, rightLayer = leftGlyph.layers[thisMaster.id], rightGlyph.layers[thisMaster.id]
-					kernValue = thisFont.kerningFirstLayer_secondLayer_(leftLayer, rightLayer)
-					if kernValue and kernValue < 10000:
-						if not leftID in newKerning[mID].keys():
-							newKerning[mID][leftID] = {
-								rightID: kernValue
-							}
-						else:
-							newKerning[mID][leftID][rightID] = kernValue
-						count += 1
+	print("KERN FLATTENER\nRebuilding kerning with encoded glyphs only in old-style kern table, plus settings for MS Office compatibility\n")
+	for i, line in enumerate(worthKeepingText.splitlines()):
+		if line:  # skip empties
+			# print(i+7, len(line), line[:19])  # DEBUG
+			for i in range(0, len(line), 2):
+				leftChar, rightChar = line[i], line[i + 1]
+				leftUnicode, rightUnicode = "%04X" % ord(leftChar), "%04X" % ord(rightChar)
+				leftGlyph, rightGlyph = thisFont.glyphForUnicode_(leftUnicode), thisFont.glyphForUnicode_(rightUnicode)
+				if leftGlyph and leftGlyph.unicode and rightGlyph and rightGlyph.unicode:
+					leftID, rightID = leftGlyph.id, rightGlyph.id
+					for thisMaster in thisFont.masters:
+						mID = thisMaster.id
+						leftLayer, rightLayer = leftGlyph.layers[thisMaster.id], rightGlyph.layers[thisMaster.id]
+						kernValue = thisFont.kerningFirstLayer_secondLayer_(leftLayer, rightLayer)
+						if kernValue and kernValue < 10000:
+							if not leftID in newKerning[mID].keys():
+								newKerning[mID][leftID] = {
+									rightID: kernValue
+								}
+							else:
+								newKerning[mID][leftID][rightID] = kernValue
+							count += 1
 
-print("Flattened to %i kern values in %i masters." % (count, len(thisFont.masters)))
-thisFont.kerning = newKerning
-thisFont.kerningRTL = None
-thisFont.cleanUpKerningForDirection_(GSLTR)
+	print("Flattened to %i kern values in %i masters." % (count, len(thisFont.masters)))
+	thisFont.kerning = newKerning
+	thisFont.kerningRTL = None
+	thisFont.cleanUpKerningForDirection_(GSLTR)
 
-print("Removing kerning groups from all glyphs...")
-for thisGlyph in thisFont.glyphs:
-	thisGlyph.leftKerningGroup = None
-	thisGlyph.rightKerningGroup = None
+	print("Removing kerning groups from all glyphs...")
+	for thisGlyph in thisFont.glyphs:
+		thisGlyph.leftKerningGroup = None
+		thisGlyph.rightKerningGroup = None
 
-print("Removing GPOS features...")
-for i in range(len(thisFont.features) - 1, -1, -1):
-	thisFeature = thisFont.features[i]
-	if thisFeature.name in gposFeatures or any([line.startswith("pos ") for line in thisFeature.code.splitlines()]):
-		print("- %s" % thisFeature.name)
-		del thisFont.features[i]
+	print("Removing GPOS features...")
+	for i in range(len(thisFont.features) - 1, -1, -1):
+		thisFeature = thisFont.features[i]
+		if thisFeature.name in gposFeatures or any([line.startswith("pos ") for line in thisFeature.code.splitlines()]):
+			print("- %s" % thisFeature.name)
+			del thisFont.features[i]
 
-hasLanguageSystems = False
-for prefix in thisFont.featurePrefixes:
-	if "languagesystem latn dflt;" in prefix.code and prefix.active:
-		hasLanguageSystems = True
-		break
-if not hasLanguageSystems:
-	print("Adding missing languagesystem prefix...")
-	lsPrefix = GSFeaturePrefix()
-	lsPrefix.name = "flattened language systems"
-	lsPrefix.code = "languagesystem DFLT dflt;\nlanguagesystem latn dflt;\n"
-	lsPrefix.active = True
-	thisFont.featurePrefixes.append(lsPrefix)
+	hasLanguageSystems = False
+	for prefix in thisFont.featurePrefixes:
+		if "languagesystem latn dflt;" in prefix.code and prefix.active:
+			hasLanguageSystems = True
+			break
+	if not hasLanguageSystems:
+		print("Adding missing languagesystem prefix...")
+		lsPrefix = GSFeaturePrefix()
+		lsPrefix.name = "flattened language systems"
+		lsPrefix.code = "languagesystem DFLT dflt;\nlanguagesystem latn dflt;\n"
+		lsPrefix.active = True
+		thisFont.featurePrefixes.append(lsPrefix)
 
-print("Updating instances:")
-for i in range(len(thisFont.instances) - 1, -1, -1):
-	thisInstance = thisFont.instances[i]
-	if thisInstance.type == INSTANCETYPESINGLE:
-		print("- adding parameters to ‘%s’" % thisInstance.name)
-		thisInstance.customParameters["Save as TrueType"] = True
-		currentRemoveFeatures = thisInstance.customParameters["Remove Features"]
-		if currentRemoveFeatures:
-			thisInstance.customParameters["Remove Features"] = list(set(list(currentRemoveFeatures) + gposFeatures))
+	print("Updating instances:")
+	for i in range(len(thisFont.instances) - 1, -1, -1):
+		thisInstance = thisFont.instances[i]
+		if thisInstance.type == INSTANCETYPESINGLE:
+			print("- adding parameters to ‘%s’" % thisInstance.name)
+			thisInstance.customParameters["Save as TrueType"] = True
+			currentRemoveFeatures = thisInstance.customParameters["Remove Features"]
+			if currentRemoveFeatures:
+				thisInstance.customParameters["Remove Features"] = list(set(list(currentRemoveFeatures) + list(gposFeatures)))
+			else:
+				thisInstance.customParameters["Remove Features"] = gposFeatures
+			if Glyphs.versionNumber >= 3:
+				# GLYPHS 3
+				thisInstance.customParameters["Export kern Table"] = True
+			else:
+				# GLYPHS 2
+				thisInstance.customParameters["Write Kern Table"] = True
 		else:
-			thisInstance.customParameters["Remove Features"] = gposFeatures
-		if Glyphs.versionNumber >= 3:
-			# GLYPHS 3
-			thisInstance.customParameters["Export kern Table"] = True
-		else:
-			# GLYPHS 2
-			thisInstance.customParameters["Write Kern Table"] = True
-	else:
-		print("- removing export setting ‘%s’ (not a static instance)" % thisInstance.name)
-		del thisFont.instances[i]
+			print("- removing export setting ‘%s’ (not a static instance)" % thisInstance.name)
+			del thisFont.instances[i]
 
-Glyphs.fonts.append(thisFont)
+	Glyphs.fonts.append(thisFont)

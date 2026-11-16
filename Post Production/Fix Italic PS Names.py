@@ -3,6 +3,7 @@ __doc__ = """
 Fixes double Italic namings in name table entries in the most recent export of the current font. Run this right after a variable font export.
 """
 
+import os
 from fontTools import ttLib
 from AppKit import NSString
 from otvarLib import currentOTVarExportPath, otVarFileName  # local lib
@@ -14,6 +15,10 @@ if Glyphs.versionNumber < 3.2:
 		message="This script requires app version 3.2 or later. In Glyphs > Settings > Updates, activate Cutting Edge Versions, and check for updates.",
 		OKButton=None,
 	)
+elif not Glyphs.font:
+	Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+elif not currentOTVarExportPath():
+	Message(title="No Export Path", message="Could not determine the folder of the most recent variable font export.", OKButton=None)
 else:
 	fileCount = 0
 
@@ -43,10 +48,10 @@ else:
 		for suffix in suffixes:
 			fontpath = NSString.alloc().initWithString_(currentExportPath).stringByAppendingPathComponent_(otVarFileName(thisFont, thisInstance=variableFontExport, suffix=suffix))
 			print(f"\n📄 Processing: '{fontpath}'")
-			otFont = ttLib.TTFont(file=fontpath)
-			if not otFont:
+			if not os.path.isfile(fontpath):
 				print("❌ No font file found. Skipping.")
 				continue
+			otFont = ttLib.TTFont(file=fontpath)
 
 			fileCount += 1
 
@@ -55,13 +60,12 @@ else:
 			for nameTableEntry in nameTable.names:
 				nameID = nameTableEntry.nameID
 				nameValue = nameTableEntry.toStr()
-				oldName = nameValue
+				originalName = nameValue
 				if nameID in (4, 6, 17):
 					for oldParticle in ("Regular Italic", "RegularItalic"):
 						if oldParticle in nameValue:
 							nameValue = nameValue.replace(oldParticle, "Italic")
 				if nameID in (3, 6) or nameID > 255:
-					oldName = nameValue
 					if "Italic-" in nameValue and nameValue.count("Italic") > 1:
 						particles = nameValue.split("-")
 						for i in range(1, len(particles)):
@@ -69,10 +73,10 @@ else:
 							if len(particles[i]) == 0:
 								particles[i] = "Regular"
 						nameValue = "-".join(particles)
-				if nameValue != oldName:
+				if nameValue != originalName:
 					nameTableEntry.string = nameValue
 					anythingChanged = True
-					print(f"✅ Changed ID {nameID}: {oldName} → {nameValue}")
+					print(f"✅ Changed ID {nameID}: {originalName} → {nameValue}")
 			if anythingChanged:
 				otFont.save(fontpath, reorderTables=False)
 				print("💾 Saved file.")

@@ -8,21 +8,25 @@ Opens a new tab with all possible combinations of currently selected glyphs.
 from GlyphsApp import Glyphs
 
 Font = Glyphs.font
-selectedLayers = Font.selectedLayers
 
-namesOfSelectedGlyphs = ["/%s" % layer.parent.name for layer in selectedLayers if hasattr(layer.parent, 'name')]
-editString = ""
+if Font is None:
+	print("⚠️ No font open.")
+else:
+	selectedLayers = Font.selectedLayers
 
-for leftGlyphName in namesOfSelectedGlyphs:
-	for rightGlyphName in namesOfSelectedGlyphs:
-		newPair = leftGlyphName + rightGlyphName
-		if newPair not in editString:
-			editString += newPair
-	editString += (leftGlyphName + "\n")
+	namesOfSelectedGlyphs = ["/%s" % layer.parent.name for layer in selectedLayers if hasattr(layer.parent, 'name')]
+	editString = ""
 
-# in case last line fails, the text is in the macro window:
-Glyphs.clearLog()  # clears macro window log
-print(editString)
+	for leftGlyphName in namesOfSelectedGlyphs:
+		for rightGlyphName in namesOfSelectedGlyphs:
+			newPair = leftGlyphName + rightGlyphName
+			if newPair not in editString:
+				editString += newPair
+		editString += (leftGlyphName + "\n")
 
-# opens new Edit tab:
-Font.newTab(editString)
+	# in case last line fails, the text is in the macro window:
+	Glyphs.clearLog()  # clears macro window log
+	print(editString)
+
+	# opens new Edit tab:
+	Font.newTab(editString)

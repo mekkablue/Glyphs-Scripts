@@ -3,6 +3,7 @@ __doc__ = """
 Turns STAT entries of format 1 (discrete) into format 2 (range) for axes with more than one axis value. Run this right after a variable font export.
 """
 
+import os
 from fontTools import ttLib
 from AppKit import NSString
 from otvarLib import currentOTVarExportPath, otVarFileName
@@ -14,6 +15,10 @@ if Glyphs.versionNumber < 3.2:
 		message="This script requires app version 3.2 or later.",
 		OKButton=None,
 	)
+elif not Glyphs.font:
+	Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+elif not currentOTVarExportPath():
+	Message(title="No Export Path", message="Could not determine the folder of the most recent variable font export.", OKButton=None)
 else:
 	# brings macro window to front and clears its log:
 	Glyphs.clearLog()
@@ -42,8 +47,11 @@ else:
 		for suffix in suffixes:
 			fileName = otVarFileName(thisFont, thisInstance=variableFontExport, suffix=suffix)
 			fontpath = NSString.alloc().initWithString_(currentExportPath).stringByAppendingPathComponent_(fileName)
-			font = ttLib.TTFont(fontpath)
 			print(f"\nProcessing: {fontpath}...")
+			if not os.path.isfile(fontpath):
+				print("❌ No font file found. Skipping.")
+				continue
+			font = ttLib.TTFont(fontpath)
 			statTable = font["STAT"].table
 
 			print("\nDetermining axes max and min (fvar):")
@@ -153,7 +161,7 @@ else:
 						print()
 
 				# reinstate Format 3 entries (style linking):
-				if styleLinkEntries[axisTag]:
+				if len(axisEntries) > 1 and styleLinkEntries[axisTag]:
 					styleLinkEntry = styleLinkEntries[axisTag][0]
 					axisValues.append(styleLinkEntry)
 					overwriteCount += 1

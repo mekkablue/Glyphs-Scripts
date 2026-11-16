@@ -159,6 +159,8 @@ def straightenBCPs(layer):
 		# dot product of AB and AP
 		dotProduct = AB.x * AP.x + AB.y * AP.y
 		ABsquared = AB.x**2 + AB.y**2
+		if ABsquared == 0:
+			return P  # A and B coincide, no line to project on
 		t = dotProduct / ABsquared
 		x = A.x + t * AB.x
 		y = A.y + t * AB.y
@@ -605,6 +607,8 @@ class CompatibilityManager(mekkaObject):
 
 	def resetStartPoints(self, sender):
 		font = Glyphs.font
+		if font is None or not font.selectedLayers:
+			return
 		glyph = font.selectedLayers[0].parent
 		layers = [layer for layer in glyph.layers if layer.isMasterLayer or layer.isSpecialLayer]
 
@@ -648,6 +652,7 @@ class CompatibilityManager(mekkaObject):
 		originalPath = path.copy()
 		originalStart = path.startNode()
 		bestStart = originalStart
+		bestStartIndex = None
 		maxValue = None
 		compatibleStarts = []
 
@@ -669,7 +674,8 @@ class CompatibilityManager(mekkaObject):
 					maxValue = value
 					bestStartIndex = startIndex
 			
-			layer.shapes[pathIndex].makeNodeFirst_(layer.shapes[pathIndex].nodes[bestStartIndex])
+			if bestStartIndex is not None:
+				layer.shapes[pathIndex].makeNodeFirst_(layer.shapes[pathIndex].nodes[bestStartIndex])
 		else:
 			layer.shapes[pathIndex] = originalPath
 		
@@ -700,6 +706,8 @@ class CompatibilityManager(mekkaObject):
 
 	def reorderShapes(self, sender):
 		font = Glyphs.font
+		if font is None or not font.selectedLayers:
+			return
 		glyph = font.selectedLayers[0].parent
 		option = self.w.shapeOrderOptions.get()
 
@@ -756,7 +764,7 @@ class CompatibilityManager(mekkaObject):
 							smallestDistance = currentDistance
 							matchedIndex = j
 				if matchedIndex is not None and matchedIndex > 0:
-					otherLayer.shapes.insert(i, otherLayer.shapes.pop(i + j))
+					otherLayer.shapes.insert(i, otherLayer.shapes.pop(i + matchedIndex))
 
 	def reorderShapesByRelativeCenter(self, glyph):
 		layers = [layer for layer in glyph.layers if layer.isMasterLayer or layer.isSpecialLayer]
@@ -774,7 +782,7 @@ class CompatibilityManager(mekkaObject):
 							smallestDistance = currentDistance
 							matchedIndex = j
 				if matchedIndex is not None and matchedIndex > 0:
-					otherLayer.shapes.insert(i, otherLayer.shapes.pop(i + j))
+					otherLayer.shapes.insert(i, otherLayer.shapes.pop(i + matchedIndex))
 
 	def bboxCenter(self, shape):
 		bounds = shape.bounds

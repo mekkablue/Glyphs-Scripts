@@ -51,7 +51,7 @@ def italicize(thisPoint, italicAngle=0.0, pivotalY=0.0):
 def intersectionLineLinePoints(pointA, pointB, pointC, pointD, includeMidBcp=False):
 	"""
 	Returns an NSPoint of the intersection AB with CD.
-	Or False if there is no intersection
+	Or None if there is no intersection
 	"""
 	try:
 		x1, y1 = pointA.x, pointA.y

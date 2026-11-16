@@ -141,7 +141,7 @@ class SnapAnchorsToNearestMetric(mekkaObject):
 		self.w.anchorNames.setItems(self.allAnchorNamesInFrontmostFont())
 
 
-	def moveAnchorsToNearestMetricsOnLayer(self, layer, anchorNames=["_top", "_bottom", "top", "bottom"], respectItalic=True, threshold=30, verbose=False, underscoreOnlyInMarks=True):
+	def moveAnchorsToNearestMetricsOnLayer(self, layer, anchorNames=("_top", "_bottom", "top", "bottom"), respectItalic=True, threshold=30, verbose=False, underscoreOnlyInMarks=True):
 		didMove = False
 		reports = []
 		isMark = layer.parent.category == "Mark"
@@ -223,7 +223,6 @@ class SnapAnchorsToNearestMetric(mekkaObject):
 				print(f"Snap Anchors to Nearest Metric Report for {reportName}")
 				print()
 
-				thisFont = Glyphs.font
 				if thisFont.filepath:
 					fontName = thisFont.filepath.lastPathComponent().stringByDeletingLastDotSuffix()
 				else:

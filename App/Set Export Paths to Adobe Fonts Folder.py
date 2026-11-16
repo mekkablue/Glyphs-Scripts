@@ -5,34 +5,23 @@ __doc__ = """
 Sets the OpenType font and Variable Font export paths to the Adobe Fonts Folder.
 """
 
-import subprocess
+import os
 from GlyphsApp import Glyphs, Message
 
 Glyphs.clearLog()
-
-
-def executeCommand(command, commandArgs):
-	commandExecution = subprocess.Popen(command.split(" ") + commandArgs, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-	output, error = commandExecution.communicate()
-	returncode = commandExecution.returncode
-	return returncode, output, error
 
 
 adobeFontsFolder = "/Library/Application Support/Adobe/Fonts"
 # TODO: check if general Library is accessible (W privileges), if not, use ~/Library
 
 # Make sure the folder actually exists:
-pathSegments = adobeFontsFolder.split("/")[1:]
-path = ""
-for pathPart in pathSegments:
-	path += "/%s" % pathPart
-	returncode, output, error = executeCommand("cd", [path])
-	if returncode != 0 and "No such file or directory" in error:
-		print("Creating directory: %s" % path)
-		returncode, output, error = executeCommand("mkdir", [path])
-		if returncode != 0:
-			print("   Returncode: %s\n   Output: %s\n   Error: %s" % (returncode, output, error))
-			Glyphs.showMacroWindow()
+try:
+	if not os.path.isdir(adobeFontsFolder):
+		print("Creating directory: %s" % adobeFontsFolder)
+		os.makedirs(adobeFontsFolder)
+except OSError as e:
+	print("Could not create directory %s: %s" % (adobeFontsFolder, e))
+	Glyphs.showMacroWindow()
 
 # Changing the export paths for Glyphs:
 settings = ("GXExportPath", "OTFExportPath")

@@ -303,7 +303,7 @@ class FindStrayAnchors(mekkaObject):
 								thisLayer.selection.append(thisAnchor)
 
 				# none found, celebrate
-				if all([bool(report[a])==False for a in report.keys()]):
+				if not any(report[a] for a in report.keys()):
 					Message(
 						title="All good!",
 						message="No stray anchors found with the specified settings.",

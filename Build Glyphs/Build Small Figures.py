@@ -30,7 +30,7 @@ class smallFigureBuilder(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Build Small Figures",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
@@ -196,7 +196,7 @@ class smallFigureBuilder(mekkaObject):
 
 						# add component on each master layer:
 						for thisMaster in thisFont.masters:
-							isCurrentMaster = thisMaster is thisFont.selectedFontMaster
+							isCurrentMaster = thisMaster.id == thisFont.selectedFontMaster.id
 							if isCurrentMaster or not currentMasterOnly:
 								mID = thisMaster.id
 								offset = offsets[deriveSuffix]

@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import print_function
-
 __doc__ = """
 Unit tests for the mekkablue scripts. Glyphs exposes every top-level test_*
 function in the test sidebar and can run either one test or the complete file.

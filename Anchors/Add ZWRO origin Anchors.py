@@ -140,8 +140,11 @@ class AddZWROOriginAnchors(mekkaObject):
 		self.w.makeKey()
 
 	def updateScripts(self, sender=None):
+		font = Glyphs.font
+		if not font:
+			return
 		scripts = []
-		for g in Glyphs.font.glyphs:
+		for g in font.glyphs:
 			if g.script and g.script not in scripts:
 				scripts.append(g.script)
 		self.w.scripts.set(", ".join(scripts))
@@ -242,7 +245,7 @@ class AddZWROOriginAnchors(mekkaObject):
 					if addToTab:
 						glyphsForTab.append(glyph.name)
 
-				if glyphsForTab:
+				if openTab and glyphsForTab:
 					thisFont.newTab("/" + "/".join(glyphsForTab))
 
 			# Glyphs.showMacroWindow()

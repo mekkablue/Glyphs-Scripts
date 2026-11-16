@@ -219,6 +219,9 @@ class AnchorMover2(mekkaObject):
 		Glyphs.clearLog()
 
 		thisFont = Glyphs.font
+		if not thisFont:
+			Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+			return
 		selectedLayers = thisFont.selectedLayers
 		anchorName = self.pref("anchorName")
 		horizontalIndex = self.prefInt("hTarget")
@@ -335,7 +338,8 @@ class AnchorMover2(mekkaObject):
 
 	def GetAnchorNames(self):
 		myAnchorList = []
-		selectedLayers = Glyphs.currentDocument.selectedLayers()
+		font = Glyphs.font
+		selectedLayers = font.selectedLayers if font else ()
 		try:
 			for thisLayer in selectedLayers:
 				anchorNames = list(thisLayer.anchors.keys())  # hack to avoid traceback

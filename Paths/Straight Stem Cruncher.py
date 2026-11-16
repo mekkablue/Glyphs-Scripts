@@ -364,6 +364,9 @@ class StraightStemCruncher(mekkaObject):
 			self.SavePreferences()
 
 			thisFont = Glyphs.font  # frontmost font
+			if thisFont is None:
+				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+				return
 			print("Straight Stem Cruncher Report for %s" % thisFont.familyName)
 			print(thisFont.filepath)
 			print()
@@ -389,7 +392,7 @@ class StraightStemCruncher(mekkaObject):
 
 			affectedLayers = []
 			for glyphIndex, thisGlyph in enumerate(glyphsToCheck):
-				self.w.progress.set(100 * glyphIndex / len(thisFont.glyphs))
+				self.w.progress.set(100 * glyphIndex / len(glyphsToCheck))
 
 				# see if any exclusion applies:
 
@@ -411,7 +414,7 @@ class StraightStemCruncher(mekkaObject):
 								if shouldMark:
 									for i in range(len(thisLayer.annotations) - 1, -1, -1):
 										a = thisLayer.annotations[i]
-										if a and a.text == self.marker:
+										if a and a.type == PLUS:
 											del (thisLayer.annotations[i])
 
 								# decompose components if necessary:

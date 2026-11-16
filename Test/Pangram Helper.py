@@ -283,7 +283,7 @@ class PangramHelper(mekkaObject):
 	def decompose(self, glyph):
 		unicodeValue = "%04X" % ord(glyph)
 		info = Glyphs.glyphInfoForUnicode(unicodeValue)
-		if info.components:
+		if info and info.components:
 			listOfCharacters = [c.unicharString() for c in info.components if c.category == "Letter"]
 			return listOfCharacters
 		return []
@@ -350,6 +350,9 @@ class PangramHelper(mekkaObject):
 					myClipboard.declareTypes_owner_([NSStringPboardType], None)
 					myClipboard.setString_forType_(myText, NSStringPboardType)
 				elif sender == self.w.tabButton:
+					if Glyphs.font is None:
+						Message("%s Error" % self.title, "Opening a tab requires a font. Open a font and try again.", OKButton=None)
+						return
 					Glyphs.font.newTab(myText)
 					self.w.close()  # delete if you want window to stay open
 			else:

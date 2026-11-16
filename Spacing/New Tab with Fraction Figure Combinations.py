@@ -13,7 +13,7 @@ commandKeyPressed = keysPressed & NSEventModifierFlagCommand == NSEventModifierF
 if commandKeyPressed and shiftKeyPressed:
 	fonts = Glyphs.fonts
 else:
-	fonts = [Glyphs.font, ]
+	fonts = [Glyphs.font] if Glyphs.font else []
 
 for thisFont in fonts:
 	paragraph = "/%s\n" % "/".join([g.name for g in thisFont.glyphs if g.export and (g.name.startswith("percent") or g.name.startswith("perthousand"))])

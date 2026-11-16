@@ -24,27 +24,28 @@ def process(glyph):
 
 
 thisFont = Glyphs.font  # frontmost font
-selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
+selectedLayers = thisFont.selectedLayers if thisFont else ()  # active layers of selected glyphs
 Glyphs.clearLog()  # clears log in Macro window
 print(f"Adding missing smart anchors in {len(selectedLayers)} glyphs:\n")
 
-thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
-try:
-	for thisLayer in selectedLayers:
-		thisGlyph = thisLayer.parent
-		if not thisGlyph.isSmartGlyph():
-			print(f"⏭️ Skipping {thisGlyph.name} (not a smart glyph).")
-		else:
-			print(f"⚙️ Processing {thisGlyph.name}:")
-			thisGlyph.beginUndo()  # begin undo grouping
-			process(thisGlyph)
-			thisGlyph.endUndo()  # end undo grouping
-except Exception as e:
-	Glyphs.showMacroWindow()
-	print("\n⚠️ Error in script: Add missing smart anchors\n")
-	import traceback
-	print(traceback.format_exc())
-	print()
-	raise e
-finally:
-	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
+if thisFont:
+	thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
+	try:
+		for thisLayer in selectedLayers:
+			thisGlyph = thisLayer.parent
+			if not thisGlyph.isSmartGlyph():
+				print(f"⏭️ Skipping {thisGlyph.name} (not a smart glyph).")
+			else:
+				print(f"⚙️ Processing {thisGlyph.name}:")
+				thisGlyph.beginUndo()  # begin undo grouping
+				process(thisGlyph)
+				thisGlyph.endUndo()  # end undo grouping
+	except Exception as e:
+		Glyphs.showMacroWindow()
+		print("\n⚠️ Error in script: Add missing smart anchors\n")
+		import traceback
+		print(traceback.format_exc())
+		print()
+		raise e
+	finally:
+		thisFont.enableUpdateInterface()  # re-enables UI updates in Font View

@@ -12,8 +12,9 @@ from AppKit import (
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
 	NSTextAlignmentRight,
+	NSColor,
 )
-from Foundation import NSColor, NSArchiver, NSUnarchiver, NSMutableArray, NSNumberFormatter
+from Foundation import NSArchiver, NSUnarchiver, NSMutableArray, NSNumberFormatter
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject
 

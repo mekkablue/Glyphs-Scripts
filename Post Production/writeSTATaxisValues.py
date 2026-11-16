@@ -20,6 +20,7 @@ parser.add_argument(
 	"-a",
 	"--axisvalue",
 	dest="axisValueString",
+	required=True,
 	help="Separate multiple axes with |. Start each axis with tag followed by semicolon. Add comma-separated axis values. Format1: value=name. Format2: minValue:nominalValue:maxValue=name. Format3: value>linkedValue=name. Add * after elidableName. E.g. wdth;75.0=Condensed,100.0=Regular*|ital;0.0>1.0=Regular*",
 )
 
@@ -93,10 +94,8 @@ def parameterToSTAT(axisValueArgument, font):
 		if len(axisTag) > 4:
 			print(f"⚠️ axis tag ‘{axisTag}’ is too long, will shorten to first 4 characters.")
 			axisTag = axisTag[:4]
-		if axisName == "" and axisTag in axisNameDict.keys():
-			axisName = axisNameDict[axisTag]
-		else:
-			axisName = axisTag
+		if axisName == "":
+			axisName = axisNameDict.get(axisTag, axisTag)
 		designAxisRecord.append((axisTag, axisName))
 
 		for entryCode in axisValueCode.split(","):

@@ -8,23 +8,23 @@ from PyObjCTools.AppHelper import callAfter
 from GlyphsApp import Glyphs
 
 thisFont = Glyphs.font  # frontmost font
-thisFontMaster = thisFont.selectedFontMaster  # active master
-listOfSelectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
+if thisFont is None:
+	print("⚠️ No font open.")
+else:
+	groupDict = {}
 
-groupDict = {}
+	for thisGlyph in thisFont.glyphs:
+		glyphName = thisGlyph.name
+		rGroup = thisGlyph.rightKerningGroup
+		if rGroup in groupDict.keys():
+			groupDict[rGroup].append(glyphName)
+		else:
+			groupDict[rGroup] = [glyphName]
 
-for thisGlyph in thisFont.glyphs:
-	glyphName = thisGlyph.name
-	rGroup = thisGlyph.rightKerningGroup
-	if rGroup in groupDict.keys():
-		groupDict[rGroup].append(glyphName)
-	else:
-		groupDict[rGroup] = [glyphName]
+	tabString = ""
 
-tabString = ""
+	for thisRightGroup in groupDict.keys():
+		tabString += "/%s/space\n" % "/".join(groupDict[thisRightGroup])
 
-for thisRightGroup in groupDict.keys():
-	tabString += "/%s/space\n" % "/".join(groupDict[thisRightGroup])
-
-# opens new Edit tab:
-callAfter(Glyphs.currentDocument.windowController().addTabWithString_, tabString)
+	# opens new Edit tab:
+	callAfter(Glyphs.currentDocument.windowController().addTabWithString_, tabString)

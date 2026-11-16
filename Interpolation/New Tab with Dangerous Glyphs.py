@@ -95,15 +95,18 @@ def check(thisLayer):
 	return False
 
 
-Glyphs.clearLog()
-
-print("Dangerous glyphs for interpolation")
-for thisGlyph in Font.glyphs:
-	if check(thisGlyph.layers[0]):
-		print("\n🔠 %s" % thisGlyph.name)
-		outputString += "/%s" % thisGlyph.name
-
-if outputString:
-	Font.newTab(outputString)
+if Font is None:
+	print("⚠️ No font open.")
 else:
-	Message(title="No interpolation problems", message="Cannot find any dangerous glyphs in this font.", OKButton="Hurrah!")
+	Glyphs.clearLog()
+
+	print("Dangerous glyphs for interpolation")
+	for thisGlyph in Font.glyphs:
+		if check(thisGlyph.layers[0]):
+			print("\n🔠 %s" % thisGlyph.name)
+			outputString += "/%s" % thisGlyph.name
+
+	if outputString:
+		Font.newTab(outputString)
+	else:
+		Message(title="No interpolation problems", message="Cannot find any dangerous glyphs in this font.", OKButton="Hurrah!")

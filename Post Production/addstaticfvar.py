@@ -34,7 +34,7 @@ def getNameByID(ttFont, nameID, platform=3, encoding=1, language=0x409):
 			return entry.toUnicode()
 	return None
 
-def addFvarToFont(inputPath, outputPath=None, axes={'wdth':100, 'wght':400, 'ital':0}):
+def addFvarToFont(inputPath, outputPath=None, axes=None):
 	"""
 	Main functionality exposed as importable method.
 	Args:
@@ -42,6 +42,8 @@ def addFvarToFont(inputPath, outputPath=None, axes={'wdth':100, 'wght':400, 'ita
 		outputPath: Optional output path (defaults to overwriting input)
 		axes: Dictionary of axis tags to values (e.g. {'wght':700})
 	"""
+	if axes is None:
+		axes = {'wdth': 100, 'wght': 400, 'ital': 0}
 	ttFont = TTFont(inputPath)
 	if 'gvar' in ttFont:
 		raise ValueError("Font contains gvar table, hence is not a static font")

@@ -51,7 +51,7 @@ else:
 	print(f"🖥️ Export path: {currentExportPath}")
 
 	variableFontSettings = []
-	for instance in thisFont.instances:
+	for instance in (thisFont.instances if thisFont else ()):
 		if instance.type == INSTANCETYPEVARIABLE:
 			variableFontSettings.append(instance)
 

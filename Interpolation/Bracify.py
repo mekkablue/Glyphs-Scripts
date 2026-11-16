@@ -31,37 +31,44 @@ def addBraceLayerToGlyph(braceLayer, axisDict, glyph, associatedMaster):
 	glyph.layers.append(braceLayer)
 
 
+def restoreLayer(layer, originalLayer):
+	"""Puts shapes, anchors and width of originalLayer back into layer."""
+	layer.shapes = copy(originalLayer.shapes)
+	layer.anchors = copy(originalLayer.anchors)
+	layer.width = originalLayer.width
+
+
 def layerIsSuperfluous(layer, threshold=2):
 	originalLayer = copy(layer)
 	originalLayer.parent = layer.parent
-	layer.reinterpolate()
-
-	# compare widths:
-	if abs(layer.width - originalLayer.width) > threshold:
-		layer = originalLayer
-		return False
-
-	# compare anchors:
-	for anchor in layer.anchors:
-		xDiff = abs(anchor.position.x - originalLayer.anchors[anchor.name].position.x)
-		yDiff = abs(anchor.position.y - originalLayer.anchors[anchor.name].position.y)
-		if xDiff > threshold or yDiff > threshold:
-			layer = originalLayer
+	layer.reinterpolate()  # changes the layer, so it must be restored below
+	try:
+		# compare widths:
+		if abs(layer.width - originalLayer.width) > threshold:
 			return False
 
-	# compare point coordinates:
-	for pi, path in enumerate(layer.paths):
-		originalPath = originalLayer.paths[pi]
-		for ni, node in enumerate(path.nodes):
-			originalNode = originalPath.nodes[ni]
-			xDiff = abs(originalNode.x - node.x)
-			yDiff = abs(originalNode.y - node.y)
-			if xDiff > threshold and yDiff > threshold:
-				layer = originalLayer
+		# compare anchors:
+		for anchor in layer.anchors:
+			originalAnchor = originalLayer.anchors[anchor.name]
+			if originalAnchor is None:
+				return False
+			xDiff = abs(anchor.position.x - originalAnchor.position.x)
+			yDiff = abs(anchor.position.y - originalAnchor.position.y)
+			if xDiff > threshold or yDiff > threshold:
 				return False
 
-	layer = originalLayer
-	return True
+		# compare point coordinates:
+		for pi, path in enumerate(layer.paths):
+			originalPath = originalLayer.paths[pi]
+			for ni, node in enumerate(path.nodes):
+				originalNode = originalPath.nodes[ni]
+				xDiff = abs(originalNode.x - node.x)
+				yDiff = abs(originalNode.y - node.y)
+				if xDiff > threshold or yDiff > threshold:
+					return False
+		return True
+	finally:
+		restoreLayer(layer, originalLayer)
 
 
 def nonSuperfluousLayersInMaster(font, master, threshold):
@@ -204,6 +211,8 @@ class Bracify(mekkaObject):
 
 	def OpenTab(self, sender=None):
 		font = Glyphs.font
+		if font is None:
+			return
 		self.SavePreferences()
 		glyphNames = self.pref("braceGlyphs").strip()
 		glyphNameList = glyphNames.split(",")
@@ -225,6 +234,8 @@ class Bracify(mekkaObject):
 
 	def BracifyGuess(self, sender=None):
 		font = Glyphs.font
+		if font is None:
+			return
 		masterIndex = self.prefInt("masterToRemove")
 		master = font.masters[masterIndex]
 		threshold = self.prefInt("threshold")
