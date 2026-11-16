@@ -1,14 +1,10 @@
 # MenuTitle: Set ttfautohint Options
-try:
-	from builtins import str
-except Exception as e:  # noqa: F841
-	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
 __doc__ = """
 Set options for existing 'TTFAutohint options' Custom Parameters.
 """
 
 import vanilla
-from Foundation import NSPoint
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message, INSTANCETYPEVARIABLE
 from mekkablue import mekkaObject
 from ttfautohintoptions import parameterName, valuelessOptions, availableOptionsDict, availableOptions, removeFromAutohintOptions, dictToParameterValue, ttfAutohintDict, glyphInterpolation, idotlessMeasure, writeOptionsToInstance
@@ -45,47 +41,62 @@ class SetTTFAutohintOptions(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 470
-		windowHeight = 110
-		windowWidthResize = 300  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 500
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Set in all ttfautohint options",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
-		linePos, inset, lineHeight = 12, 15, 38
+		inset = 15
 
 		# UI elements:
-		self.w.helpButton = vanilla.HelpButton((inset - 3, linePos, 21, 20), callback=self.openURL)
+		self.w.helpButton = vanilla.HelpButton("auto", callback=self.openURL)
 		self.w.helpButton.setToolTip("Opens the ttfAutohint documentation for the currently selected option on freetype.org.")
 
-		self.w.ttfAutohintOption = vanilla.PopUpButton((inset + 23, linePos + 1, 175, 17), availableOptions, callback=self.ttfAutohintOptionAction, sizeStyle='small')
+		self.w.ttfAutohintOption = vanilla.PopUpButton("auto", availableOptions, callback=self.ttfAutohintOptionAction, sizeStyle='small')
 		self.w.ttfAutohintOption.setToolTip("Available ttfAutohint options. Pick one from the list. Careful: also contains deprecated options. Refer to the documentation (click on the Help Button on the left), know what you are doing.")
 
-		self.w.optionValue = vanilla.EditText((inset + 205, linePos, -67 - 50, 20), "", callback=self.optionValueAction, sizeStyle='small')
+		self.w.optionValue = vanilla.EditText("auto", "", callback=self.optionValueAction, sizeStyle='small')
 		self.w.optionValue.setToolTip("Value for the currently selected option, if any. Some options can only be set or removed, some have a value.")
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-60 - 50, linePos - 2, -inset - 50, 22), "Set", callback=self.SetTTFAutohintOptionsMain)
+		self.w.runButton = vanilla.Button("auto", "Set", callback=self.SetTTFAutohintOptionsMain)
 		self.w.runButton.setToolTip("Updates all ‘TTFAutohint options’ parameters with the current option (and value, if any) to all instances in the font.")
 
-		self.w.delButton = vanilla.Button((-60, linePos - 2, -inset, 22), "Del", callback=self.RemoveOption)
+		self.w.delButton = vanilla.Button("auto", "Del", callback=self.RemoveOption)
 		self.w.delButton.setToolTip("Removes the current option from all ‘TTFAutohint options’ parameters in all instances in the font.")
 
-		linePos += lineHeight
-		self.w.explanation = vanilla.TextBox((inset, 40, -inset, -5), "Adds or sets this option in all ‘TTFAutohint options’ parameters in the current font. For fallback-stem-width, use * for entering the respective instance weight value, and idotless for measuring the width of the interpolated dotless i. The Del button removes this TTFA option from all instances.", sizeStyle='small')
+		self.w.explanation = vanilla.TextBox("auto", "Adds or sets this option in all ‘TTFAutohint options’ parameters in the current font. For fallback-stem-width, use * for entering the respective instance weight value, and idotless for measuring the width of the interpolated dotless i. The Del button removes this TTFA option from all instances.", sizeStyle='small')
+		# a text block that wraps takes the width it is given, instead of demanding one long line:
+		self.w.explanation.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		self.w.setDefaultButton(self.w.runButton)
+
+		# every control hugs vertically, so the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.optionValue.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.ttfAutohintOption.getNSPopUpButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[helpButton]-gap-[ttfAutohintOption(>=150)]-gap-[optionValue(>=100)]-gap-[runButton(>=50)]-gap-[delButton(>=50)]-inset-|",
+				"H:|-inset-[explanation]-inset-|",
+				"V:|-gap-[optionValue]-row-[explanation(56)]-inset-|",
+				{"view1": self.w.helpButton, "attribute1": "centerY", "view2": self.w.optionValue, "attribute2": "centerY"},
+				{"view1": self.w.ttfAutohintOption, "attribute1": "centerY", "view2": self.w.optionValue, "attribute2": "centerY"},
+				{"view1": self.w.runButton, "attribute1": "centerY", "view2": self.w.optionValue, "attribute2": "centerY"},
+				{"view1": self.w.delButton, "attribute1": "centerY", "view2": self.w.optionValue, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 12},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
 		self.editValueField()
-		# enable or disable the edit box
-		# self.editValueField()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -146,9 +157,13 @@ class SetTTFAutohintOptions(mekkaObject):
 
 	def RemoveOption(self, sender):
 		try:
+			thisFont = Glyphs.font
+			if not thisFont:
+				Message("No Font Open", "The script requires a font. Open a font and run the script again.", OKButton=None)
+				return
 			optionIndex = self.prefInt("ttfAutohintOption")
 			optionName = availableOptions[optionIndex]
-			for thisInstance in Glyphs.font.instances:
+			for thisInstance in thisFont.instances:
 				if thisInstance.customParameters[parameterName]:
 					removeFromAutohintOptions(thisInstance, optionName)
 					print(f"Removing {optionName} from instance '{thisInstance.name}'.")
@@ -165,6 +180,9 @@ class SetTTFAutohintOptions(mekkaObject):
 			optionName = availableOptions[optionIndex]
 			enteredValue = Glyphs.defaults[f"com.mekkablue.SetTTFAutohintOptions.{optionName}"]
 
+			if not Glyphs.orderedDocuments():
+				Message("No Font Open", "The script requires a font. Open a font and run the script again.", OKButton=None)
+				return
 			firstDoc = Glyphs.orderedDocuments()[0]
 			if firstDoc.fileType() != "com.glyphsapp.glyphsproject":
 				thisFont = firstDoc.font

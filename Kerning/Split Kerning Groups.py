@@ -25,10 +25,14 @@ def splitOffGroup(font, newGroup, splitoffs, rightGroup=True):
 			groupName = f"@MMK_L_{group}"
 			newGroupName = f"@MMK_L_{newGroup}".replace("@MMK_L_@MMK_L_", "@MMK_L_") # sanity check
 			for master in font.masters:
+				masterKerning = font.kerning[master.id]
+				if groupName not in masterKerning.keys():
+					# this group has no kerning in this master
+					continue
 				# this does not work:
 				# font.kerning[master.id][newGroupName] = copy(font.kerning[master.id][groupName])
-				for rightKey in font.kerning[master.id][groupName].keys():
-					value = font.kerning[master.id][groupName][rightKey]
+				for rightKey in list(masterKerning[groupName].keys()):
+					value = masterKerning[groupName][rightKey]
 					if not rightKey.startswith("@") and not font.glyphs[rightKey]:
 						referencedGlyph = font.glyphForId_(rightKey)
 						if referencedGlyph:
@@ -37,7 +41,8 @@ def splitOffGroup(font, newGroup, splitoffs, rightGroup=True):
 							print("⚠️ Warning: a kern pair is referencing a glyph that has been deleted. Clean up your kerning.")
 							continue
 					font.setKerningForPair(master.id, newGroupName, rightKey, value)
-				totalCount += len(font.kerning[master.id][newGroupName])
+				if newGroupName in font.kerning[master.id].keys():
+					totalCount += len(font.kerning[master.id][newGroupName])
 		regrouped = []
 		for glyphName in splitoffs:
 			glyph = font.glyphs[glyphName]
@@ -59,9 +64,19 @@ def splitOffGroup(font, newGroup, splitoffs, rightGroup=True):
 			groupName = f"@MMK_R_{group}"
 			newGroupName = f"@MMK_R_{newGroup}".replace("@MMK_R_@MMK_R_", "@MMK_R_") # sanity check
 			for master in font.masters:
-				for leftSide in font.kerning[master.id].keys():
-					if groupName in font.kerning[master.id][leftSide].keys():
-						font.kerning[master.id][leftSide][newGroupName] = font.kerning[master.id][leftSide][groupName]
+				masterKerning = font.kerning[master.id]
+				for leftSide in list(masterKerning.keys()):
+					if groupName in masterKerning[leftSide].keys():
+						value = masterKerning[leftSide][groupName]
+						if not leftSide.startswith("@") and not font.glyphs[leftSide]:
+							referencedGlyph = font.glyphForId_(leftSide)
+							if referencedGlyph:
+								leftSide = referencedGlyph.name
+							else:
+								print("⚠️ Warning: a kern pair is referencing a glyph that has been deleted. Clean up your kerning.")
+								continue
+						# assigning into the kerning dictionary directly does not work, see above:
+						font.setKerningForPair(master.id, leftSide, newGroupName, value)
 						totalCount += 1
 		regrouped = []
 		for glyphName in splitoffs:
@@ -139,7 +154,7 @@ class SplitKerningGroups(mekkaObject):
 				"H:|-inset-[descriptionText]-gap-[isRightGroup]-gap-[originalGroupName(>=70)]-gap-[updateButton]-gap-[newGroupText]-gap-[newGroupName(>=70)]-inset-|",
 				"H:|-inset-[splitGlyphs]-inset-|",
 				"H:|-inset-[status]-(>=gap)-[runButton(>=70)]-inset-|",
-				"V:|-inset-[isRightGroup]-row-[splitGlyphs(>=60)]-row-[runButton]-inset-|",
+				"V:|-inset-[isRightGroup]-row-[splitGlyphs(>=90)]-row-[runButton]-inset-|",
 				# one baseline per row:
 				{"view1": self.w.descriptionText, "attribute1": "centerY", "view2": self.w.isRightGroup, "attribute2": "centerY"},
 				{"view1": self.w.originalGroupName, "attribute1": "centerY", "view2": self.w.isRightGroup, "attribute2": "centerY"},
@@ -213,15 +228,6 @@ class SplitKerningGroups(mekkaObject):
 			if not self.SavePreferences():
 				print("⚠️ ‘Split Kerning Groups’ could not write preferences.")
 			
-			# read prefs:
-			for prefName in self.prefDict.keys():
-				try:
-					setattr(sys.modules[__name__], prefName, self.pref(prefName))
-				except:
-					fallbackValue = self.prefDict[prefName]
-					print(f"⚠️ Could not set pref ‘{prefName}’, resorting to default value: ‘{fallbackValue}’.")
-					setattr(sys.modules[__name__], prefName, fallbackValue)
-			
 			thisFont = Glyphs.font # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
@@ -230,8 +236,17 @@ class SplitKerningGroups(mekkaObject):
 				print(f"Split Kerning Groups: ‘{reportName}’")
 				
 				newGroupName = self.pref("newGroupName").replace(" ", "").strip()
-				glyphNames = self.pref("splitGlyphs").replace(",", " ").replace("  ", " ").split(" ")
+				glyphNames = self.pref("splitGlyphs").replace(",", " ").split()
+				if not glyphNames:
+					print("❌ Error: no glyphs to split off.")
+					self.w.status.set("❌ No glyphs to split off.")
+					return
 				messages = splitOffGroup(thisFont, newGroupName, glyphNames, rightGroup=self.pref("isRightGroup"))
+				if not messages:
+					# splitOffGroup() has printed the reason
+					self.w.status.set("❌ Could not split. Details in Macro Window.")
+					Glyphs.showMacroWindow()
+					return
 				thisFont.newTab("/" + "/".join(glyphNames))
 				
 				statusMessages = [m for m in messages[1:] if not "Regrouped" in m]
