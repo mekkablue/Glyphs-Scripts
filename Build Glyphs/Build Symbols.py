@@ -1,9 +1,7 @@
 # MenuTitle: Build Symbols
 __doc__ = """
-Creates an estimated glyph and draws an estimated sign in it. Does the same for bar and brokenbar, for which it respects standard stems and italic angle, and for emptyset, dottedCircle, currency, lozenge and .notdef.
+Creates an estimated glyph and draws an estimated sign in it. Does the same for bar and brokenbar, for which it respects standard stems and italic angle, and for emptyset, dottedCircle, currency, lozenge, product, summation, radical, dagger, daggerdbl and .notdef. Stem widths are measured on the slash, else taken from the master stems, else defaulted, so it also works in an empty font.
 """
-
-# TODO: product, summation, radical
 
 import math
 import traceback
@@ -12,8 +10,8 @@ import vanilla
 
 from mekkablue import mekkaObject, newGlyphWithName, newAnchorWithName
 from mekkablue.geometry import transform, italicize, offsetLayer
-from GlyphsApp import Glyphs, GSPath, GSNode, GSOFFCURVE, GSCURVE, GSLINE, distance
-from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
+from GlyphsApp import Glyphs, GSPath, GSNode, GSOFFCURVE, GSCURVE, GSLINE, distance, intersectPaths
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 from Foundation import NSPoint
 
 # handle length for a circle drawn with four Bézier segments, relative to its radius:
@@ -34,6 +32,19 @@ ESTIMATED_PENDATA = (
 		((522.0, 658.0), (652.0, 585.0), (652.0, 531.0)), (652.0, 366.0), ((652.0, 354.0), (650.0, 350.0), (636.0, 350.0)), (194.0, 350.0)
 	)
 )
+
+
+# glyphs that createGlyph() has handed out in the current run, with an open undo group each:
+BUILT_GLYPHS = []
+# stem widths measured in the current run, so the slash is measured once per master and not once per symbol:
+MEASUREMENTS = {}
+
+
+def endUndoGroups():
+	"""Closes the undo group of every glyph built in this run, so the whole run is one undo step."""
+	for glyph in BUILT_GLYPHS:
+		glyph.endUndo()
+	BUILT_GLYPHS.clear()
 
 
 def circleAtCenter(center=NSPoint(0, 0), radius=50, bcp=CIRCLE_HANDLE):
@@ -77,13 +88,15 @@ def createGlyph(font, glyphName, unicodeValue, override=False, backupLayers=Fals
 			glyph.unicode = unicodeValue
 		font.glyphs.append(glyph)
 		glyph.updateGlyphInfo()
+		glyph.beginUndo()
+		BUILT_GLYPHS.append(glyph)
 		return glyph
 
 	if not override:
-		print(f"Glyph {glyphName} already exists. No override chosen. Skipping.")
+		print(f"\t⚠️ {glyphName}: already exists and overwriting is off, skipped")
 		return None
 
-	print(f"Overwriting existing glyph {glyphName}.")
+	print(f"\t☑️ {glyphName}: exists, overwriting")
 
 	# create backups of layers (if wanted), and clear them:
 	backups = []
@@ -102,6 +115,7 @@ def createGlyph(font, glyphName, unicodeValue, override=False, backupLayers=Fals
 				print(f"- Creating backup of layer: {layer.name or '(empty)'}")
 
 		layer.clear()
+		layer.anchors.clear()  # layer.clear() does not remove the anchors
 		layer.background.clear()
 		layer.leftMetricsKey = None
 		layer.rightMetricsKey = None
@@ -116,6 +130,13 @@ def createGlyph(font, glyphName, unicodeValue, override=False, backupLayers=Fals
 		if glyph.layers[index].isSpecialLayer:
 			del glyph.layers[index]
 
+	# an existing glyph may lack the Unicode value, category or script:
+	if unicodeValue and not glyph.unicode:
+		glyph.unicode = unicodeValue
+	glyph.updateGlyphInfo(changeName=False)
+
+	glyph.beginUndo()
+	BUILT_GLYPHS.append(glyph)
 	return glyph
 
 
@@ -130,12 +151,30 @@ def setMetrics(glyph, leftKey="=50", rightKey="=|", kerningGroup=None):
 		glyph.rightKerningGroup = kerningGroup
 
 
+def capHeightOf(master):
+	"""Returns the cap height of the master; if it is not set, 140% of the x-height; if that is not set either, 700."""
+	if master.capHeight and master.capHeight > 0:
+		return master.capHeight
+	if master.xHeight and master.xHeight > 0:
+		return master.xHeight * 1.4
+	return 700.0
+
+
 def zeroGlyphOf(font):
 	"""Returns the first available zero (lining, tabular, default) of the font, or None."""
 	for zeroName in ("zero.lf", "zero.tf", "zero"):
 		if font.glyphs[zeroName]:
 			return font.glyphs[zeroName]
 	return None
+
+
+def overshootOf(zeroGlyph, master):
+	"""Returns the overshoot of the zero in the master (at least 5), or 5 if there is no zero or it is empty."""
+	if zeroGlyph:
+		zeroBounds = zeroGlyph.layers[master.id].bounds
+		if zeroBounds is not None and zeroBounds.size.height > 0:
+			return abs(min(-5.0, zeroBounds.origin.y))
+	return 5.0
 
 
 def slashLayerOf(font, master):
@@ -189,6 +228,17 @@ def verticalStemOfMaster(font, master):
 
 def stemWidthForMaster(font, master, default=60, maxWidth=None):
 	"""Stem thickness measured on the slash; else 80% of the master’s vertical stem; else the default. Never more than maxWidth."""
+	key = ("stem", master.id, default)
+	if key not in MEASUREMENTS:
+		MEASUREMENTS[key] = measureStemWidth(font, master, default)
+	width = MEASUREMENTS[key]
+	if maxWidth and maxWidth > 2:
+		width = min(width, maxWidth)
+	return width
+
+
+def measureStemWidth(font, master, default):
+	"""The uncached measurement behind stemWidthForMaster()."""
 	width = None
 	slash = slashLayerOf(font, master)
 	if slash:
@@ -216,16 +266,17 @@ def stemWidthForMaster(font, master, default=60, maxWidth=None):
 	if width is None:
 		print(f"⚠️ Error measuring stem width: No vertical stems set in master ‘{master.name}’. Will default to {default}.")
 		width = default
-
-	if maxWidth and maxWidth > 2:
-		width = min(width, maxWidth)
 	return width
 
 
 def barStemWidthForMaster(font, master):
 	"""Stem thickness for bar and brokenbar (and emptyset): measured on the slash if there is one, else from the master stems."""
-	stemWidth = stemWidthForMaster(font, master)
-	stemWidth -= stemWidth * math.cos(math.radians(master.italicAngle)) - stemWidth  # correct for italic angle
+	key = ("barStem", master.id)
+	if key in MEASUREMENTS:
+		return MEASUREMENTS[key]
+
+	# a stem of this thickness, slanted by the italic angle, is wider than that when cut horizontally:
+	stemWidth = stemWidthForMaster(font, master) / math.cos(math.radians(master.italicAngle))
 
 	slashLayer = slashLayerOf(font, master)
 	if slashLayer:
@@ -234,6 +285,7 @@ def barStemWidthForMaster(font, master):
 		suggestedStemWidth = slashLayer.width - slashLayer.rsbAtHeight_(middle) - slashLayer.lsbAtHeight_(middle)
 		if suggestedStemWidth > 0:
 			stemWidth = int(suggestedStemWidth * 0.96)
+	MEASUREMENTS[key] = stemWidth
 	return stemWidth
 
 
@@ -244,26 +296,49 @@ def drawStrokedSkeleton(font, master, layer, penData, size, maxStemFactor, close
 	stemWidth = stemWidthForMaster(font, master, maxWidth=size * maxStemFactor)
 	offsetLayer(layer, stemWidth / 2, makeStroke=True, position=0.5)
 
-	moveUp = (master.capHeight - size) * 0.5
+	moveUp = (capHeightOf(master) - size) * 0.5
 	layer.applyTransform(transform(shiftY=moveUp).transformStruct())
 
 	layer.cleanUpPaths()
 	layer.syncMetrics()
 
 
+def notdefFrameInLayer(font, master, layer):
+	"""Draws the tofu rectangle in the layer: a frame of cap height, with the stem width of the master."""
+	height = capHeightOf(master)
+	width = height * 0.6
+	stem = stemWidthForMaster(font, master, maxWidth=width * 0.2)
+	drawPenDataInLayer(
+		layer,
+		(
+			((0.0, 0.0), (width, 0.0), (width, height), (0.0, height)),  # outer frame, counterclockwise
+			((stem, stem), (stem, height - stem), (width - stem, height - stem), (width - stem, stem)),  # counter, clockwise
+		),
+	)
+
+
 def buildNotdef(font, override=False, backupLayers=False):
+	# use the boldest question mark, if there is one with outlines:
+	sourceLayer = None
 	questionGlyph = font.glyphs["question"]
-	if not questionGlyph:
-		print("⚠️ Error building .notdef: No question mark is available in your font. Cannot create .notdef.")
-		return
+	if questionGlyph:
+		questionLayers = [layer for layer in questionGlyph.layers if (layer.isMasterLayer or layer.isSpecialLayer) and layer.shapes]
+		if questionLayers:
+			sourceLayer = max(questionLayers, key=areaOfLayer)
+	if sourceLayer is None:
+		print("⚠️ No question mark with outlines in your font. Will build a simple .notdef frame instead.")
 
 	notdefGlyph = createGlyph(font, ".notdef", None, override=override, backupLayers=backupLayers)
 	if not notdefGlyph:
 		return
 
-	# use the boldest question mark:
-	questionLayers = [layer for layer in questionGlyph.layers if layer.isMasterLayer or layer.isSpecialLayer]
-	sourceLayer = max(questionLayers, key=areaOfLayer)
+	if sourceLayer is None:
+		setMetrics(notdefGlyph, leftKey="=40")
+		for master in font.masters:
+			notdefLayer = notdefGlyph.layers[master.id]
+			notdefFrameInLayer(font, master, notdefLayer)
+			notdefLayer.syncMetrics()
+		return
 
 	# build .notdef from question mark and circle:
 	questionmarkLayer = sourceLayer.copyDecomposedLayer()
@@ -280,6 +355,7 @@ def buildNotdef(font, override=False, backupLayers=False):
 		notdefLayer = notdefGlyph.layers[master.id]
 		for path in questionmarkLayer.paths:
 			notdefLayer.shapes.append(path.copy())
+		notdefFrameInLayer(font, master, notdefLayer.background)  # tofu rectangle as reference in the background
 		notdefLayer.syncMetrics()
 
 
@@ -291,7 +367,7 @@ def buildLozenge(font, override=False, backupLayers=False):
 
 	for master in font.masters:
 		layer = glyph.layers[master.id]
-		size = master.capHeight * 0.7  # 70% cap height
+		size = capHeightOf(master) * 0.7  # 70% cap height
 		skeleton = (
 			(  # fin
 				(size * 0.3, size * 1.0),
@@ -309,9 +385,16 @@ def buildLozenge(font, override=False, backupLayers=False):
 		for coordinate in ((0, midBottom), (layer.width, midBottom), (layer.width, midTop), (0, midTop)):
 			intersector.nodes.append(GSNode(NSPoint(*coordinate)))
 		intersector.closed = True
-		layer.shapes.append(intersector)
 
-		layer.pathIntersect_from_error_([intersector], [layer.paths[0]], None)
+		outlines = list(layer.paths)
+		trimmedOutlines = intersectPaths([intersector], outlines)
+		if trimmedOutlines is None:
+			print(f"\t⚠️ lozenge: could not cut off the caps in master ‘{master.name}’")
+		else:
+			for outline in outlines:
+				layer.shapes.remove(outline)
+			for outline in trimmedOutlines:
+				layer.shapes.append(outline)
 		layer.syncMetrics()  # the outline changed after the first sync
 
 
@@ -323,7 +406,7 @@ def buildCurrency(font, override=False, backupLayers=False):
 
 	for master in font.masters:
 		layer = glyph.layers[master.id]
-		size = master.capHeight * 0.6  # 60% cap height
+		size = capHeightOf(master) * 0.6  # 60% cap height
 		skeleton = (
 			(  # circle
 				(size * 0.500, size * 0.173),
@@ -377,7 +460,6 @@ def buildEstimated(font, override=False, backupLayers=False):
 
 		layer.cleanUpPaths()
 		layer.syncMetrics()
-		print(f"✅ Created estimated in master ‘{master.name}’")
 
 
 def buildEmptyset(font, override=False, backupLayers=False):
@@ -392,12 +474,8 @@ def buildEmptyset(font, override=False, backupLayers=False):
 		layer = glyph.layers[master.id]
 
 		# height: average of x-height and cap height, plus overshoot at bottom and top:
-		overshoot = 5.0
-		if zeroGlyph:
-			zeroBounds = zeroGlyph.layers[master.id].bounds
-			if zeroBounds is not None and zeroBounds.size.height > 0:
-				overshoot = abs(min(-5.0, zeroBounds.origin.y))
-		baseHeight = (master.xHeight + master.capHeight) * 0.5
+		overshoot = overshootOf(zeroGlyph, master)
+		baseHeight = (master.xHeight + capHeightOf(master)) * 0.5
 		height = baseHeight + 2 * overshoot
 		radius = height * 0.5
 		center = NSPoint(radius, baseHeight * 0.5)
@@ -429,7 +507,6 @@ def buildEmptyset(font, override=False, backupLayers=False):
 		layer.shapes.append(slash)
 
 		layer.syncMetrics()
-		print(f"✅ Created emptyset in master ‘{master.name}’")
 
 
 def buildDottedCircle(font, override=False, backupLayers=False):
@@ -508,7 +585,6 @@ def buildBars(font, override=False, backupLayers=False):
 			drawPenDataInLayer(barLayer, ((bottomLeft, bottomRight, topRight, topLeft), ))
 			barLayer.RSB = sidebearing
 			barLayer.syncMetrics()
-			print(f"✅ Created bar in master ‘{master.name}’")
 
 		if brokenbarGlyph:
 			gapBottomY = ((ascender + descender) - gap) * 0.5
@@ -526,7 +602,279 @@ def buildBars(font, override=False, backupLayers=False):
 			)
 			brokenbarLayer.RSB = sidebearing
 			brokenbarLayer.syncMetrics()
-			print(f"✅ Created brokenbar in master ‘{master.name}’")
+
+
+def bigSymbolBoxOfMaster(master):
+	"""Returns (bottom, height) of the box for product, summation and radical: 110% cap height, centered on half the cap height."""
+	capHeight = capHeightOf(master)
+	height = capHeight * 1.1
+	return capHeight * 0.5 - height * 0.5, height
+
+
+def daggerBoxOfMaster(master):
+	"""Returns (bottom, height) of the box for dagger and daggerdbl: 60% cap height, butted up against the cap height."""
+	capHeight = capHeightOf(master)
+	height = capHeight * 0.6
+	return capHeight - height, height
+
+
+def mappedPenData(penData, mapPoint):
+	"""Returns the pen data with every point replaced by mapPoint(point)."""
+	result = []
+	for path in penData:
+		mappedPath = [mapPoint(path[0])]
+		for segment in path[1:]:
+			if len(segment) == 3:  # curve: three points
+				mappedPath.append(tuple(mapPoint(point) for point in segment))
+			else:  # line: one point
+				mappedPath.append(mapPoint(segment))
+		result.append(tuple(mappedPath))
+	return tuple(result)
+
+
+def crossPenData(width, height, stem, bar, barCenters):
+	"""A stem and one overlapping crossbar rectangle at each of the heights in barCenters. Origin bottom left, counterclockwise."""
+	stemLeft = (width - stem) * 0.5
+	stemRight = stemLeft + stem
+	rectangles = [((stemLeft, 0.0), (stemRight, 0.0), (stemRight, height), (stemLeft, height))]
+	for center in barCenters:
+		rectangles.append(((0.0, center - bar * 0.5), (width, center - bar * 0.5), (width, center + bar * 0.5), (0.0, center + bar * 0.5)))
+	return tuple(rectangles)
+
+
+def daggerPenData(width, height, stem, bar):
+	"""† as two overlapping rectangles: a stem with a crossbar in its upper third."""
+	return crossPenData(width, height, stem, bar, (height * 0.68, ))
+
+
+def daggerdblPenData(width, height, stem, bar):
+	"""‡ as three overlapping rectangles: a stem with two crossbars, the same distance from the top and bottom of the stem."""
+	return crossPenData(width, height, stem, bar, (height * 0.26, height * 0.74))
+
+
+def productPenData(width, height, stem, bar):
+	"""∏ as three overlapping rectangles: a bar on top, and two legs that end in the middle of the bar. Origin bottom left, counterclockwise."""
+	overhang = bar * 0.6
+	legTop = height - bar * 0.5  # halfway through the bar, equidistant to its edges
+	legLeft = overhang
+	legRight = width - overhang - stem
+	return (
+		((0.0, height - bar), (width, height - bar), (width, height), (0.0, height)),
+		((legLeft, 0.0), (legLeft + stem, 0.0), (legLeft + stem, legTop), (legLeft, legTop)),
+		((legRight, 0.0), (legRight + stem, 0.0), (legRight + stem, legTop), (legRight, legTop)),
+	)
+
+
+def summationPenData(width, height, stem, bar):
+	"""
+	∑ as one contour: two bars, joined by two diagonals meeting in a knee at two thirds of the width.
+	Where the outlines meet at an inner corner they overshoot and are closed by a short segment (“opened corner”),
+	so each corner holds a small triangle of overlap: at the knee two edges reach `overshoot` beyond their crossing and are joined
+	vertically; at the bar corners the bar underside reaches to the left, and the diagonal into the middle of the bar.
+	Origin bottom left, counterclockwise.
+	"""
+	diagonal = stem * 1.3  # horizontal thickness of the diagonals
+	middle = height * 0.5
+	cornerHeight = bar * 0.8  # the vertical segments at the left end are a bit shorter than the stroke
+	overshoot = bar * 0.75
+	kneeX = width * 2.0 / 3.0
+	slope = (kneeX - diagonal) / (middle - cornerHeight)  # horizontal run per unit of height of the diagonals
+
+	def leftEdgeX(y):  # outer left edge of the upper diagonal (extended beyond its ends)
+		return (height - cornerHeight - y) * slope
+
+	def rightEdgeX(y):  # right edge of the upper diagonal, parallel to the left edge
+		return leftEdgeX(y) + diagonal
+
+	cornerMiddleX = rightEdgeX(height - bar * 0.5)
+	barReachX = cornerMiddleX - bar * 0.5  # where the underside of the bar ends, at 45° from the point in the middle of the bar
+	kneeCutX = leftEdgeX(middle - overshoot)
+
+	return ((
+		(0.0, height),
+		(0.0, height - cornerHeight),
+		(kneeCutX, middle - overshoot),
+		(kneeCutX, middle + overshoot),
+		(0.0, cornerHeight),
+		(0.0, 0.0),
+		(width, 0.0),
+		(width, bar),
+		(barReachX, bar),
+		(cornerMiddleX, bar * 0.5),
+		(kneeX, middle),
+		(cornerMiddleX, height - bar * 0.5),
+		(barReachX, height - bar),
+		(width, height - bar),
+		(width, height),
+	), )
+
+
+def radicalPenData(width, height, stem, bar):
+	"""
+	√ as one contour: the downstroke, and the upstroke with the bar on top. All strokes have parallel edges.
+	The inner corners are opened as in the summation: the edge of the downstroke and the edge of the upstroke overshoot where they cross
+	and are joined by a short horizontal segment; at the bar, the underside reaches to the left, and the upstroke into the middle of the bar.
+	Origin bottom left, counterclockwise.
+	"""
+	heavy = stem * 1.3  # horizontal thickness of the downstroke
+	light = stem * 0.7  # horizontal thickness of the upstroke
+	overshoot = bar * 0.75
+	downTop = height * 0.5  # height of the flat top of the downstroke
+	footLeft = width * 0.26
+	upstrokeTopLeft = width * 0.52
+
+	def upstrokeLeftX(y):
+		return footLeft + (upstrokeTopLeft - footLeft) * y / height
+
+	def downstrokeRightX(y):
+		return footLeft * (1.0 - y / downTop) + heavy
+
+	# height where the right edge of the downstroke crosses the left edge of the upstroke:
+	crossing = heavy / (footLeft / downTop + (upstrokeTopLeft - footLeft) / height)
+	cutHeight = crossing - overshoot
+
+	cornerMiddleX = upstrokeLeftX(height - bar * 0.5) + light
+	barReachX = cornerMiddleX - bar * 0.5
+
+	return ((
+		(footLeft, 0.0),
+		(footLeft + light, 0.0),
+		(cornerMiddleX, height - bar * 0.5),
+		(barReachX, height - bar),
+		(width, height - bar),
+		(width, height),
+		(upstrokeTopLeft, height),
+		(upstrokeLeftX(cutHeight), cutHeight),
+		(downstrokeRightX(cutHeight), cutHeight),
+		(heavy, downTop),
+		(0.0, downTop),
+	), )
+
+
+def arcSegments(center, radius, startDegrees, endDegrees):
+	"""Returns curve segments (three points each) for the arc around the center, with on-curve points at the extrema (multiples of 90°)."""
+	step = 1 if endDegrees > startDegrees else -1
+	lowest, highest = sorted((startDegrees, endDegrees))
+	extrema = [angle for angle in range(int(math.ceil(lowest / 90.0)) * 90, int(highest) + 1, 90) if lowest < angle < highest]
+	angles = [startDegrees] + sorted(extrema, reverse=(step < 0)) + [endDegrees]
+	segments = []
+	for startAngle, endAngle in zip(angles, angles[1:]):
+		startRadians = math.radians(startAngle)
+		endRadians = math.radians(endAngle)
+		handleLength = 4.0 / 3.0 * math.tan((endRadians - startRadians) / 4.0) * radius
+		segments.append((
+			(center[0] + radius * math.cos(startRadians) - handleLength * math.sin(startRadians), center[1] + radius * math.sin(startRadians) + handleLength * math.cos(startRadians)),
+			(center[0] + radius * math.cos(endRadians) + handleLength * math.sin(endRadians), center[1] + radius * math.sin(endRadians) - handleLength * math.cos(endRadians)),
+			(center[0] + radius * math.cos(endRadians), center[1] + radius * math.sin(endRadians)),
+		))
+	return segments
+
+
+def ellipsePenData(centerX, centerY, radiusX, radiusY, clockwise=False):
+	"""An ellipse as one path, starting at its rightmost point."""
+	handleX = radiusX * CIRCLE_HANDLE
+	handleY = radiusY * CIRCLE_HANDLE
+	direction = -1 if clockwise else 1
+	segments = []
+	for quarter in range(4):
+		startAngle = math.radians(90 * quarter * direction)
+		endAngle = math.radians(90 * (quarter + 1) * direction)
+		segments.append((
+			(centerX + radiusX * math.cos(startAngle) - direction * handleX * math.sin(startAngle), centerY + radiusY * math.sin(startAngle) + direction * handleY * math.cos(startAngle)),
+			(centerX + radiusX * math.cos(endAngle) + direction * handleX * math.sin(endAngle), centerY + radiusY * math.sin(endAngle) - direction * handleY * math.cos(endAngle)),
+			(centerX + radiusX * math.cos(endAngle), centerY + radiusY * math.sin(endAngle)),
+		))
+	return ((centerX + radiusX, centerY), *segments)
+
+
+def partialdiffPenData(width, height, stem, bar):
+	"""
+	∂ as two overlapping contours: the bowl, an elliptical ring, and the arm, a stroke of constant thickness that rises
+	along the right side of the bowl and bends over to the left. The bottom end of the arm enters the near-vertical curve of the bowl.
+	Origin bottom left, counterclockwise.
+	"""
+	bowlHeight = height * 0.58
+	radiusX = width * 0.5
+	radiusY = bowlHeight * 0.5
+
+	# arm: centerline radius of its bend, and the bend’s center, so that the outer curve touches the top:
+	bendRadius = width * 0.4
+	outerRadius = bendRadius + stem * 0.5
+	innerRadius = bendRadius - stem * 0.5
+	bendCenter = (width - stem * 0.5 - bendRadius, height - outerRadius)
+	armBottom = radiusY - stem * 0.25  # slightly below the middle of the bowl
+	armLeft = width - stem
+	bendEnd = 135.0  # degrees: the arm ends pointing down and to the left
+
+	terminalInner = (bendCenter[0] + innerRadius * math.cos(math.radians(bendEnd)), bendCenter[1] + innerRadius * math.sin(math.radians(bendEnd)))
+	arm = (
+		(armLeft, armBottom),
+		(width, armBottom),
+		(width, bendCenter[1]),
+		*arcSegments(bendCenter, outerRadius, 0.0, bendEnd),
+		terminalInner,
+		*arcSegments(bendCenter, innerRadius, bendEnd, 0.0),
+	)
+	return (
+		ellipsePenData(radiusX, radiusY, radiusX, radiusY),
+		ellipsePenData(radiusX, radiusY, radiusX - stem, radiusY - bar, clockwise=True),
+		arm,
+	)
+
+
+def buildPolygonSymbol(
+	font, glyphName, unicodeValue, penDataFunction, boxFunction, widthFactor, maxStemFactor, override=False, backupLayers=False, rightKey="=|"
+):
+	"""
+	Builds a polygon symbol in every master. boxFunction(master) returns (bottom, height); the width is a factor of the height;
+	the stem is measured as for the other symbols, but at most maxStemFactor of the height.
+	"""
+	glyph = createGlyph(font, glyphName, unicodeValue, override=override, backupLayers=backupLayers)
+	if not glyph:
+		return
+	setMetrics(glyph, rightKey=rightKey, kerningGroup=glyphName)
+
+	for master in font.masters:
+		layer = glyph.layers[master.id]
+		bottom, height = boxFunction(master)
+		width = height * widthFactor
+		stem = stemWidthForMaster(font, master, maxWidth=height * maxStemFactor)
+		bar = stem * 0.85  # horizontals are lighter than verticals
+
+		def place(point):
+			slanted = italicize(NSPoint(point[0], point[1] + bottom), italicAngle=master.italicAngle, pivotalY=master.xHeight * 0.5)
+			return (slanted.x, slanted.y)
+
+		drawPenDataInLayer(layer, mappedPenData(penDataFunction(width, height, stem, bar), place))
+		layer.correctPathDirection()
+		layer.syncMetrics()
+
+
+def buildProduct(font, override=False, backupLayers=False):
+	buildPolygonSymbol(font, "product", "220F", productPenData, bigSymbolBoxOfMaster, 0.66, 0.12, override=override, backupLayers=backupLayers)
+
+
+def buildSummation(font, override=False, backupLayers=False):
+	buildPolygonSymbol(font, "summation", "2211", summationPenData, bigSymbolBoxOfMaster, 0.527, 0.12, override=override, backupLayers=backupLayers)
+
+
+def buildPartialdiff(font, override=False, backupLayers=False):
+	zeroGlyph = zeroGlyphOf(font)
+
+	def boxOfMaster(master):  # cap height with overshoot at the top and bottom
+		overshoot = overshootOf(zeroGlyph, master)
+		return -overshoot, capHeightOf(master) + 2 * overshoot
+
+	buildPolygonSymbol(font, "partialdiff", "2202", partialdiffPenData, boxOfMaster, 0.46, 0.12, override=override, backupLayers=backupLayers)
+
+
+def buildDaggers(font, override=False, backupLayers=False):
+	buildPolygonSymbol(font, "dagger", "2020", daggerPenData, daggerBoxOfMaster, 0.6, 0.15, override=override, backupLayers=backupLayers)
+	buildPolygonSymbol(font, "daggerdbl", "2021", daggerdblPenData, daggerBoxOfMaster, 0.6, 0.15, override=override, backupLayers=backupLayers)
+
+
+def buildRadical(font, override=False, backupLayers=False):
+	buildPolygonSymbol(font, "radical", "221A", radicalPenData, bigSymbolBoxOfMaster, 0.5, 0.1, override=override, backupLayers=backupLayers, rightKey="=0")
 
 
 def tabStringForExistingGlyphs(font, glyphNames):
@@ -535,85 +883,96 @@ def tabStringForExistingGlyphs(font, glyphNames):
 
 
 # One entry per symbol, in the order of the checkboxes and of the build:
-# (preference name, checkbox title, tooltip, build function (None: not yet implemented), glyph names)
+# (preference name, checkbox title, tooltip, build function, glyph names)
+# The checkboxes fill a grid of four columns row by row. The symbols are sorted by Unicode (the lower one for pairs),
+# .notdef last; then regrouped by title width, three per column (the last column has two), widest column first, so the grid
+# is as narrow as possible. Within a column the symbols keep their Unicode order, and .notdef stays the last entry.
+# partialdiff ∂ is disabled for now: to enable it, add an entry for buildPartialdiff() ("buildPartialdiff", "partialdiff ∂",
+# a tooltip, buildPartialdiff, ("partialdiff", )) and sort it in.
 SYMBOLS = (
-	(
-		"buildEstimated",
-		"estimated ℮",
-		"Will build estimated ℮ and scale it to the size of your lining zero, if available.",
-		buildEstimated,
-		("estimated", ),
-	),
 	(
 		"buildBars",
 		"bar | brokenbar ¦",
-		"Will model bar | and brokenbar ¦ after your slash /, or if there is no slash, use the master’s stem values for their width. Without a slash, they extend from the lowest descender to the highest ascender of all masters.",
+		"| and ¦, modeled on your slash; without one, stem width from the master and lowest descender to highest ascender.",
 		buildBars,
 		("bar", "brokenbar"),
 	),
 	(
-		"buildEmptyset",
-		"emptyset ∅",
-		"Will build emptyset ∅: a circle with a slash, with the stem thickness of bar and brokenbar (but at most 18% of the height). Its height is the average of x-height and cap height plus the overshoot of your zero.",
-		buildEmptyset,
-		("emptyset", ),
-	),
-	(
-		"buildDottedcircle",
-		"dottedCircle ◌",
-		"Will build dottedCircle ◌.",
-		buildDottedCircle,
-		("dottedCircle", ),
+		"buildEstimated",
+		"estimated ℮",
+		"℮, scaled to your lining zero if there is one.",
+		buildEstimated,
+		("estimated", ),
 	),
 	(
 		"buildCurrency",
 		"currency ¤",
-		"Will build currency.",
+		"¤: circle with four fins, 60% cap height, stem as in slash or master.",
 		buildCurrency,
 		("currency", ),
 	),
 	(
-		"buildLozenge",
-		"lozenge ◊",
-		"Will build lozenge.",
-		buildLozenge,
-		("lozenge", ),
-	),
-	(
-		"buildNotdef",
-		".notdef",
-		"Will build the mandatory .notdef glyph based on the boldest available question mark.",
-		buildNotdef,
-		(".notdef", ),
-	),
-	(
 		"buildProduct",
 		"product ∏",
-		"Will build product. Not yet implemented, sorry.",
-		None,
+		"∏: three overlapping rectangles, 110% cap height.",
+		buildProduct,
 		("product", ),
 	),
 	(
-		"buildSummation",
-		"summation ∑",
-		"Will build summation. Not yet implemented, sorry.",
-		None,
-		("summation", ),
+		"buildDaggers",
+		"dagger † daggerdbl ‡",
+		"† and ‡: crosses of overlapping rectangles, 60% cap height, top at cap height.",
+		buildDaggers,
+		("dagger", "daggerdbl"),
+	),
+	(
+		"buildEmptyset",
+		"emptyset ∅",
+		"∅: circle with slash, stem as in bar (max. 18% of height), between x-height and cap height plus your zero’s overshoot.",
+		buildEmptyset,
+		("emptyset", ),
 	),
 	(
 		"buildRadical",
 		"radical √",
-		"Will build radical. Not yet implemented, sorry.",
-		None,
+		"√: one contour with overlapping corners, 110% cap height, RSB =0.",
+		buildRadical,
 		("radical", ),
+	),
+	(
+		"buildLozenge",
+		"lozenge ◊",
+		"◊: outlined diamond, 70% cap height, stem as in slash or master.",
+		buildLozenge,
+		("lozenge", ),
+	),
+	(
+		"buildDottedCircle",
+		"dottedCircle ◌",
+		"◌: twelve dots, with top, bottom (and ogonekcomb) anchors.",
+		buildDottedCircle,
+		("dottedCircle", ),
+	),
+	(
+		"buildSummation",
+		"summation ∑",
+		"∑: one contour with overlapping corners, 110% cap height.",
+		buildSummation,
+		("summation", ),
+	),
+	(
+		"buildNotdef",
+		".notdef",
+		".notdef: boldest question mark in a circle, tofu rectangle in the background. If there is no question mark (or it is empty), just the tofu rectangle.",
+		buildNotdef,
+		(".notdef", ),
 	),
 )
 
 
 class BuildSymbols(mekkaObject):
 	prefDict = {"override": 0, "backupLayers": 0, "newTab": 1, "reuseTab": 1}
-	# every implemented symbol is on by default:
-	prefDict.update({symbol[0]: int(symbol[3] is not None) for symbol in SYMBOLS})
+	prefDict.update({symbol[0]: 1 for symbol in SYMBOLS})  # every symbol is on by default
 
 	def __init__(self):
 		# Window 'self.w':
@@ -628,10 +987,9 @@ class BuildSymbols(mekkaObject):
 		# UI elements:
 		self.w.descriptionText = vanilla.TextBox("auto", "Create the following symbols automatically. See tooltips for requirements.", sizeStyle='small', selectable=True)
 
-		for prefName, title, tooltip, builder, glyphNames in SYMBOLS:
+		for prefName, title, tooltip, _, _ in SYMBOLS:
 			checkBox = vanilla.CheckBox("auto", title, value=True, callback=self.SavePreferences, sizeStyle='small')
 			checkBox.setToolTip(tooltip)
-			checkBox.enable(builder is not None)
 			setattr(self.w, prefName, checkBox)
 
 		# ----------- SEPARATOR LINE -----------
@@ -639,20 +997,25 @@ class BuildSymbols(mekkaObject):
 
 		# Other options:
 		self.w.override = vanilla.CheckBox("auto", "Overwrite existing glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.override.setToolTip("If checked, will create fresh symbols even if they already exist. If unchecked, will skip glyphs that already exist.")
+		self.w.override.setToolTip("Rebuilds symbols that already exist; otherwise they are skipped.")
 		self.w.backupLayers = vanilla.CheckBox("auto", "Backup existing layers", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.backupLayers.setToolTip("If checked, will create backup layers when the glyph gets overwritten. Only available in combination with ‘Overwrite existing glyphs’.")
+		self.w.backupLayers.setToolTip("Keeps the old outlines in backup layers. Needs ‘Overwrite existing glyphs’.")
 
 		self.w.newTab = vanilla.CheckBox("auto", "Open tab with new glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.newTab.setToolTip("If checked, will open a new tab with the newly created symbols.")
+		self.w.newTab.setToolTip("Shows the symbols in a tab.")
 		self.w.reuseTab = vanilla.CheckBox("auto", "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reuseTab.setToolTip("If checked, will reuse the current tab, and open a new tab only if there is no Edit tab open already. Highly recommended.")
+		self.w.reuseTab.setToolTip("Uses the current tab; opens a new one only if there is none.")
+
+		# Status line:
+		self.w.statusText = vanilla.TextBox("auto", "🔮 Will build – glyphs.", sizeStyle="small")
+		self.w.statusText.setToolTip("Glyphs to build, then progress, then result.")
+		self.w.statusText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# Run Button:
 		self.w.uncheckAllButton = vanilla.Button("auto", "Uncheck All", callback=self.checkAll)
 		self.w.checkAllButton = vanilla.Button("auto", "Check All", callback=self.checkAll)
 		self.w.uncheckAllButton.setToolTip("Unchecks all symbols.")
-		self.w.checkAllButton.setToolTip("Checks all symbols that can be built.")
+		self.w.checkAllButton.setToolTip("Checks all symbols.")
 		self.w.runButton = vanilla.Button("auto", "Build", callback=self.BuildSymbolsMain)
 		self.w.runButton.setToolTip("Builds the checked symbols in the frontmost font.")
 		self.w.setDefaultButton(self.w.runButton)
@@ -678,7 +1041,7 @@ class BuildSymbols(mekkaObject):
 		# one vertical chain per column; equal row heights keep the rows aligned.
 		# The first two columns continue into the options below the separator line:
 		columnTails = (
-			"-row-[line(1)]-row-[override]-row-[newTab]-inset-[runButton]-inset-|",
+			"-row-[line(1)]-row-[override]-row-[newTab]-inset-[statusText]-row-[runButton]-inset-|",
 			"-row-[line]-row-[backupLayers]-row-[reuseTab]",
 		)
 		columnRules = []
@@ -687,14 +1050,19 @@ class BuildSymbols(mekkaObject):
 			columnTail = columnTails[columnIndex] if columnIndex < len(columnTails) else ""
 			columnRules.append("V:|-row-[descriptionText]-row-" + "-row-".join(f"[{name}]" for name in column) + columnTail)
 
-		# one shared width per grid column, so the checkboxes line up across the rows:
-		widthRules = [{"view1": getattr(self.w, name), "attribute1": "width", "view2": getattr(self.w, symbolNames[0]), "attribute2": "width"} for name in symbolNames[1:]]
+		# each grid column takes the width of its own widest checkbox, so the checkboxes line up across the rows
+		# and the gaps between the columns are the same:
+		widthRules = []
+		for columnIndex in range(columnCount):
+			column = [row[columnIndex] for row in gridRows if columnIndex < len(row)]
+			widthRules += [{"view1": getattr(self.w, name), "attribute1": "width", "view2": getattr(self.w, column[0]), "attribute2": "width"} for name in column[1:]]
 		widthRules.append({"view1": self.w.newTab, "attribute1": "width", "view2": self.w.override, "attribute2": "width"})
 
 		self.w.addAutoPosSizeRules(
 			[
 				"H:|-inset-[descriptionText]-inset-|",
 				"H:|-inset-[line]-inset-|",
+				"H:|-inset-[statusText]-inset-|",
 				"H:|-inset-[override]-gap-[backupLayers]-inset-|",
 				"H:|-inset-[newTab]-gap-[reuseTab]-inset-|",
 				"H:|-inset-[uncheckAllButton(>=70)]-gap-[checkAllButton(>=70)]-(>=gap)-[runButton(>=70)]-inset-|",
@@ -703,6 +1071,11 @@ class BuildSymbols(mekkaObject):
 			] + rowRules + columnRules + widthRules,
 			metrics={"inset": 15, "gap": 8, "row": 8},
 		)
+
+		# the window is as wide and as high as Auto Layout needs at least:
+		window = self.w.getNSWindow()
+		fittingSize = window.contentView().fittingSize()
+		window.setContentSize_((fittingSize.width, fittingSize.height))
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -716,12 +1089,26 @@ class BuildSymbols(mekkaObject):
 		self.w.reuseTab.enable(self.w.newTab.get())
 		self.w.backupLayers.enable(self.w.override.get())
 
+		# prediction in the status line:
+		font = Glyphs.font
+		override = self.w.override.get()
+		glyphCount = 0
+		for prefName, _, _, _, glyphNames in SYMBOLS:
+			if getattr(self.w, prefName).get():
+				# existing glyphs are skipped unless they may be overwritten:
+				glyphCount += sum(1 for glyphName in glyphNames if override or not (font and font.glyphs[glyphName]))
+		self.w.statusText.set(f"🔮 Will build {glyphCount} glyph{'' if glyphCount == 1 else 's'}.")
+
+	def setStatus(self, text):
+		"""Sets the status line and redraws it right away, so it shows while the script is busy."""
+		self.w.statusText.set(text)
+		self.w.statusText.getNSTextField().display()
+
 	def checkAll(self, sender=None, onOrOff=True):
 		if sender is self.w.uncheckAllButton:
 			onOrOff = False
-		for prefName, _, _, builder, _ in SYMBOLS:
-			# symbols that are not yet implemented are never checked:
-			self.setPref(prefName, onOrOff and builder is not None)
+		for prefName, _, _, _, _ in SYMBOLS:
+			self.setPref(prefName, onOrOff)
 		self.LoadPreferences()
 
 	def BuildSymbolsMain(self, sender):
@@ -735,6 +1122,7 @@ class BuildSymbols(mekkaObject):
 			if font is None:
 				Glyphs.showMacroWindow()
 				print("⚠️ Build Symbols: No font open.")
+				self.setStatus("⚠️ No font open.")
 				return
 
 			print(f"Build Symbols Report for {font.familyName}")
@@ -750,17 +1138,28 @@ class BuildSymbols(mekkaObject):
 			newTab = self.pref("newTab")
 			reuseTab = self.pref("reuseTab")
 
-			# build glyphs:
+			# build glyphs, as one undo step and without interface updates in between:
 			tabText = ""
-			for prefName, _, _, builder, glyphNames in SYMBOLS:
-				if not self.pref(prefName):
-					continue
-				print(f"\n🔣 Building {', '.join(glyphNames)}:")
-				if builder is None:
-					print("😢 Not yet implemented, sorry.")
-					continue
-				builder(font, override=override, backupLayers=backupLayers)
-				tabText += tabStringForExistingGlyphs(font, glyphNames)
+			builtCount = 0
+			MEASUREMENTS.clear()
+			BUILT_GLYPHS.clear()
+			font.disableUpdateInterface()
+			try:
+				for prefName, _, _, builder, glyphNames in SYMBOLS:
+					if not self.pref(prefName):
+						continue
+					print(f"\n🔣 Building {', '.join(glyphNames)}:")
+					self.setStatus(f"🔠 {', '.join(glyphNames)}")
+					builtBefore = len(BUILT_GLYPHS)
+					builder(font, override=override, backupLayers=backupLayers)
+					for glyph in BUILT_GLYPHS[builtBefore:]:
+						print(f"\t✅ {glyph.name}: built in {len(font.masters)} master{'' if len(font.masters) == 1 else 's'}")
+					builtCount += len(BUILT_GLYPHS) - builtBefore
+					tabText += tabStringForExistingGlyphs(font, glyphNames)
+			finally:
+				endUndoGroups()
+				font.enableUpdateInterface()
+			self.setStatus(f"✅ Built {builtCount} glyph{'' if builtCount == 1 else 's'}.")
 
 			# Floating notification:
 			Glyphs.showNotification(
@@ -780,6 +1179,7 @@ class BuildSymbols(mekkaObject):
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
+			self.setStatus("❌ Error. See Macro Window.")
 			print(f"Build Symbols Error: {e}")
 			print(traceback.format_exc())
 
