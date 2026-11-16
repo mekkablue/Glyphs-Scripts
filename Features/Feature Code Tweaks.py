@@ -250,7 +250,7 @@ class FeatureCodeTweaks(mekkaObject):
 		# UI elements:
 		inset = 15
 
-		self.w.text = vanilla.TextBox("auto", __doc__.strip(), sizeStyle='small')
+		self.w.descriptionText = vanilla.TextBox("auto", __doc__.strip(), sizeStyle='small')
 
 		self.w.scFeatureFix = vanilla.CheckBox("auto", "Fix smallcap features (smcp/c2sc)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.scFeatureFix.setToolTip("Adds missing smallcap substitutions for glyphs like idotless, jdotless, kgreenlandic and longs.")
@@ -307,7 +307,7 @@ class FeatureCodeTweaks(mekkaObject):
 
 		self.w.addAutoPosSizeRules(
 			[
-				"H:|-inset-[text]-inset-|",
+				"H:|-inset-[descriptionText]-inset-|",
 				"H:|-inset-[scFeatureFix]-(>=inset)-|",
 				"H:|-inset-[addArrowLigs]-(>=inset)-|",
 				"H:|-inset-[germanLocalization]-(>=inset)-|",
@@ -323,7 +323,7 @@ class FeatureCodeTweaks(mekkaObject):
 				"H:|-inset-[magistra]-(>=inset)-|",
 				"H:|-inset-[ssXX2salt]-(>=inset)-|",
 				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
-				"V:|-inset-[text]-row-[scFeatureFix]-stackRow-[addArrowLigs]-stackRow-[germanLocalization]-stackRow-[dutchLocalization]-stackRow-[decomposePresentationForms]-stackRow-[includeLdot]-stackRow-[includeBalkan]-stackRow-[includeIJ]-stackRow-[disableLiga]-stackRow-[repeatDecompositionInSC]-stackRow-[repeatDecompositionInOtherAffectedFeatures]-stackRow-[fShortSubstitution]-stackRow-[magistra]-stackRow-[ssXX2salt]-inset-[runButton]-inset-|",
+				"V:|-inset-[descriptionText]-row-[scFeatureFix]-stackRow-[addArrowLigs]-stackRow-[germanLocalization]-stackRow-[dutchLocalization]-stackRow-[decomposePresentationForms]-stackRow-[includeLdot]-stackRow-[includeBalkan]-stackRow-[includeIJ]-stackRow-[disableLiga]-stackRow-[repeatDecompositionInSC]-stackRow-[repeatDecompositionInOtherAffectedFeatures]-stackRow-[fShortSubstitution]-stackRow-[magistra]-stackRow-[ssXX2salt]-inset-[runButton]-inset-|",
 			],
 			metrics={"inset": inset, "subInset": inset + 24, "row": 8, "stackRow": 5},
 		)

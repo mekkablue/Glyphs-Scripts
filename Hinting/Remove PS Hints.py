@@ -4,7 +4,8 @@ Removes PS Hints, selectively or completely.
 """
 
 import vanilla
-from GlyphsApp import Glyphs, STEM, BOTTOMGHOST, TOPGHOST
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
+from GlyphsApp import Glyphs, Message, STEM, BOTTOMGHOST, TOPGHOST
 from mekkablue import mekkaObject
 
 
@@ -27,46 +28,57 @@ class RemovePSHints(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 330
-		windowHeight = 170
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 410
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Remove PS Hints",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, 160, 14), "Remove the following hints in", sizeStyle='small', selectable=True)
-		self.w.where = vanilla.PopUpButton((inset + 160, linePos, -inset, 17), self.wheres, sizeStyle='small', callback=self.SavePreferences)
-		linePos += lineHeight
+		self.w.descriptionText = vanilla.TextBox("auto", "Remove the following hints in", sizeStyle='small', selectable=True)
+		self.w.where = vanilla.PopUpButton("auto", self.wheres, sizeStyle='small', callback=self.SavePreferences)
 
-		self.w.horizontalStemHints = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Horizontal stem hints", value=True, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.horizontalStemHints = vanilla.CheckBox("auto", "Horizontal stem hints", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.verticalStemHints = vanilla.CheckBox("auto", "Vertical stem hints", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.ghostHints = vanilla.CheckBox("auto", "Ghost hints", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeBackgrounds = vanilla.CheckBox("auto", "Include backgrounds", value=False, callback=self.SavePreferences, sizeStyle="small")
 
-		self.w.verticalStemHints = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Vertical stem hints", value=True, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
-
-		self.w.ghostHints = vanilla.CheckBox((inset + 2, linePos - 1, 150, 20), "Ghost hints", value=True, callback=self.SavePreferences, sizeStyle='small')
-		
-		self.w.includeBackgrounds = vanilla.CheckBox((inset + 160, linePos-1, -inset, 20), "Include backgrounds", value=False, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
-		
-
-		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
+		self.w.progress = vanilla.ProgressBar("auto")
 		self.w.progress.set(0)  # set progress indicator to zero
 
-		self.w.status = vanilla.TextBox((inset, -16 - inset, -inset - 120, 14), "", sizeStyle="small", selectable=True)
-		linePos += lineHeight
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small", selectable=True)
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Remove Hints", callback=self.RemovePSHintsMain)
+		self.w.runButton = vanilla.Button("auto", "Remove Hints", callback=self.RemovePSHintsMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging,
+		# the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.descriptionText.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-gap-[where]-inset-|",
+				"H:|-inset-[horizontalStemHints]-(>=inset)-|",
+				"H:|-inset-[verticalStemHints]-(>=inset)-|",
+				"H:|-inset-[ghostHints]-gap-[includeBackgrounds]-(>=inset)-|",
+				"H:|-inset-[progress]-inset-|",
+				"H:|-inset-[status]-(>=gap)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[where]-headlineGap-[horizontalStemHints]-checkRow-[verticalStemHints]-checkRow-[ghostHints]-barGap-[progress(16)]-inset-[runButton]-inset-|",
+				{"view1": self.w.descriptionText, "attribute1": "centerY", "view2": self.w.where, "attribute2": "centerY"},
+				{"view1": self.w.includeBackgrounds, "attribute1": "centerY", "view2": self.w.ghostHints, "attribute2": "centerY"},
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "headlineGap": 10, "checkRow": 5, "barGap": 12},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -124,13 +136,16 @@ class RemovePSHints(mekkaObject):
 			if where >= 4:
 				theseFonts = Glyphs.fonts
 			else:
-				theseFonts = (Glyphs.font, )
+				theseFonts = (Glyphs.font, ) if Glyphs.font else ()
+
+			if not theseFonts:
+				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+				return
 
 			deletedHintsCount = 0
 			for thisFont in theseFonts:
 				print("Remove PS Hints Report for %s" % thisFont.familyName)
-				if thisFont.filepath:
-					print(thisFont.filepath)
+				print(thisFont.filepath if thisFont.filepath else f"{thisFont.familyName} (unsaved)")
 				print()
 
 				if where == 0:
@@ -170,7 +185,7 @@ class RemovePSHints(mekkaObject):
 
 			# complete progress bar:
 			self.w.progress.set(100)
-			self.w.status.set(f"✅ Removed {deletedHintsCount} hint{'' if {deletedHintsCount} == 1 else 's'} in {len(theseFonts)} font{'' if len(theseFonts) == 1 else 's'}")
+			self.w.status.set(f"✅ Removed {deletedHintsCount} hint{'' if deletedHintsCount == 1 else 's'} in {len(theseFonts)} font{'' if len(theseFonts) == 1 else 's'}")
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()

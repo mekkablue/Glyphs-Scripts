@@ -1,12 +1,12 @@
 # MenuTitle: Split Kerning Groups
-__doc__="""
+__doc__ = """
 In existing group kerning, separate some glyphs out of a kerning group, effectively duplicating the kern groups with the new group.
 """
 
-import vanilla, sys
+import vanilla
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSSize, NSWindowStyleMaskResizable
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, reportFontName, UpdateButton
-from copy import copy
 
 def splitOffGroup(font, newGroup, splitoffs, rightGroup=True):
 	totalCount = 0
@@ -93,129 +93,116 @@ class SplitKerningGroups(mekkaObject):
 		"splitGlyphs": "",
 		# "allFonts": False,
 	}
-	
-	def __init__( self ):
-		# Window 'self.w':
-		windowWidth  = 410
-		windowHeight = 140
-		windowWidthResize  = 600 # user can resize width by this value
-		windowHeightResize = 200 # user can resize height by this value
-		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Split Kerning Groups", # window title
-			minSize = (windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize = (windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName = self.domain("mainwindow") # stores last window position and size
-		)
-		
-		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		self.inset = inset
-		self.firstLinePos = linePos
-		self.w.descriptionText = vanilla.TextBox((inset, linePos+2, 85, 14), "Move glyphs in", sizeStyle="small", selectable=True)
-		self.w.isRightGroup = vanilla.PopUpButton((inset+85, linePos, 85, 17), ("left group", "right group"), sizeStyle="small", callback=self.update)
-		self.w.originalGroupName = vanilla.ComboBox((inset+85+85+5, linePos-2, -inset-25-130, 19), [], sizeStyle="small", callback=self.update)
-		self.w.updateButton = UpdateButton((-inset-23-130, linePos-2, -inset-130, 18), callback=self.update)
-		self.w.newGroupText = vanilla.TextBox((-inset-130, linePos+2, -inset-55, 14), "to new group", sizeStyle="small", selectable=True)
-		self.w.newGroupName = vanilla.EditText((-inset-55, linePos-1, -inset, 19), "", callback=self.update, sizeStyle="small")
-		linePos += lineHeight
 
-		self.w.splitGlyphs = vanilla.EditText((inset, linePos, -inset, -inset-24), self.pref("splitGlyphs"), callback=self.SavePreferences, sizeStyle="small")
-		
+	def __init__(self):
+		# Window 'self.w':
+		windowWidth = 500
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
+		self.w = vanilla.FloatingWindow(
+			(windowWidth, windowHeight),  # default window size
+			"Split Kerning Groups",  # window title
+			autosaveName=self.domain("mainwindow")  # stores last window position
+		)
+
+		# UI elements:
+		inset = 15
+		self.w.descriptionText = vanilla.TextBox("auto", "Move glyphs in", sizeStyle="small", selectable=True)
+		self.w.isRightGroup = vanilla.PopUpButton("auto", ("left group", "right group"), sizeStyle="small", callback=self.update)
+		self.w.originalGroupName = vanilla.ComboBox("auto", [], sizeStyle="small", callback=self.update)
+		self.w.updateButton = UpdateButton("auto", callback=self.update)
+		self.w.newGroupText = vanilla.TextBox("auto", "to new group", sizeStyle="small", selectable=True)
+		self.w.newGroupName = vanilla.EditText("auto", "", callback=self.update, sizeStyle="small")
+
+		self.w.splitGlyphs = vanilla.TextEditor("auto", "", callback=self.SavePreferences)
+
 		# Buttons at bottom:
-		self.w.status = vanilla.TextBox((inset, -20-inset, -inset, -inset), "🤖 Ready.", sizeStyle="small", selectable=True)
-		self.w.runButton = vanilla.Button((-60-inset, -20-inset, -inset, -inset), "Split", sizeStyle="regular", callback=self.SplitKerningGroupsMain)
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small", selectable=True)
+		self.w.runButton = vanilla.Button("auto", "Split", callback=self.SplitKerningGroupsMain)
 		self.w.setDefaultButton(self.w.runButton)
-		
-		# enable resize
-		self.w.bind("resize", self.windowResize)
-		
+
+		# every control keeps its height, except the glyph list, which takes the leftover height:
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+		self.w.splitGlyphs.getNSScrollView().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationVertical)
+
+		# labels hug their text, so the fields take the leftover width:
+		for labelName in ("descriptionText", "newGroupText"):
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		# the status text gives way to the button:
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-gap-[isRightGroup]-gap-[originalGroupName(>=70)]-gap-[updateButton]-gap-[newGroupText]-gap-[newGroupName(>=70)]-inset-|",
+				"H:|-inset-[splitGlyphs]-inset-|",
+				"H:|-inset-[status]-(>=gap)-[runButton(>=70)]-inset-|",
+				"V:|-inset-[isRightGroup]-row-[splitGlyphs(>=60)]-row-[runButton]-inset-|",
+				# one baseline per row:
+				{"view1": self.w.descriptionText, "attribute1": "centerY", "view2": self.w.isRightGroup, "attribute2": "centerY"},
+				{"view1": self.w.originalGroupName, "attribute1": "centerY", "view2": self.w.isRightGroup, "attribute2": "centerY"},
+				{"view1": self.w.updateButton, "attribute1": "centerY", "view2": self.w.isRightGroup, "attribute2": "centerY"},
+				{"view1": self.w.newGroupText, "attribute1": "centerY", "view2": self.w.isRightGroup, "attribute2": "centerY"},
+				{"view1": self.w.newGroupName, "attribute1": "centerY", "view2": self.w.isRightGroup, "attribute2": "centerY"},
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
+				# both group fields get the same width:
+				{"view1": self.w.originalGroupName, "attribute1": "width", "view2": self.w.newGroupName, "attribute2": "width"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 8},
+		)
+
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("⚠️ ‘Split Kerning Groups’ could not load preferences. Will resort to defaults.")
+		self.LoadPreferences()
 
 		self.update(sender="first run")
-		self.windowResize()
-		
+
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-	
-	def windowResize(self, sender=None):
-		inset = self.inset
-		linePos = self.firstLinePos
-		left, top, width, height = self.w.getPosSize()
-		usedWidth = self.inset*2 + 85 + 85 + 5 + 25 + 130 - 55
-		availableWidth = width - usedWidth
-		x = inset+85+85+5
-		self.w.originalGroupName.setPosSize((x, linePos-2, availableWidth//2, 19))
-		x += availableWidth//2 + 5
-		self.w.updateButton.setPosSize((x, linePos-2, 12, 18))
-		x += 23
-		self.w.newGroupText.setPosSize((x, linePos+2, 75, 14))
-		x += 75
-		self.w.newGroupName.setPosSize((x, linePos-1, availableWidth//2, 19))
-	
+
+		# make the window resizable, starting at the size that Auto Layout determined.
+		# (Content sizes set directly on the NSWindow, so the title bar is not counted twice.)
+		nsWindow = self.w.getNSWindow()
+		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
+		nsWindow.layoutIfNeeded()  # make sure the content has its final size before we read it
+		contentSize = nsWindow.contentView().frame().size
+		nsWindow.setContentMinSize_(NSSize(contentSize.width, contentSize.height))
+
 	def update(self, sender=None):
 		font = Glyphs.font
-		if not font:
-			return
-		if sender is self.w.isRightGroup or sender is self.w.updateButton or sender == "first run":
-			self.populateGroups(isRightGroup=self.w.isRightGroup.get())
-		if sender is self.w.originalGroupName or sender is self.w.updateButton or sender == "first run":
-			self.populateSplitGlyphs(self.w.originalGroupName.get(), isRightGroup=self.w.isRightGroup.get())
-		self.w.runButton.enable(self.w.newGroupName.get().strip())
+		if font:
+			if sender is self.w.isRightGroup or sender is self.w.updateButton or sender == "first run":
+				self.populateGroups(isRightGroup=self.w.isRightGroup.get())
+			if sender is self.w.originalGroupName or sender is self.w.updateButton or sender == "first run":
+				self.populateSplitGlyphs(self.w.originalGroupName.get(), isRightGroup=self.w.isRightGroup.get())
+		self.w.runButton.enable(bool(font and self.w.newGroupName.get().strip()))
 		self.SavePreferences()
-	
+
 	def populateGroups(self, isRightGroup=True):
 		font = Glyphs.font
 		if not font:
 			return
 		groups = []
-		for g in font.glyphs:
-			if isRightGroup and not g.rightKerningGroup in groups:
-				groups.append(g.rightKerningGroup)
-			elif not isRightGroup and not g.leftKerningGroup in groups:
-				groups.append(g.leftKerningGroup)
+		for glyph in font.glyphs:
+			group = glyph.rightKerningGroup if isRightGroup else glyph.leftKerningGroup
+			if group and group not in groups:
+				groups.append(group)
 		userEntry = self.w.originalGroupName.get()
-		self.w.originalGroupName.setItems(groups) # this deletes user entry
+		self.w.originalGroupName.setItems(groups)  # this deletes user entry
 		self.w.originalGroupName.set(userEntry)
-		
+
 	def populateSplitGlyphs(self, groupName, isRightGroup=True):
 		splitGlyphs = []
 		font = Glyphs.font
 		if not font:
 			return
-		for g in font.glyphs:
-			if isRightGroup and g.rightKerningGroup == groupName:
-				splitGlyphs.append(g.name)
-			elif not isRightGroup and g.leftKerningGroup == groupName:
-				splitGlyphs.append(g.name)
+		for glyph in font.glyphs:
+			group = glyph.rightKerningGroup if isRightGroup else glyph.leftKerningGroup
+			if group == groupName:
+				splitGlyphs.append(glyph.name)
 		self.w.splitGlyphs.set(" ".join(splitGlyphs))
-		
-	def SavePreferences(self, sender=None):
-		try:
-			# write current settings into prefs:
-			for prefName in self.prefDict.keys():
-				Glyphs.defaults[self.domain(prefName)] = getattr(self.w, prefName).get()
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
-
-	def LoadPreferences(self):
-		try:
-			for prefName in self.prefDict.keys():
-				# register defaults:
-				Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-				# load previously written prefs:
-				getattr(self.w, prefName).set(self.pref(prefName))
-			return True
-		except:
-			import traceback
-			print(traceback.format_exc())
-			return False
 
 	def SplitKerningGroupsMain(self, sender=None):
 		try:
