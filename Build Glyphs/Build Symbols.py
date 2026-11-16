@@ -843,7 +843,7 @@ SYMBOLS = (
 	),
 	(
 		"buildDaggers",
-		"dagger † | daggerdbl ‡",
+		"dagger † daggerdbl ‡",
 		"† and ‡: crosses of overlapping rectangles, 60% cap height, top at cap height.",
 		buildDaggers,
 		("dagger", "daggerdbl"),
@@ -916,8 +916,8 @@ class BuildSymbols(mekkaObject):
 		self.w.reuseTab.setToolTip("Uses the current tab; opens a new one only if there is none.")
 
 		# Status line:
-		self.w.statusText = vanilla.TextBox("auto", "🔮 Will build up to – glyphs.", sizeStyle="small")
-		self.w.statusText.setToolTip("Glyphs to build (at most), then progress, then result.")
+		self.w.statusText = vanilla.TextBox("auto", "🔮 Will build – glyphs.", sizeStyle="small")
+		self.w.statusText.setToolTip("Glyphs to build, then progress, then result.")
 		self.w.statusText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# Run Button:
@@ -990,8 +990,14 @@ class BuildSymbols(mekkaObject):
 		self.w.backupLayers.enable(self.w.override.get())
 
 		# prediction in the status line:
-		glyphCount = sum(len(glyphNames) for prefName, _, _, _, glyphNames in SYMBOLS if getattr(self.w, prefName).get())
-		self.w.statusText.set(f"🔮 Will build up to {glyphCount} glyph{'' if glyphCount == 1 else 's'}.")
+		font = Glyphs.font
+		override = self.w.override.get()
+		glyphCount = 0
+		for prefName, _, _, _, glyphNames in SYMBOLS:
+			if getattr(self.w, prefName).get():
+				# existing glyphs are skipped unless they may be overwritten:
+				glyphCount += sum(1 for glyphName in glyphNames if override or not (font and font.glyphs[glyphName]))
+		self.w.statusText.set(f"🔮 Will build {glyphCount} glyph{'' if glyphCount == 1 else 's'}.")
 
 	def setStatus(self, text):
 		"""Sets the status line and redraws it right away, so it shows while the script is busy."""
