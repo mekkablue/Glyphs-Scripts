@@ -25,6 +25,12 @@ from AppKit import (
 )
 from Foundation import NSNumberFormatter, NSPoint
 
+if Glyphs.versionNumber < 4.0:
+	# Glyphs 3 has no star nodes, so the extremes get ordinary smooth nodes there:
+	from GlyphsApp import GSSMOOTH as GSSUPERSMOOTH
+else:
+	from GlyphsApp import GSSUPERSMOOTH
+
 mathOperators = "+−×÷=≠±≈¬"
 lessGreater = "<>≤≥"
 asciiOperators = "~^"
@@ -218,6 +224,46 @@ def chevronOutline(angle, upperStroke, lowerStroke, cutThickness, width=None, he
 	return polygon([(x - (minX + maxX) / 2.0, y - (minY + maxY) / 2.0) for x, y in points])
 
 
+def offsetHandles(span, amplitude, half, side):
+	"""
+	Handle lengths (at the peak, at the trough) of one edge of the stroke, for the curve that runs from a peak to the next
+	trough. The edge follows the centerline offset by half the stroke at right angles, so the stroke keeps its thickness on the
+	slope: the upper edge (side 1) moves to the right there, the lower edge (side -1) to the left. A cubic with horizontal
+	handles cannot follow it exactly, so this is a least squares fit, which counts the steep parts most.
+	"""
+	handle = waveSpanHandle * span
+	if amplitude <= 0:
+		return handle, handle
+	p0, p1, p2, p3 = (0.0, amplitude), (handle, amplitude), (span - handle, -amplitude), (span, -amplitude)
+	top, bottom = amplitude + side * half, -amplitude + side * half  # the edge at the peak and at the trough
+	count = 48
+	s11 = s12 = s22 = t1 = t2 = 0.0
+	for index in range(count):
+		t = (index + 0.5) / count
+		mt = 1.0 - t
+		x = mt**3 * p0[0] + 3 * mt * mt * t * p1[0] + 3 * mt * t * t * p2[0] + t**3 * p3[0]
+		y = mt**3 * p0[1] + 3 * mt * mt * t * p1[1] + 3 * mt * t * t * p2[1] + t**3 * p3[1]
+		dx = 3 * mt * mt * (p1[0] - p0[0]) + 6 * mt * t * (p2[0] - p1[0]) + 3 * t * t * (p3[0] - p2[0])
+		dy = 3 * mt * mt * (p1[1] - p0[1]) + 6 * mt * t * (p2[1] - p1[1]) + 3 * t * t * (p3[1] - p2[1])
+		length = math.hypot(dx, dy)
+		edgeX, edgeY = x + side * half * (-dy / length), y + side * half * (dx / length)  # offset along the normal that points up
+		# where on a cubic with horizontal handles is this height? (the height runs like 3t² - 2t³, which can be inverted)
+		fraction = min(max((top - edgeY) / (top - bottom), 0.0), 1.0)
+		tau = 0.5 - math.sin(math.asin(1.0 - 2.0 * fraction) / 3.0)
+		basisPeak, basisTrough = 3 * (1 - tau)**2 * tau, 3 * (1 - tau) * tau * tau
+		target = edgeX - (basisTrough * span + tau**3 * span)
+		weight = (dy / length)**2 + 0.05
+		s11 += weight * basisPeak * basisPeak
+		s12 += weight * basisPeak * basisTrough
+		s22 += weight * basisTrough * basisTrough
+		t1 += weight * basisPeak * target
+		t2 += weight * basisTrough * target
+	determinant = s11 * s22 - s12 * s12
+	peakHandle = (t1 * s22 - t2 * s12) / determinant
+	minusTroughHandle = (s11 * t2 - s12 * t1) / determinant
+	return peakHandle, -minusTroughHandle
+
+
 def waveOutline(length, stroke, amplitude):
 	"""
 	One period of a sine-like wave, as a closed outline with vertical ends, centered on (0, 0). The amplitude is the
@@ -231,19 +277,21 @@ def waveOutline(length, stroke, amplitude):
 	quarter = length / 4.0
 	xs = [-length / 2.0 + index * quarter for index in range(5)]
 	rise = waveHandleStart * (math.pi / 2.0) * amplitude
-	spanHandle = waveSpanHandle * 2.0 * quarter
-	centerline = [
-		(xs[0], 0, False),  # corner
-		(xs[0] + waveHandleStart * quarter, rise, True), (xs[1] - waveHandleEnd * quarter, amplitude, True),
-		(xs[1], amplitude, False),  # peak
-		(xs[1] + spanHandle, amplitude, True), (xs[3] - spanHandle, -amplitude, True),
-		(xs[3], -amplitude, False),  # trough
-		(xs[3] + waveHandleEnd * quarter, -amplitude, True), (xs[4] - waveHandleStart * quarter, -rise, True),
-		(xs[4], 0, False),  # corner
-	]
-	upper = [(x, y + half, isOffcurve) for x, y, isOffcurve in centerline]
-	lower = [(x, y - half, isOffcurve) for x, y, isOffcurve in centerline]
-	return upper + lower[::-1], thickness
+
+	def edge(side):
+		offset = side * half
+		peakHandle, troughHandle = offsetHandles(2.0 * quarter, amplitude, half, side)
+		return [
+			(xs[0], offset, False),  # corner
+			(xs[0] + waveHandleStart * quarter, rise + offset, True), (xs[1] - waveHandleEnd * quarter, amplitude + offset, True),
+			(xs[1], amplitude + offset, False),  # peak
+			(xs[1] + peakHandle, amplitude + offset, True), (xs[3] - troughHandle, -amplitude + offset, True),
+			(xs[3], -amplitude + offset, False),  # trough
+			(xs[3] + waveHandleEnd * quarter, -amplitude + offset, True), (xs[4] - waveHandleStart * quarter, -rise + offset, True),
+			(xs[4], offset, False),  # corner
+		]
+
+	return edge(1) + edge(-1)[::-1], thickness
 
 
 class Proportions(object):
@@ -611,8 +659,11 @@ def figureSuffixesOfFont(font):
 	return sorted(suffixes, key=lambda suffix: (preferred.get(suffix, 3), suffix)) or [""]
 
 
-def pathFromContour(contour):
-	"""A closed GSPath. An on-curve node is a curve node if it follows a handle, and smooth if handles are on both sides."""
+def pathFromContour(contour, starNodes=False):
+	"""
+	A closed GSPath. An on-curve node is a curve node if it follows a handle, and smooth if handles are on both sides.
+	With starNodes the smooth nodes are star nodes (the waves have them on their extremes).
+	"""
 	path = GSPath()
 	count = len(contour)
 	for index, (x, y, isOffcurve) in enumerate(contour):
@@ -624,7 +675,10 @@ def pathFromContour(contour):
 			nodeType = GSCURVE if previousIsOffcurve else GSLINE
 		node = GSNode(NSPoint(x, y), type=nodeType)
 		if not isOffcurve and previousIsOffcurve and nextIsOffcurve:
-			node.smooth = True
+			if starNodes:
+				node.connection = GSSUPERSMOOTH
+			else:
+				node.smooth = True
 		path.nodes.append(node)
 	path.closed = True
 	return path
@@ -665,7 +719,7 @@ class BuildMathOperators(mekkaObject):
 	}
 
 	def __init__(self):
-		windowWidth = 500
+		windowWidth = 425
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
@@ -946,8 +1000,12 @@ class BuildMathOperators(mekkaObject):
 		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
 		nsWindow.layoutIfNeeded()
 		contentSize = nsWindow.contentView().frame().size
-		nsWindow.setContentMinSize_(NSSize(contentSize.width, contentSize.height))
-		nsWindow.setContentMaxSize_(NSSize(contentSize.width + 1000, contentSize.height))
+		# the narrowest width at which every row still fits is the minimum. If the window is narrower than that, it grows.
+		minimumWidth = nsWindow.contentView().fittingSize().width
+		if minimumWidth > contentSize.width:
+			nsWindow.setContentSize_(NSSize(minimumWidth, contentSize.height))
+		nsWindow.setContentMinSize_(NSSize(minimumWidth, contentSize.height))
+		nsWindow.setContentMaxSize_(NSSize(minimumWidth + 1000, contentSize.height))
 
 	# ------------------------------------------------------------------ UI
 
@@ -1341,7 +1399,7 @@ class BuildMathOperators(mekkaObject):
 						self.backUp(glyph, layer)
 					layer.shapes = None
 					for contour in placedShapes(character, plan):
-						layer.shapes.append(pathFromContour(contour))
+						layer.shapes.append(pathFromContour(contour, starNodes=character in "≈~"))
 					layer.width = plan["width"]
 					layer.updateMetrics()
 					layer.syncMetrics()
