@@ -38,9 +38,9 @@ minusTabScale = 0.735  # zoom of the tab for editing the minus
 multiplyScale = 0.9  # bounding box of × relative to the length of the bars
 chevronAngle = 30.0  # angle of the arms of < and > against the horizontal axis, in degrees
 caretAngle = 45.0  # angle of the arms of ^ against the vertical axis, in degrees
-waveAmplitude = 0.09  # amplitude of the waves in ≈ and ~, relative to the length of the bars
 waveHandleStart = 0.33  # Bézier handle lengths (fraction of a quarter wave) that approximate a sine wave
 waveHandleEnd = 0.36
+waveSpanHandle = 0.364  # handle length of the curve from a peak to the next trough (fraction of the span), best fit to a sine wave
 logicalNotLeg = 0.4  # length of the hook of ¬ relative to the length of the bars
 kappa = 0.5522847498  # Bézier handle length for circles
 
@@ -219,9 +219,12 @@ def chevronOutline(angle, upperStroke, lowerStroke, cutThickness, width=None, he
 	return polygon([(x - (minX + maxX) / 2.0, y - (minY + maxY) / 2.0) for x, y in points])
 
 
-def waveOutline(length, stroke):
-	"""One period of a sine-like wave, as a closed outline with vertical ends, centered on (0, 0)."""
-	amplitude = waveAmplitude * length
+def waveOutline(length, stroke, amplitude):
+	"""
+	One period of a sine-like wave, as a closed outline with vertical ends, centered on (0, 0). The amplitude is the
+	distance between the corner nodes at the ends and the first extremes. A single curve runs from a peak to the next
+	trough, so there are no nodes on the inflection points.
+	"""
 	slope = 2.0 * math.pi * amplitude / length  # at the zero crossings
 	# half-compensate the thinning of the stroke on slopes:
 	thickness = stroke / math.cos(math.atan(slope) / 2.0)
@@ -229,12 +232,15 @@ def waveOutline(length, stroke):
 	quarter = length / 4.0
 	xs = [-length / 2.0 + index * quarter for index in range(5)]
 	rise = waveHandleStart * (math.pi / 2.0) * amplitude
+	spanHandle = waveSpanHandle * 2.0 * quarter
 	centerline = [
-		(xs[0], 0, False),
-		(xs[0] + waveHandleStart * quarter, rise, True), (xs[1] - waveHandleEnd * quarter, amplitude, True), (xs[1], amplitude, False),
-		(xs[1] + waveHandleEnd * quarter, amplitude, True), (xs[2] - waveHandleStart * quarter, rise, True), (xs[2], 0, False),
-		(xs[2] + waveHandleStart * quarter, -rise, True), (xs[3] - waveHandleEnd * quarter, -amplitude, True), (xs[3], -amplitude, False),
-		(xs[3] + waveHandleEnd * quarter, -amplitude, True), (xs[4] - waveHandleStart * quarter, -rise, True), (xs[4], 0, False),
+		(xs[0], 0, False),  # corner
+		(xs[0] + waveHandleStart * quarter, rise, True), (xs[1] - waveHandleEnd * quarter, amplitude, True),
+		(xs[1], amplitude, False),  # peak
+		(xs[1] + spanHandle, amplitude, True), (xs[3] - spanHandle, -amplitude, True),
+		(xs[3], -amplitude, False),  # trough
+		(xs[3] + waveHandleEnd * quarter, -amplitude, True), (xs[4] - waveHandleStart * quarter, -rise, True),
+		(xs[4], 0, False),  # corner
 	]
 	upper = [(x, y + half, isOffcurve) for x, y, isOffcurve in centerline]
 	lower = [(x, y - half, isOffcurve) for x, y, isOffcurve in centerline]
@@ -257,6 +263,7 @@ class Proportions(object):
 		self.slashOverhang = plan["slashOverhang"]  # of the slash in ≠
 		self.slashStrokeChange = plan["slashStrokeChange"]  # stroke width of the slash in ≠, relative to the stroke
 		self.slashAngle = plan["slashAngle"]  # of the slash in ≠, clockwise from vertical, in degrees
+		self.waveBend = plan["waveBend"]  # amplitude of the waves in ≈ and ~: corner nodes to the first extremes
 		self.slashEnds = plan["slashEnds"]  # cut of the ends of the slash in ≠: 0 horizontal, 100 perpendicular, 200 vertical
 		self.multiplyExtension = plan["multiplyExtension"]  # of the arms of ×
 		self.miter = plan["miter"] / 100.0
@@ -393,13 +400,13 @@ def logicalNotShapes(p):
 
 
 def approxEqualShapes(p):
-	wave, thickness = waveOutline(p.length, p.stroke)
+	wave, thickness = waveOutline(p.length, p.stroke, p.waveBend)
 	offset = (thickness + p.barDistance) / 2.0
 	return [p.slant(translate(wave, 0, offset)), p.slant(translate(wave, 0, -offset))]
 
 
 def tildeShapes(p):
-	wave, thickness = waveOutline(p.length, p.stroke)
+	wave, thickness = waveOutline(p.length, p.stroke, p.waveBend)
 	return [p.slant(wave)]
 
 
@@ -629,6 +636,7 @@ class BuildMathOperators(mekkaObject):
 		"dotDistance": 100,
 		"shapeDistance": 100,
 		"barDistance": 100,
+		"waveBend": 40,
 		"dotOvershoot": 10,
 		"kneeCap": 10,
 		"slashOverhang": 80,
@@ -729,6 +737,7 @@ class BuildMathOperators(mekkaObject):
 		self.w.distancesLabel.setToolTip(tooltipText)
 		addField("dotDistance", "÷", 100, "Space between the dots and the bar in ÷, from edge to edge, in units. The overshoot of the dots is subtracted: the distance is the one of a dot that is as wide as the stroke.", 1)
 		addField("barDistance", "=", 100, "Space between the two horizontals in = ≠ ≈, from edge to edge, in units.", 1)
+		addField("waveBend", "≈", 40, "Amount of bending of the waves in ≈ and ~, in units: the distance between the corner nodes at the ends and the first extremes of the curve. 0 makes straight bars.", 0)
 		addField("shapeDistance", "±≤≥", 100, "Space between the plus and the minus in ±, and between the chevron and the bar in ≤ ≥, from edge to edge, in units. The field behind it adapts the height.", 1)
 		addField("shapeAdaptation", None, 100, "Adaptation of the height of ± and ≤ ≥, in percent. 100: ± is as tall as + (its plus gets a shorter vertical stroke) and ≤ ≥ are as tall as < > (their chevron gets flatter). 0: no adaptation, the plus and the chevron stay as they are and ± and ≤ ≥ get taller by the distance and the bar. In between: partly.", 0, 100)
 
@@ -815,7 +824,7 @@ class BuildMathOperators(mekkaObject):
 			nsLabel.setAlignment_(NSTextAlignmentRight)
 			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
 			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
-		for labelName in ("dotDistanceLabel", "barDistanceLabel", "shapeDistanceLabel", "dotOvershootLabel", "multiplyExtensionLabel", "kneeCapLabel", "slashLabel"):
+		for labelName in ("dotDistanceLabel", "barDistanceLabel", "waveBendLabel", "shapeDistanceLabel", "dotOvershootLabel", "multiplyExtensionLabel", "kneeCapLabel", "slashLabel"):
 			nsLabel = getattr(self.w, labelName).getNSTextField()
 			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
 			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
@@ -839,7 +848,7 @@ class BuildMathOperators(mekkaObject):
 			"H:|-inset-[centerLabel]-gap-[centerMode]-gap-[figureStyle(>=60)]-gap-[centerGlyphs(>=90)]-inset-|",
 			"H:|-inset-[sidebearingLabel]-gap-[sidebearing(60)]-gap-[sidebearingText]-(>=inset)-|",
 			"H:|-inset-[strokeLabel]-gap-[stroke(60)]-gap-[resetStroke]-gap-[strokeText]-(>=inset)-|",
-			"H:|-inset-[distancesLabel]-gap-[dotDistance(fieldWidth)]-tight-[dotDistanceLabel]-pair-[barDistance(fieldWidth)]-tight-[barDistanceLabel]-pair-[shapeDistance(fieldWidth)]-tight-[shapeAdaptation(fieldWidth)]-tight-[shapeDistanceLabel]-(>=inset)-|",
+			"H:|-inset-[distancesLabel]-gap-[dotDistance(fieldWidth)]-tight-[dotDistanceLabel]-pair-[barDistance(fieldWidth)]-tight-[barDistanceLabel]-pair-[waveBend(fieldWidth)]-tight-[waveBendLabel]-pair-[shapeDistance(fieldWidth)]-tight-[shapeAdaptation(fieldWidth)]-tight-[shapeDistanceLabel]-(>=inset)-|",
 			"H:|-inset-[correctionsLabel]-gap-[dotOvershoot(fieldWidth)]-tight-[dotOvershootLabel]-pair-[multiplyExtension(fieldWidth)]-tight-[multiplyExtensionLabel]-pair-[kneeCap(fieldWidth)]-tight-[kneeCapLabel]-pair-[slashOverhang(fieldWidth)]-tight-[slashStroke(fieldWidth)]-tight-[slashAngle(fieldWidth)]-tight-[slashEnds(fieldWidth)]-tight-[slashLabel]-(>=inset)-|",
 			"H:|-inset-[miterLabel]-gap-[miter(60)]-gap-[miterText]-(>=inset)-|",
 			"H:|-inset-[italicLabel]-gap-[italic]-(>=inset)-|",
@@ -884,7 +893,7 @@ class BuildMathOperators(mekkaObject):
 			("centerMode", ("centerLabel", "figureStyle", "centerGlyphs")),
 			("sidebearing", ("sidebearingLabel", "sidebearingText")),
 			("stroke", ("strokeLabel", "resetStroke", "strokeText")),
-			("dotDistance", ("distancesLabel", "dotDistanceLabel", "barDistance", "barDistanceLabel", "shapeDistance", "shapeAdaptation", "shapeDistanceLabel")),
+			("dotDistance", ("distancesLabel", "dotDistanceLabel", "barDistance", "barDistanceLabel", "waveBend", "waveBendLabel", "shapeDistance", "shapeAdaptation", "shapeDistanceLabel")),
 			("dotOvershoot", ("correctionsLabel", "dotOvershootLabel", "multiplyExtension", "multiplyExtensionLabel", "kneeCap", "kneeCapLabel", "slashOverhang", "slashStroke", "slashAngle", "slashEnds", "slashLabel")),
 			("miter", ("miterLabel", "miterText")),
 			("italic", ("italicLabel", )),
@@ -895,7 +904,7 @@ class BuildMathOperators(mekkaObject):
 		for fieldName, otherNames in rowFields:
 			for otherName in otherNames:
 				rules.append(aligned(otherName, fieldName, "centerY"))
-		self.w.addAutoPosSizeRules(rules, metrics={"inset": 15, "gap": 8, "row": 8, "section": 12, "checkRow": 5, "tight": 5, "pair": 7, "fieldWidth": 35, "radioHeight": self.w.drawMode.getFittingHeight()})
+		self.w.addAutoPosSizeRules(rules, metrics={"inset": 15, "gap": 8, "row": 8, "section": 12, "checkRow": 5, "tight": 5, "pair": 10, "fieldWidth": 35, "radioHeight": self.w.drawMode.getFittingHeight()})
 
 		# the stroke is a property of the font, not of this script, so it is preset and not remembered:
 		self.w.stroke.set(str(self.presetStroke(font)))
@@ -1103,6 +1112,7 @@ class BuildMathOperators(mekkaObject):
 				"shapeDistance": int(round(float(self.pref("shapeDistance")))),
 				"adaptation": float(self.pref("shapeAdaptation")),
 				"barDistance": int(round(float(self.pref("barDistance")))),
+				"waveBend": int(round(float(self.pref("waveBend")))),
 				"overshoot": int(round(float(self.pref("dotOvershoot")))),
 				"kneeCap": int(round(float(self.pref("kneeCap")))),
 				"slashOverhang": int(round(float(self.pref("slashOverhang")))),
@@ -1119,7 +1129,7 @@ class BuildMathOperators(mekkaObject):
 			return None
 		distances = (settings["dotDistance"], settings["shapeDistance"], settings["barDistance"])
 		corrections = (settings["overshoot"], settings["kneeCap"], settings["slashOverhang"])
-		if settings["stroke"] < 1 or settings["plusWidth"] < 1 or settings["sidebearing"] < 0 or min(distances) < 1 or min(corrections) < 0 or settings["miter"] < 0 or not 0 <= settings["wiper"] <= 100 or not 0 <= settings["adaptation"] <= 100 or not -80 <= settings["slashAngle"] <= 80 or not 0 <= settings["slashEnds"] <= 200 or not -45 <= settings["angleAdjustment"] <= 45:
+		if settings["stroke"] < 1 or settings["plusWidth"] < 1 or settings["sidebearing"] < 0 or min(distances) < 1 or min(corrections) < 0 or settings["waveBend"] < 0 or settings["miter"] < 0 or not 0 <= settings["wiper"] <= 100 or not 0 <= settings["adaptation"] <= 100 or not -80 <= settings["slashAngle"] <= 80 or not 0 <= settings["slashEnds"] <= 200 or not -45 <= settings["angleAdjustment"] <= 45:
 			return None
 		settings["takeFromMinus"] = self.prefInt("drawMode") == 1 and not forceFromScratch
 		settings["widthMode"] = self.prefInt("widthMode")
@@ -1228,6 +1238,7 @@ class BuildMathOperators(mekkaObject):
 			"dotDistance": settings["dotDistance"],
 			"shapeDistance": settings["shapeDistance"],
 			"barDistance": settings["barDistance"],
+			"waveBend": settings["waveBend"],
 			"overshoot": settings["overshoot"],
 			"kneeCap": settings["kneeCap"],
 			"slashOverhang": settings["slashOverhang"],
