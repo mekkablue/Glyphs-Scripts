@@ -4,12 +4,12 @@ Create a Test HTML for the current font inside the current Webfont Export folder
 """
 
 from GlyphsApp import Glyphs, GSProjectDocument, INSTANCETYPESINGLE, Message
-from AppKit import NSBundle, NSClassFromString
 from os import system, path
 from itertools import product
 import codecs
 import webbrowser
 import json
+from urllib.parse import quote
 Glyphs.registerDefault("com.mekkablue.WebFontTestHTML.includeEOT", 0)
 
 
@@ -990,12 +990,13 @@ Glyphs.clearLog()
 # Glyphs.showMacroWindow()
 
 # Query app version:
-GLYPHSAPPVERSION = NSBundle.bundleForClass_(NSClassFromString("GSMenu")).infoDictionary().objectForKey_("CFBundleShortVersionString")
-appVersionHighEnough = not GLYPHSAPPVERSION.startswith("1.")
+appVersionHighEnough = Glyphs.versionNumber >= 2
 
 fileFormats = currentFileFormats()
 if not appVersionHighEnough:
 	print("This script requires Glyphs 2 or higher. Sorry.")
+elif not Glyphs.orderedDocuments():
+	Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 else:
 	firstDoc = Glyphs.orderedDocuments()[0]
 	if isinstance(firstDoc, GSProjectDocument):
@@ -1063,7 +1064,7 @@ else:
 			if saveFileInLocation(content=htmlContent, fileName=htmlFileName, filePath=exportPath):
 				print("Successfully wrote file to disk.")
 				system(f'open "{exportPath}"')
-				webbrowser.open(f"file://{exportPath}/{htmlFileName}")
+				webbrowser.open(f"file://{quote(exportPath)}/{quote(htmlFileName)}")
 			else:
 				print("Error writing file to disk.")
 		else:

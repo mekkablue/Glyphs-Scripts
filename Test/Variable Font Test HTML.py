@@ -9,7 +9,7 @@ import json
 import re
 from Cocoa import NSEvent, NSAlternateKeyMask, NSShiftKeyMask
 import codecs
-from GlyphsApp import Glyphs, GSFont, Message
+from GlyphsApp import Glyphs, GSFont, INSTANCETYPEVARIABLE, Message
 
 
 def langMenu(thisFont, indent=4):
@@ -2017,8 +2017,9 @@ if optionKeyPressed and shiftKeyPressed:
 
 if not appVersionHighEnough:
 	Message(title="App Version Error", message="This script requires Glyphs 2.5 or later. Sorry.", OKButton=None)
+elif not Glyphs.font:
+	Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 else:
-	firstDoc = Glyphs.orderedDocuments()[0]
 	thisFont = Glyphs.font  # frontmost font
 	exportPath = currentOTVarExportPath()
 
@@ -2026,7 +2027,7 @@ else:
 	variableFontInfos = []
 	for thisInstance in thisFont.instances:
 		try:
-			if thisInstance.typeName() == "variable" and thisInstance.active:
+			if thisInstance.type == INSTANCETYPEVARIABLE and instanceIsActive(thisInstance):
 				variableFontInfo = otVarInfoForInstance(thisInstance)
 				variableFontInfos.append(variableFontInfo)
 		except Exception as e:
@@ -2054,8 +2055,7 @@ else:
 		# Write file to disk:
 		print("💾 Writing files to disk...")
 		if exportPath:
-			if exportFolder:
-				exportPath = path.join(exportPath, exportFolder)
+			targetPath = path.join(exportPath, exportFolder) if exportFolder else exportPath
 
 			if shouldCreateSamsa:
 				print("🐜 Building Samsa...")
@@ -2063,7 +2063,7 @@ else:
 				samsaURL = "https://lorp.github.io/samsa/src/"  # "https://www.axis-praxis.org/samsa"
 				samsaFileName = "samsa-config.js"
 				terminalCommand = "cd '%s'; printf \"CONFIG.fontList = [\n\t{\n\t\tname: '%s',\n\t\tpreload: true,\n\t\turl: 'data:font/ttf;base64,%%s',\n\t}\n];\n\" `base64 -i '%s'` > %s" % (
-					exportPath,
+					targetPath,
 					fullName,
 					# samsaURL, samsaURL,
 					fileName,
@@ -2075,25 +2075,25 @@ else:
 				# download samsa files:
 				samsaFiles = ("samsa-core.js", "samsa-gui.html", "samsa-gui.css")  # "fonts/IBMPlexSansVar-Roman.ttf", "fonts/IBMPlexSansVar-Italic.ttf")
 				for samsaFile in samsaFiles:
-					terminalCommand = "curl --create-dirs %s/%s -o '%s'" % (samsaURL, samsaFile, path.join(exportPath, samsaFile))
+					terminalCommand = "curl --create-dirs %s/%s -o '%s'" % (samsaURL, samsaFile, path.join(targetPath, samsaFile))
 					system(terminalCommand)
 					print(f"⬇️ Downloaded {samsaFile}")
 
 				# fix css links:
-				terminalCommand = "cd '%s'; sed -i '' 's|url(fonts|url(https://www.axis-praxis.org/samsa/fonts|g' samsa-gui.css" % exportPath
+				terminalCommand = "cd '%s'; sed -i '' 's|url(fonts|url(https://www.axis-praxis.org/samsa/fonts|g' samsa-gui.css" % targetPath
 				system(terminalCommand)
 
 			print("🕸 Building HTML file...")
 			strippedFileName = ".".join(fileName.split(".")[:-1])  # removes the last dot-suffix
 			htmlFileName = f"{strippedFileName} fonttest.html"
-			if saveFileInLocation(content=htmlContent, fileName=htmlFileName, filePath=exportPath):
+			if saveFileInLocation(content=htmlContent, fileName=htmlFileName, filePath=targetPath):
 				print("✅ Successfully wrote file to disk.")
 				glyphs4ShowsInFinder = Glyphs.versionNumber >= 4 and Glyphs.defaults["GSVariableExportShowInFinder"] == 1
 				if not glyphs4ShowsInFinder:
-					system(f'open "{exportPath}"')
+					system(f'open "{targetPath}"')
 				# webbrowser.open() can raise UnicodeEncodeError on macOS when the
 				# osascript pipe defaults to ASCII, so open the file via `open` instead:
-				system(f'open "{exportPath}/{htmlFileName}"')
+				system(f'open "{targetPath}/{htmlFileName}"')
 			else:
 				print("🛑 Error writing file to disk.")
 		else:

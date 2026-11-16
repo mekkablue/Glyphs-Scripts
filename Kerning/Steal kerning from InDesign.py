@@ -1349,6 +1349,10 @@ end tell
 			expectedPairs = self._buildPairs(thisFont)
 			if not expectedPairs:
 				self.w.status.set("⚠️ No pairs to kern.")
+				# do not leave the temporary fonts and the InDesign document behind:
+				self._closeInDesignDoc()
+				self._deleteFonts(exportedMasters)
+				self.w.progressBar.show(False)
 				return
 			pairText = " ".join("%s%s" % pair for pair in expectedPairs)
 

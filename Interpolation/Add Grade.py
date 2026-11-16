@@ -41,7 +41,7 @@ def hScaleLayer(layer, hFactor=1.0):
 	layer.applyTransform(xScale.transformStruct())
 
 
-def anisotropicAdjust(font, master, originMaster, scope=[]):
+def anisotropicAdjust(font, master, originMaster, scope=()):
 	font = Glyphs.font
 
 	wghtAxisIndex = axisIdForTag(font, "wght")
@@ -116,7 +116,7 @@ def fitSidebearings(layer, targetWidth, left=0.5):
 		layer.width = targetWidth
 
 
-def wdthAdjust(font, gradeMaster, baseMaster, scope=[]):
+def wdthAdjust(font, gradeMaster, baseMaster, scope=()):
 	wdthAxisIndex = axisIdForTag(font, "wdth")
 	if wdthAxisIndex is None:
 		print("⚠️ No wdth axis found. Widths not fitted.")
