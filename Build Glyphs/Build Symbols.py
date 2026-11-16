@@ -944,7 +944,7 @@ SYMBOLS = (
 	(
 		"buildNotdef",
 		".notdef",
-		".notdef: boldest question mark in a circle, tofu rectangle in the background; just the rectangle without a question mark.",
+		".notdef: boldest question mark in a circle, tofu rectangle in the background. If there is no question mark (or it is empty), just the tofu rectangle.",
 		buildNotdef,
 		(".notdef", ),
 	),
