@@ -3,17 +3,10 @@ __doc__ = """
 Will add RSB =| if the RSB is the same as the LSB in all masters.
 """
 
-import objc
 import vanilla
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, SteppingEditText, decimalFormatter
 from GlyphsApp import Glyphs, Message
 from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
-from Foundation import NSNumberFormatter
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 class AddMetricsKeysforSymmetricGlyphs(mekkaObject):
@@ -37,9 +30,7 @@ class AddMetricsKeysforSymmetricGlyphs(mekkaObject):
 		inset = 15
 		self.w.descriptionText = vanilla.TextBox("auto", "Insert ‘=|’ in RSB if LSB and RSB are the same", sizeStyle='small')
 
-		formatter = NSNumberFormatter.alloc().init()
-		formatter.setMaximumFractionDigits_(2)
-		formatter.setMinimum_(0)
+		formatter = decimalFormatter(0, fractionDigits=2)
 		self.w.toleranceText = vanilla.TextBox("auto", "Tolerance", sizeStyle='small')
 		self.w.tolerance = SteppingEditText("auto", "2", callback=self.SavePreferences, sizeStyle='small', formatter=formatter)
 		self.w.toleranceUnitsText = vanilla.TextBox("auto", "units", sizeStyle='small')

@@ -6,7 +6,7 @@ Adds tweaks to OT feature code. Reports in Macro window.
 import vanilla
 from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, GSFeature, GSClass, GSFeaturePrefix, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, createOTFeature, fontFileName
 
 
 def filterActiveCode(code):
@@ -139,68 +139,29 @@ def wrapCodeInLookup(featureCode, lookupName):
 	return code
 
 
-def updatedCode(oldCode, beginSig, endSig, newCode):
-	"""Replaces text in oldCode with newCode, but only between beginSig and endSig."""
-	beginOffset = oldCode.find(beginSig)
-	endOffset = oldCode.find(endSig) + len(endSig)
-	newCode = oldCode[:beginOffset] + beginSig + newCode + "\n" + endSig + oldCode[endOffset:]
-	return newCode
-
-
-def createOTFeature(
+def createOTFeatureWithNote(
 	featureName="calt",
 	featureCode="# empty feature code",
-	targetFont=Glyphs.font,
+	targetFont=None,
 	codeSig="CUSTOM-CONTEXTUAL-ALTERNATES",
 	appendCode=True,
-	addNote=False,
 ):
 	"""
-	Creates or updates an OpenType feature in the font.
-	Returns a status message in form of a string.
-	featureName: name of the feature (str),
-	featureCode: the AFDKO feature code (str),
-	targetFont: the GSFont object receiving the feature,
-	codeSig: the code signature (str) used as delimiters.
+	Creates or updates an OpenType feature in the font (see createOTFeature), and adds the code with
+	an instruction where it goes to the notes of the feature, for those who prefer to add it manually.
 	"""
-
-	beginSig = "# BEGIN " + codeSig + "\n"
-	endSig = "# END " + codeSig + "\n"
+	if targetFont is None:
+		targetFont = Glyphs.font
 	featureCode = featureCode.rstrip()
+	print(createOTFeature(featureName, featureCode, targetFont, codeSig, appendCode=appendCode))
 
-	if featureName in [f.name for f in targetFont.features]:
-		# feature already exists:
-		targetFeature = targetFont.features[featureName]
-
-		if beginSig in targetFeature.code:
-			# replace old code with new code:
-			targetFeature.code = updatedCode(targetFeature.code, beginSig, endSig, featureCode)
-		else:
-			if appendCode:
-				# append new code:
-				targetFeature.code += "\n" + beginSig + featureCode + "\n" + endSig
-			else:
-				# prepend new code:
-				targetFeature.code = beginSig + featureCode + "\n" + endSig + "\n" + targetFeature.code
-
-		print(f"✅ Updated existing OT feature '{featureName}'.")
-	else:
-		# create feature with new code:
-		targetFeature = GSFeature()
-		targetFeature.name = featureName
-		targetFeature.code = beginSig + featureCode + "\n" + endSig
-		targetFont.features.append(targetFeature)
-		print(f"✅ Created new OT feature '{featureName}'.")
-
-	if addNote:
-		if not targetFeature.notes:
-			targetFeature.notes = ""
-
-		if featureCode not in targetFeature.notes:
-			position = "end" if appendCode else "beginning"
-			manualInstruction = f"# Add at {position}:\n{featureCode}\n\n"
-			targetFeature.notes = manualInstruction + targetFeature.notes
-			print(f"✅ Added manual instructions into notes of OT feature '{featureName}'.")
+	targetFeature = targetFont.features[featureName]
+	if not targetFeature.notes:
+		targetFeature.notes = ""
+	if featureCode not in targetFeature.notes:
+		position = "end" if appendCode else "beginning"
+		targetFeature.notes = f"# Add at {position}:\n{featureCode}\n\n" + targetFeature.notes
+		print(f"✅ Added manual instructions into notes of OT feature '{featureName}'.")
 
 
 def featureLineContainingXAlsoContains(font, featureName="ccmp", lineContaining="@Markscomb =", alsoContains="acute"):
@@ -462,13 +423,12 @@ class FeatureCodeTweaks(mekkaObject):
 
 			# prepare feature and inject code:
 			updateAndAutodisableFeatureInFont(feature, thisFont)
-			createOTFeature(
+			createOTFeatureWithNote(
 				featureName=ccmpFeature.name,
 				featureCode=featureLines,
 				targetFont=thisFont,
 				codeSig="Decompose presentation forms",
 				appendCode=False,
-				addNote=True,
 			)
 
 			# repeat in Small Caps if necessary:
@@ -499,13 +459,12 @@ class FeatureCodeTweaks(mekkaObject):
 					if not affectedFeature:
 						print(f"🤷🏻‍♀️ No {featureTag} feature found, could not repeat decomposition lookup.")
 					else:
-						createOTFeature(
+						createOTFeatureWithNote(
 							featureName=featureTag,
 							featureCode=lookupCall,
 							targetFont=thisFont,
 							codeSig="Decompose presentation forms",
 							appendCode=False,
-							addNote=True,
 						)
 						if affectedFeature.automatic:
 							affectedFeature.automatic = False
@@ -649,13 +608,12 @@ class FeatureCodeTweaks(mekkaObject):
 						print("✅ Removed old NLD code from locl.")
 
 				# Add/update NLD code:
-				createOTFeature(
+				createOTFeatureWithNote(
 					featureName="locl",
 					featureCode=loclCode,
 					targetFont=thisFont,
 					codeSig="Dutch accented IJ/ij",
 					appendCode=True,
-					addNote=True,
 				)
 
 			# TODO create jdotless.sc
@@ -715,24 +673,22 @@ class FeatureCodeTweaks(mekkaObject):
 
 			# add lookup to locl:
 			loclCode = f"language DEU;\n{featureLines}\n"
-			createOTFeature(
+			createOTFeatureWithNote(
 				featureName="locl",
 				featureCode=loclCode,
 				targetFont=thisFont,
 				codeSig="German cap sharp s",
 				appendCode=True,
-				addNote=True,
 			)
 
 			# call lookup in calt:
 			caltCode = f"lookup {lookupName};"
-			createOTFeature(
+			createOTFeatureWithNote(
 				featureName=feature,
 				featureCode=caltCode,
 				targetFont=thisFont,
 				codeSig="German cap sharp s",
 				appendCode=True,
-				addNote=True,
 			)
 
 			# Update Languagesystems:
@@ -782,13 +738,12 @@ class FeatureCodeTweaks(mekkaObject):
 			featureLines = wrapCodeInLookup(featureLines, "arrows")
 
 			# add to dlig:
-			createOTFeature(
+			createOTFeatureWithNote(
 				featureName=feature,
 				featureCode=featureLines,
 				targetFont=thisFont,
 				codeSig="Arrows as ligatures",
 				appendCode=True,
-				addNote=True,
 			)
 
 	def magistraSubstitution(self, feature="calt"):
@@ -820,13 +775,12 @@ class FeatureCodeTweaks(mekkaObject):
 			featureCode = "\tignore sub M a g period a' @AllLetters;"
 			featureCode += "\n\tsub M a g period a' by ordfeminine;"
 			featureCode = wrapCodeInLookup(featureCode, "magistra")
-			createOTFeature(
+			createOTFeatureWithNote(
 				featureName=feature,
 				featureCode=featureCode,
 				targetFont=thisFont,
 				codeSig="Magistra",
 				appendCode=True,
-				addNote=True,
 			)
 
 			# add kerning:
@@ -974,13 +928,12 @@ class FeatureCodeTweaks(mekkaObject):
 				# add code to feature:
 				updateAndAutodisableFeatureInFont(scFeatureTag, thisFont)
 				code = wrapCodeInLookup(code, "capMarksToSC")
-				createOTFeature(
+				createOTFeatureWithNote(
 					featureName=scFeatureTag,
 					featureCode=code,
 					targetFont=thisFont,
 					codeSig="Prepare cap marks for smallcaps",
 					appendCode=False,
-					addNote=True,
 				)
 
 		# 2. SMCP: SMALL LETTERS WHERE CASEFOLDING CAN OVERLAP WITH OTHERS
@@ -1027,13 +980,12 @@ class FeatureCodeTweaks(mekkaObject):
 			else:
 				# add code to feature:
 				updateAndAutodisableFeatureInFont(scFeatureTag, thisFont)
-				createOTFeature(
+				createOTFeatureWithNote(
 					featureName=scFeatureTag,
 					featureCode=code.rstrip(),
 					targetFont=thisFont,
 					codeSig="Alternate small-cap mappings",
 					appendCode=True,
-					addNote=True,
 				)
 
 	def FeatureCodeTweaksMain(self, sender):
@@ -1050,7 +1002,7 @@ class FeatureCodeTweaks(mekkaObject):
 				return
 
 			print(f"Feature Code Tweaks for {thisFont.familyName}")
-			fileName = thisFont.filepath.lastPathComponent() if thisFont.filepath else f"{thisFont.familyName} (unsaved)"
+			fileName = fontFileName(thisFont)
 			print(f"📄 {fileName}")
 
 			# ccmp fi, fl, etc.

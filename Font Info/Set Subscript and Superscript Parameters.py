@@ -5,9 +5,8 @@ Measures your superior and inferior figures and derives subscript/superscript X/
 
 import math
 
-import objc
 import vanilla
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, SteppingEditText, integerFormatter
 from GlyphsApp import Glyphs, Message
 from AppKit import (
 	NSLayoutConstraintOrientationHorizontal,
@@ -17,12 +16,6 @@ from AppKit import (
 	NSLayoutPriorityWindowSizeStayPut,
 	NSTextAlignmentRight,
 )
-from Foundation import NSNumberFormatter
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 class CalculateSubscriptAndSuperscriptParameters(mekkaObject):
@@ -77,9 +70,7 @@ class CalculateSubscriptAndSuperscriptParameters(mekkaObject):
 
 		tooltip = "If enabled, will round all calculated values by the given amount. Recommended: 5 or 10."
 		self.w.roundValues = vanilla.CheckBox("auto", "Round all values by", value=False, callback=self.SavePreferences, sizeStyle="small")
-		roundByFormatter = NSNumberFormatter.alloc().init()
-		roundByFormatter.setAllowsFloats_(False)
-		roundByFormatter.setMinimum_(1)
+		roundByFormatter = integerFormatter(1)
 		self.w.roundBy = SteppingEditText("auto", "10", callback=self.SavePreferences, sizeStyle="small", formatter=roundByFormatter)
 		self.w.xSizeEqualsYSize = vanilla.CheckBox("auto", "xSize=ySize", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.roundValues.setToolTip(tooltip)

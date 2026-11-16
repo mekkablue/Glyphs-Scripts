@@ -3,12 +3,10 @@ __doc__ = """
 Takes all CPAL/COLR layers and puts copies of their shapes into the master layer.
 """
 
-import objc
 import vanilla
-from mekkablue import mekkaObject, reportFontName
+from mekkablue import mekkaObject, reportFontName, SteppingEditText, integerFormatter
 from GlyphsApp import Glyphs, Message
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityWindowSizeStayPut
-from Foundation import NSNumberFormatter
 
 
 allOptions = (
@@ -16,11 +14,6 @@ allOptions = (
 	"⚠️ ALL CPAL/COLR glyphs in current font",
 	"⚠️ ALL CPAL/COLR glyphs in ⚠️ ALL fonts",
 )
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 class MergeCPALLayersIntoMasterLayer(mekkaObject):
@@ -54,9 +47,7 @@ class MergeCPALLayersIntoMasterLayer(mekkaObject):
 		self.w.removeOverlap = vanilla.CheckBox("auto", "Remove overlap and tidy up paths", value=False, callback=self.SavePreferences, sizeStyle="small")
 
 		self.w.removeSmallItems = vanilla.CheckBox("auto", "Remove items smaller than", value=False, callback=self.SavePreferences, sizeStyle="small")
-		formatter = NSNumberFormatter.alloc().init()
-		formatter.setAllowsFloats_(False)
-		formatter.setMinimum_(0)
+		formatter = integerFormatter(0)
 		self.w.removeSmallItemsThreshold = SteppingEditText("auto", "400", callback=self.SavePreferences, sizeStyle="small", formatter=formatter)
 		self.w.removeSmallItemsText = vanilla.TextBox("auto", "square units", sizeStyle="small")
 

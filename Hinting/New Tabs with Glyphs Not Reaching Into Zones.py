@@ -8,7 +8,7 @@ from collections import OrderedDict
 import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, newLineControlLayer
+from mekkablue import mekkaObject, newLineControlLayer, fontFileName
 
 
 class NewTabsWithGlyphsNotReachingIntoZones(mekkaObject):
@@ -111,7 +111,7 @@ class NewTabsWithGlyphsNotReachingIntoZones(mekkaObject):
 
 			thisFont = Glyphs.font  # frontmost font
 			print("New Tabs with Glyphs Not Reaching Into Zones Report for %s" % thisFont.familyName)
-			print(thisFont.filepath if thisFont.filepath else f"{thisFont.familyName} (unsaved)")
+			print(fontFileName(thisFont, fullPath=True))
 			print()
 
 			allMastersInSeparateTabs = self.pref("allMastersInSeparateTabs")
@@ -219,7 +219,7 @@ class NewTabsWithGlyphsNotReachingIntoZones(mekkaObject):
 
 			thisFont = Glyphs.font  # frontmost font
 			print("New Tabs with Glyphs Not Reaching Into Zones Report for %s" % thisFont.familyName)
-			print(thisFont.filepath if thisFont.filepath else f"{thisFont.familyName} (unsaved)")
+			print(fontFileName(thisFont, fullPath=True))
 			print()
 
 			allMastersInSeparateTabs = self.pref("allMastersInSeparateTabs")

@@ -1,11 +1,10 @@
 # MenuTitle: Create Pseudorandom calt Feature from ssXX Glyphs
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Create pseudorandom calt (contextual alternatives) feature based on number of existing ssXX glyphs in the font.
 """
 
-from GlyphsApp import Glyphs, GSFeature, GSClass
+from mekkablue import createOTFeature, createOTClass
+from GlyphsApp import Glyphs
 
 
 lineLength = 70
@@ -20,73 +19,6 @@ def ssXXsuffix(i):
 	if i > 0 and i <= 20:
 		returnString = ".ss%02i" % i
 	return returnString
-
-
-def updated_code(oldcode, beginsig, endsig, newcode):
-	"""Replaces text in oldcode with newcode, but only between beginsig and endsig."""
-	begin_offset = oldcode.find(beginsig)
-	end_offset = oldcode.find(endsig) + len(endsig)
-	newcode = oldcode[:begin_offset] + beginsig + newcode + "\n" + endsig + oldcode[end_offset:]
-	return newcode
-
-
-def create_otfeature(featurename="calt", featurecode="# empty feature code", targetFont=Glyphs.font, codesig="PSEUDORANDOM"):
-	"""
-	Creates or updates an OpenType feature in the thisFont.
-	Returns a status message in form of a string.
-	"""
-
-	beginSig = "# BEGIN " + codesig + "\n"
-	endSig = "# END " + codesig + "\n"
-
-	if featurename in [f.name for f in targetFont.features]:
-		# feature already exists:
-		targetfeature = targetFont.features[featurename]
-
-		if beginSig in targetfeature.code:
-			# replace old code with new code:
-			targetfeature.code = updated_code(targetfeature.code, beginSig, endSig, featurecode)
-		else:
-			# append new code:
-			targetfeature.code += "\n" + beginSig + featurecode + "\n" + endSig
-
-		return "Updated existing OT feature '%s'." % featurename
-	else:
-		# create feature with new code:
-		newFeature = GSFeature()
-		newFeature.name = featurename
-		newFeature.code = beginSig + featurecode + "\n" + endSig
-		targetFont.features.append(newFeature)
-		return "Created new OT feature '%s'" % featurename
-
-
-def create_otclass(className="@default", classGlyphs=None, targetFont=None):
-	"""
-	Creates an OpenType class in the thisFont.
-	Default: class @default with currently selected glyphs in the current thisFont.
-	Returns a status message in form of a string.
-	"""
-
-	if targetFont is None:
-		targetFont = Glyphs.font
-	if classGlyphs is None:
-		classGlyphs = [g.name for g in targetFont.glyphs if "." not in g.name]
-
-	# strip '@' from beginning:
-	if className[0] == "@":
-		className = className[1:]
-
-	classCode = " ".join(classGlyphs)
-
-	if className in [c.name for c in targetFont.classes]:
-		targetFont.classes[className].code = classCode
-		return "Updated existing OT class '%s'." % className
-	else:
-		newClass = GSClass()
-		newClass.name = className
-		newClass.code = classCode
-		targetFont.classes.append(newClass)
-		return "Created new OT class: '%s'" % className
 
 
 def highestStylisticSetInNameList(nameList):
@@ -121,7 +53,7 @@ else:
 		for XX in range(highestSetNumber + 1):
 			className = "%s%02i" % (classNamePrefix, XX)
 			classGlyphs = [x + ssXXsuffix(XX) for x in defaultGlyphs] + ["space"]
-			result = create_otclass(className=className, classGlyphs=classGlyphs, targetFont=thisFont)
+			result = createOTClass(className=className, classGlyphNames=classGlyphs, targetFont=thisFont)
 			print(result)
 
 		# Build OT feature:
@@ -139,5 +71,5 @@ else:
 			featureText += newLine
 
 		# Add OT feature:
-		result = create_otfeature(featurename=featureName, featurecode=featureText, targetFont=thisFont)
+		result = createOTFeature(featureName=featureName, featureCode=featureText, targetFont=thisFont, codeSig="PSEUDORANDOM")
 		print(result)

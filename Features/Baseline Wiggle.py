@@ -3,11 +3,10 @@ __doc__ = """
 Add OpenType feature with pseudorandom GPOS baseline shift for all glyphs in a class.
 """
 
-import objc
 import vanilla
 from random import randint
-from mekkablue import mekkaObject, UpdateButton, reportFontName
-from GlyphsApp import Glyphs, GSFeature, GSClass, Message
+from mekkablue import mekkaObject, UpdateButton, reportFontName, SteppingEditText, integerFormatter, createOTFeature, createOTClass
+from GlyphsApp import Glyphs, Message
 from AppKit import (
 	NSLayoutConstraintOrientationHorizontal,
 	NSLayoutConstraintOrientationVertical,
@@ -16,12 +15,6 @@ from AppKit import (
 	NSLayoutPriorityWindowSizeStayPut,
 	NSTextAlignmentRight,
 )
-from Foundation import NSNumberFormatter
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 allPossibleFeatures = [
@@ -37,75 +30,6 @@ allPossibleFeatures = [
 for i in range(1, 100):
 	cvName = f"cv{i:02}"
 	allPossibleFeatures.append(cvName)
-
-
-def updatedCode(oldCode, beginSig, endSig, newCode):
-	"""Replaces text in oldCode with newCode, but only between beginSig and endSig."""
-	beginOffset = oldCode.find(beginSig)
-	endOffset = oldCode.find(endSig) + len(endSig)
-	newCode = oldCode[:beginOffset] + beginSig + newCode + "\n" + endSig + oldCode[endOffset:]
-	return newCode
-
-
-def createOTFeature(featureName="calt", featureCode="# empty feature code", targetFont=Glyphs.font, codeSig="CUSTOM-CONTEXTUAL-ALTERNATES"):
-	"""
-	Creates or updates an OpenType feature in the font.
-	Returns a status message in form of a string.
-	featureName: name of the feature (str),
-	featureCode: the AFDKO feature code (str),
-	targetFont: the GSFont object receiving the feature,
-	codeSig: the code signature (str) used as delimiters.
-	"""
-
-	beginSig = "# BEGIN " + codeSig + "\n"
-	endSig = "# END " + codeSig + "\n"
-
-	if featureName in [f.name for f in targetFont.features]:
-		# feature already exists:
-		targetFeature = targetFont.features[featureName]
-
-		if beginSig in targetFeature.code:
-			# replace old code with new code:
-			targetFeature.code = updatedCode(targetFeature.code, beginSig, endSig, featureCode)
-		else:
-			# append new code:
-			targetFeature.code += "\n" + beginSig + featureCode + "\n" + endSig
-
-		return f"Updated existing OT feature ‘{featureName}’."
-	else:
-		# create feature with new code:
-		newFeature = GSFeature()
-		newFeature.name = featureName
-		newFeature.code = beginSig + featureCode + "\n" + endSig
-		targetFont.features.append(newFeature)
-		return f"Created new OT feature ‘{featureName}’"
-
-
-def createOTClass(className="@default", classGlyphs=None, targetFont=Glyphs.font):
-	"""
-	Creates an OpenType class called className in targetFont
-	containg classGlyphs, or updates it if it already exists.
-	className: name of the OT class, with or without leading at sign,
-	classGlyphs: list of glyph names,
-	targetFont: the GSFont that receives the OT class.
-	"""
-	if classGlyphs is None:
-		classGlyphs = [layer.parent.name for layer in Glyphs.font.selectedLayers]
-	# strip '@' from beginning:
-	if className[0] == "@":
-		className = className[1:]
-
-	classCode = " ".join(classGlyphs)
-
-	if className in [c.name for c in targetFont.classes]:
-		targetFont.classes[className].code = classCode
-		return f"Updated existing OT class ‘{className}’."
-	else:
-		newClass = GSClass()
-		newClass.name = className
-		newClass.code = classCode
-		targetFont.classes.append(newClass)
-		return f"Created new OT class: ‘{className}’"
 
 
 class BaselineWiggle(mekkaObject):
@@ -148,8 +72,7 @@ class BaselineWiggle(mekkaObject):
 		self.w.otFeature.setToolTip(tooltipText)
 
 		# whole numbers, negative values allowed
-		wiggleFormatter = NSNumberFormatter.alloc().init()
-		wiggleFormatter.setAllowsFloats_(False)
+		wiggleFormatter = integerFormatter()
 
 		tooltipText = "Lowest vertical shift (in units) the random wiggle can have. Negative values shift down."
 		self.w.wiggleMinText = vanilla.TextBox("auto", "lowest wiggle:", sizeStyle="small", selectable=True)
@@ -163,9 +86,7 @@ class BaselineWiggle(mekkaObject):
 		self.w.wiggleMaxText.setToolTip(tooltipText)
 		self.w.wiggleMax.setToolTip(tooltipText)
 
-		lineLengthFormatter = NSNumberFormatter.alloc().init()
-		lineLengthFormatter.setAllowsFloats_(False)
-		lineLengthFormatter.setMinimum_(1)
+		lineLengthFormatter = integerFormatter(1)
 		tooltipText = "Number of glyphs in a line, i.e., how many glyphs long the wiggle context rules reach."
 		self.w.lineLengthText = vanilla.TextBox("auto", "for line length:", sizeStyle="small", selectable=True)
 		self.w.lineLength = SteppingEditText("auto", "70", callback=self.SavePreferences, sizeStyle="small", formatter=lineLengthFormatter)

@@ -3,9 +3,8 @@ __doc__ = """
 Looks for cap kerning pairs and reduplicates their kerning for corresponding .sc glyphs, if they are available in the font. Please be careful: Will overwrite existing SC kerning pairs.
 """
 
-import objc
 import vanilla
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, SteppingEditText, decimalFormatter
 from GlyphsApp import Glyphs, Message
 from AppKit import (
 	NSLayoutConstraintOrientationHorizontal,
@@ -15,7 +14,6 @@ from AppKit import (
 	NSLayoutPriorityWindowSizeStayPut,
 	NSTextAlignmentRight,
 )
-from Foundation import NSNumberFormatter
 
 if Glyphs.versionNumber >= 3:
 	from GlyphsApp import GSUppercase, GSSmallcaps
@@ -123,11 +121,6 @@ def isSmallcap(glyph):
 	return False
 
 
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
-
-
 class CopyKerningFromCapsToSmallcaps(mekkaObject):
 	prefDict = {
 		"smallcapSuffix": ".sc",
@@ -166,17 +159,14 @@ class CopyKerningFromCapsToSmallcaps(mekkaObject):
 		self.w.figureSuffixText = vanilla.TextBox("auto", "Figure suffix", sizeStyle='small')
 		self.w.figureSuffix = vanilla.EditText("auto", ".lf", callback=self.SavePreferences, sizeStyle='small')
 
-		factorFormatter = NSNumberFormatter.alloc().init()
-		factorFormatter.setMaximumFractionDigits_(3)
+		factorFormatter = decimalFormatter(fractionDigits=3)
 		self.w.factorText = vanilla.TextBox("auto", "Kerning factor", sizeStyle='small')
 		self.w.factor = SteppingEditText("auto", "1.0", callback=self.SavePreferences, sizeStyle='small', formatter=factorFormatter)
 		tooltipText = "Multiplier applied to the source (caps) kerning value before copying it to the smallcap pair. Defaults to 1.0 (= copy as-is). Use e.g. 0.8 to scale down, or 1.2 to scale up."
 		self.w.factorText.setToolTip(tooltipText)
 		self.w.factor.setToolTip(tooltipText)
 
-		roundByFormatter = NSNumberFormatter.alloc().init()
-		roundByFormatter.setMaximumFractionDigits_(3)
-		roundByFormatter.setMinimum_(0)
+		roundByFormatter = decimalFormatter(0, fractionDigits=3)
 		self.w.roundByText = vanilla.TextBox("auto", "Round by", sizeStyle='small')
 		self.w.roundBy = SteppingEditText("auto", "5", callback=self.SavePreferences, sizeStyle='small', formatter=roundByFormatter)
 		tooltipText = "Rounds the resulting kerning value to the nearest multiple of this number. Defaults to 5. Use 1 for no rounding, 10 for coarser snapping, etc."

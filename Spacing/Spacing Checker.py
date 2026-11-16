@@ -3,17 +3,10 @@ __doc__ = """
 Look for glyphs with unusual spacings and open them in a new tab.
 """
 
-import objc
 import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
-from Foundation import NSNumberFormatter
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, UpdateButton
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
+from mekkablue import mekkaObject, UpdateButton, SteppingEditText, integerFormatter, fontFileName
 
 
 class SpacingChecker(mekkaObject):
@@ -46,26 +39,18 @@ class SpacingChecker(mekkaObject):
 
 		self.w.descriptionText = vanilla.TextBox("auto", "Find glyphs with unusual sidebearings. Open tab with glyphs where", sizeStyle='small', selectable=True)
 
-		def integerFormatter(minimum=0, maximum=None):
-			formatter = NSNumberFormatter.alloc().init()
-			formatter.setAllowsFloats_(False)
-			formatter.setMinimum_(minimum)
-			if maximum is not None:
-				formatter.setMaximum_(maximum)
-			return formatter
-
 		self.w.asymmetricSBs = vanilla.CheckBox("auto", "LSB & RSB differ more than", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.asymmetricDifference = SteppingEditText("auto", "50", callback=self.SavePreferences, sizeStyle='small', formatter=integerFormatter())
+		self.w.asymmetricDifference = SteppingEditText("auto", "50", callback=self.SavePreferences, sizeStyle='small', formatter=integerFormatter(0))
 		self.w.asymmetricUpdateButton = UpdateButton("auto", title="K", callback=self.updateValues)
 		self.w.asymmetricUpdateButton.setToolTip("Update the entry with the measurements for uppercase K, presumably the largest difference in most designs.")
 
 		self.w.largeLSB = vanilla.CheckBox("auto", "LSBs larger than", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.lsbThreshold = SteppingEditText("auto", "70", callback=self.SavePreferences, sizeStyle='small', formatter=integerFormatter())
+		self.w.lsbThreshold = SteppingEditText("auto", "70", callback=self.SavePreferences, sizeStyle='small', formatter=integerFormatter(0))
 		self.w.lsbThresholdUpdateButton = UpdateButton("auto", title="H", callback=self.updateValues)
 		self.w.lsbThresholdUpdateButton.setToolTip("Update the entry with the measurements for uppercase H, presumably the largest LSB in most designs.")
 
 		self.w.largeRSB = vanilla.CheckBox("auto", "RSBs larger than", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.rsbThreshold = SteppingEditText("auto", "70", callback=self.SavePreferences, sizeStyle='small', formatter=integerFormatter())
+		self.w.rsbThreshold = SteppingEditText("auto", "70", callback=self.SavePreferences, sizeStyle='small', formatter=integerFormatter(0))
 		self.w.rsbThresholdUpdateButton = UpdateButton("auto", title="H", callback=self.updateValues)
 		self.w.rsbThresholdUpdateButton.setToolTip("Update the entry with the measurements for uppercase H, presumably the largest RSB in most designs.")
 
@@ -227,7 +212,7 @@ class SpacingChecker(mekkaObject):
 			# clears the macro window log:
 			Glyphs.clearLog()
 			print("Space Checker Report for %s" % thisFont.familyName)
-			print(thisFont.filepath if thisFont.filepath else f"{thisFont.familyName} (unsaved)")
+			print(fontFileName(thisFont, fullPath=True))
 			print()
 
 			collectedLayers = []

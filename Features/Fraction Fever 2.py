@@ -1,11 +1,10 @@
 # MenuTitle: Fraction Fever 2
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Insert Tal Leming’s Fraction Fever 2 code into the font.
 """
 
-from GlyphsApp import Glyphs, GSFeature
+from mekkablue import createOTFeature
+from GlyphsApp import Glyphs
 
 Font = Glyphs.font
 
@@ -97,50 +96,12 @@ sub @figDefault space' @figNumer by thinspace;
 """
 
 
-def updated_code(oldcode, beginsig, endsig, newcode):
-	"""Replaces text in oldcode with newcode, but only between beginsig and endsig."""
-	begin_offset = oldcode.find(beginsig)
-	end_offset = oldcode.find(endsig) + len(endsig)
-	newcode = oldcode[:begin_offset] + beginsig + newcode + "\n" + endsig + oldcode[end_offset:]
-	return newcode
-
-
-def create_otfeature(featurename="frac", featurecode="# empty feature code", targetfont=Glyphs.font, codesig="DEFAULT-CODE-SIGNATURE"):
-	"""
-	Creates or updates an OpenType feature in the font.
-	Returns a status message in form of a string.
-	"""
-
-	beginSig = "# BEGIN " + codesig + "\n"
-	endSig = "# END " + codesig + "\n"
-
-	if featurename in [f.name for f in targetfont.features]:
-		# feature already exists:
-		targetfeature = targetfont.features[featurename]
-
-		if beginSig in targetfeature.code:
-			# replace old code with new code:
-			targetfeature.code = updated_code(targetfeature.code, beginSig, endSig, featurecode)
-		else:
-			# append new code:
-			targetfeature.code += "\n" + beginSig + featurecode + "\n" + endSig
-
-		return "Updated existing OT feature '%s'." % featurename
-	else:
-		# create feature with new code:
-		newFeature = GSFeature()
-		newFeature.name = featurename
-		newFeature.code = beginSig + featurecode + "\n" + endSig
-		targetfont.features.append(newFeature)
-		return "Created new OT feature '%s'" % featurename
-
-
 # brings macro window to front and clears its log:
 if not Font:
 	print("Please open a font first.")
 else:
 	Glyphs.clearLog()
-	print(create_otfeature(featurename="frac", featurecode=fractionFeverCode, targetfont=Font, codesig="FRACTION-FEVER-2"))
+	print(createOTFeature(featureName="frac", featureCode=fractionFeverCode, targetFont=Font, codeSig="FRACTION-FEVER-2"))
 
 	# Check which glyphs still need to be created:
 	necessaryGlyphs = (

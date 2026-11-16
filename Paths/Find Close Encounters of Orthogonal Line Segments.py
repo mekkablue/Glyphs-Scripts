@@ -3,18 +3,12 @@ __doc__ = """
 Goes through all vertical and horizontal line segments, and finds pairs that are close, but do not align completely.
 """
 
-import objc
 import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
-from Foundation import NSPoint, NSNumberFormatter
+from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSGuide, Message
-from mekkablue import mekkaObject, reportFontName
+from mekkablue import mekkaObject, reportFontName, SteppingEditText, decimalFormatter
 from mekkablue.geometry import angle
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 class FindCloseEncounters(mekkaObject):
@@ -45,8 +39,7 @@ class FindCloseEncounters(mekkaObject):
 
 		self.w.descriptionText = vanilla.TextBox("auto", "Find orthogonal line segments that are close but not aligning:", sizeStyle='small', selectable=True)
 
-		formatter = NSNumberFormatter.alloc().init()
-		formatter.setMinimum_(0)
+		formatter = decimalFormatter(0)
 		self.w.thresholdText = vanilla.TextBox("auto", "Max distance in units:", sizeStyle='small', selectable=True)
 		self.w.threshold = SteppingEditText("auto", self.prefDict["threshold"], callback=self.SavePreferences, sizeStyle='small', formatter=formatter)
 

@@ -6,20 +6,14 @@ Finds all kinds of potential problems in outlines, and opens a new tab with affe
 import math
 from timeit import default_timer as timer
 
-import objc
 import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
-from Foundation import NSPoint, NSNumberFormatter
+from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSPath, GSShapeTypePath, GSLINE, GSCURVE, CURVE, GSOFFCURVE, QCURVE, Message, distance
 import importlib
 import mekkablue
 importlib.reload(mekkablue)
-from mekkablue import mekkaObject, newLineControlLayer, reportTimeInNaturalLanguage
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
+from mekkablue import mekkaObject, newLineControlLayer, reportTimeInNaturalLanguage, SteppingEditText, decimalFormatter
 
 
 canHaveOpenOutlines = (
@@ -531,13 +525,6 @@ class PathProblemFinder(mekkaObject):
 		# UI elements:
 		inset = 15
 
-		def numberFormatter(maximum=None):
-			formatter = NSNumberFormatter.alloc().init()
-			formatter.setMinimum_(0)
-			if maximum is not None:
-				formatter.setMaximum_(maximum)
-			return formatter
-
 		self.w.descriptionText = vanilla.TextBox("auto", "New tab with layers containing path problems", sizeStyle='small', selectable=True)
 
 		self.w.zeroHandles = vanilla.CheckBox("auto", "Zero handles", value=True, callback=self.SavePreferences, sizeStyle='small')
@@ -554,56 +541,56 @@ class PathProblemFinder(mekkaObject):
 		self.w.cuspingHandles.setToolTip("Will find situations where, on a curve segment, the second handle comes before the first handle, i.e., is closer to the first on-curve. Usually unintended.")
 
 		self.w.shortHandles = vanilla.CheckBox("auto", "Handles shorter than", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.shortHandlesThreshold = SteppingEditText("auto", self.prefDict["shortHandlesThreshold"], callback=self.SavePreferences, sizeStyle='small', formatter=numberFormatter())
+		self.w.shortHandlesThreshold = SteppingEditText("auto", self.prefDict["shortHandlesThreshold"], callback=self.SavePreferences, sizeStyle='small', formatter=decimalFormatter(0))
 		self.w.shortHandlesText = vanilla.TextBox("auto", "units", sizeStyle='small', selectable=True)
 		tooltipText = "Will find handles shorter than the specified amount in units. Short handles may cause kinks when rounded to the grid."
 		self.w.shortHandlesThreshold.setToolTip(tooltipText)
 		self.w.shortHandles.setToolTip(tooltipText)
 
 		self.w.angledHandles = vanilla.CheckBox("auto", "Angled handles up to", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.angledHandlesAngle = SteppingEditText("auto", self.prefDict["angledHandlesAngle"], callback=self.SavePreferences, sizeStyle='small', formatter=numberFormatter(45))
+		self.w.angledHandlesAngle = SteppingEditText("auto", self.prefDict["angledHandlesAngle"], callback=self.SavePreferences, sizeStyle='small', formatter=decimalFormatter(0, 45))
 		self.w.angledHandlesText = vanilla.TextBox("auto", "degrees", sizeStyle='small', selectable=True)
 		tooltipText = "Finds handles that deviate from horizontal or vertical by less than the given angle. Often unintentional; indicated with orange circles in the Show Angled Handles plug-in."
 		self.w.angledHandles.setToolTip(tooltipText)
 		self.w.angledHandlesAngle.setToolTip(tooltipText)
 
 		self.w.shallowCurveBBox = vanilla.CheckBox("auto", "Curve bbox smaller than", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.shallowCurveBBoxThreshold = SteppingEditText("auto", self.prefDict["shallowCurveBBoxThreshold"], callback=self.SavePreferences, sizeStyle='small', formatter=numberFormatter())
+		self.w.shallowCurveBBoxThreshold = SteppingEditText("auto", self.prefDict["shallowCurveBBoxThreshold"], callback=self.SavePreferences, sizeStyle='small', formatter=decimalFormatter(0))
 		self.w.shallowCurveBBoxText = vanilla.TextBox("auto", "units", sizeStyle='small', selectable=True)
 		tooltipText = "Will find very flat curve segments. Flat curves leave little manœuvring space for handles (BCPs), or cause very short handles, which in turn causes grid rounding problems. Can usually be fixed by removing an extremum point or adding an overlap."
 		self.w.shallowCurveBBoxThreshold.setToolTip(tooltipText)
 		self.w.shallowCurveBBox.setToolTip(tooltipText)
 
 		self.w.shallowCurve = vanilla.CheckBox("auto", "Curves shallower than", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.shallowCurveThreshold = SteppingEditText("auto", self.prefDict["shallowCurveThreshold"], callback=self.SavePreferences, sizeStyle='small', formatter=numberFormatter())
+		self.w.shallowCurveThreshold = SteppingEditText("auto", self.prefDict["shallowCurveThreshold"], callback=self.SavePreferences, sizeStyle='small', formatter=decimalFormatter(0))
 		self.w.shallowCurveText = vanilla.TextBox("auto", "units", sizeStyle='small', selectable=True)
 		tooltipText = "Finds curve segments where the handles deviate less than the specified threshold from the enclosing on-curves."
 		self.w.shallowCurveThreshold.setToolTip(tooltipText)
 		self.w.shallowCurve.setToolTip(tooltipText)
 
 		self.w.shortSegment = vanilla.CheckBox("auto", "Segments shorter than", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.shortSegmentThreshold = SteppingEditText("auto", self.prefDict["shortSegmentThreshold"], callback=self.SavePreferences, sizeStyle='small', formatter=numberFormatter())
+		self.w.shortSegmentThreshold = SteppingEditText("auto", self.prefDict["shortSegmentThreshold"], callback=self.SavePreferences, sizeStyle='small', formatter=decimalFormatter(0))
 		self.w.shortSegmentText = vanilla.TextBox("auto", "units", sizeStyle='small', selectable=True)
 		tooltipText = "Finds line segments (two consecutive on-curve nodes) shorter than the specified threshold length. Very short line segments may be deleted because they are barely visible. Also, if not orthogonal, may pose grid rounding problems."
 		self.w.shortSegmentThreshold.setToolTip(tooltipText)
 		self.w.shortSegment.setToolTip(tooltipText)
 
 		self.w.greenDiscontinuity = vanilla.CheckBox("auto", "Green disharmony above", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.greenDiscontinuityTolerance = SteppingEditText("auto", self.prefDict["greenDiscontinuityTolerance"], callback=self.SavePreferences, sizeStyle='small', formatter=numberFormatter(100))
+		self.w.greenDiscontinuityTolerance = SteppingEditText("auto", self.prefDict["greenDiscontinuityTolerance"], callback=self.SavePreferences, sizeStyle='small', formatter=decimalFormatter(0, 100))
 		self.w.greenDiscontinuityToleranceText = vanilla.TextBox("auto", "%", sizeStyle='small', selectable=True)
 		tooltipText = "Finds G2 discontinuities (curvature jumps) at smooth green nodes where two curve segments meet. Same curvature measure used by the Green Harmony, SpeedPunk, and SuperTool plug-ins. 11% is the recommended default; 5% is strict; 15% is relaxed."
 		self.w.greenDiscontinuity.setToolTip(tooltipText)
 		self.w.greenDiscontinuityTolerance.setToolTip(tooltipText)
 
 		self.w.almostOrthogonalLines = vanilla.CheckBox("auto", "Non-orthogonal lines", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.almostOrthogonalLinesThreshold = SteppingEditText("auto", self.prefDict["almostOrthogonalLinesThreshold"], callback=self.SavePreferences, sizeStyle='small', formatter=numberFormatter())
+		self.w.almostOrthogonalLinesThreshold = SteppingEditText("auto", self.prefDict["almostOrthogonalLinesThreshold"], callback=self.SavePreferences, sizeStyle='small', formatter=decimalFormatter(0))
 		self.w.almostOrthogonalLinesText = vanilla.TextBox("auto", "units off", sizeStyle='small', selectable=True)
 		tooltipText = "Will find line segments that are close to, but not completely horizontal or vertical. Will look for segments where the x or y distance between the two nodes is less than the specified threshold. Often unintentional."
 		self.w.almostOrthogonalLinesThreshold.setToolTip(tooltipText)
 		self.w.almostOrthogonalLines.setToolTip(tooltipText)
 
 		self.w.almostOrthogonalLinesMinLengthCheck = vanilla.CheckBox("auto", "min segment length", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.almostOrthogonalLinesMinLength = SteppingEditText("auto", self.prefDict["almostOrthogonalLinesMinLength"], callback=self.SavePreferences, sizeStyle="small", formatter=numberFormatter())
+		self.w.almostOrthogonalLinesMinLength = SteppingEditText("auto", self.prefDict["almostOrthogonalLinesMinLength"], callback=self.SavePreferences, sizeStyle="small", formatter=decimalFormatter(0))
 		self.w.almostOrthogonalLinesMinLengthText = vanilla.TextBox("auto", "units", sizeStyle="small", selectable=True)
 		tooltipText = "If enabled, skips line segments shorter than this length. Useful to avoid false positives on short connecting strokes."
 		self.w.almostOrthogonalLinesMinLengthCheck.setToolTip(tooltipText)

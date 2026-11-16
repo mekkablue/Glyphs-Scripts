@@ -3,6 +3,7 @@ __doc__ = """
 Outputs master coefficients for each instance in Macro Window. Tells you which masters are involved in interpolating a specific instance, and to which extent.
 """
 
+from mekkablue import fontFileName
 from GlyphsApp import Glyphs, Message
 
 
@@ -32,7 +33,7 @@ else:
 	Glyphs.clearLog()
 	Glyphs.showMacroWindow()
 	print("Instance Report for %s" % thisFont.familyName)
-	fileName = thisFont.filepath.lastPathComponent() if thisFont.filepath else f"{thisFont.familyName} (unsaved)"
+	fileName = fontFileName(thisFont)
 	print(f"📄 {fileName}")
 
 	for thisInstance in thisFont.instances:

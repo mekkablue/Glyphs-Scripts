@@ -4,9 +4,8 @@ Draws +−×÷=≠±≈¬ (optionally also <>≤≥ and ~^) from a few measureme
 """
 
 import math
-import objc
 import vanilla
-from mekkablue import mekkaObject, newGlyphWithName, UpdateButton
+from mekkablue import mekkaObject, newGlyphWithName, UpdateButton, SteppingEditText, integerFormatter, decimalFormatter, fontFileName
 from GlyphsApp import Glyphs, GSPath, GSNode, GSLINE, GSCURVE, GSOFFCURVE, GSMetricsTypeCapHeight, GSMetricsTypexHeight, Message
 from AppKit import (
 	NSAlert,
@@ -23,7 +22,7 @@ from AppKit import (
 	NSTextAlignmentRight,
 	NSWindowStyleMaskResizable,
 )
-from Foundation import NSNumberFormatter, NSPoint
+from Foundation import NSPoint
 
 if Glyphs.versionNumber < 4.0:
 	# Glyphs 3 has no star nodes, so the extremes get ordinary smooth nodes there:
@@ -628,32 +627,6 @@ def baselineLift(plan):
 # ------------------------------------------------------------------------------
 # Glyphs helpers
 # ------------------------------------------------------------------------------
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
-
-
-def integerFormatter(minimum=None, maximum=None):
-	"""Number formatter that only accepts integers, optionally within a range."""
-	formatter = NSNumberFormatter.alloc().init()
-	formatter.setAllowsFloats_(False)
-	if minimum is not None:
-		formatter.setMinimum_(minimum)
-	if maximum is not None:
-		formatter.setMaximum_(maximum)
-	return formatter
-
-
-def decimalFormatter(minimum=None, maximum=None):
-	"""Number formatter that accepts decimals, optionally within a range."""
-	formatter = NSNumberFormatter.alloc().init()
-	if minimum is not None:
-		formatter.setMinimum_(minimum)
-	if maximum is not None:
-		formatter.setMaximum_(maximum)
-	return formatter
-
 
 def metricPosition(font, master, metricType):
 	"""Returns the position of the (unfiltered) metric of that type in the master, or None."""
@@ -1453,7 +1426,7 @@ class BuildMathOperators(mekkaObject):
 		total, skipped, firstProblem = 0, 0, None
 		for font, masterIDs in targets:
 			if report:
-				fileName = font.filepath.lastPathComponent() if font.filepath else f"{font.familyName} (unsaved)"
+				fileName = fontFileName(font)
 				print(f"📄 {fileName}")
 			count, skippedCount, problems = self.drawFont(font, masterIDs, settings, report)
 			total += count

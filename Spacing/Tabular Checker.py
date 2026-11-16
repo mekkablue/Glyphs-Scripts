@@ -6,7 +6,7 @@ Goes through tabular glyphs and checks if they are monospaced. Reports exception
 import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, fontFileName
 
 
 class TabularChecker(mekkaObject):
@@ -131,7 +131,7 @@ class TabularChecker(mekkaObject):
 
 			for Font in fonts:
 				print(u"Tabular Checker Report for %s" % Font.familyName)
-				print(Font.filepath if Font.filepath else f"{Font.familyName} (unsaved)")
+				print(fontFileName(Font, fullPath=True))
 				print()
 				for m in Font.masters:
 					lengths = []

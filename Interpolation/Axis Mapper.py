@@ -5,10 +5,9 @@ Extracts, resets and inserts an ‘avar’ axis mapping for the Axis Mappings pa
 
 from collections import OrderedDict
 
-import objc
 import vanilla
 from axisMethods import extremeMasterValuesNative, coefficient, valueForCoefficient, masterValueForAxisTag, extremeStyleValuesNative, styleValueForAxisTag
-from mekkablue import mekkaObject, getLegibleFont, UpdateButton
+from mekkablue import mekkaObject, getLegibleFont, UpdateButton, SteppingEditText
 from GlyphsApp import Glyphs, Message
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from Foundation import NSMutableDictionary, NSNumberFormatter
@@ -18,11 +17,6 @@ Only lines containing a dash "-" followed by a greater sign ">" are interpreted
 Write comments freely, anything after a hashtag "#" will always be ignored
 # SYNTAX: slider value the user *sees* -> slider value the user *gets*
 """
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 def addAxisMappingGlyphsFontLevel(thisFont, minValue, maxValue, mappingRecipe, axisTag):

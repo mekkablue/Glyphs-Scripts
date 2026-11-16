@@ -7,12 +7,11 @@ Batch-add graded masters to a multiple-master setup.
 import time
 import datetime
 from copy import copy
-import objc
 import vanilla
-from Foundation import NSPoint, NSAutoreleasePool, NSNumberFormatter
+from Foundation import NSPoint, NSAutoreleasePool
 from AppKit import NSFont, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
 from GlyphsApp import Glyphs, GSLayer, GSAxis, GSInstance, GSCustomParameter, GSSMOOTH, GSOFFCURVE, Message
-from mekkablue import mekkaObject, UpdateButton, reportFontName
+from mekkablue import mekkaObject, UpdateButton, reportFontName, SteppingEditText, integerFormatter
 
 
 def biggestSubstringInStrings(strings):
@@ -213,11 +212,6 @@ def straightenBCPs(layer):
 			# 	)
 
 
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
-
-
 class BatchGrader(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
@@ -294,9 +288,7 @@ class BatchGrader(mekkaObject):
 		tooltipText = "Will actively recenter glyphs after interpolation if they are centered in the base master. The threshold specifies the maximum difference between LSB and RSB that is acceptable to consider the glyph centered. Best to use 1 or 2."
 		self.w.keepCenteredGlyphsCentered = vanilla.CheckBox("auto", "Keep centered glyphs centered; max SB diff threshold", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.keepCenteredGlyphsCentered.setToolTip(tooltipText)
-		thresholdFormatter = NSNumberFormatter.alloc().init()
-		thresholdFormatter.setAllowsFloats_(False)
-		thresholdFormatter.setMinimum_(0)
+		thresholdFormatter = integerFormatter(0)
 		self.w.keepCenteredThreshold = SteppingEditText("auto", "2", callback=self.SavePreferences, sizeStyle="small", formatter=thresholdFormatter)
 		self.w.keepCenteredThreshold.setToolTip(tooltipText)
 

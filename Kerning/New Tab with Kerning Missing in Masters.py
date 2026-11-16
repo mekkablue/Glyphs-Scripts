@@ -3,6 +3,7 @@ __doc__ = """
 Opens New Tabs for each master showing kerning missing in this master but present in other masters.
 """
 
+from mekkablue import fontFileName
 from GlyphsApp import Glyphs, Message
 
 thisFont = Glyphs.font  # frontmost font
@@ -12,7 +13,7 @@ if thisFont is None:
 else:
 	Glyphs.clearLog()
 	print("Missing kerning, report for %s" % thisFont.familyName)
-	fileName = thisFont.filepath.lastPathComponent() if thisFont.filepath else f"{thisFont.familyName} (unsaved)"
+	fileName = fontFileName(thisFont)
 	print(f"📄 {fileName}")
 	print()
 

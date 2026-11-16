@@ -3,9 +3,8 @@ __doc__ = """
 Extends all alignment zones (except for the baseline zone that should stay at 0).
 """
 
-import objc
 import vanilla
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, SteppingEditText, integerFormatter
 from GlyphsApp import Glyphs
 from AppKit import (
 	NSLayoutConstraintOrientationHorizontal,
@@ -14,12 +13,6 @@ from AppKit import (
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
 )
-from Foundation import NSNumberFormatter
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 class BlueFuzzer(mekkaObject):
@@ -43,8 +36,7 @@ class BlueFuzzer(mekkaObject):
 
 		tooltipText = "Amount (in units) by which each alignment zone is extended on both sides. Negative values shrink the zones."
 		self.w.fuzzValueText = vanilla.TextBox("auto", "Extend zones by", sizeStyle="small", selectable=True)
-		fuzzFormatter = NSNumberFormatter.alloc().init()
-		fuzzFormatter.setAllowsFloats_(False)  # whole numbers, negative values allowed
+		fuzzFormatter = integerFormatter()
 		self.w.fuzzValue = SteppingEditText("auto", "1", callback=self.SavePreferences, sizeStyle="small", formatter=fuzzFormatter)
 		self.w.fuzzValueText.setToolTip(tooltipText)
 		self.w.fuzzValue.setToolTip(tooltipText)

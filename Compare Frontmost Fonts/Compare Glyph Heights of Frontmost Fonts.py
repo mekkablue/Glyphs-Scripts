@@ -3,17 +3,10 @@ __doc__ = """
 Lists all glyphs that differ from the second font in height beyond a given threshold.
 """
 
-import objc
 import vanilla
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, SteppingEditText, decimalFormatter, fontFileName
 from GlyphsApp import Glyphs, Message
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
-from Foundation import NSNumberFormatter
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 class CompareGlyphHeightsOfFrontmostFonts(mekkaObject):
@@ -45,8 +38,7 @@ class CompareGlyphHeightsOfFrontmostFonts(mekkaObject):
 		tooltipText = "How much of a difference is OK. Hint: overshoot size is a good idea for this one."
 		self.w.tolerateText = vanilla.TextBox("auto", "Tolerate difference up to", sizeStyle='small', selectable=True)
 		self.w.tolerateText.setToolTip(tooltipText)
-		formatter = NSNumberFormatter.alloc().init()
-		formatter.setMinimum_(0)
+		formatter = decimalFormatter(0)
 		self.w.tolerate = SteppingEditText("auto", "5", callback=self.SavePreferences, sizeStyle='small', formatter=formatter)
 		self.w.tolerate.setToolTip(tooltipText)
 
@@ -112,8 +104,8 @@ class CompareGlyphHeightsOfFrontmostFonts(mekkaObject):
 				thisFont = Glyphs.font  # frontmost font
 				otherFont = Glyphs.fonts[1]  # second font
 				# unsaved fonts have no file path:
-				thisFileName = thisFont.filepath.lastPathComponent() if thisFont.filepath else f"{thisFont.familyName} (unsaved)"
-				otherFileName = otherFont.filepath.lastPathComponent() if otherFont.filepath else f"{otherFont.familyName} (unsaved)"
+				thisFileName = fontFileName(thisFont)
+				otherFileName = fontFileName(otherFont)
 				print(
 					"Compare Glyph Heights of Frontmost Fonts Report for:\n  (1) %s: %s\n      %s\n  (2) %s: %s\n      %s" % (
 						thisFont.familyName,

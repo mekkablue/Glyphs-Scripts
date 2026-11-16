@@ -7,7 +7,7 @@ import codecs
 import vanilla
 from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, GSComponent, Message, GetSaveFile, GetOpenFile
-from mekkablue import mekkaObject, getLegibleFont, newGlyphWithName
+from mekkablue import mekkaObject, getLegibleFont, newGlyphWithName, fontFileName
 
 AXtDefault = """
 Syntax:
@@ -562,7 +562,7 @@ class EncodingConverter(mekkaObject):
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
 				print("Encoding Converter Report for %s" % thisFont.familyName)
-				fileName = thisFont.filepath.lastPathComponent() if thisFont.filepath else f"{thisFont.familyName} (unsaved)"
+				fileName = fontFileName(thisFont)
 				print(f"📄 {fileName}")
 				print()
 

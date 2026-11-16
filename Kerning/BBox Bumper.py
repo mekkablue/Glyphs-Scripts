@@ -5,64 +5,11 @@ Like Auto Bumper, but with the bounding box of a group of glyphs, and the kernin
 
 import vanilla
 import math
-import objc
 from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
-from Foundation import NSNumberFormatter, NSRect, NSUnionRect, NSIsEmptyRect, NSInsetRect, NSStringFromRect, NSAffineTransform, NSAffineTransformStruct
+from Foundation import NSRect, NSUnionRect, NSIsEmptyRect, NSInsetRect, NSStringFromRect, NSAffineTransform, NSAffineTransformStruct
 from kernanalysis import stringToListOfGlyphsForFont, minDistanceBetweenTwoLayers
 from GlyphsApp import Glyphs, GSFeature, GSLayer, GSPath, Message
-from mekkablue import mekkaObject, UpdateButton
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
-
-
-def updatedCode(oldCode, beginSig, endSig, newCode):
-	"""Replaces text in oldCode with newCode, but only between beginSig and endSig."""
-	beginOffset = oldCode.find(beginSig)
-	endOffset = oldCode.find(endSig) + len(endSig)
-	newCode = oldCode[:beginOffset] + beginSig + newCode + "\n" + endSig + oldCode[endOffset:]
-	return newCode
-
-
-def createOTFeature(featureName="calt", featureCode="# empty feature code", targetFont=Glyphs.font, codeSig="CUSTOM-CONTEXTUAL-ALTERNATES", prefix=""):
-	"""
-	Creates or updates an OpenType feature in the font.
-	Returns a status message in form of a string.
-	featureName: name of the feature (str),
-	featureCode: the AFDKO feature code (str),
-	targetFont: the GSFont object receiving the feature,
-	codeSig: the code signature (str) used as delimiters.
-	"""
-
-	beginSig = "# BEGIN " + codeSig + "\n"
-	endSig = "# END " + codeSig + "\n"
-
-	if featureName in [f.name for f in targetFont.features]:
-		# feature already exists:
-		targetFeature = targetFont.features[featureName]
-
-		if prefix and not targetFeature.code.strip().startswith(prefix.strip()):
-			targetFeature.code = prefix + "\n" + targetFeature.code
-
-		if beginSig in targetFeature.code:
-			# replace old code with new code:
-			targetFeature.code = updatedCode(targetFeature.code, beginSig, endSig, featureCode)
-		else:
-			# append new code:
-			targetFeature.code += "\n\n" + beginSig + featureCode + "\n" + endSig
-
-		return "Updated existing OT feature '%s'." % featureName
-	else:
-		# create feature with new code:
-		newFeature = GSFeature()
-		newFeature.name = featureName
-		newFeature.code = beginSig + featureCode + "\n" + endSig
-		if prefix:
-			newFeature.code = prefix + "\n\n" + newFeature.code
-		targetFont.features.append(newFeature)
-		return "Created new OT feature '%s'" % featureName
+from mekkablue import mekkaObject, UpdateButton, SteppingEditText, integerFormatter, createOTFeature
 
 
 def straightenedLayer(layer):
@@ -234,18 +181,10 @@ class BBoxBumperKerning(mekkaObject):
 		# UI elements:
 		inset = 15
 
-		formatter = NSNumberFormatter.alloc().init()
-		formatter.setAllowsFloats_(False)  # integers only
-		thresholdFormatter = NSNumberFormatter.alloc().init()
-		thresholdFormatter.setAllowsFloats_(False)
-		thresholdFormatter.setMinimum_(0)
-		roundFormatter = NSNumberFormatter.alloc().init()
-		roundFormatter.setAllowsFloats_(False)
-		roundFormatter.setMinimum_(1)
-		percentFormatter = NSNumberFormatter.alloc().init()
-		percentFormatter.setAllowsFloats_(False)
-		percentFormatter.setMinimum_(0)
-		percentFormatter.setMaximum_(100)
+		formatter = integerFormatter()
+		thresholdFormatter = integerFormatter(0)
+		roundFormatter = integerFormatter(1)
+		percentFormatter = integerFormatter(0, 100)
 
 		self.w.descriptionText = vanilla.TextBox("auto", "Bump the bbox of an OT Class (defined by a token) with other glyphs, and insert kern feature:", sizeStyle='small', selectable=True)
 

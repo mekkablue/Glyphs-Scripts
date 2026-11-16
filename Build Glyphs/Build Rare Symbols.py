@@ -3,13 +3,12 @@ __doc__ = """
 Builds white and black, small and large, circles, diamonds, triangles, arrowheads and squares, plus the propeller (Cmd), option and shift key symbols, the viewdata square, servicemark, telephone, careof and cadauna.
 """
 
-import objc
 import vanilla
 import traceback
 from GlyphsApp import Glyphs, GSLayer, GSComponent, Message
-from mekkablue import mekkaObject, newGlyphWithName
+from mekkablue import mekkaObject, newGlyphWithName, SteppingEditText, integerFormatter
 from mekkablue.geometry import transform, offsetLayer
-from Foundation import NSNumberFormatter, NSPoint
+from Foundation import NSPoint
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 
 
@@ -480,22 +479,6 @@ def drawPenDataInLayer(thisLayer, penData, closePath=True):
 	# clean up:
 	thisLayer.cleanUpPaths()
 	return thisLayer
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
-
-
-def integerFormatter(minimum=None, maximum=None):
-	"""Number formatter that only accepts integers, optionally within a range."""
-	formatter = NSNumberFormatter.alloc().init()
-	formatter.setAllowsFloats_(False)
-	if minimum is not None:
-		formatter.setMinimum_(minimum)
-	if maximum is not None:
-		formatter.setMaximum_(maximum)
-	return formatter
 
 
 class BuildCirclesSquaresTriangles(mekkaObject):

@@ -4,17 +4,10 @@ Finds interpolations in which points travel more than they should, i.e., can fin
 """
 
 import vanilla
-import objc
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
-from Foundation import NSNumberFormatter
 from GlyphsApp import Glyphs, GSOFFCURVE, Message, distance
-from mekkablue import mekkaObject, previewPanel
+from mekkablue import mekkaObject, previewPanel, SteppingEditText, decimalFormatter
 from mekkablue.geometry import angle
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 def setCurrentTabToShowAllInstances(font):
@@ -70,8 +63,7 @@ class TravelTracker(mekkaObject):
 
 		self.w.descriptionText = vanilla.TextBox("auto", "Finds master-compatible glyphs with nodes that travel more than they should because they interpolate with a wrong node in another master.", sizeStyle='small', selectable=True)
 
-		percentFormatter = NSNumberFormatter.alloc().init()
-		percentFormatter.setMinimum_(0)
+		percentFormatter = decimalFormatter(0)
 		self.w.travelPercentageText = vanilla.TextBox("auto", "Acceptable travel:", sizeStyle='small', selectable=True)
 		self.w.travelPercentage = SteppingEditText("auto", "50", callback=self.SavePreferences, sizeStyle='small', formatter=percentFormatter)
 		self.w.travelPercentageText2 = vanilla.TextBox("auto", "% of bbox diagonal", sizeStyle="small", selectable=True)
@@ -90,9 +82,7 @@ class TravelTracker(mekkaObject):
 
 		self.w.segmentRotationDescription = vanilla.TextBox("auto", "Find big angle changes of consecutive nodes:", sizeStyle="small", selectable=True)
 
-		angleFormatter = NSNumberFormatter.alloc().init()
-		angleFormatter.setMinimum_(0)
-		angleFormatter.setMaximum_(180)
+		angleFormatter = decimalFormatter(0, 180)
 		self.w.segmentRotation = vanilla.CheckBox("auto", "Node pairs may rotate up to", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.thresholdAngle = SteppingEditText("auto", "40", callback=self.SavePreferences, sizeStyle="small", formatter=angleFormatter)
 		self.w.segmentRotationText = vanilla.TextBox("auto", "degrees", sizeStyle="small", selectable=True)
@@ -104,8 +94,7 @@ class TravelTracker(mekkaObject):
 		self.w.orthogonalToNonOrthogonal = vanilla.CheckBox("auto", "Report all segments going non-orthogonal", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.orthogonalToNonOrthogonal.setToolTip("Will list any glyph where a segment (of minimum length, see below) changes from orthogonal (vertical or horizontal) to any other angle. Usually unintended unless you interpolate from upright to oblique.")
 
-		lengthFormatter = NSNumberFormatter.alloc().init()
-		lengthFormatter.setMinimum_(0)
+		lengthFormatter = decimalFormatter(0)
 		self.w.ignoreShortSegments = vanilla.CheckBox("auto", "Ignore short segments up to", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.ignoreShortSegmentsThreshold = SteppingEditText("auto", "10", callback=self.SavePreferences, sizeStyle="small", formatter=lengthFormatter)
 		self.w.ignoreShortSegmentsText = vanilla.TextBox("auto", "units long", sizeStyle="small", selectable=True)

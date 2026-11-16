@@ -3,9 +3,8 @@ __doc__ = """
 Batch-set sbix positions and glyph widths.
 """
 
-import objc
 import vanilla
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, SteppingEditText, integerFormatter
 from GlyphsApp import Glyphs, Message
 from AppKit import (
 	NSAffineTransform,
@@ -17,22 +16,7 @@ from AppKit import (
 	NSRect,
 	NSSize,
 )
-from Foundation import NSNumberFormatter, NSPoint
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
-
-
-def integerFormatter(minimum=None, maximum=None):
-	formatter = NSNumberFormatter.alloc().init()
-	formatter.setAllowsFloats_(False)
-	if minimum is not None:
-		formatter.setMinimum_(minimum)
-	if maximum is not None:
-		formatter.setMaximum_(maximum)
-	return formatter
+from Foundation import NSPoint
 
 
 class sbixSpacer(mekkaObject):

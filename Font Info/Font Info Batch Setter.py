@@ -3,17 +3,10 @@ __doc__ = """
 Batch-apply Font Info > Font settings to open fonts: designer, designer URL, manufacturer, manufacturer URL, license, license URL, copyright, trademark, vendor ID, description, sample text, version number, and date/time. Useful for syncing Font Info settings across many fonts.
 """
 import datetime
-import objc
 import vanilla
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, SteppingEditText, integerFormatter
 from GlyphsApp import Glyphs, Message
 from AppKit import NSDate, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
-from Foundation import NSNumberFormatter
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 def addPropertyToFont(font, key, value):
@@ -148,10 +141,7 @@ class FontInfoBatchSetter(mekkaObject):
 
 		# VERSION NUMBER
 		self.w.setVersion = vanilla.CheckBox("auto", "Version:", value=True, callback=self.SavePreferences, sizeStyle="small")
-		versionFormatter = NSNumberFormatter.alloc().init()
-		versionFormatter.setAllowsFloats_(False)  # integers only
-		versionFormatter.setMinimum_(0)
-		versionFormatter.setMaximum_(65535)  # the 16-bit limit of the version number
+		versionFormatter = integerFormatter(0, 65535)
 		self.w.versionMajor = SteppingEditText("auto", "1", callback=self.SavePreferences, sizeStyle="small", formatter=versionFormatter)
 		self.w.versionDot = vanilla.TextBox("auto", ".", sizeStyle="small", selectable=True)
 		self.w.versionMinor = vanilla.EditText("auto", "005", callback=self.SavePreferences, sizeStyle="small")

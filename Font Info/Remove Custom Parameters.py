@@ -6,7 +6,7 @@ Removes all parameters of one kind from Font Info > Font, Masters, Instances. Us
 import vanilla
 from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, fontFileName
 
 
 class RemoveCustomParameters(mekkaObject):
@@ -147,7 +147,7 @@ class RemoveCustomParameters(mekkaObject):
 				deletedParameterCount = 0
 				for thisFont in theseFonts:
 					print("Remove Custom Parameters Report for %s" % thisFont.familyName)
-					print(thisFont.filepath if thisFont.filepath else f"{thisFont.familyName} (unsaved)")
+					print(fontFileName(thisFont, fullPath=True))
 					print()
 
 					parameterToBeDeleted = self.w.parameterMenu.getItem()

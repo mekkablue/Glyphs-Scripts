@@ -3,17 +3,10 @@ __doc__ = """
 Compares anchor structure and anchor heights between the two frontmost fonts.
 """
 
-import objc
 import vanilla
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, SteppingEditText, decimalFormatter, fontFileName
 from GlyphsApp import Glyphs, Message
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
-from Foundation import NSNumberFormatter
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 class CompareAnchorsOfFrontmostFonts(mekkaObject):
@@ -50,8 +43,7 @@ class CompareAnchorsOfFrontmostFonts(mekkaObject):
 		tooltipText = "Will not report if the difference in y coordinates is less or same as the given tolerance. Use this if e.g. your x-height is different in your italic. Set to zero for exact match."
 		self.w.anchorHeightToleranceText = vanilla.TextBox("auto", "Deviation tolerance", sizeStyle='small', selectable=True)
 		self.w.anchorHeightToleranceText.setToolTip(tooltipText)
-		formatter = NSNumberFormatter.alloc().init()
-		formatter.setMinimum_(0)
+		formatter = decimalFormatter(0)
 		self.w.anchorHeightTolerance = SteppingEditText("auto", "0", callback=self.SavePreferences, sizeStyle='small', formatter=formatter)
 		self.w.anchorHeightTolerance.setToolTip(tooltipText)
 
@@ -151,8 +143,8 @@ class CompareAnchorsOfFrontmostFonts(mekkaObject):
 				# unsaved fonts have no file path:
 				thisFilePath = "~/" + thisFont.filepath.relativePathFromBaseDirPath_("~") if thisFont.filepath else "⚠️ The font file has not been saved yet."
 				otherFilePath = "~/" + otherFont.filepath.relativePathFromBaseDirPath_("~") if otherFont.filepath else "⚠️ The font file has not been saved yet."
-				thisFileName = thisFont.filepath.lastPathComponent() if thisFont.filepath else f"{thisFont.familyName} (unsaved)"
-				otherFileName = otherFont.filepath.lastPathComponent() if otherFont.filepath else f"{otherFont.familyName} (unsaved)"
+				thisFileName = fontFileName(thisFont)
+				otherFileName = fontFileName(otherFont)
 				print(
 					"Compare Anchors of Frontmost Fonts Report for:\n  (1) %s: %s\n      %s\n  (2) %s: %s\n      %s" % (
 						thisFont.familyName,

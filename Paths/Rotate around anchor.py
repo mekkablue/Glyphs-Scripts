@@ -5,9 +5,8 @@ Rotate selected glyphs (or selected paths and components) around a 'rotate' anch
 
 from math import isfinite
 
-import objc
 import vanilla
-from mekkablue import mekkaObject, newAnchorWithName, UpdateButton
+from mekkablue import mekkaObject, newAnchorWithName, UpdateButton, SteppingEditText, integerFormatter
 from mekkablue.geometry import centerOfRect
 from GlyphsApp import Glyphs
 from AppKit import (
@@ -18,14 +17,9 @@ from AppKit import (
 	NSLayoutPriorityWindowSizeStayPut,
 	NSTextAlignmentRight,
 )
-from Foundation import NSAffineTransform, NSNumberFormatter, NSPoint
+from Foundation import NSAffineTransform, NSPoint
 
 rotateAnchorName = "rotate"
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 class Rotator(mekkaObject):
@@ -47,8 +41,7 @@ class Rotator(mekkaObject):
 		)
 
 		self.w.anchor_text = vanilla.TextBox("auto", "Set 'rotate' anchor", sizeStyle='small')
-		anchorFormatter = NSNumberFormatter.alloc().init()
-		anchorFormatter.setAllowsFloats_(False)  # integers, negative values allowed
+		anchorFormatter = integerFormatter()
 		self.w.anchor_x = SteppingEditText("auto", "0", sizeStyle='small', callback=self.SavePreferences, formatter=anchorFormatter)
 		self.w.anchor_y = SteppingEditText("auto", "0", sizeStyle='small', callback=self.SavePreferences, formatter=anchorFormatter)
 		self.w.updateButton = UpdateButton("auto", callback=self.updateRotateAnchor)
@@ -61,9 +54,7 @@ class Rotator(mekkaObject):
 		self.w.rotate_cw = vanilla.Button("auto", u"↻ cw", sizeStyle='small', callback=self.rotate)
 
 		self.w.stepAndRepeat_text1 = vanilla.TextBox("auto", "Repeat", sizeStyle='small')
-		timesFormatter = NSNumberFormatter.alloc().init()
-		timesFormatter.setAllowsFloats_(False)
-		timesFormatter.setMinimum_(0)
+		timesFormatter = integerFormatter(0)
 		self.w.stepAndRepeat_times = SteppingEditText("auto", "5", sizeStyle='small', callback=self.SavePreferences, formatter=timesFormatter)
 		self.w.stepAndRepeat_text2 = vanilla.TextBox("auto", "times", sizeStyle='small')
 		self.w.stepAndRepeat_ccw = vanilla.Button("auto", u"↺+ ccw", sizeStyle='small', callback=self.rotate)

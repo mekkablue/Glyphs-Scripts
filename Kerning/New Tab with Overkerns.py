@@ -3,9 +3,8 @@ __doc__ = """
 Asks a threshold percentage, and opens a new tab with all kern pairs going beyond the width threshold. Option to fix them too.
 """
 
-import objc
 import vanilla
-from mekkablue import mekkaObject, newLineControlLayer, reportFontName
+from mekkablue import mekkaObject, newLineControlLayer, reportFontName, SteppingEditText, integerFormatter
 from GlyphsApp import Glyphs, Message
 from AppKit import (
 	NSColor,
@@ -16,23 +15,6 @@ from AppKit import (
 	NSLayoutPriorityWindowSizeStayPut,
 	NSTextAlignmentRight,
 )
-from Foundation import NSNumberFormatter
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
-
-
-def integerFormatter(minimum=None, maximum=None):
-	"""Number formatter that only accepts integers, optionally within a range."""
-	formatter = NSNumberFormatter.alloc().init()
-	formatter.setAllowsFloats_(False)
-	if minimum is not None:
-		formatter.setMinimum_(minimum)
-	if maximum is not None:
-		formatter.setMaximum_(maximum)
-	return formatter
 
 
 def roundedDownBy(value, base):

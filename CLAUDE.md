@@ -232,28 +232,21 @@ self.w.status   = vanilla.TextBox("auto", "", sizeStyle="small")
 ### Integer fields — always stepping fields
 
 **Every new integer field is a stepping field**, so arrow keys (and Shift/Option modifiers) step the value as in
-Glyphs’ own numeric fields. Subclass `vanilla.EditText` with Glyphs’ `GSSteppingTextField` and limit the input with an
-`NSNumberFormatter` passed as `formatter=`:
+Glyphs’ own numeric fields. Use `SteppingEditText` from `mekkablue` (it wraps Glyphs’ `GSSteppingTextField`) and limit
+the input with a formatter passed as `formatter=`. Do not copy the class or the formatter code into the script:
 
 ```python
-import objc
-from Foundation import NSNumberFormatter
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
+from mekkablue import mekkaObject, SteppingEditText, integerFormatter
 
 # in __init__:
-formatter = NSNumberFormatter.alloc().init()
-formatter.setAllowsFloats_(False)  # integers only; leave out for decimals
-formatter.setMinimum_(0)  # optional; also setMaximum_()
-self.w.threshold = SteppingEditText("auto", "30", callback=self.SavePreferences, sizeStyle="small", formatter=formatter)
+self.w.threshold = SteppingEditText("auto", "30", callback=self.SavePreferences, sizeStyle="small", formatter=integerFormatter(0, 100))
 ```
 
-The formatter enforces the range, including while stepping. **Do not** write your own callback that checks the value
-and resets it (e.g., “below 0 → set 0”); use the formatter’s `setMinimum_()`/`setMaximum_()` instead, and let
-`SavePreferences` be the callback. Read the value with `self.prefInt()`.
+`integerFormatter(minimum=None, maximum=None)` accepts whole numbers only; `decimalFormatter(minimum=None, maximum=None,
+fractionDigits=None)` also accepts decimals; both are shortcuts for `numberFormatter()`. The formatter enforces the
+range, including while stepping. **Do not** write your own callback that checks the value and resets it (e.g., “below 0
+→ set 0”); use the formatter’s range instead, and let `SavePreferences` be the callback. With a formatter, `get()` and
+the stored pref are numbers, not strings: read them with `self.prefInt()` or `self.prefFloat()`.
 
 ### Tooltips
 
@@ -448,6 +441,12 @@ Read it to understand existing scripts. Never use it for a new window, and conve
 | `clearGuides(layerOrMaster)` | Deletes all guides of a `GSLayer` or `GSFontMaster`, Glyphs 2/3/4 compatible |
 | `layerGroupsOf(glyph)` | Returns the interpolation-compatible layer ID groups of a `GSGlyph` as tuples; use instead of `layerGroups_masters_error_()`, which groups by instances — not the default in Glyphs 3/4 — and instead of `glyph.layerGroups()`, which does not exist in Glyphs 3.1 |
 | `newAnchorWithName(anchorName, position=None)` | Returns a new `GSAnchor`; use instead of `GSAnchor(name, position)` (raises a `TypeError` in Glyphs 4) or `GSAnchor.alloc().initWithName_position_()` (missing in Glyphs 3) |
+| `fontFileName(font, fullPath=False)` | File name (or full path) of a `GSFont` for reports; `f"{font.familyName} (unsaved)"` if the font has no file. Use instead of hand-written `filepath` checks |
+| `numberFormatter(minimum, maximum, integersOnly, fractionDigits)`, `integerFormatter(minimum, maximum)`, `decimalFormatter(minimum, maximum, fractionDigits)` | `NSNumberFormatter` for numeric fields |
+| `SteppingEditText` | `vanilla.EditText` with arrow-key stepping, see “Integer fields” |
+| `updatedCode(oldCode, beginSig, endSig, newCode)` | Replaces text in `oldCode`, but only between the two signatures |
+| `createOTFeature(featureName, featureCode, targetFont, codeSig, createSeparateEntry, prefix, appendCode, ignoreAutomatic)` | Creates or updates an OT feature, keeping the code between `# BEGIN`/`# END` signature comments; returns a status message |
+| `createOTClass(className, classGlyphNames, targetFont, automate)` | Creates or updates an OT class; returns a status message |
 | `getLegibleFont(size=None)` | Returns a system legible font (Glyphs 2/3 compatible) |
 | `previewPanel()` | Returns the Preview Panel plugin instance, or `None`; use instead of scanning `Glyphs.delegate().valueForKey_("pluginInstances")`, which raises an `NSUnknownKeyException` in Glyphs 4 |
 | `macroPanelController()` | Returns the controller of the Macro Panel (Window > Macro Panel), or `None`; use instead of `Glyphs.delegate().macroPanelController()`, which raises an `AttributeError` in Glyphs 4 |

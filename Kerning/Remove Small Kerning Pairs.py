@@ -3,17 +3,10 @@ __doc__ = """
 Specify a kerning value, and every kerning in the current master smaller than that will be removed.
 """
 
-import objc
 import vanilla
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, SteppingEditText, integerFormatter
 from GlyphsApp import Glyphs
 from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal
-from Foundation import NSNumberFormatter
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 def nameForID(font, ID):
@@ -49,9 +42,7 @@ class DeleteSmallKerningPairs(mekkaObject):
 		inset = 15
 
 		self.w.textHowMuch = vanilla.TextBox("auto", "Delete pairs smaller than:")
-		formatter = NSNumberFormatter.alloc().init()
-		formatter.setAllowsFloats_(False)
-		formatter.setMinimum_(1)
+		formatter = integerFormatter(1)
 		self.w.howMuch = SteppingEditText("auto", "10", callback=self.SavePreferences, formatter=formatter)
 		tooltip = "Kerning pairs with an absolute value smaller than this will be removed."
 		self.w.textHowMuch.setToolTip(tooltip)

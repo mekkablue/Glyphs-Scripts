@@ -3,17 +3,10 @@ __doc__ = """
 Finds small paths (smaller tahn a user-definable threshold) in glyphs and open a new tab with affected glyphs.
 """
 
-import objc
 import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
-from Foundation import NSNumberFormatter
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
+from mekkablue import mekkaObject, SteppingEditText, integerFormatter, fontFileName
 
 
 def glyphShouldBeIgnored(glyphname):
@@ -52,9 +45,7 @@ class FindSmallPaths(mekkaObject):
 
 		self.w.minArea = vanilla.TextBox("auto", "1000 square units", sizeStyle='small', alignment="center")
 
-		formatter = NSNumberFormatter.alloc().init()
-		formatter.setAllowsFloats_(False)  # integers only
-		formatter.setMinimum_(1)
+		formatter = integerFormatter(1)
 		self.w.sliderMin = SteppingEditText("auto", "10", sizeStyle='small', callback=self.SliderUpdate, formatter=formatter)
 		self.w.sliderMax = SteppingEditText("auto", "1000", sizeStyle='small', callback=self.SliderUpdate, formatter=formatter)
 		self.w.areaSlider = vanilla.Slider("auto", value=0.1, minValue=0.0, maxValue=1.0, sizeStyle='small', callback=self.SliderUpdate)
@@ -218,7 +209,7 @@ class FindSmallPaths(mekkaObject):
 				for ii, thisFont in enumerate(fontsToLookAt):
 					print("\n🔤")
 					print("Font: %s" % thisFont.familyName)
-					print("Path: %s" % (thisFont.filepath or f"{thisFont.familyName} (unsaved)"))
+					print("Path: %s" % (fontFileName(thisFont, fullPath=True)))
 
 					numOfGlyphs = len(thisFont.glyphs)
 					layersWithSmallPaths = []

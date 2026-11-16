@@ -3,9 +3,8 @@ __doc__ = """
 Set path attributes of all paths in selected glyphs, the master, the font, etc.
 """
 
-import objc
 import vanilla
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, SteppingEditText, integerFormatter
 from GlyphsApp import Glyphs, Message
 from AppKit import (
 	NSLayoutConstraintOrientationHorizontal,
@@ -15,12 +14,6 @@ from AppKit import (
 	NSLayoutPriorityWindowSizeStayPut,
 	NSTextAlignmentRight,
 )
-from Foundation import NSNumberFormatter
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 def intOrNone(value):
@@ -115,9 +108,7 @@ class BatchSetPathAttributes(mekkaObject):
 		tooltip = "Width of the path in units."
 		self.w.strokeWidthCheck = vanilla.CheckBox("auto", "Stroke Width", sizeStyle="small", callback=self.SavePreferences)
 		self.w.strokeWidthCheck.setToolTip(tooltip)
-		strokeWidthFormatter = NSNumberFormatter.alloc().init()
-		strokeWidthFormatter.setAllowsFloats_(False)
-		strokeWidthFormatter.setMinimum_(0)
+		strokeWidthFormatter = integerFormatter(0)
 		self.w.strokeWidth = SteppingEditText("auto", "20", callback=self.SavePreferences, sizeStyle="small", formatter=strokeWidthFormatter)
 		self.w.strokeWidth.setToolTip(tooltip)
 

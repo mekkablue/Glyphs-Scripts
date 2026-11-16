@@ -4,17 +4,10 @@ Manage and sync ascender, descender and linegap values for hhea, OS/2 sTypo and 
 """
 
 import string
-import objc
 import vanilla
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, SteppingEditText, integerFormatter
 from GlyphsApp import Glyphs, Message, GetOpenFile, GSUppercase, GSLowercase, GSLayer
 from AppKit import NSColor, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
-from Foundation import NSNumberFormatter
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 def topEdge(rect):
@@ -110,14 +103,9 @@ class VerticalMetricsManager(mekkaObject):
 		inset = 15
 
 		# unsigned integers for usWin, signed integers for typo and hhea; fields may be left empty (no parameter):
-		unsignedFormatter = NSNumberFormatter.alloc().init()
-		unsignedFormatter.setAllowsFloats_(False)
-		unsignedFormatter.setMinimum_(0)
-		signedFormatter = NSNumberFormatter.alloc().init()
-		signedFormatter.setAllowsFloats_(False)
-		roundFormatter = NSNumberFormatter.alloc().init()
-		roundFormatter.setAllowsFloats_(False)
-		roundFormatter.setMinimum_(1)
+		unsignedFormatter = integerFormatter(0)
+		signedFormatter = integerFormatter()
+		roundFormatter = integerFormatter(1)
 
 		self.w.descriptionText = vanilla.TextBox("auto", "Manage and sync hhea, typo and win values:", sizeStyle="small", selectable=True)
 

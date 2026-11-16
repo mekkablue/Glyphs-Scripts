@@ -3,17 +3,11 @@ __doc__ = """
 Sets origin point for Rotate tool.
 """
 
-import objc
 import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityWindowSizeStayPut
-from Foundation import NSPoint, NSClassFromString, NSNumberFormatter
+from Foundation import NSPoint, NSClassFromString
 from GlyphsApp import Glyphs
-from mekkablue import mekkaObject
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
+from mekkablue import mekkaObject, SteppingEditText, decimalFormatter
 
 
 class SetTransformOriginWindow(mekkaObject):
@@ -30,8 +24,7 @@ class SetTransformOriginWindow(mekkaObject):
 
 		# UI elements:
 		inset = 15
-		formatter = NSNumberFormatter.alloc().init()
-		formatter.setMaximumFractionDigits_(3)
+		formatter = decimalFormatter(fractionDigits=3)
 
 		self.w.text_1 = vanilla.TextBox("auto", "Origin")
 		self.w.originX = SteppingEditText("auto", "0.0", formatter=formatter)

@@ -3,9 +3,8 @@ __doc__ = """
 Measures in centers of straight segments, and reports deviations in stem thicknesses.
 """
 
-import objc
 import vanilla
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, SteppingEditText, integerFormatter
 from GlyphsApp import Glyphs, GSAnnotation, PLUS, Message, distance, subtractPoints, scalePoint, addPoints
 from AppKit import (
 	NSColor,
@@ -17,12 +16,7 @@ from AppKit import (
 	NSLayoutPriorityWindowSizeStayPut,
 	NSTextAlignmentRight,
 )
-from Foundation import NSNumberFormatter, NSPoint
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
+from Foundation import NSPoint
 
 
 def pointDistance(p1, p2):
@@ -90,9 +84,7 @@ class StraightStemCruncher(mekkaObject):
 
 		tooltipText = "Looks for straight-line segments with at least this length and measures from their center to the opposing segment. Half x-height is a good idea."
 		self.w.minimumSegmentLengthText = vanilla.TextBox("auto", "Minimum segment length", sizeStyle="small", selectable=True)
-		minimumSegmentLengthFormatter = NSNumberFormatter.alloc().init()
-		minimumSegmentLengthFormatter.setAllowsFloats_(False)
-		minimumSegmentLengthFormatter.setMinimum_(0)
+		minimumSegmentLengthFormatter = integerFormatter(0)
 		self.w.minimumSegmentLength = SteppingEditText("auto", "200", callback=self.SavePreferences, sizeStyle="small", formatter=minimumSegmentLengthFormatter)
 		self.w.minimumSegmentLengthText.setToolTip(tooltipText)
 		self.w.minimumSegmentLength.setToolTip(tooltipText)

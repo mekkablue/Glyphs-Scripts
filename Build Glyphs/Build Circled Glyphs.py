@@ -3,7 +3,7 @@ __doc__ = """
 Builds circled numbers and letters (U+24B6...24EA and U+2460...2473) from _part.circle and the letters and figures.
 """
 
-from Foundation import NSNumberFormatter, NSPoint
+from Foundation import NSPoint
 from AppKit import (
 	NSLayoutConstraintOrientationVertical,
 	NSLayoutPriorityWindowSizeStayPut,
@@ -12,10 +12,9 @@ from AppKit import (
 	NSWindowStyleMaskResizable,
 )
 import math
-import objc
 import vanilla
 from GlyphsApp import Glyphs, GSGlyph, GSComponent, GSAnchor, GSOFFCURVE, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, SteppingEditText, integerFormatter
 from mekkablue.geometry import transform, centerOfRect, offsetLayer
 
 circledNumbers = (
@@ -99,22 +98,6 @@ circledLC = (
 	"y.circled",
 	"z.circled",
 )
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
-
-
-def integerFormatter(minimum=None, maximum=None):
-	"""Number formatter that only accepts integers, optionally within a range."""
-	formatter = NSNumberFormatter.alloc().init()
-	formatter.setAllowsFloats_(False)
-	if minimum is not None:
-		formatter.setMinimum_(minimum)
-	if maximum is not None:
-		formatter.setMaximum_(maximum)
-	return formatter
 
 
 def combinedBounds(rects):

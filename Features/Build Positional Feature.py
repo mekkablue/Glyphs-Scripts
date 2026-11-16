@@ -5,97 +5,8 @@ Create or update OpenType feature code for positional forms (isolated, initial, 
 
 import vanilla
 from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
-from GlyphsApp import Glyphs, GSFeature, GSClass, Message
-from mekkablue import mekkaObject, UpdateButton
-
-
-def updatedCode(oldcode, beginsig, endsig, newcode):
-	"""Replaces text in oldcode with newcode, but only between beginsig and endsig."""
-	begin_offset = oldcode.find(beginsig)
-	end_offset = oldcode.find(endsig) + len(endsig)
-	newcode = oldcode[:begin_offset] + beginsig + newcode + "\n" + endsig + oldcode[end_offset:]
-	return newcode
-
-
-def createOTFeature(featureName="calt", featureCode="# empty feature code", targetFont=None, codeSig="DEFAULT-CODE-SIGNATURE", createSeparateEntry=False):
-	"""
-	Creates or updates an OpenType feature in the font.
-	Returns a status message in form of a string.
-	"""
-
-	if targetFont:
-		beginSig = "# BEGIN " + codeSig + "\n"
-		endSig = "# END " + codeSig + "\n"
-
-		featuresWithTag = [f for f in targetFont.features if f.name == featureName and f.name]
-		featureExists = len(featuresWithTag) > 0
-		featuresWithSig = [f for f in targetFont.features if beginSig in f.code and endSig in f.code and f.active]
-		sigExists = len(featuresWithSig) > 0
-
-		if sigExists:
-			for targetFeature in featuresWithSig:
-				# replace old code with new code:
-				targetFeature.code = updatedCode(targetFeature.code, beginSig, endSig, featureCode)
-			return "✅ Updated %i existing OT feature%s ‘%s’." % (
-				len(featuresWithSig),
-				"" if len(featuresWithSig) == 1 else "s",
-				featureName,
-			)
-		elif featureExists and not createSeparateEntry:
-			# feature already exists:
-			targetFeature = targetFont.features[featureName]  # take the first available one
-			targetFeature.code += "\n" + beginSig + featureCode + "\n" + endSig
-			return "✅ Added code to first available OT feature ‘%s’." % featureName
-		else:
-			# create feature with new code:
-			newFeature = GSFeature()
-			newFeature.name = featureName
-			newFeature.code = beginSig + featureCode + "\n" + endSig
-			targetFont.features.append(newFeature)
-			return "🌟 Created new OT feature entry ‘%s’" % featureName
-	else:
-		return "🛑 ERROR: Could not create OT feature %s. No font detected." % (featureName)
-
-
-def createOTClass(className="@default", classGlyphNames=[], targetFont=None, automate=False):
-	"""
-	Creates an OpenType class in the font.
-	Default: class @default with currently selected glyphs in the current font.
-	Returns a status message in form of a string.
-	"""
-
-	if targetFont and (classGlyphNames or automate):
-		className = className.lstrip("@")  # strip '@' from beginning
-		classCode = " ".join(classGlyphNames)
-		otClass = None
-
-		# build or update class:
-		if className in [c.name for c in targetFont.classes]:
-			otClass = targetFont.classes[className]
-			otClass.code = classCode
-			returnText = "✅ Updated existing OT class ‘%s’." % (className)
-		else:
-			otClass = GSClass()
-			otClass.name = className
-			otClass.code = classCode
-			targetFont.classes.append(otClass)
-			returnText = "🌟 Created new OT class: ‘%s’" % (className)
-
-		# automate the class:
-		if automate and otClass is not None:
-			if Glyphs.versionNumber >= 3:
-				# GLYPHS 3
-				if otClass.canBeAutomated():
-					otClass.automatic = True
-			else:
-				# GLYPHS 2
-				otClass.automatic = True
-
-			returnText = returnText.rstrip(".") + " (automated)."
-
-		return returnText
-	else:
-		return "🛑 ERROR: Could not create OT class %s. Missing either font or glyph names, or both." % (className)
+from GlyphsApp import Glyphs, Message
+from mekkablue import mekkaObject, UpdateButton, createOTFeature, createOTClass, fontFileName
 
 
 class BuildPositionalFeature(mekkaObject):
@@ -246,7 +157,7 @@ class BuildPositionalFeature(mekkaObject):
 				)
 			else:
 				print(f"‘{self.title}’ Report for {thisFont.familyName}")
-				fileName = thisFont.filepath.lastPathComponent() if thisFont.filepath else f"{thisFont.familyName} (unsaved)"
+				fileName = fontFileName(thisFont)
 				print(f"📄 {fileName}")
 				print()
 

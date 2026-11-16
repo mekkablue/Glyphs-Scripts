@@ -4,18 +4,12 @@ Adjusts all kerning values by a specified amount.
 """
 
 import vanilla
-import objc
 from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 from Foundation import NSNumberFormatter
 from GlyphsApp import Glyphs, GSLTR, GSRTL
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, SteppingEditText
 
 optionList = ("Multiply by", "Add", "Add Absolute", "Round by", "Limit to")
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 class AdjustKerning(mekkaObject):

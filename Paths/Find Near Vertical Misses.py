@@ -5,17 +5,10 @@ Always checks on-curve points only, never removes overlap, always includes non-e
 never includes composites. Uses each layer's individual metrics (supports per-layer overrides).
 """
 
-import objc
 import vanilla
 from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
-from Foundation import NSNumberFormatter
 from GlyphsApp import Glyphs, GSAnnotation, TEXT, GSOFFCURVE, GSUppercase, GSLowercase, GSMetricsTypexHeight, GSMetricsTypeCapHeight, Message
-from mekkablue import mekkaObject
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
+from mekkablue import mekkaObject, SteppingEditText, decimalFormatter
 
 
 class FindNearVerticalMisses(mekkaObject):
@@ -47,8 +40,7 @@ class FindNearVerticalMisses(mekkaObject):
 		self.w.descriptionText.setToolTip("Searches for on-curve nodes that are close but not exactly on any vertical metric of their layer. Automatically skips xHeight for uppercase glyphs, and capHeight for lowercase glyphs, to avoid false positives.")
 
 		tooltipText = "Finds nodes that are not equal to any metric value, but off by up to this many units. Minimum: 1 unit."
-		formatter = NSNumberFormatter.alloc().init()
-		formatter.setMinimum_(1)
+		formatter = decimalFormatter(1)
 		self.w.devianceText = vanilla.TextBox("auto", "Find nodes off by up to", sizeStyle="small", selectable=True)
 		self.w.devianceText.setToolTip(tooltipText)
 		self.w.deviance = SteppingEditText("auto", "1", callback=self.SavePreferences, sizeStyle="small", formatter=formatter)

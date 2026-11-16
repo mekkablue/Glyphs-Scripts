@@ -3,29 +3,11 @@ __doc__ = """
 Creates kern strings for the current kerning and adds them to the Sample Strings.
 """
 
-import objc
 import vanilla
 import sampleText
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, SteppingEditText, integerFormatter, fontFileName
 from GlyphsApp import Glyphs, GSUppercase, GSSmallcaps, Message
 from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
-from Foundation import NSNumberFormatter
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
-
-
-def integerFormatter(minimum=None, maximum=None):
-	"""Number formatter that only accepts integers, optionally within a range."""
-	formatter = NSNumberFormatter.alloc().init()
-	formatter.setAllowsFloats_(False)
-	if minimum is not None:
-		formatter.setMinimum_(minimum)
-	if maximum is not None:
-		formatter.setMaximum_(maximum)
-	return formatter
 
 
 class SampleStringsWithMasterKerning(mekkaObject):
@@ -202,7 +184,7 @@ class SampleStringsWithMasterKerning(mekkaObject):
 				return
 			thisMaster = thisFont.selectedFontMaster
 			print(f"Sample Strings with Master Kerning Report for {thisFont.familyName}")
-			fileName = thisFont.filepath.lastPathComponent() if thisFont.filepath else f"{thisFont.familyName} (unsaved)"
+			fileName = fontFileName(thisFont)
 			print(f"📄 {fileName}")
 			print(f"Ⓜ️ Master: ‘{thisMaster.name}’")
 			print()

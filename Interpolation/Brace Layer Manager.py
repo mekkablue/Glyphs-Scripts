@@ -3,17 +3,10 @@ __doc__ = """
 Find and replace brace and bracket layer coordinates.
 """
 
-import objc
 import vanilla
 from AppKit import NSColor, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSNotificationCenter, NSTextAlignmentRight
-from Foundation import NSNumberFormatter
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, UpdateButton
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
+from mekkablue import mekkaObject, UpdateButton, SteppingEditText, integerFormatter
 
 
 class BraceLayerManager(mekkaObject):
@@ -61,9 +54,7 @@ class BraceLayerManager(mekkaObject):
 		self.w.newCoordinate.setToolTip(tooltipText)
 
 		self.w.axisText = vanilla.TextBox("auto", "for axis at index", sizeStyle="small")
-		axisIndexFormatter = NSNumberFormatter.alloc().init()
-		axisIndexFormatter.setAllowsFloats_(False)
-		axisIndexFormatter.setMinimum_(0)
+		axisIndexFormatter = integerFormatter(0)
 		self.w.axisIndex = SteppingEditText("auto", "0", callback=self.SavePreferences, sizeStyle="small", formatter=axisIndexFormatter)
 		self.w.axisTextAfter = vanilla.TextBox("auto", "(first axis = 0)", sizeStyle="small")
 		self.w.axisTextAfter.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())

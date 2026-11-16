@@ -5,21 +5,16 @@ In Glyphs 4+, presents a redesigned UI for inserting axis particles.
 """
 
 import vanilla
-import objc
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, SteppingEditText, decimalFormatter
 from GlyphsApp import Glyphs, GSInstance, INSTANCETYPESINGLE
 from AppKit import NSFont, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSSize, NSTextAlignmentRight, NSWindowStyleMaskResizable
-from Foundation import NSDictionary, NSMutableArray, NSMutableDictionary, NSNumberFormatter
+from Foundation import NSDictionary, NSMutableArray, NSMutableDictionary
 
 if Glyphs.versionNumber >= 4:
 	from GlyphsApp import GSNameParticle
 
 INSTANCETYPEPARTICLE = 4  # GSInstance.type for axis particle instances (Glyphs 4+)
 
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 rangemin = 3
 rangemax = 11
@@ -218,8 +213,7 @@ class InstanceMaker(mekkaObject):
 		self.w.master2 = vanilla.ComboBox("auto", self.MasterList(-1), callback=self.UpdateSample, sizeStyle='small')
 		self.w.master2.setToolTip("Weight value for the last instance being added, typically the stem width of your boldest weight.")
 		self.w.text_5 = vanilla.TextBox("auto", "at width:", sizeStyle='small')
-		widthFormatter = NSNumberFormatter.alloc().init()
-		widthFormatter.setMinimum_(1)
+		widthFormatter = decimalFormatter(1)
 		self.w.width = SteppingEditText("auto", "100", callback=self.UpdateSample, sizeStyle='small', formatter=widthFormatter)
 		self.w.width.setToolTip("The Width value for the instances being added. Default is 100. Adapt accordingly if you are adding condensed or extended instances.")
 

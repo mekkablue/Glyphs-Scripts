@@ -3,17 +3,10 @@ __doc__ = """
 Toggles grid between two gridstep values.
 """
 
-import objc
 import vanilla
 from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
-from Foundation import NSNumberFormatter
 from GlyphsApp import Glyphs
-from mekkablue import mekkaObject
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
+from mekkablue import mekkaObject, SteppingEditText, integerFormatter
 
 
 class Gridswitch(mekkaObject):
@@ -35,9 +28,7 @@ class Gridswitch(mekkaObject):
 		# UI elements:
 		inset = 15
 
-		formatter = NSNumberFormatter.alloc().init()
-		formatter.setAllowsFloats_(False)
-		formatter.setMinimum_(0)
+		formatter = integerFormatter(0)
 		self.w.grid1 = SteppingEditText("auto", "1", callback=self.SavePreferences, sizeStyle='small', formatter=formatter)
 		self.w.grid1.setToolTip("First grid step value.")
 		self.w.grid2 = SteppingEditText("auto", "0", callback=self.SavePreferences, sizeStyle='small', formatter=formatter)

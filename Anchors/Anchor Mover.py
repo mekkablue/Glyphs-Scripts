@@ -5,11 +5,10 @@ Batch-process anchor positions in selected glyphs (GUI).
 
 import vanilla
 import math
-import objc
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSWindowStyleMaskResizable
 from Foundation import NSPoint, NSSize
 from GlyphsApp import Glyphs, GSOFFCURVE, Message, GSMetricsTypexHeight, GSMetricsTypeItalicAngle, GSMetricsTypeAscender, GSMetricsTypeCapHeight, GSMetricsTypeDescender, GSMetricsTypeMidHeight, GSMetricsTypeBodyHeight, GSMetricsTypeSlantHeight, GSMetricsTypeBaseline
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, SteppingEditText
 from mekkablue.geometry import transform, italicize
 
 
@@ -86,11 +85,6 @@ listVertical = (
 	("leftmost node", "leftmostNodeInLayer(copyLayer).y"),
 	("rightmost node", "rightmostNodeInLayer(copyLayer).y"),
 )
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 def italicSkew(x, y, angle=10.0):

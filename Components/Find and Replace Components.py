@@ -9,7 +9,6 @@ Optionally restrict to selected glyphs only.
 """
 
 import math
-import objc
 import vanilla
 from AppKit import (
 	NSAlert,
@@ -24,9 +23,9 @@ from AppKit import (
 	NSTextAlignmentRight,
 	NSWindowStyleMaskResizable,
 )
-from Foundation import NSNumberFormatter, NSPoint
+from Foundation import NSPoint
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, SteppingEditText, integerFormatter, fontFileName
 
 
 SPECIAL_PREFIXES = ("_cap.", "_corner.", "_segment.", "_brush.", "_head.")
@@ -37,11 +36,6 @@ scopeChoices = (
 	"⚠️ Current masters of all open fonts",
 	"⚠️ All masters of all open fonts",
 )
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 def specialKind(name):
@@ -125,10 +119,7 @@ class FindReplaceComponents(mekkaObject):
 		self.w.useAngleFilter.setToolTip("Only for _corner.* components: changes only corners whose interior angle is larger or smaller than the threshold.")
 		self.w.largerOrSmaller = vanilla.PopUpButton("auto", ("larger than", "smaller than"), sizeStyle="small", callback=self.SavePreferences)
 		self.w.largerOrSmaller.setToolTip("Whether the corner angle has to be larger or smaller than the threshold.")
-		formatter = NSNumberFormatter.alloc().init()
-		formatter.setAllowsFloats_(False)  # integers only
-		formatter.setMinimum_(0)
-		formatter.setMaximum_(360)
+		formatter = integerFormatter(0, 360)
 		self.w.thresholdAngle = SteppingEditText("auto", "20", callback=self.SavePreferences, sizeStyle="small", formatter=formatter)
 		self.w.thresholdAngle.setToolTip("Threshold for the interior angle in degrees (0–360), measured at the corner node between its two neighbors.")
 		self.w.degreeLabel = vanilla.TextBox("auto", "°", sizeStyle="small")
@@ -515,7 +506,7 @@ class FindReplaceComponents(mekkaObject):
 
 		totalCount = 0
 		for thisFont, masterIDs in targets:
-			print(f"📄 {thisFont.filepath.lastPathComponent() if thisFont.filepath else f'{thisFont.familyName} (unsaved)'}")
+			print(f"📄 {fontFileName(thisFont)}")
 			thisFont.disableUpdateInterface()
 			try:
 				count, msgs = self.processFont(thisFont, masterIDs, settings)

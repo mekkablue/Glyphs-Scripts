@@ -3,9 +3,8 @@ __doc__ = """
 Multiply, increase/decrease, limit or round spacing, differentiate between negative and positive SBs.
 """
 
-import objc
 import vanilla
-from mekkablue import mekkaObject, reportFontName
+from mekkablue import mekkaObject, reportFontName, SteppingEditText, decimalFormatter
 from GlyphsApp import Glyphs, Message
 from AppKit import (
 	NSLayoutConstraintOrientationHorizontal,
@@ -15,7 +14,6 @@ from AppKit import (
 	NSLayoutPriorityWindowSizeStayPut,
 	NSTextAlignmentRight,
 )
-from Foundation import NSNumberFormatter
 
 
 choices = (
@@ -31,11 +29,6 @@ negativeChoices = (
 	"Reverse",
 	"Reverse 50%",
 )
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 class AdjustSpacing(mekkaObject):
@@ -65,8 +58,7 @@ class AdjustSpacing(mekkaObject):
 		inset = 15
 		self.w.descriptionText = vanilla.TextBox("auto", "Treat sidebearings in frontmost font:", sizeStyle="small", selectable=True)
 
-		formatter = NSNumberFormatter.alloc().init()
-		formatter.setMaximumFractionDigits_(3)
+		formatter = decimalFormatter(fractionDigits=3)
 		self.w.choice = vanilla.PopUpButton("auto", choices, callback=self.SavePreferences)
 		self.w.value = SteppingEditText("auto", "2", callback=self.SavePreferences, formatter=formatter)
 

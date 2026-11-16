@@ -13,7 +13,7 @@ import vanilla
 from AppKit import NSFont, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, OFFCURVE, Message
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, fontFileName
 
 
 def subPoints(p1, p2):
@@ -416,7 +416,7 @@ class PositionalHarmonize(mekkaObject):
 			referenceGlyphName = self.pref("referenceGlyphName")
 
 			print("Positional Harmonize")
-			fileName = thisFont.filepath.lastPathComponent() if thisFont.filepath else f"{thisFont.familyName} (unsaved)"
+			fileName = fontFileName(thisFont)
 			print(f"📄 {fileName}\n")
 
 			thisFont.disableUpdateInterface()

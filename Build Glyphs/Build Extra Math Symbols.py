@@ -6,7 +6,7 @@ Opens a window with a checkbox for each symbol group. Creates lessoverequal, gre
 import traceback
 import vanilla
 from GlyphsApp import Glyphs, GSComponent, Message
-from mekkablue import mekkaObject, newGlyphWithName
+from mekkablue import mekkaObject, newGlyphWithName, fontFileName
 from mekkablue.geometry import transform, centerOfRect
 from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 
@@ -380,7 +380,7 @@ class BuildExtraMathSymbols(mekkaObject):
 
 		selected = [name for name in ['overEqual', 'bulletoperator', 'rightanglearc', 'righttriangle', 'sphericalangle', 'measuredangle', 'sunWithRays', 'positionIndicator', 'diameterSign', 'viewdataSquare', 'control'] if self.prefBool(name)]
 		print(f"Build Extra Math Symbols Report for {thisFont.familyName}")
-		print(thisFont.filepath if thisFont.filepath else f"{thisFont.familyName} (unsaved)")
+		print(fontFileName(thisFont, fullPath=True))
 		print()
 
 		thisFont.disableUpdateInterface()  # suppresses UI updates in Font View

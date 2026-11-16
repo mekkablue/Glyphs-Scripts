@@ -7,7 +7,7 @@ import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
 from Foundation import NSDictionary
 from GlyphsApp import Glyphs, GSFontMaster, Message
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, fontFileName
 
 
 def axisLocationEntry(axisName, locationValue):
@@ -227,7 +227,7 @@ class AxisLocationSetter(mekkaObject):
 			if thisFont is None:
 				Message(title="No Font Open", message="Axis Location Setter requires a font. Open a font and run the script again.", OKButton=None)
 			else:
-				fileName = thisFont.filepath.lastPathComponent() if thisFont.filepath else f"{thisFont.familyName} (unsaved)"
+				fileName = fontFileName(thisFont)
 				print(f"Axis Location Setter Report for {fileName}")
 				print()
 

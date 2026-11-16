@@ -4,12 +4,10 @@ Turn font masters into brace layers of certain glyphs. A.k.a. Sparsify.
 """
 
 from copy import copy as copy
-import objc
 import vanilla
 from AppKit import NSFont, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
-from Foundation import NSNumberFormatter
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, reportFontName, UpdateButton
+from mekkablue import mekkaObject, reportFontName, UpdateButton, SteppingEditText, integerFormatter
 
 
 def braceLayerAndAxisDictForGlyphAndMaster(glyph, master):
@@ -89,11 +87,6 @@ def masterList(font):
 	return listOfMasters
 
 
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
-
-
 class Bracify(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
@@ -126,9 +119,7 @@ class Bracify(mekkaObject):
 		tooltipText = "Used by the Guess button: a glyph is added to the list if removing the master would move its points, anchors or width by more than this many units."
 		self.w.thresholdText = vanilla.TextBox("auto", "Coordinate threshold for guessing:", sizeStyle="small", selectable=True)
 		self.w.thresholdText.setToolTip(tooltipText)
-		thresholdFormatter = NSNumberFormatter.alloc().init()
-		thresholdFormatter.setAllowsFloats_(False)
-		thresholdFormatter.setMinimum_(0)
+		thresholdFormatter = integerFormatter(0)
 		self.w.threshold = SteppingEditText("auto", "3", callback=self.SavePreferences, sizeStyle="small", formatter=thresholdFormatter)
 		self.w.threshold.setToolTip(tooltipText)
 

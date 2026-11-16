@@ -4,16 +4,10 @@ Checks if all glyph widths in the frontmost font are actually monospaced. Report
 """
 
 import vanilla
-import objc
 from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from Foundation import NSNumberFormatter
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, newLineControlLayer
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
+from mekkablue import mekkaObject, newLineControlLayer, SteppingEditText, fontFileName
 
 
 class MonospaceChecker(mekkaObject):
@@ -118,7 +112,7 @@ class MonospaceChecker(mekkaObject):
 				return
 			else:
 				print("Monospace Checker Report for %s" % thisFont.familyName)
-				print(thisFont.filepath if thisFont.filepath else f"{thisFont.familyName} (unsaved)")
+				print(fontFileName(thisFont, fullPath=True))
 				print()
 
 			defaultGlyphName = self.pref("defaultGlyphName").strip()

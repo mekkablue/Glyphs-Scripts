@@ -4,9 +4,8 @@ Finds kinks in interpolation space, reports them in the Macro window and opens a
 """
 
 from math import hypot
-import objc
 import vanilla
-from mekkablue import mekkaObject, setMacroDivider
+from mekkablue import mekkaObject, setMacroDivider, SteppingEditText, decimalFormatter
 from GlyphsApp import Glyphs, GSInstance, GSAnnotation, CIRCLE, GSSMOOTH, GSOFFCURVE, Message, subtractPoints
 from AppKit import (
 	NSLayoutConstraintOrientationHorizontal,
@@ -17,15 +16,10 @@ from AppKit import (
 	NSLayoutPriorityWindowSizeStayPut,
 	NSTextAlignmentRight,
 )
-from Foundation import NSNumberFormatter, NSPoint
+from Foundation import NSPoint
 
 tempMarker = "###DELETEME###"
 nodeMarker = "⛔️"
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 def distanceBetweenPoints(node1, node2):
@@ -111,9 +105,7 @@ class KinkFinder(mekkaObject):
 		# the description wraps: it takes the width it is given instead of demanding one long line
 		self.w.descriptionText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
-		formatter = NSNumberFormatter.alloc().init()
-		formatter.setMinimum_(0)
-		formatter.setMaximumFractionDigits_(2)
+		formatter = decimalFormatter(0, fractionDigits=2)
 		self.w.text_1 = vanilla.TextBox("auto", "Acceptable max kink size:", sizeStyle='small')
 		self.w.maxKinkSize = SteppingEditText("auto", "3", sizeStyle='small', callback=self.SavePreferences, formatter=formatter)
 		tooltipText = "Measured in units as the perpendicular distance between middle point and the line between first and third points."

@@ -3,9 +3,8 @@ __doc__ = """
 Removes kerning exceptions (glyph-to-glyph, glyph-to-group and group-to-glyph pairs) in the current master, all masters of the current font, or all masters of all open fonts. Optionally only those that differ less than a threshold from the group kerning they would fall back to. Group-to-group kerning is never touched.
 """
 
-import objc
 import vanilla
-from mekkablue import mekkaObject, reportFontName
+from mekkablue import mekkaObject, reportFontName, SteppingEditText, integerFormatter
 from GlyphsApp import Glyphs, Message
 from AppKit import (
 	NSBeep,
@@ -15,23 +14,6 @@ from AppKit import (
 	NSLayoutPriorityDefaultLow,
 	NSLayoutPriorityWindowSizeStayPut,
 )
-from Foundation import NSNumberFormatter
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
-
-
-def integerFormatter(minimum=None, maximum=None):
-	"""Number formatter that only accepts integers, optionally within a range."""
-	formatter = NSNumberFormatter.alloc().init()
-	formatter.setAllowsFloats_(False)
-	if minimum is not None:
-		formatter.setMinimum_(minimum)
-	if maximum is not None:
-		formatter.setMaximum_(maximum)
-	return formatter
 
 
 class DeleteExceptionsTooCloseToGroupKerning(mekkaObject):

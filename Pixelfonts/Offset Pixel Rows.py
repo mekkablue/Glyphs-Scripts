@@ -3,9 +3,8 @@ __doc__ = """
 Offsets each row of pixels by a percentage. Rhythm of 2 = every other line offset by half of a pixel’s width; rhythm of 3 = every second line by a third, every third line by two thirds; and so on. Useful for offsetting hexagon-shaped pixels, etc.
 """
 
-import objc
 import vanilla
-from mekkablue import mekkaObject, UpdateButton, match, reportFontName
+from mekkablue import mekkaObject, UpdateButton, match, reportFontName, SteppingEditText, integerFormatter
 from GlyphsApp import Glyphs, Message
 from AppKit import (
 	NSLayoutConstraintOrientationHorizontal,
@@ -15,12 +14,6 @@ from AppKit import (
 	NSLayoutPriorityWindowSizeStayPut,
 	NSTextAlignmentRight,
 )
-from Foundation import NSNumberFormatter
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 class OffsetPixelRows(mekkaObject):
@@ -49,8 +42,7 @@ class OffsetPixelRows(mekkaObject):
 
 		tooltipText = "Will increasingly offset every n lines, first line not at all, each following line by 1/n pixel more. Use negative number for moving to the left."
 		self.w.rhythmText = vanilla.TextBox("auto", "Line rhythm", sizeStyle="small", selectable=True)
-		rhythmFormatter = NSNumberFormatter.alloc().init()
-		rhythmFormatter.setAllowsFloats_(False)  # negative values move to the left
+		rhythmFormatter = integerFormatter()
 		self.w.rhythm = SteppingEditText("auto", "2", callback=self.SavePreferences, sizeStyle="small", formatter=rhythmFormatter)
 		self.w.rhythmText.setToolTip(tooltipText)
 		self.w.rhythm.setToolTip(tooltipText)
@@ -63,9 +55,7 @@ class OffsetPixelRows(mekkaObject):
 
 		tooltipText = "Pixel size. All offsets are calculated based on this"
 		self.w.pixelWidthText = vanilla.TextBox("auto", "Pixel width", sizeStyle="small", selectable=True)
-		pixelWidthFormatter = NSNumberFormatter.alloc().init()
-		pixelWidthFormatter.setAllowsFloats_(False)
-		pixelWidthFormatter.setMinimum_(1)
+		pixelWidthFormatter = integerFormatter(1)
 		self.w.pixelWidth = SteppingEditText("auto", "100", callback=self.SavePreferences, sizeStyle="small", formatter=pixelWidthFormatter)
 		self.w.pixelWidthText.setToolTip(tooltipText)
 		self.w.pixelWidth.setToolTip(tooltipText)

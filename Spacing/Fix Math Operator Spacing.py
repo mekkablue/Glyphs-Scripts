@@ -8,7 +8,7 @@ import math
 import vanilla
 from AppKit import NSAffineTransform, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSMidY, NSTextAlignmentRight
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, fontFileName
 
 mathOperators = "+−×÷=≠±≈¬"
 lessGreater = "><≥≤"
@@ -288,7 +288,7 @@ class FixMathOperatorSpacing(mekkaObject):
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 				return
 			print("Fixing Math Operator Spacing for %s" % thisFont.familyName)
-			print(thisFont.filepath if thisFont.filepath else f"{thisFont.familyName} (unsaved)")
+			print(fontFileName(thisFont, fullPath=True))
 			print()
 
 			referenceOperatorName = "%s%s" % (self.w.referenceOperator.getTitle().split()[-1], suffix)

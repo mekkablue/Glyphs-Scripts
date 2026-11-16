@@ -4,12 +4,11 @@ Find all anchors that are not where they are supposed to be.
 """
 
 import sys
-import objc
 import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight, NSWindowStyleMaskResizable
-from Foundation import NSNumberFormatter, NSSize
+from Foundation import NSSize
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, newLineControlLayer, UpdateButton, reportFontName
+from mekkablue import mekkaObject, newLineControlLayer, UpdateButton, reportFontName, SteppingEditText, integerFormatter
 
 horizontals = (
 	"LSB",
@@ -85,11 +84,6 @@ def anchorIsAstray(thisAnchor, thisLayer, shouldHorizontalAlign, shouldVerticalA
 	return False
 
 
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
-
-
 class FindStrayAnchors(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
@@ -138,9 +132,7 @@ class FindStrayAnchors(mekkaObject):
 		toleranceTooltip = "Anchors this many units or fewer away from the chosen position still count as being on it. Applies to horizontal and vertical positions."
 		self.w.toleranceText = vanilla.TextBox("auto", "Tolerance:", sizeStyle="small", selectable=True)
 		self.w.toleranceText.setToolTip(toleranceTooltip)
-		toleranceFormatter = NSNumberFormatter.alloc().init()
-		toleranceFormatter.setAllowsFloats_(False)
-		toleranceFormatter.setMinimum_(0)
+		toleranceFormatter = integerFormatter(0)
 		self.w.tolerance = SteppingEditText("auto", "0", callback=self.SavePreferences, sizeStyle="small", formatter=toleranceFormatter)
 		self.w.tolerance.setToolTip(toleranceTooltip)
 

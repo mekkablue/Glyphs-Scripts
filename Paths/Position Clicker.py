@@ -3,9 +3,8 @@ __doc__ = """
 Finds all combinations of positional shapes that do not click well. Clicking means sharing two point coordinates when overlapping.
 """
 
-import objc
 import vanilla
-from mekkablue import mekkaObject, newLineControlLayer, UpdateButton
+from mekkablue import mekkaObject, newLineControlLayer, UpdateButton, SteppingEditText, integerFormatter
 from GlyphsApp import Glyphs, GSOFFCURVE, Message
 from AppKit import (
 	NSColor,
@@ -17,12 +16,6 @@ from AppKit import (
 	NSLayoutPriorityWindowSizeStayPut,
 	NSTextAlignmentRight,
 )
-from Foundation import NSNumberFormatter
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 def layerMissesPointsAtCoordinates(thisLayer, coordinates):
@@ -131,9 +124,7 @@ class PositionClicker(mekkaObject):
 
 		tooltip = "The amount of point coordinates that must be shared between two consecutive positional forms. E.g., if set to 2, an initial and a final shape must have two or more nodes exactly on top of each other when they follow each other. Will respect exit and entry anchors."
 		self.w.clickCountText = vanilla.TextBox("auto", "Min count of node clicks", sizeStyle="small", selectable=True)
-		clickCountFormatter = NSNumberFormatter.alloc().init()
-		clickCountFormatter.setAllowsFloats_(False)
-		clickCountFormatter.setMinimum_(1)
+		clickCountFormatter = integerFormatter(1)
 		self.w.clickCount = SteppingEditText("auto", "2", callback=self.SavePreferences, sizeStyle="small", formatter=clickCountFormatter)
 		self.w.clickCountText.setToolTip(tooltip)
 		self.w.clickCount.setToolTip(tooltip)

@@ -3,9 +3,8 @@ __doc__ = """
 Batch apply metrics keys to the current font.
 """
 
-import objc
 import vanilla
-from mekkablue import mekkaObject, getLegibleFont
+from mekkablue import mekkaObject, getLegibleFont, SteppingEditText, integerFormatter
 from GlyphsApp import Glyphs, Message
 from AppKit import (
 	NSAlert,
@@ -21,7 +20,6 @@ from AppKit import (
 	NSWindowStyleMaskResizable,
 	NSTextAlignmentRight,
 )
-from Foundation import NSNumberFormatter
 
 LeftKeys = """
 =H: B D E F I K L N P R Thorn Germandbls M
@@ -57,22 +55,6 @@ WidthKeys = """
 =period: punctuationspace
 =plus: plus minus multiply divide equal notequal greater less greaterequal lessequal plusminus approxequal logicalnot asciitilde asciicircum
 """
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
-
-
-def integerFormatter(minimum=None, maximum=None):
-	"""Number formatter that only accepts integers, optionally within a range."""
-	formatter = NSNumberFormatter.alloc().init()
-	formatter.setAllowsFloats_(False)
-	if minimum is not None:
-		formatter.setMinimum_(minimum)
-	if maximum is not None:
-		formatter.setMaximum_(maximum)
-	return formatter
 
 
 class Alert(object):

@@ -6,7 +6,7 @@ Removes PS Hints, selectively or completely.
 import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message, STEM, BOTTOMGHOST, TOPGHOST
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, fontFileName
 
 
 class RemovePSHints(mekkaObject):
@@ -145,7 +145,7 @@ class RemovePSHints(mekkaObject):
 			deletedHintsCount = 0
 			for thisFont in theseFonts:
 				print("Remove PS Hints Report for %s" % thisFont.familyName)
-				print(thisFont.filepath if thisFont.filepath else f"{thisFont.familyName} (unsaved)")
+				print(fontFileName(thisFont, fullPath=True))
 				print()
 
 				if where == 0:

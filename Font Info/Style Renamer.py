@@ -6,7 +6,7 @@ Batch-add a name particle to your style names, or batch-remove it from them. Use
 import vanilla
 from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, INSTANCETYPESINGLE, Message
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, fontFileName
 
 
 particleDefault = "Italic"
@@ -134,7 +134,7 @@ class StyleRenamer(mekkaObject):
 		previewText = ""
 		thisFont = Glyphs.font  # frontmost font
 		if thisFont:
-			fileName = thisFont.filepath.lastPathComponent() if thisFont.filepath else f"{thisFont.familyName} (unsaved)"
+			fileName = fontFileName(thisFont)
 			previewText += "%s\n(File: %s)\n" % (thisFont.familyName, fileName)
 
 			# read out user settings:
@@ -223,7 +223,7 @@ class StyleRenamer(mekkaObject):
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
 				print("Style Renamer Report for %s" % thisFont.familyName)
-				print(thisFont.filepath if thisFont.filepath else f"{thisFont.familyName} (unsaved)")
+				print(fontFileName(thisFont, fullPath=True))
 				print()
 
 				# read out user settings:

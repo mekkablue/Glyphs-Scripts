@@ -3,17 +3,10 @@ __doc__ = """
 Increase sidebearings of selected glyphs by a percentage value.
 """
 
-import objc
 import vanilla
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, SteppingEditText, decimalFormatter
 from GlyphsApp import Glyphs, Message
 from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
-from Foundation import NSNumberFormatter
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 class ChangeMetricsbyPercentage(mekkaObject):
@@ -33,8 +26,7 @@ class ChangeMetricsbyPercentage(mekkaObject):
 		)
 
 		inset = 15
-		formatter = NSNumberFormatter.alloc().init()
-		formatter.setMaximumFractionDigits_(2)
+		formatter = decimalFormatter(fractionDigits=2)
 		self.w.text_1 = vanilla.TextBox("auto", "Increase", sizeStyle='small')
 		self.w.LSB = vanilla.CheckBox("auto", "LSB", value=True, sizeStyle='small', callback=self.SavePreferences)
 		self.w.RSB = vanilla.CheckBox("auto", "RSB by", value=True, sizeStyle='small', callback=self.SavePreferences)

@@ -6,17 +6,12 @@ Define an angle above which a node will be set to blue, below which it will be s
 import objc
 import vanilla
 from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
-from Foundation import NSPoint, NSNumberFormatter
+from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSControlLayer, GSOFFCURVE, GSSMOOTH, GSSHARP, Message
-from mekkablue import mekkaObject, reportFontName
+from mekkablue import mekkaObject, reportFontName, SteppingEditText, decimalFormatter
 from mekkablue.geometry import angle
 
 GlyphsPathPlugin = objc.lookUpClass("GlyphsPathPlugin")
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 class GreenBlueManager(mekkaObject):
@@ -52,9 +47,7 @@ class GreenBlueManager(mekkaObject):
 		self.w.descriptionText = vanilla.TextBox("auto", "Validates the connection state of nodes, green vs. blue, according to the angle between them. Optionally corrects green/blue state and handles.", sizeStyle='small', selectable=True)
 		self.w.descriptionText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
-		formatter = NSNumberFormatter.alloc().init()
-		formatter.setMinimum_(0)
-		formatter.setMaximum_(180)
+		formatter = decimalFormatter(0, 180)
 		self.w.thresholdAngleText = vanilla.TextBox("auto", "Threshold Angle", sizeStyle='small', selectable=True)
 		self.w.thresholdAngle = SteppingEditText("auto", self.prefDict["thresholdAngle"], callback=self.SavePreferences, sizeStyle='small', formatter=formatter)
 

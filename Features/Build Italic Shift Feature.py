@@ -6,59 +6,9 @@ Creates and inserts GPOS feature code for shifting glyphs, e.g., parentheses and
 import vanilla
 from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 from Foundation import NSPoint
-from GlyphsApp import Glyphs, GSFeature, Message
-from mekkablue import mekkaObject, setClipboard
+from GlyphsApp import Glyphs, Message
+from mekkablue import mekkaObject, setClipboard, createOTFeature, updatedCode
 from mekkablue.geometry import italicize
-
-
-def updatedCode(oldCode, beginSig, endSig, newCode):
-	"""Replaces text in oldCode with newCode, but only between beginSig and endSig."""
-	beginOffset = oldCode.find(beginSig)
-	endOffset = oldCode.find(endSig) + len(endSig)
-	newCode = oldCode[:beginOffset] + beginSig + newCode + "\n" + endSig + oldCode[endOffset:]
-	return newCode
-
-
-def createOTFeature(featureName="case", featureCode="# empty feature code", targetFont=Glyphs.font, codeSig="SHIFTED-GLYPHS"):
-	"""
-	Creates or updates an OpenType feature in the font.
-	Returns a status message in form of a string.
-	featureName: name of the feature (str),
-	featureCode: the AFDKO feature code (str),
-	targetFont: the GSFont object receiving the feature,
-	codeSig: the code signature (str) used as delimiters.
-	"""
-
-	beginSig = "# BEGIN " + codeSig + "\n"
-	endSig = "# END " + codeSig + "\n"
-
-	if featureName in [f.name for f in targetFont.features]:
-		# feature already exists:
-		targetFeature = targetFont.features[featureName]
-		targetFeature.automatic = 0
-
-		# FEATURE:
-		if beginSig in targetFeature.code:
-			targetFeature.code = updatedCode(targetFeature.code, beginSig, endSig, featureCode)
-		else:
-			targetFeature.code += "\n" + beginSig + featureCode + "\n" + endSig
-
-		# NOTES:
-		if beginSig in targetFeature.notes:
-			targetFeature.notes = updatedCode(targetFeature.notes, beginSig, endSig, featureCode)
-		else:
-			targetFeature.notes += "\n" + beginSig + featureCode + "\n" + endSig
-
-		return "Updated existing OT feature '%s'." % featureName
-	else:
-		# create feature with new code:
-		newFeature = GSFeature()
-		newFeature.name = featureName
-		newCode = beginSig + featureCode + "\n" + endSig
-		newFeature.code = newCode
-		newFeature.notes = newCode
-		targetFont.features.append(newFeature)
-		return "Created new OT feature '%s'" % featureName
 
 
 class ItalicShiftFeature(mekkaObject):
@@ -179,12 +129,22 @@ class ItalicShiftFeature(mekkaObject):
 				Glyphs.showNotification("Italic Shift Feature", "Feature code copied to the clipboard.")
 			else:
 				for otFeature, otCode in lookupCodes.items():
+					codeSig = "ITALIC-SHIFT-%s" % otFeature.upper()
 					createOTFeature(
 						featureName=otFeature,
-						codeSig="ITALIC-SHIFT-%s" % otFeature.upper(),
+						codeSig=codeSig,
 						targetFont=thisFont,
 						featureCode=otCode,
 					)
+					# keep the code in the notes too, and make sure Glyphs does not regenerate the feature:
+					feature = thisFont.features[otFeature]
+					feature.automatic = False
+					beginSig = "# BEGIN " + codeSig + "\n"
+					endSig = "# END " + codeSig + "\n"
+					if beginSig in feature.notes:
+						feature.notes = updatedCode(feature.notes, beginSig, endSig, otCode)
+					else:
+						feature.notes += "\n" + beginSig + otCode + "\n" + endSig
 				self.w.close()  # delete if you want window to stay open
 		except Exception as e:
 			# brings macro window to front and reports error:

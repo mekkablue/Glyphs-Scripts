@@ -3,9 +3,8 @@ __doc__ = """
 Moves specified anchors to the nearest metric (e.g. x-height, ascender, etc.), within a specified threshold.
 """
 
-import objc
 import vanilla
-from Foundation import NSNumberFormatter, NSPoint
+from Foundation import NSPoint
 from AppKit import (
 	NSAffineTransform,
 	NSLayoutConstraintOrientationVertical,
@@ -13,13 +12,8 @@ from AppKit import (
 	NSWindowStyleMaskResizable,
 )
 from GlyphsApp import Glyphs, Message, addPoints
-from mekkablue import mekkaObject, match, UpdateButton, reportFontName
+from mekkablue import mekkaObject, match, UpdateButton, reportFontName, SteppingEditText, integerFormatter
 from mekkablue.geometry import italicize
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 def closestMetric(position, metrics):
@@ -67,9 +61,7 @@ class SnapAnchorsToNearestMetric(mekkaObject):
 
 		tooltipText = "Anchors further away from the nearest metric than this value are not moved."
 		self.w.thresholdText = vanilla.TextBox("auto", "Max vertical move:", sizeStyle="small", selectable=True)
-		thresholdFormatter = NSNumberFormatter.alloc().init()
-		thresholdFormatter.setAllowsFloats_(False)
-		thresholdFormatter.setMinimum_(0)
+		thresholdFormatter = integerFormatter(0)
 		self.w.threshold = SteppingEditText("auto", "30", callback=self.SavePreferences, sizeStyle="small", formatter=thresholdFormatter)
 		self.w.thresholdText.setToolTip(tooltipText)
 		self.w.threshold.setToolTip(tooltipText)

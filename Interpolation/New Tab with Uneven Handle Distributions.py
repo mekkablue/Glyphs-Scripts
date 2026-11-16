@@ -3,9 +3,8 @@ __doc__ = """
 Finds glyphs where handle distributions change too much (e.g., from balanced to harmonised).
 """
 
-import objc
 import vanilla
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, SteppingEditText, decimalFormatter
 from mekkablue.geometry import intersectionLineLinePoints, bezierWithPoints
 from GlyphsApp import Glyphs, CURVE, Message, distance
 from AppKit import (
@@ -14,12 +13,6 @@ from AppKit import (
 	NSLayoutPriorityDefaultLow,
 	NSLayoutPriorityWindowSizeStayPut,
 )
-from Foundation import NSNumberFormatter
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 class NewTabWithUnevenHandleDistributions(mekkaObject):
@@ -46,9 +39,7 @@ class NewTabWithUnevenHandleDistributions(mekkaObject):
 		# the description wraps: it takes the width it is given instead of demanding one long line
 		self.w.descriptionText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
-		formatter = NSNumberFormatter.alloc().init()
-		formatter.setMinimum_(0)
-		formatter.setMaximumFractionDigits_(3)
+		formatter = decimalFormatter(0, fractionDigits=3)
 		self.w.factorChange = vanilla.CheckBox("auto", "Tolerated change factor (BCP1÷BCP2):", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.factorChangeEntry = SteppingEditText("auto", "2.5", callback=self.SavePreferences, sizeStyle='small', formatter=formatter)
 		factorChangeTooltipText = "Calculates length ratios of handles in a curve segment in every master. If the ratio differs by more than the given factor in one or more masters, glyph will be reported."

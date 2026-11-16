@@ -7,7 +7,7 @@ import vanilla
 from timeit import default_timer as timer
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message, CORNER
-from mekkablue import mekkaObject, camelCaseSplit, reportTimeInNaturalLanguage
+from mekkablue import mekkaObject, camelCaseSplit, reportTimeInNaturalLanguage, fontFileName
 
 
 def orthodoxComponentsForGlyph(thisGlyph):
@@ -322,7 +322,7 @@ class ComponentProblemFinder(mekkaObject):
 				return
 
 			print("Component Problem Finder Report\n")
-			print(f"📄 {thisFont.filepath.lastPathComponent() if thisFont.filepath else f'{thisFont.familyName} (unsaved)'}\n")
+			print(f"📄 {fontFileName(thisFont)}\n")
 
 			if self.prefBool("includeAllGlyphs"):
 				glyphs = thisFont.glyphs

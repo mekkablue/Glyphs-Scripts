@@ -6,7 +6,7 @@ Goes through all glyphs of the frontmost font (or all open fonts), and checks fo
 import vanilla
 from AppKit import NSTextAlignmentRight, NSWindowStyleMaskResizable, NSSize, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message, GSGlyph, GSComponent
-from mekkablue import mekkaObject, UpdateButton, setMacroDivider
+from mekkablue import mekkaObject, UpdateButton, setMacroDivider, fontFileName
 
 defaultSuffixes = ".dnom, .numr, .subs, .sups, .sinf, .alt, .case, .tf, .tosf, .osf"
 
@@ -137,7 +137,7 @@ class CompositeConsistencer(mekkaObject):
 		setMacroDivider(0.1)
 
 	def fileLabel(self, thisFont):
-		return thisFont.filepath.lastPathComponent() if thisFont.filepath else f"{thisFont.familyName} (unsaved)"
+		return fontFileName(thisFont)
 
 	def collectMissingData(self, thisFont, ignoredSuffixes, ignoreDuplicateSuffixes, suffixOrderMatters, includeNonExporting, selectedOnly):
 		"""

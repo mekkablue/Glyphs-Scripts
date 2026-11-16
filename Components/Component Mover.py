@@ -3,9 +3,8 @@ __doc__ = """
 Batch edit (smart) components across selected glyphs. Change positions, scales and smart properties.
 """
 
-import objc
 import vanilla
-from mekkablue import mekkaObject, UpdateButton, match
+from mekkablue import mekkaObject, UpdateButton, match, SteppingEditText
 from GlyphsApp import Glyphs, Message
 from AppKit import (
 	NSFont,
@@ -18,11 +17,6 @@ from AppKit import (
 	NSTextAlignmentRight,
 )
 from Foundation import NSNumberFormatter, NSPoint
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 class ComponentMover(mekkaObject):

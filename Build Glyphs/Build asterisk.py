@@ -3,7 +3,6 @@ __doc__ = """
 Builds the asterisk from rotated components of _part.asterisk (a trapezoid ray with a #connect anchor). Each ray is rotated around the #connect anchor. A live preview updates the asterisk in all masters as you change the values.
 """
 
-import objc
 import vanilla
 from AppKit import (
 	NSLayoutConstraintOrientationHorizontal,
@@ -13,9 +12,9 @@ from AppKit import (
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
 )
-from Foundation import NSAffineTransform, NSNumberFormatter, NSPoint
+from Foundation import NSAffineTransform, NSPoint
 from GlyphsApp import Glyphs, GSComponent, GSPath, GSNode, LINE, GSMetricsTypeCapHeight, GSMetricsTypeAscender, Message
-from mekkablue import mekkaObject, newAnchorWithName, newGlyphWithName
+from mekkablue import mekkaObject, newAnchorWithName, newGlyphWithName, SteppingEditText, integerFormatter
 
 asteriskName = "asterisk"
 partName = "_part.asterisk"
@@ -36,22 +35,6 @@ buttAgainstOptions = (
 	"height of…",
 )
 heightOfGlyphIndex = 4
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
-
-
-def integerFormatter(minimum=None, maximum=None):
-	"""Number formatter that only accepts integers, optionally within a range."""
-	formatter = NSNumberFormatter.alloc().init()
-	formatter.setAllowsFloats_(False)
-	if minimum is not None:
-		formatter.setMinimum_(minimum)
-	if maximum is not None:
-		formatter.setMaximum_(maximum)
-	return formatter
 
 
 def rotationTransform(rotationCenter, rotationDegrees):

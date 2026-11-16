@@ -6,7 +6,7 @@ Build rand (random) feature from .cvXX or another (numbered) suffix.
 import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, GSFeature, Message
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, fontFileName
 
 
 def getRootName(glyphName):
@@ -139,7 +139,7 @@ class BuildRandFeature(mekkaObject):
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
 				print("Build rand Feature Report for %s" % thisFont.familyName)
-				fileName = thisFont.filepath.lastPathComponent() if thisFont.filepath else f"{thisFont.familyName} (unsaved)"
+				fileName = fontFileName(thisFont)
 				print(f"📄 {fileName}")
 				print()
 

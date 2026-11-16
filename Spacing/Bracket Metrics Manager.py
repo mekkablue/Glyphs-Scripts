@@ -4,7 +4,7 @@ Manage the sidebearings and widths of bracket layers.
 """
 
 import vanilla
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, fontFileName
 from GlyphsApp import Glyphs, Message
 from AppKit import (
 	NSLayoutConstraintOrientationHorizontal,
@@ -173,7 +173,7 @@ class BracketMetricsManager(mekkaObject):
 				# Clear macro window log:
 				Glyphs.clearLog()
 				print("Bracket Metrics for: %s" % thisFont.familyName)
-				print("Path: %s" % (thisFont.filepath or "%s (unsaved)" % thisFont.familyName))
+				print("Path: %s" % (fontFileName(thisFont, fullPath=True)))
 				print()
 
 				if self.pref("applyToAllGlyphsWithBrackets"):

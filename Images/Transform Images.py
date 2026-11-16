@@ -3,12 +3,11 @@ __doc__ = """
 Batch scale and move images in selected layers.
 """
 
-import objc
 import vanilla
 from AppKit import NSAffineTransform, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
 from Foundation import NSNumberFormatter, NSNumberFormatterDecimalStyle
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, SteppingEditText
 
 
 def getScale(scaleString, factor):
@@ -16,11 +15,6 @@ def getScale(scaleString, factor):
 		return (100.0 + float(scaleString)) / 100.0
 	else:
 		return 100.0 / (100.0 + float(scaleString))
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 class TransformImages(mekkaObject):

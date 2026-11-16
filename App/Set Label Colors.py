@@ -3,7 +3,6 @@ __doc__ = """
 Override the label colors for glyphs and layers.
 """
 
-import objc
 import vanilla
 from AppKit import (
 	NSLayoutConstraintOrientationHorizontal,
@@ -14,14 +13,9 @@ from AppKit import (
 	NSTextAlignmentRight,
 	NSColor,
 )
-from Foundation import NSArchiver, NSUnarchiver, NSMutableArray, NSNumberFormatter
+from Foundation import NSArchiver, NSUnarchiver, NSMutableArray
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
-
-
-class SteppingEditText(vanilla.EditText):
-	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
-	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
+from mekkablue import mekkaObject, SteppingEditText, integerFormatter
 
 
 class SetLabelColors(mekkaObject):
@@ -39,10 +33,7 @@ class SetLabelColors(mekkaObject):
 		# UI elements:
 		inset = 15
 		components = (("red", "R"), ("green", "G"), ("blue", "B"), ("alpha", "A"))
-		formatter = NSNumberFormatter.alloc().init()
-		formatter.setAllowsFloats_(False)  # integers only
-		formatter.setMinimum_(0)
-		formatter.setMaximum_(100)
+		formatter = integerFormatter(0, 100)
 		rules = []
 
 		# column headers:
