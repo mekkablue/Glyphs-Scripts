@@ -1,26 +1,22 @@
 # MenuTitle: Decompose Components in Background
-import vanilla as vl
-from GlyphsApp import Glyphs, GSBackgroundLayer
-from mekkablue import mekkaObject
-
 __doc__ = """
 Will backup foregrounds into backgrounds, and decompose backgrounds. Useful for keeping original designs of composites for reference.
 """
+
+import vanilla
+from mekkablue import mekkaObject
+from GlyphsApp import Glyphs, GSBackgroundLayer, Message
+from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 
 
 class Decompose_Components_in_Background(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"copyToBackgroundFirst": 0,
+		"verbose": 0,
 		"whichMasters": 0,
 		"whichGlyphsInWhichFonts": 0,
 	}
-
-	windowHeight = 216
-	padding = (15, 10, 12)
-	buttonHeight = 20
-	textHeight = 14
-	sizeStyle = 'small'
 
 	glyphsOptions = (
 		"Backgrounds of selected glyphs in frontmost font",
@@ -33,72 +29,94 @@ class Decompose_Components_in_Background(mekkaObject):
 	)
 
 	def __init__(self):
-		x, y, p = self.padding
+		windowWidth = 370
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
+		self.w = vanilla.FloatingWindow(
+			(windowWidth, windowHeight),
+			"Decompose Backgrounds",
+			autosaveName=self.domain("mainwindow"),  # stores last window position
+		)
 
-		self.w = vl.FloatingWindow((370, self.windowHeight), "Decompose Backgrounds")
+		# UI elements:
+		inset = 15
 
 		# ## Description text
-		self.w.descriptionText = vl.TextBox((x, y, -p, self.textHeight), "Decompose components in glyph backgrounds:", sizeStyle='small', selectable=True)
-		y += self.textHeight + p
+		self.w.descriptionText = vanilla.TextBox("auto", "Decompose components in glyph backgrounds:", sizeStyle="small", selectable=True)
 
 		# ## Option to backup glyphs in the background before decomposition
-		self.w.copyToBackgroundFirst = vl.CheckBox((x + 3, y, 240, self.textHeight), "Create backups in background first", sizeStyle=self.sizeStyle, callback=self.SavePreferences)
+		self.w.copyToBackgroundFirst = vanilla.CheckBox("auto", "Create backups in background first", sizeStyle="small", callback=self.SavePreferences)
 		self.w.copyToBackgroundFirst.setToolTip("If selected, will copy current foregrounds into backgrounds, overwriting existing background content.")
 
-		self.w.verbose = vl.CheckBox((240 + 3, y, -p, self.textHeight), "Verbose output", sizeStyle=self.sizeStyle, callback=self.SavePreferences)
+		self.w.verbose = vanilla.CheckBox("auto", "Verbose output", sizeStyle="small", callback=self.SavePreferences)
 		self.w.verbose.setToolTip("Will output report for every glyph (slow). Do this only for testing purposes.")
-		y += self.textHeight
 
 		# ## Divider
-		self.w.div_copyToBackgroundFirst = vl.HorizontalLine((x, y, -p, self.textHeight))
-		y += self.textHeight
+		self.w.div_copyToBackgroundFirst = vanilla.HorizontalLine("auto")
 
 		# ## Which glyphs in which fonts
-		self.w.whichGlyphsInWhichFonts = vl.RadioGroup(
-			(x, y, -p, self.buttonHeight * len(self.glyphsOptions)), self.glyphsOptions, sizeStyle=self.sizeStyle, callback=self.glyphsOptionsCallback
-		)
-
+		self.w.whichGlyphsInWhichFonts = vanilla.VerticalRadioGroup("auto", self.glyphsOptions, sizeStyle="small", callback=self.glyphsOptionsCallback)
 		self.w.whichGlyphsInWhichFonts.setToolTip("Which glyphs are affected in which fonts.\n\n⚠️ Careful with the bigger scopes: they affect many glyph backgrounds in one click. Consider saving your .glyphs file first (so you can revert in the worst case).")
-		y += self.buttonHeight * len(self.glyphsOptions)
 
 		# ## Divider
-		self.w.div_glyphsOptions = vl.HorizontalLine((x, y, -p, self.textHeight))
-		y += self.textHeight
+		self.w.div_glyphsOptions = vanilla.HorizontalLine("auto")
 
 		# ## Which masters
-		self.w.whichMasters = vl.RadioGroup(
-			(x, y, -p, self.buttonHeight * len(self.masterOptions)),
-			self.masterOptions,
-			sizeStyle=self.sizeStyle,
-			callback=self.SavePreferences,
-		)
+		self.w.whichMasters = vanilla.VerticalRadioGroup("auto", self.masterOptions, sizeStyle="small", callback=self.SavePreferences)
 		self.w.whichMasters.setToolTip("Choose which font masters shall be affected.")
 
-		y += self.buttonHeight * len(self.masterOptions)
-
 		# ## Action button
-		self.w.decomposeButton = vl.Button((-p - 120, -self.buttonHeight - p, -p, self.buttonHeight), "Decompose", callback=self.decomposeButtonCallback)
-
+		self.w.decomposeButton = vanilla.Button("auto", "Decompose", callback=self.decomposeButtonCallback)
 		self.w.setDefaultButton(self.w.decomposeButton)
+
+		# checkboxes stretch vertically by default; with everything hugging,
+		# the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[copyToBackgroundFirst]-gap-[verbose]-(>=inset)-|",
+				"H:|-inset-[div_copyToBackgroundFirst]-inset-|",
+				"H:|-inset-[whichGlyphsInWhichFonts]-(>=inset)-|",
+				"H:|-inset-[div_glyphsOptions]-inset-|",
+				"H:|-inset-[whichMasters]-(>=inset)-|",
+				"H:|-(>=inset)-[decomposeButton(>=120)]-inset-|",
+				"V:|-gap-[descriptionText]-row-[copyToBackgroundFirst]-gap-[div_copyToBackgroundFirst(1)]-gap-[whichGlyphsInWhichFonts]-gap-[div_glyphsOptions(1)]-gap-[whichMasters]-inset-[decomposeButton]-inset-|",
+				{"view1": self.w.verbose, "attribute1": "centerY", "view2": self.w.copyToBackgroundFirst, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6},
+		)
 
 		self.LoadPreferences()
 
 		self.w.open()
 		self.w.makeKey()
 
-	def glyphsOptionsCallback(self, sender):
-		allFontsSelected = sender.get() == 2
+	def updateUI(self, sender=None):
+		# the scope ‘all open fonts’ always works on all masters:
+		allFontsSelected = self.w.whichGlyphsInWhichFonts.get() == 2
 		self.w.whichMasters.enable(not allFontsSelected)
+
+	def glyphsOptionsCallback(self, sender):
 		self.SavePreferences()
 
 	def decomposeButtonCallback(self, sender):
 		Glyphs.clearLog()
 
+		# update settings to the latest user input:
+		self.SavePreferences()
+
+		if not Glyphs.font:
+			Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+			return
+
 		# collect user settings:
 		copyToBackgroundFirst = self.prefBool("copyToBackgroundFirst")
-		workOnAllGlyphs = self.pref("whichGlyphsInWhichFonts") > 0
-		workOnAllFonts = workOnAllGlyphs == 2
-		verbose = self.pref("verbose")
+		whichGlyphsInWhichFonts = self.prefInt("whichGlyphsInWhichFonts")
+		workOnAllGlyphs = whichGlyphsInWhichFonts > 0
+		workOnAllFonts = whichGlyphsInWhichFonts == 2
+		verbose = self.prefBool("verbose")
 
 		# determine affected fonts
 		if workOnAllFonts:
@@ -112,17 +130,17 @@ class Decompose_Components_in_Background(mekkaObject):
 			fontCount = 0
 
 			# determine affected glyphs
-			if workOnAllGlyphs or workOnAllFonts:
+			if workOnAllGlyphs:
 				selectedGlyphs = thisFont.glyphs
 			else:
 				selectedGlyphs = [thisLayer.parent for thisLayer in thisFont.selectedLayers]
 
 			# determine affected masters
-			workOnAllMasters = workOnAllFonts or self.w.whichMasters.get() <= 1
+			workOnAllMasters = workOnAllFonts or self.prefInt("whichMasters") == 1
 			if workOnAllMasters:
 				selectedMasterIDs = [master.id for master in thisFont.masters]
 			else:
-				selectedMasterIDs = thisFont.selectedFontMaster.id
+				selectedMasterIDs = (thisFont.selectedFontMaster.id, )
 
 			thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 			try:

@@ -3,10 +3,16 @@ __doc__ = """
 Batch-insert intermediate layers (‘brace layers’) in selected glyphs. (Glyphs 2: Batch-insert brace or bracket layers in selected glyphs.)
 """
 
-from vanilla import FloatingWindow, EditText, TextBox, CheckBox, Button  # type: ignore
-from GlyphsApp import Glyphs, GSLayer, Message
-from mekkablue import mekkaObject, UpdateButton
 from copy import copy
+from vanilla import FloatingWindow, EditText, TextBox, CheckBox, Button  # type: ignore
+from mekkablue import mekkaObject, UpdateButton
+from GlyphsApp import Glyphs, GSLayer, Message
+from AppKit import (
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityWindowSizeStayPut,
+)
 
 
 class InsertSpecialLayersV3(mekkaObject):
@@ -16,34 +22,47 @@ class InsertSpecialLayersV3(mekkaObject):
 	}
 
 	def __init__(self):
-		windowWidth = 330
-		windowHeight = 140
-		windowWidthResize = 500  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 360
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Insert Intermediate Layers",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow"),  # stores last window position
 		)
 
-		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = TextBox((inset, linePos+2, -inset, 14), "Add intermediate (‘brace’) layers to selected glyphs:", sizeStyle="small", selectable=True)
-		linePos += lineHeight
+		# UI elements:
+		inset = 15
+		self.w.descriptionText = TextBox("auto", "Add intermediate (‘brace’) layers to selected glyphs:", sizeStyle="small", selectable=True)
 
-		self.w.intermediateCoordinates = EditText((inset, linePos, -inset-21, 19), self.pref("intermediateCoordinates"), callback=self.SavePreferences, sizeStyle="small")
-		self.w.updateCoordinates = UpdateButton((-inset-16, linePos-3, -inset, 16), callback=self.resetCoordinates)
+		self.w.intermediateCoordinates = EditText("auto", self.pref("intermediateCoordinates"), callback=self.SavePreferences, sizeStyle="small")
+		self.w.intermediateCoordinates.getNSTextField().setPlaceholderString_("wght=400, wdth=100")
+		self.w.intermediateCoordinates.setToolTip("Axis coordinates of the new intermediate layer: comma-separated list of axis tags and values, one entry for each axis of the font, e.g., wght=400, wdth=100.")
+		self.w.updateCoordinates = UpdateButton("auto", callback=self.resetCoordinates)
 		self.w.updateCoordinates.setToolTip("Will reset the entry to half way between the first two masters, or same as the only master (if there is only one).")
-		linePos += lineHeight
 
-		self.w.keepExistingBrace = CheckBox((inset, linePos, -inset, 20), "Keep (don’t overwrite) existing brace layers", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.keepExistingBrace = CheckBox("auto", "Keep (don’t overwrite) existing brace layers", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.keepExistingBrace.setToolTip("If checkbox is on and a glyph already contains (on any master) a brace layer at the indicated value, the script will skip the glyph. If the checkbox is off, it will deactivate the existing brace layer, and insert a new one.")
-		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = Button((-80-inset, -20-inset, -inset, -inset), "Insert", callback=self.InsertSpecialLayersV3Main)
+		self.w.runButton = Button("auto", "Insert", callback=self.InsertSpecialLayersV3Main)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-(>=inset)-|",
+				"H:|-inset-[intermediateCoordinates]-gap-[updateCoordinates]-inset-|",
+				"H:|-inset-[keepExistingBrace]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[descriptionText]-row-[intermediateCoordinates]-row-[keepExistingBrace]-inset-[runButton]-inset-|",
+				{"view1": self.w.updateCoordinates, "attribute1": "centerY", "view2": self.w.intermediateCoordinates, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -51,7 +70,6 @@ class InsertSpecialLayersV3(mekkaObject):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
 
 	def resetCoordinates(self, sender=None):
 		if not Glyphs.font:
@@ -63,7 +81,6 @@ class InsertSpecialLayersV3(mekkaObject):
 
 	def braceDefaultForFont(self, font):
 		tags = [axis.axisTag for axis in font.axes]
-		ids = [axis.axisId for axis in font.axes]
 		coords = list(font.masters[0].axes)
 		if len(font.masters) > 1:
 			otherMaster = font.masters[1]
@@ -89,7 +106,7 @@ class InsertSpecialLayersV3(mekkaObject):
 		if thisFont.filepath:
 			print(f"📄 {thisFont.filepath}")
 		else:
-			print("⚠️ The font file has not been saved yet.")
+			print(f"📄 {thisFont.familyName} (unsaved)")
 		print()
 
 		coordinates = {}
@@ -144,42 +161,58 @@ class InsertSpecialLayers(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 240
-		windowHeight = 180
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 280
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Insert Special Layers",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow"),  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = TextBox((inset, linePos + 2, -inset, 14), "Insert layer into selected glyphs:", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		inset = 15
+		self.w.descriptionText = TextBox("auto", "Insert layer into selected glyphs:", sizeStyle='small', selectable=True)
 
-		self.w.layerNameText = TextBox((inset, linePos + 2, 70, 14), "Layer name:", sizeStyle='small', selectable=True)
-		self.w.layerName = EditText((inset + 70, linePos - 1, -inset, 19), "Intermediate {100}", callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.layerNameText = TextBox("auto", "Layer name:", sizeStyle='small', selectable=True)
+		self.w.layerName = EditText("auto", "Intermediate {100}", callback=self.SavePreferences, sizeStyle='small')
+		tooltipText = "Name of the new layer. Use curly braces for a brace layer, e.g., Intermediate {100}."
+		self.w.layerNameText.setToolTip(tooltipText)
+		self.w.layerName.setToolTip(tooltipText)
 
-		self.w.prefillWithMasterContent = CheckBox((inset + 2, linePos - 1, -inset, 20), "Create as duplicate of master layer", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.prefillWithMasterContent = CheckBox("auto", "Create as duplicate of master layer", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.prefillWithMasterContent.setToolTip("Will add the new layer with the content of the associated master layer. If checkbox is off, will insert empty layer. In case of brace layers, the Reinterpolate option (further down) takes precedence, though.")
-		linePos += lineHeight
 
-		self.w.keepExistingBrace = CheckBox((inset + 2, linePos - 1, -inset, 20), "Keep existing brace layer", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.keepExistingBrace = CheckBox("auto", "Keep existing brace layer", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.keepExistingBrace.setToolTip("Only applies to brace layers. If checkbox is on and a glyph already contains (on any master) a brace layer at the indicated value, the script will skip the glyph. If the checkbox is off, it will deactivate the existing brace layer by replacing the curly braces with hashtags.")
-		linePos += lineHeight
 
-		self.w.reinterpolateBrace = CheckBox((inset + 2, linePos - 1, -inset, 20), "Reinterpolate brace layers", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reinterpolateBrace = CheckBox("auto", "Reinterpolate brace layers", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reinterpolateBrace.setToolTip("Only applies to brace layers. If checkbox is on and a brace layer is inserted, it will reinterpolate the newly generated brace layer. It only does this for newly generated layer, and will not reinterpolate existing brace layers.")
-		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = Button((-80 - inset, -20 - inset, -inset, -inset), "Insert", callback=self.InsertSpecialLayersMain)
+		self.w.runButton = Button("auto", "Insert", callback=self.InsertSpecialLayersMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# the label hugs its text, so the field takes the leftover width:
+		self.w.layerNameText.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-(>=inset)-|",
+				"H:|-inset-[layerNameText]-gap-[layerName]-inset-|",
+				"H:|-inset-[prefillWithMasterContent]-(>=inset)-|",
+				"H:|-inset-[keepExistingBrace]-(>=inset)-|",
+				"H:|-inset-[reinterpolateBrace]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[descriptionText]-row-[layerName]-row-[prefillWithMasterContent]-checkRow-[keepExistingBrace]-checkRow-[reinterpolateBrace]-inset-[runButton]-inset-|",
+				{"view1": self.w.layerNameText, "attribute1": "centerY", "view2": self.w.layerName, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -205,9 +238,9 @@ class InsertSpecialLayers(mekkaObject):
 			else:
 				print("Insert Special Layers Report for %s" % thisFont.familyName)
 				if thisFont.filepath:
-					print(thisFont.filepath)
+					print("📄 %s" % thisFont.filepath)
 				else:
-					print("⚠️ The font file has not been saved yet.")
+					print("📄 %s (unsaved)" % thisFont.familyName)
 				print()
 
 				layerName = self.pref("layerName")
@@ -245,15 +278,15 @@ class InsertSpecialLayers(mekkaObject):
 						if isBrace and reinterpolateBrace:
 							newLayer.reinterpolate()
 
-			# Final report:
-			Glyphs.showNotification(
-				"%s: Done" % (thisFont.familyName),
-				"Inserted %i layer%s. Details in Macro Window." % (
-					insertedLayerCount,
-					"" if insertedLayerCount == 1 else "s",
-				),
-			)
-			print("\nDone.")
+				# Final report:
+				Glyphs.showNotification(
+					"%s: Done" % (thisFont.familyName),
+					"Inserted %i layer%s. Details in Macro Window." % (
+						insertedLayerCount,
+						"" if insertedLayerCount == 1 else "s",
+					),
+				)
+				print("\nDone.")
 
 		except Exception as e:
 			# brings macro window to front and reports error:

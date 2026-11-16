@@ -3,10 +3,11 @@ __doc__ = """
 UI for managing glyphOrder parameters.
 """
 
-import vanilla
 import codecs
-from GlyphsApp import Glyphs, Message
+import vanilla
 from mekkablue import mekkaObject, getLegibleFont, reportFontName
+from GlyphsApp import Glyphs, Message
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 
 
 def saveFileInLocation(content="", filePath="~/Desktop/test.txt"):
@@ -37,22 +38,19 @@ class GlyphOrderManager(mekkaObject):
 		# Window 'self.w':
 		windowWidth = 380
 		windowHeight = 260
-		windowWidthResize = 1000  # user can resize width by this value
-		windowHeightResize = 1000  # user can resize height by this value
+		# the window stays resizable, because the user needs to enlarge the text editor
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Glyph Order Manager",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Content of glyphOrder parameter:", sizeStyle="small", selectable=True)
-		linePos += lineHeight
+		inset = 15
+		self.w.descriptionText = vanilla.TextBox("auto", "Content of glyphOrder parameter:", sizeStyle="small", selectable=True)
 
-		self.w.glyphOrderText = vanilla.TextEditor((1, linePos, -1, -inset * 5), text="", callback=self.SavePreferences, checksSpelling=False)
+		self.w.glyphOrderText = vanilla.TextEditor("auto", text="", callback=self.SavePreferences, checksSpelling=False)
 		self.w.glyphOrderText.getNSScrollView().setHasVerticalScroller_(1)
 		self.w.glyphOrderText.getNSScrollView().setHasHorizontalScroller_(1)
 		self.w.glyphOrderText.getNSScrollView().setRulersVisible_(0)
@@ -76,17 +74,37 @@ class GlyphOrderManager(mekkaObject):
 			"frontmost font only",
 			"⚠️ all open fonts",
 		)
-		self.w.scopeText = vanilla.TextBox((inset, -48 - inset - 2, 65, 18), "Apply to:", selectable=True)
-		self.w.scope = vanilla.PopUpButton((inset + 65, -48 - inset, -inset, 17), scopeOptions, callback=self.SavePreferences)
-		linePos += lineHeight
+		self.w.scopeText = vanilla.TextBox("auto", "Apply to:", selectable=True)
+		self.w.scope = vanilla.PopUpButton("auto", scopeOptions, callback=self.SavePreferences)
 
 		# Run Button:
-		self.w.extractButton = vanilla.Button((inset, -20 - inset, 70, -inset), "Extract", callback=self.extractFromFrontmostFont)
-		self.w.cleanButton = vanilla.Button((inset + 80, -20 - inset, 70, -inset), "Clean", callback=self.cleanForScope)
-		self.w.addMissingButton = vanilla.Button((inset + 160, -20 - inset, 100, -inset), "Add Missing", callback=self.addMissingForScope)
+		self.w.extractButton = vanilla.Button("auto", "Extract", callback=self.extractFromFrontmostFont)
+		self.w.cleanButton = vanilla.Button("auto", "Clean", callback=self.cleanForScope)
+		self.w.addMissingButton = vanilla.Button("auto", "Add Missing", callback=self.addMissingForScope)
 
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Apply", callback=self.GlyphOrderManagerMain)
+		self.w.runButton = vanilla.Button("auto", "Apply", callback=self.GlyphOrderManagerMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# everything hugs vertically, except for the text editor, which takes the leftover height:
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+		self.w.glyphOrderText.getNSScrollView().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationVertical)
+		self.w.scopeText.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-0-[glyphOrderText]-0-|",
+				"H:|-inset-[scopeText]-gap-[scope]-inset-|",
+				"H:|-inset-[extractButton(>=70)]-gap-[cleanButton(>=70)]-gap-[addMissingButton(>=70)]-(>=gap)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[descriptionText]-gap-[glyphOrderText(>=100)]-gap-[scope]-inset-[runButton]-inset-|",
+				"V:[extractButton]-inset-|",
+				"V:[cleanButton]-inset-|",
+				"V:[addMissingButton]-inset-|",
+				{"view1": self.w.scopeText, "attribute1": "centerY", "view2": self.w.scope, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -97,7 +115,9 @@ class GlyphOrderManager(mekkaObject):
 
 	def requestedFonts(self):
 		scope = self.prefInt("scope")
-		if scope == 0 and Glyphs.fonts:
+		if not Glyphs.fonts or not Glyphs.font:
+			return None
+		if scope == 0:
 			return (Glyphs.font, )
 		elif scope == 1:  # all fonts
 			return Glyphs.fonts

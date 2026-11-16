@@ -4,8 +4,9 @@ Open a new tab with all glyphs contained in a specific OpenType class.
 """
 
 import vanilla
-from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, UpdateButton
+from GlyphsApp import Glyphs, Message
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 
 
 class NewTabWithOTClass(mekkaObject):
@@ -13,28 +14,41 @@ class NewTabWithOTClass(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 350
-		windowHeight = 60
-		windowWidthResize = 500  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"New Tab with OT Class",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset = 11, 12
-		self.w.text = vanilla.TextBox((inset - 1, linePos + 2, 100, 14), "Pick an OT class", sizeStyle='small')
-		self.w.classMenu = vanilla.PopUpButton((inset + 93, linePos, -125, 17), self.currentFontClasses(None), callback=None, sizeStyle='small')
-		self.w.updateButton = UpdateButton((-120, linePos + 1, -100, -18), callback=self.populateClassMenu)
+		self.w.text = vanilla.TextBox("auto", "Pick an OT class", sizeStyle='small')
+		self.w.classMenu = vanilla.PopUpButton("auto", self.currentFontClasses(None), callback=None, sizeStyle='small')
+		self.w.updateButton = UpdateButton("auto", callback=self.populateClassMenu)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-95, linePos + 2, -inset, -15), "New Tab", callback=self.NewTabWithOTClassMain)
+		self.w.runButton = vanilla.Button("auto", "New Tab", callback=self.NewTabWithOTClassMain)
 		self.w.setDefaultButton(self.w.runButton)
 
-		self.font = Glyphs.font
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# the label hugs its text, so the popup takes the leftover width:
+		nsLabel = self.w.text.getNSTextField()
+		nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+		self.w.classMenu.getNSPopUpButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[text]-gap-[classMenu(>=80)]-gap-[updateButton]-gap-[runButton(>=70)]-inset-|",
+				"V:|-inset-[runButton]-inset-|",
+				{"view1": self.w.text, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
+				{"view1": self.w.classMenu, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
+				{"view1": self.w.updateButton, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
+			],
+			metrics={"inset": 12, "gap": 8},
+		)
 
 		# Open window and focus on it:
 		self.w.open()
@@ -42,6 +56,8 @@ class NewTabWithOTClass(mekkaObject):
 
 	def currentFontClasses(self, sender):
 		self.font = Glyphs.font
+		if not self.font:
+			return []
 		classNames = [c.name for c in self.font.classes]
 		return classNames
 
@@ -54,7 +70,7 @@ class NewTabWithOTClass(mekkaObject):
 	def NewTabWithOTClassMain(self, sender):
 		try:
 			classNames = self.w.classMenu.getItems()
-			if not classNames:
+			if not classNames or not self.font:
 				Message(
 					title="No OT Class Found",
 					message=u"Found no class to open in a new tab. Please activate a font, press the ↺ update button, and pick a class from the menu.",

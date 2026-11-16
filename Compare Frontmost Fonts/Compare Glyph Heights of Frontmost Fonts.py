@@ -3,9 +3,17 @@ __doc__ = """
 Lists all glyphs that differ from the second font in height beyond a given threshold.
 """
 
+import objc
 import vanilla
-from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject
+from GlyphsApp import Glyphs, Message
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
+from Foundation import NSNumberFormatter
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 class CompareGlyphHeightsOfFrontmostFonts(mekkaObject):
@@ -19,44 +27,64 @@ class CompareGlyphHeightsOfFrontmostFonts(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 320
-		windowHeight = 204
+		windowWidth = 340
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Compare Glyph Heights of Frontmost Fonts",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 28), "Lists all glyphs that differ in height more than the given threshold. Detailed report in Macro Window.", sizeStyle='small', selectable=True)
-		linePos += lineHeight * 2
+		self.w.descriptionText = vanilla.TextBox("auto", "Lists all glyphs that differ in height more than the given threshold. Detailed report in Macro Window.", sizeStyle='small', selectable=True)
+		# wraps to two lines, so it takes the width it is given:
+		self.w.descriptionText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
-		self.w.tolerateText = vanilla.TextBox((inset, linePos + 2, 140, 14), "Tolerate difference up to", sizeStyle='small', selectable=True)
-		self.w.tolerate = vanilla.EditText((inset + 136, linePos, 55, 19), "5", callback=self.SavePreferences, sizeStyle='small')
-		self.w.tolerate.setToolTip("How much of a difference is OK. Hint: overshoot size is a good idea for this one.")
-		linePos += lineHeight
+		tooltipText = "How much of a difference is OK. Hint: overshoot size is a good idea for this one."
+		self.w.tolerateText = vanilla.TextBox("auto", "Tolerate difference up to", sizeStyle='small', selectable=True)
+		self.w.tolerateText.setToolTip(tooltipText)
+		formatter = NSNumberFormatter.alloc().init()
+		formatter.setMinimum_(0)
+		self.w.tolerate = SteppingEditText("auto", "5", callback=self.SavePreferences, sizeStyle='small', formatter=formatter)
+		self.w.tolerate.setToolTip(tooltipText)
 
-		self.w.heights = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Compare top bounds (‘heights’)", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.heights = vanilla.CheckBox("auto", "Compare top bounds (‘heights’)", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.heights.setToolTip("Measures and compares the heights of the top edges (bbox maximum).")
-		linePos += lineHeight
 
-		self.w.depths = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Compare bottom bounds (‘depths’)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.depths = vanilla.CheckBox("auto", "Compare bottom bounds (‘depths’)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.depths.setToolTip("Measures and compares the heights of the bottom edges (bbox minimum).")
-		linePos += lineHeight
 
-		self.w.includeNonExporting = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeNonExporting = vanilla.CheckBox("auto", "Include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeNonExporting.setToolTip("If enabled, also measures glyphs that are set to not export.")
-		linePos += lineHeight
 
-		self.w.verbose = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Verbose output in Macro Window (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.verbose = vanilla.CheckBox("auto", "Verbose output in Macro Window (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.verbose.setToolTip("Will output a detailed progress report in Window > Macro Panel. This slows down the script significantly, so only use for debugging.")
-		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Compare", callback=self.CompareGlyphHeightsOfFrontmostFontsMain)
+		self.w.runButton = vanilla.Button("auto", "Compare", callback=self.CompareGlyphHeightsOfFrontmostFontsMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging,
+		# the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[tolerateText]-gap-[tolerate(55)]-(>=inset)-|",
+				"H:|-inset-[heights]-(>=inset)-|",
+				"H:|-inset-[depths]-(>=inset)-|",
+				"H:|-inset-[includeNonExporting]-(>=inset)-|",
+				"H:|-inset-[verbose]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=120)]-inset-|",
+				"V:|-gap-[descriptionText(28)]-row-[tolerate]-row-[heights]-checkRow-[depths]-checkRow-[includeNonExporting]-checkRow-[verbose]-inset-[runButton]-inset-|",
+				{"view1": self.w.tolerateText, "attribute1": "centerY", "view2": self.w.tolerate, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -83,16 +111,17 @@ class CompareGlyphHeightsOfFrontmostFonts(mekkaObject):
 
 				thisFont = Glyphs.font  # frontmost font
 				otherFont = Glyphs.fonts[1]  # second font
-				thisFileName = thisFont.filepath.lastPathComponent()
-				otherFileName = otherFont.filepath.lastPathComponent()
+				# unsaved fonts have no file path:
+				thisFileName = thisFont.filepath.lastPathComponent() if thisFont.filepath else f"{thisFont.familyName} (unsaved)"
+				otherFileName = otherFont.filepath.lastPathComponent() if otherFont.filepath else f"{otherFont.familyName} (unsaved)"
 				print(
 					"Compare Glyph Heights of Frontmost Fonts Report for:\n  (1) %s: %s\n      %s\n  (2) %s: %s\n      %s" % (
 						thisFont.familyName,
 						thisFileName,
-						thisFont.filepath,
+						thisFont.filepath if thisFont.filepath else "⚠️ The font file has not been saved yet.",
 						otherFont.familyName,
 						otherFileName,
-						otherFont.filepath,
+						otherFont.filepath if otherFont.filepath else "⚠️ The font file has not been saved yet.",
 					)
 				)
 				print()
@@ -109,7 +138,7 @@ class CompareGlyphHeightsOfFrontmostFonts(mekkaObject):
 				collectedGlyphNames = []
 
 				if len(theseIDs) != len(otherIDs):
-					print("⚠️ Different number of masters in %s and %s" % (thisFont.filepath.lastPathComponent(), otherFont.filepath.lastPathComponent()))
+					print("⚠️ Different number of masters in %s and %s" % (thisFileName, otherFileName))
 
 				for thisGlyph in thisFont.glyphs:
 					if thisGlyph.export or includeNonExporting:

@@ -3,10 +3,17 @@ __doc__ = """
 Sets origin point for Rotate tool.
 """
 
+import objc
 import vanilla
-from Foundation import NSPoint, NSClassFromString
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityWindowSizeStayPut
+from Foundation import NSPoint, NSClassFromString, NSNumberFormatter
 from GlyphsApp import Glyphs
 from mekkablue import mekkaObject
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 class SetTransformOriginWindow(mekkaObject):
@@ -14,28 +21,50 @@ class SetTransformOriginWindow(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 360
-		windowHeight = 42
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Set Transform Origin",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset = 10, 15
-		xPos = inset
-		self.w.text_1 = vanilla.TextBox((xPos, linePos + 3, 75, 16), "Origin")
-		xPos += 45
-		self.w.originX = vanilla.EditText((xPos, linePos, 75, 22), "0.0")
-		xPos += 80
-		self.w.originY = vanilla.EditText((xPos, linePos, 75, 22), "0.0")
-		xPos += 80
+		inset = 15
+		formatter = NSNumberFormatter.alloc().init()
+		formatter.setMaximumFractionDigits_(3)
+
+		self.w.text_1 = vanilla.TextBox("auto", "Origin")
+		self.w.originX = SteppingEditText("auto", "0.0", formatter=formatter)
+		self.w.originX.setToolTip("x coordinate of the transform origin.")
+		self.w.originY = SteppingEditText("auto", "0.0", formatter=formatter)
+		self.w.originY.setToolTip("y coordinate of the transform origin.")
+
 		# Run Button:
-		self.w.resetButton = vanilla.Button((xPos, linePos - 1, 60, 22), "Get", callback=self.GetTransformOrigin)
-		xPos += 65
-		self.w.runButton = vanilla.Button((xPos, linePos - 1, 60, 22), "Set", callback=self.SetTransformOriginMain)
+		self.w.resetButton = vanilla.Button("auto", "Get", callback=self.GetTransformOrigin)
+		self.w.resetButton.setToolTip("Reads the current origin of the Rotate tool into the fields.")
+		self.w.runButton = vanilla.Button("auto", "Set", callback=self.SetTransformOriginMain)
+		self.w.runButton.setToolTip("Sets the origin of the Rotate tool to the coordinates in the fields.")
 
 		self.w.setDefaultButton(self.w.runButton)
+
+		# with everything hugging, the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# the label hugs its text, so the fields take the leftover width:
+		self.w.text_1.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[text_1]-gap-[originX(>=60)]-gap-[originY(==originX)]-gap-[resetButton(>=60)]-gap-[runButton(>=60)]-inset-|",
+				"V:|-inset-[originX]-inset-|",
+				{"view1": self.w.text_1, "attribute1": "centerY", "view2": self.w.originX, "attribute2": "centerY"},
+				{"view1": self.w.originY, "attribute1": "centerY", "view2": self.w.originX, "attribute2": "centerY"},
+				{"view1": self.w.resetButton, "attribute1": "centerY", "view2": self.w.originX, "attribute2": "centerY"},
+				{"view1": self.w.runButton, "attribute1": "centerY", "view2": self.w.originX, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8},
+		)
 
 		# Load Settings:
 		if not self.GetTransformOrigin(None):
@@ -61,8 +90,9 @@ class SetTransformOriginWindow(mekkaObject):
 
 	def SetTransformOriginMain(self, sender):
 		try:
-			newOriginX = float(self.w.originX.get())
-			newOriginY = float(self.w.originY.get())
+			# the fields have a number formatter: get() returns a number, or None for an empty field
+			newOriginX = float(self.w.originX.get() or 0)
+			newOriginY = float(self.w.originY.get() or 0)
 			newOriginPoint = NSPoint(newOriginX, newOriginY)
 
 			myController = Glyphs.currentDocument.windowController()

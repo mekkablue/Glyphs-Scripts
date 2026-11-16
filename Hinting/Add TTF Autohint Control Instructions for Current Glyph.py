@@ -1,17 +1,23 @@
 # MenuTitle: Add TTF Autohint Control Instructions for Current Glyph
-try:
-	from builtins import str
-except Exception as e:  # noqa: F841
-	print("Warning: 'future' module not installed. Run 'sudo pip install future' in Terminal.")
 __doc__ = """
 Adds a touch line for a given up/down amount to the Control Instructions of the current instance.
 """
 
-from AppKit import NSPasteboard, NSStringPboardType, NSNotificationCenter, NSClassFromString
 import math
 import vanilla
+from mekkablue import mekkaObject
 from GlyphsApp import Glyphs, Message
-from mekkablue import setClipboard, mekkaObject
+from AppKit import (
+	NSClassFromString,
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityDefaultLow,
+	NSLayoutPriorityRequired,
+	NSLayoutPriorityWindowSizeStayPut,
+	NSNotificationCenter,
+	NSTextAlignmentRight,
+)
 
 
 def sizeStringIsOK(sizeString):
@@ -21,8 +27,6 @@ def sizeStringIsOK(sizeString):
 	for character in sizeString:
 		if character not in "1234567890-, ":
 			return False
-		elif character == "#":
-			return True
 	return True
 
 
@@ -81,7 +85,7 @@ def numberIndexStringFromNumbers(indexes):
 			if previousNumber == thisNumber - 1:
 				if outputString[-1] != "-":
 					outputString += "-"
-				elif i == len(indexes) - 1:
+				if i == len(indexes) - 1:
 					outputString += "%i" % thisNumber
 			else:
 				if outputString[-1] == "-":
@@ -99,23 +103,20 @@ class AddTTFAutohintControlInstructionsForCurrentGlyph(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 155
-		windowHeight = 410
-		windowWidthResize = 400  # user can resize width by this value
-		windowHeightResize = 100  # user can resize height by this value
+		windowWidth = 200
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Add ttfAutohint Control Instructions for Current Glyph",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 24
+		inset = 15
 
-		self.w.explanatoryText = vanilla.TextBox((inset, linePos + 2, -inset, 60), "Touch instruction with px offset for active glyph & instance, respects italic angle.", sizeStyle='small', selectable=True)
-		linePos += 3 * lineHeight
+		self.w.explanatoryText = vanilla.TextBox("auto", "Touch instruction with px offset for active glyph & instance, respects italic angle.", sizeStyle='small', selectable=True)
+		# the text wraps, so it takes the width it is given (and gets a fixed height in the rules):
+		self.w.explanatoryText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		sectionOptions = (
 			"All Points",
@@ -126,39 +127,60 @@ class AddTTFAutohintControlInstructionsForCurrentGlyph(mekkaObject):
 			"Lower Third",
 			"Lower Quarter",
 		)
-		self.w.sectionToMoveText = vanilla.TextBox((inset, linePos + 2, 38, 14), u"Touch", sizeStyle='small', selectable=True)
-		self.w.sectionToMove = vanilla.PopUpButton((inset + 38, linePos, -inset, 17), sectionOptions, sizeStyle='small', callback=self.SavePreferences)
-		linePos += lineHeight
+		self.w.sectionToMoveText = vanilla.TextBox("auto", "Touch", sizeStyle='small', selectable=True)
+		self.w.sectionToMove = vanilla.PopUpButton("auto", sectionOptions, sizeStyle='small', callback=self.SavePreferences)
 
-		self.w.runButtonAdd100 = vanilla.Button((inset, linePos, -inset, 20), "+1.00", callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
-		linePos += lineHeight
-		self.w.runButtonAdd075 = vanilla.Button((inset, linePos, -inset, 20), "+0.75", callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
-		linePos += lineHeight
-		self.w.runButtonAdd050 = vanilla.Button((inset, linePos, -inset, 20), "+0.50", callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
-		linePos += lineHeight
-		self.w.runButtonAdd025 = vanilla.Button((inset, linePos, -inset, 20), "+0.25", callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
-		linePos += lineHeight
-		self.w.runButtonSub025 = vanilla.Button((inset, linePos, -inset, 20), "-0.25", callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
-		linePos += lineHeight
-		self.w.runButtonSub050 = vanilla.Button((inset, linePos, -inset, 20), "-0.50", callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
-		linePos += lineHeight
-		self.w.runButtonSub075 = vanilla.Button((inset, linePos, -inset, 20), "-0.75", callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
-		linePos += lineHeight
-		self.w.runButtonSub100 = vanilla.Button((inset, linePos, -inset, 20), "-1.00", callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
-		linePos += lineHeight
+		self.w.runButtonAdd100 = vanilla.Button("auto", "+1.00", callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
+		self.w.runButtonAdd075 = vanilla.Button("auto", "+0.75", callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
+		self.w.runButtonAdd050 = vanilla.Button("auto", "+0.50", callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
+		self.w.runButtonAdd025 = vanilla.Button("auto", "+0.25", callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
+		self.w.runButtonSub025 = vanilla.Button("auto", "-0.25", callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
+		self.w.runButtonSub050 = vanilla.Button("auto", "-0.50", callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
+		self.w.runButtonSub075 = vanilla.Button("auto", "-0.75", callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
+		self.w.runButtonSub100 = vanilla.Button("auto", "-1.00", callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
 
-		self.w.ppmText = vanilla.TextBox((inset, linePos + 2, 14, 14), "@", sizeStyle='small', selectable=True)
-		self.w.ppm = vanilla.EditText((inset + 14, linePos, -inset, 19), "8-12,20", sizeStyle='small', callback=self.SavePreferences)
-		linePos += lineHeight * 1.5
+		self.w.ppmText = vanilla.TextBox("auto", "@", sizeStyle='small', selectable=True)
+		self.w.ppm = vanilla.EditText("auto", "8-12,20", sizeStyle='small', callback=self.SavePreferences)
 
-		# self.w.upperHalf = vanilla.CheckBox((inset + 2, linePos-1, -inset, 20), "Upper half (one)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		# linePos += lineHeight
+		self.w.rightAtTop = vanilla.Button("auto", "right at top", callback=self.InsertRightAtTop)
+		self.w.leftAtTop = vanilla.Button("auto", "left at top", callback=self.InsertLeftAtTop)
 
-		self.w.rightAtTop = vanilla.Button((inset, linePos, -inset, 20), "right at top", callback=self.InsertRightAtTop)
-		linePos += lineHeight
+		# with everything hugging, the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
 
-		self.w.leftAtTop = vanilla.Button((inset, linePos, -inset, 20), "left at top", callback=self.InsertLeftAtTop)
-		linePos += lineHeight
+		# labels are right-aligned, hug their text and share one width:
+		for label in (self.w.sectionToMoveText, self.w.ppmText):
+			nsLabel = label.getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		buttonNames = (
+			"runButtonAdd100",
+			"runButtonAdd075",
+			"runButtonAdd050",
+			"runButtonAdd025",
+			"runButtonSub025",
+			"runButtonSub050",
+			"runButtonSub075",
+			"runButtonSub100",
+		)
+		rules = [
+			"H:|-inset-[explanatoryText]-inset-|",
+			"H:|-inset-[sectionToMoveText]-gap-[sectionToMove]-inset-|",
+			"H:|-inset-[ppmText]-gap-[ppm]-inset-|",
+			"H:|-inset-[rightAtTop]-inset-|",
+			"H:|-inset-[leftAtTop]-inset-|",
+		]
+		rules += [f"H:|-inset-[{buttonName}]-inset-|" for buttonName in buttonNames]
+		rules += [
+			"V:|-gap-[explanatoryText(42)]-section-[sectionToMove]-section-" + "-gap-".join(f"[{buttonName}]" for buttonName in buttonNames) + "-section-[ppm]-section-[rightAtTop]-gap-[leftAtTop]-inset-|",
+			{"view1": self.w.sectionToMoveText, "attribute1": "centerY", "view2": self.w.sectionToMove, "attribute2": "centerY"},
+			{"view1": self.w.ppmText, "attribute1": "centerY", "view2": self.w.ppm, "attribute2": "centerY"},
+			{"view1": self.w.ppmText, "attribute1": "width", "view2": self.w.sectionToMoveText, "attribute2": "width"},
+		]
+		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "section": 12})
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -168,13 +190,18 @@ class AddTTFAutohintControlInstructionsForCurrentGlyph(mekkaObject):
 		self.w.makeKey()
 
 	def fontInstanceToolGlyphLayer(self):
+		noResult = (None, None, None, None, None, None, None, None, None)
 		Font = Glyphs.font
+		if not Font or not Font.currentTab:
+			Message(title="ttfAutohint Error", message="The script requires a font with an open Edit tab.", OKButton=None)
+			return noResult
 
 		# determine current instance:
 		try:
 			currentInstance = Font.instances[Font.currentTab.selectedInstance()]
 		except:
-			print("Couldn’t find instance")
+			Message(title="ttfAutohint Error", message="Could not find the current instance. Pick an instance in the preview area at the bottom of the Edit tab.", OKButton=None)
+			return noResult
 
 		# switch to Instructor tool:
 		ttInstructorClass = NSClassFromString("GlyphsToolTrueTypeInstructor")
@@ -214,7 +241,7 @@ class AddTTFAutohintControlInstructionsForCurrentGlyph(mekkaObject):
 
 				return Font, currentInstance, tool, glyphName, layer, glyf, glyfBounds, coords, pointCount
 
-		return None, None, None, None, None, None, None, None, None
+		return noResult
 
 	def InsertRightAtTop(self, sender):
 		Font, currentInstance, tool, glyphName, layer, glyf, glyfBounds, coords, pointCount = self.fontInstanceToolGlyphLayer()

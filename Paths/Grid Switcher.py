@@ -3,9 +3,17 @@ __doc__ = """
 Toggles grid between two gridstep values.
 """
 
+import objc
 import vanilla
+from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
+from Foundation import NSNumberFormatter
 from GlyphsApp import Glyphs
 from mekkablue import mekkaObject
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 class Gridswitch(mekkaObject):
@@ -15,51 +23,77 @@ class Gridswitch(mekkaObject):
 	}
 
 	def __init__(self):
-		self.gridStep1default = 1
-		self.gridStep2default = 0
+		# Window 'self.w':
+		windowWidth = 190
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
+		self.w = vanilla.FloatingWindow(
+			(windowWidth, windowHeight),
+			"Grid Switcher",
+			autosaveName=self.domain("mainwindow"),  # stores last window position
+		)
 
-		currentGridStep = Glyphs.font.gridMain()
-		self.w = vanilla.FloatingWindow((170, 100), "Grid Switcher", autosaveName=self.domain("mainwindow"))
-		self.w.grid1 = vanilla.EditText((15, 12, 65, 19), "1", sizeStyle='small')
-		self.w.grid2 = vanilla.EditText((-80, 12, -15, 19), "50", sizeStyle='small')
-		self.w.currentGridStep = vanilla.TextBox((15, 38, -15, 22), "Current Grid Step: %i" % currentGridStep)
-		self.w.switchButton = vanilla.Button((15, -22 - 15, -15, -15), "Switch Grid", callback=self.GridOnOffMain)
+		# UI elements:
+		inset = 15
+
+		formatter = NSNumberFormatter.alloc().init()
+		formatter.setAllowsFloats_(False)
+		formatter.setMinimum_(0)
+		self.w.grid1 = SteppingEditText("auto", "1", callback=self.SavePreferences, sizeStyle='small', formatter=formatter)
+		self.w.grid1.setToolTip("First grid step value.")
+		self.w.grid2 = SteppingEditText("auto", "0", callback=self.SavePreferences, sizeStyle='small', formatter=formatter)
+		self.w.grid2.setToolTip("Second grid step value.")
+		self.w.currentGridStep = vanilla.TextBox("auto", self.gridStepReport(), sizeStyle='small')
+		self.w.switchButton = vanilla.Button("auto", "Switch Grid", callback=self.GridOnOffMain)
 		self.w.setDefaultButton(self.w.switchButton)
 
-		self.w.center()
-		self.w.open()
-		self.w.makeKey()
+		# with everything hugging, the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[grid1]-gap-[grid2(==grid1)]-inset-|",
+				"H:|-inset-[currentGridStep]-inset-|",
+				"H:|-inset-[switchButton]-inset-|",
+				"V:|-inset-[grid1]-gap-[currentGridStep]-inset-[switchButton]-inset-|",
+				{"view1": self.w.grid2, "attribute1": "centerY", "view2": self.w.grid1, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
 
+		# Open window and focus on it:
+		self.w.open()
+		self.w.makeKey()
+
+	def gridStepReport(self, gridStep=None):
+		if gridStep is None:
+			font = Glyphs.font
+			if not font:
+				return "No font open."
+			gridStep = font.grid
+		return "Current Grid Step: %i" % gridStep
+
 	def GridOnOffMain(self, sender):
-		try:
-			self.SavePreferences()
+		self.SavePreferences()
 
-			try:
-				gridStep1 = int(Glyphs.defaults["com.mekkablue.gridswitch.grid1"])
-			except:
-				gridStep1 = self.gridStep1default
-				self.w.grid1.set(gridStep1)
+		font = Glyphs.font
+		if not font:
+			self.w.currentGridStep.set(self.gridStepReport())
+			return
 
-			try:
-				gridStep2 = int(Glyphs.defaults["com.mekkablue.gridswitch.grid2"])
-			except:
-				gridStep2 = self.gridStep2default
-				self.w.grid2.set(gridStep2)
+		gridStep1 = self.prefInt("grid1")
+		gridStep2 = self.prefInt("grid2")
 
-			gridStep = Glyphs.font.gridMain()
-			if gridStep != gridStep1:
-				newGridStep = gridStep1
-			else:
-				newGridStep = gridStep2
+		if font.grid != gridStep1:
+			newGridStep = gridStep1
+		else:
+			newGridStep = gridStep2
 
-			Glyphs.font.setGridMain_(newGridStep)
-			self.w.currentGridStep.set("Current Grid Step: %i" % newGridStep)
-
-		except Exception as e:
-			raise e
+		font.grid = newGridStep
+		self.w.currentGridStep.set(self.gridStepReport(newGridStep))
 
 
 Gridswitch()

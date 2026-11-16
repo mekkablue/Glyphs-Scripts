@@ -3,11 +3,11 @@ __doc__ = """
 Takes a list of oldglyphname=newglyphname pairs and renames glyphs in the font accordingly, much like the Rename Glyphs parameter.
 """
 
-import vanilla
 import uuid
-from AppKit import NSFont
-from GlyphsApp import Glyphs
+import vanilla
 from mekkablue import mekkaObject
+from GlyphsApp import Glyphs
+from AppKit import NSFont, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 
 
 class RenameGlyphs(mekkaObject):
@@ -21,29 +21,44 @@ class RenameGlyphs(mekkaObject):
 		# Window 'self.w':
 		windowWidth = 250
 		windowHeight = 200
-		windowWidthResize = 800  # user can resize width by this value
-		windowHeightResize = 800  # user can resize height by this value
+		# the window stays resizable, because the user needs to enlarge the text editor
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Rename Glyphs",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
-		self.w.text_1 = vanilla.TextBox((10, 12 + 2, -10, 14), "Add lines like oldname=newname:", sizeStyle='small')
-		self.w.renameList = vanilla.TextEditor((1, 40, -1, -40), "oldname=newname", callback=self.SavePreferences)
+		inset = 15
+		self.w.text_1 = vanilla.TextBox("auto", "Add lines like oldname=newname:", sizeStyle='small')
+		self.w.renameList = vanilla.TextEditor("auto", "oldname=newname", callback=self.SavePreferences)
 		self.w.renameList.getNSTextView().setFont_(NSFont.userFixedPitchFontOfSize_(-1.0))
 		self.w.renameList.getNSTextView().turnOffLigatures_(1)
 		self.w.renameList.getNSTextView().useStandardLigatures_(0)
 		self.w.renameList.selectAll()
 
-		self.w.allFonts = vanilla.CheckBox((10, -35, 100, 20), "⚠️ ALL Fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allFonts = vanilla.CheckBox("auto", "⚠️ ALL Fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100, -35, -15, -15), "Rename", callback=self.RenameGlyphsMain)
+		self.w.runButton = vanilla.Button("auto", "Rename", callback=self.RenameGlyphsMain)
 		# self.w.setDefaultButton(self.w.runButton)
+
+		# everything hugs vertically, except for the text editor, which takes the leftover height:
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+		self.w.renameList.getNSScrollView().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[text_1]-inset-|",
+				"H:|-0-[renameList]-0-|",
+				"H:|-inset-[allFonts]-(>=gap)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[text_1]-gap-[renameList(>=80)]-gap-[runButton]-inset-|",
+				{"view1": self.w.allFonts, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -63,11 +78,18 @@ class RenameGlyphs(mekkaObject):
 			if self.pref("allFonts"):
 				theseFonts = Glyphs.fonts
 			else:
-				theseFonts = [Glyphs.font, ]
+				theseFonts = [Glyphs.font, ] if Glyphs.font else []
+
+			if not theseFonts:
+				print("⚠️ Rename Glyphs: no font open.")
+				return
 
 			for thisFont in theseFonts:
 				for thisLine in self.pref("renameList").splitlines():
 					if thisLine.strip():
+						if "=" not in thisLine:
+							print(f"⚠️ Skipping line without equals sign: {thisLine.strip()}")
+							continue
 						glyphNameLeft = thisLine.split("=")[0].strip()
 						glyphNameRight = thisLine.split("=")[1].strip()
 						glyphLeft = thisFont.glyphs[glyphNameLeft]

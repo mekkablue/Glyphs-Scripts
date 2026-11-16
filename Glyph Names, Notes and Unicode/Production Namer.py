@@ -4,8 +4,9 @@ Override default production names. Default are the usual subjects which create p
 """
 
 import vanilla
-from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, getLegibleFont
+from GlyphsApp import Glyphs, Message
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 
 
 defaultString = """
@@ -33,24 +34,21 @@ class ProductionNamer(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 350
+		windowWidth = 400
 		windowHeight = 260
-		windowWidthResize = 1000  # user can resize width by this value
-		windowHeightResize = 1000  # user can resize height by this value
+		# the window stays resizable, because the user needs to enlarge the text editor
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Production Namer",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Will reset the production names of these glyphs:", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		inset = 15
+		self.w.descriptionText = vanilla.TextBox("auto", "Will reset the production names of these glyphs:", sizeStyle='small', selectable=True)
 
-		self.w.recipe = vanilla.TextEditor((1, linePos, -1, -70), text=defaultString.strip(), callback=self.SavePreferences, checksSpelling=False)
+		self.w.recipe = vanilla.TextEditor("auto", text=defaultString.strip(), callback=self.SavePreferences, checksSpelling=False)
 		self.w.recipe.setToolTip("- Syntax: glyphname -> productionname\n- Whitespace does not matter\n- Only lines containing a dash (-) followed by a greater sign (>) count\n- Freely write comments and empty lines\n- Anything after a hashtag (#) is ignored")
 		self.w.recipe.getNSScrollView().setHasVerticalScroller_(1)
 		self.w.recipe.getNSScrollView().setHasHorizontalScroller_(1)
@@ -70,19 +68,40 @@ class ProductionNamer(mekkaObject):
 		textView.setMinSize_(textSize)
 
 		# APPLY TO FONTS
-		linePos = -inset - 50
-		self.w.finger = vanilla.TextBox((inset - 5, linePos, 22, 22), "👉 ", selectable=True)
-		self.w.applyText = vanilla.TextBox((inset + 17, linePos + 2, 70, 14), "Apply to", sizeStyle='small', selectable=True)
-		self.w.applyPopup = vanilla.PopUpButton((inset + 70, linePos, 150, 17), ("ALL open fonts", "open fonts containing", "frontmost font only"), sizeStyle='small', callback=self.SavePreferences)
-		self.w.applyContaining = vanilla.EditText((inset + 70 + 150 + 10, linePos, -inset, 19), "", callback=self.SavePreferences, sizeStyle='small', placeholder="enter part of family name here")
+		self.w.finger = vanilla.TextBox("auto", "👉", selectable=True)
+		self.w.applyText = vanilla.TextBox("auto", "Apply to", sizeStyle='small', selectable=True)
+		self.w.applyPopup = vanilla.PopUpButton("auto", ("ALL open fonts", "open fonts containing", "frontmost font only"), sizeStyle='small', callback=self.SavePreferences)
+		self.w.applyContaining = vanilla.EditText("auto", "", callback=self.SavePreferences, sizeStyle='small', placeholder="enter part of family name here")
 		self.w.applyContaining.setToolTip("Only applies the settings to fonts that contain this in Font Info > Font > Family Name.")
-		linePos += lineHeight
 
-		self.w.resetButton = vanilla.Button((inset, -20 - inset, 80, -inset), "Reset", callback=self.updateUI)
+		self.w.resetButton = vanilla.Button("auto", "Reset", callback=self.updateUI)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Set Names", callback=self.ProductionNamerMain)
+		self.w.runButton = vanilla.Button("auto", "Set Names", callback=self.ProductionNamerMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# everything hugs vertically, except for the text editor, which takes the leftover height:
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+		self.w.recipe.getNSScrollView().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationVertical)
+		for label in (self.w.finger, self.w.applyText):
+			label.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.applyPopup.getNSPopUpButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-0-[recipe]-0-|",
+				"H:|-inset-[finger]-4-[applyText]-gap-[applyPopup]-gap-[applyContaining(>=100)]-inset-|",
+				"H:|-inset-[resetButton(>=70)]-(>=gap)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[descriptionText]-gap-[recipe(>=100)]-gap-[applyPopup]-inset-[runButton]-inset-|",
+				"V:[resetButton]-inset-|",
+				{"view1": self.w.finger, "attribute1": "centerY", "view2": self.w.applyPopup, "attribute2": "centerY"},
+				{"view1": self.w.applyText, "attribute1": "centerY", "view2": self.w.applyPopup, "attribute2": "centerY"},
+				{"view1": self.w.applyContaining, "attribute1": "centerY", "view2": self.w.applyPopup, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -96,7 +115,7 @@ class ProductionNamer(mekkaObject):
 		self.w.applyContaining.show(self.w.applyPopup.get() == 1)  # 0=all fonts, 1=fonts containing..., 2=frontmost font only
 
 		# enable or disable run button
-		applySettingsEnable = self.w.applyPopup.get() == 0 or len(self.w.applyContaining.get().strip()) > 0
+		applySettingsEnable = self.w.applyPopup.get() != 1 or len(self.w.applyContaining.get().strip()) > 0
 		self.w.runButton.enable(applySettingsEnable)
 
 		# reset recipe
@@ -159,7 +178,7 @@ class ProductionNamer(mekkaObject):
 						if thisFont.filepath:
 							fileName = thisFont.filepath.lastPathComponent()
 						else:
-							fileName = "%s (unsaved file)" % thisFont.familyName
+							fileName = "%s (unsaved)" % thisFont.familyName
 						thisGlyph = thisFont.glyphs[glyphName]
 						if not thisGlyph:
 							print("  🚫 missing in %s" % fileName)

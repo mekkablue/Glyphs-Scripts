@@ -3,10 +3,11 @@ __doc__="""
 Adds a meta table entry for the frontmost font in Font Info > Font > Custom Parameters.
 """
 
-from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, reportFontName, UpdateButton
-import vanilla, sys
 from itertools import combinations
+import vanilla
+from mekkablue import mekkaObject, reportFontName, UpdateButton
+from GlyphsApp import Glyphs, Message
+from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 
 
 def recombinations(items):
@@ -55,45 +56,71 @@ class AddMetaTable(mekkaObject):
 	
 	def __init__( self ):
 		# Window 'self.w':
-		windowWidth  = 250
-		windowHeight = 140
-		windowWidthResize  = 400 # user can resize width by this value
-		windowHeightResize = 0   # user can resize height by this value
+		windowWidth = 300
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Add meta Table", # window title
-			minSize = (windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize = (windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName = self.domain("mainwindow") # stores last window position and size
+			(windowWidth, windowHeight),  # default window size
+			"Add meta Table",  # window title
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
-		
+
 		if Glyphs.font:
 			scripts = relevantScriptsInFont(Glyphs.font)
 			recombinationsOfScripts = recombinations(scripts)
 		else:
 			scripts = ["Latn"]
 			recombinationsOfScripts = scripts
-		
-		# UI elements:
-		linePos, inset, lineHeight, tabIndent = 12, 15, 22, 80
-		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Tags for meta Table in Font Info → Font:", sizeStyle="small", selectable=True)
-		linePos += lineHeight
-		
-		self.w.dlngDescription = vanilla.TextBox((inset, linePos+2, tabIndent, 14), "Designed for:", sizeStyle="small", selectable=True)
-		self.w.dlng = vanilla.ComboBox((inset+tabIndent, linePos-1, -inset-23, 19), scripts, sizeStyle="small", callback=self.SavePreferences)
-		self.w.dlngUpdate = UpdateButton((-inset-18, linePos - 2, 20, 18), callback=self.update)
-		linePos += lineHeight
 
-		self.w.slngDescription = vanilla.TextBox((inset, linePos+2, tabIndent, 14), "Supported:", sizeStyle="small", selectable=True)
-		self.w.slng = vanilla.ComboBox((inset+tabIndent, linePos-1, -inset-23, 19), recombinationsOfScripts, sizeStyle="small", callback=self.SavePreferences)
-		self.w.slngUpdate = UpdateButton((-inset-18, linePos - 2, 20, 18), callback=self.update)
-		linePos += lineHeight
-				
+		# UI elements:
+		self.w.descriptionText = vanilla.TextBox("auto", "Tags for meta Table in Font Info → Font:", sizeStyle="small", selectable=True)
+
+		self.w.dlngDescription = vanilla.TextBox("auto", "Designed for:", sizeStyle="small", selectable=True)
+		self.w.dlng = vanilla.ComboBox("auto", scripts, sizeStyle="small", callback=self.SavePreferences)
+		self.w.dlngUpdate = UpdateButton("auto", callback=self.update)
+
+		self.w.slngDescription = vanilla.TextBox("auto", "Supported:", sizeStyle="small", selectable=True)
+		self.w.slng = vanilla.ComboBox("auto", recombinationsOfScripts, sizeStyle="small", callback=self.SavePreferences)
+		self.w.slngUpdate = UpdateButton("auto", callback=self.update)
+
 		# Run Button:
-		self.w.helpButton = vanilla.HelpButton((inset, -20-inset, 21, 21), callback=self.openURL)
-		self.w.runButton = vanilla.Button((-120-inset, -20-inset, -inset, -inset), "Add to Font Info", sizeStyle="regular", callback=self.AddMetaTableMain)
+		self.w.helpButton = vanilla.HelpButton("auto", callback=self.openURL)
+		self.w.runButton = vanilla.Button("auto", "Add to Font Info", sizeStyle="regular", callback=self.AddMetaTableMain)
 		self.w.setDefaultButton(self.w.runButton)
-		
+
+		# checkboxes stretch vertically by default; with everything hugging,
+		# the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# labels are right-aligned and share the width of the widest one, so the fields line up:
+		labelNames = ("dlngDescription", "slngDescription")
+		widestLabel = "dlngDescription"
+		for labelName in labelNames:
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+		widthRules = [
+			{"view1": getattr(self.w, labelName), "attribute1": "width", "view2": getattr(self.w, widestLabel), "attribute2": "width"}
+			for labelName in labelNames if labelName != widestLabel
+		]
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[dlngDescription]-gap-[dlng(>=100)]-gap-[dlngUpdate]-inset-|",
+				"H:|-inset-[slngDescription]-gap-[slng(>=100)]-gap-[slngUpdate]-inset-|",
+				"H:|-inset-[helpButton]-(>=gap)-[runButton(>=70)]-inset-|",
+				"V:|-inset-[descriptionText]-headlineGap-[dlng]-row-[slng]-inset-[runButton]-inset-|",
+				{"view1": self.w.dlngDescription, "attribute1": "centerY", "view2": self.w.dlng, "attribute2": "centerY"},
+				{"view1": self.w.dlngUpdate, "attribute1": "centerY", "view2": self.w.dlng, "attribute2": "centerY"},
+				{"view1": self.w.slngDescription, "attribute1": "centerY", "view2": self.w.slng, "attribute2": "centerY"},
+				{"view1": self.w.slngUpdate, "attribute1": "centerY", "view2": self.w.slng, "attribute2": "centerY"},
+				{"view1": self.w.helpButton, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
+			] + widthRules,
+			metrics={"inset": 15, "gap": 8, "row": 6, "headlineGap": 10},
+		)
+
 		# Tooltips:
 		tooltip = "Set dlng (‘design languages’) to the languages and/or scripts that the font was primarily designed for. Separate multiple entries with commas. Possible entries: four-letter script tag (Latn, Cyrl, Grek, Arab, Thai, etc.), or two-letter language tags (de, fr, nl, etc.), or language tags hyphenated with script tags (de-Latn, uk-Cyrl, hi-Deva, etc.)"
 		self.w.dlngDescription.setToolTip(tooltip)
@@ -111,8 +138,7 @@ class AddMetaTable(mekkaObject):
 		self.w.helpButton.setToolTip(tooltip)
 		
 		# Load Settings:
-		if not self.LoadPreferences():
-			print("⚠️ ‘Add meta Table’ could not load preferences. Will resort to defaults.")
+		self.LoadPreferences()
 		
 		# Open window and focus on it:
 		self.w.open()
@@ -130,6 +156,9 @@ class AddMetaTable(mekkaObject):
 
 	def update(self, sender):
 		font = Glyphs.font
+		if not font:
+			Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+			return
 		scripts = relevantScriptsInFont(font)
 		scriptCombos = recombinations(scripts)
 		if sender is self.w.dlngUpdate:
@@ -144,8 +173,7 @@ class AddMetaTable(mekkaObject):
 			Glyphs.clearLog()
 			
 			# update settings to the latest user input:
-			if not self.SavePreferences():
-				print("⚠️ ‘Add meta Table’ could not write preferences.")
+			self.SavePreferences()
 			
 			thisFont = Glyphs.font # frontmost font
 			if thisFont is None:
@@ -178,7 +206,7 @@ class AddMetaTable(mekkaObject):
 				
 				# add to font
 				thisFont.customParameters[parameterName] = metaTable
-				print("✅ Successfully written meta Table in {reportName}. See Font Info → Font → Custom Parameters.")
+				print(f"✅ Successfully written meta Table in {thisFont.familyName}. See Font Info → Font → Custom Parameters.")
 				
 				self.w.close() # delete if you want window to stay open
 				

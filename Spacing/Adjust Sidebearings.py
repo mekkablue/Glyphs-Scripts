@@ -3,9 +3,19 @@ __doc__ = """
 Multiply, increase/decrease, limit or round spacing, differentiate between negative and positive SBs.
 """
 
+import objc
 import vanilla
-from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, reportFontName
+from GlyphsApp import Glyphs, Message
+from AppKit import (
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityRequired,
+	NSLayoutPriorityWindowSizeStayPut,
+	NSTextAlignmentRight,
+)
+from Foundation import NSNumberFormatter
 
 
 choices = (
@@ -23,6 +33,11 @@ negativeChoices = (
 )
 
 
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
+
+
 class AdjustSpacing(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
@@ -38,44 +53,71 @@ class AdjustSpacing(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 306
-		windowHeight = 208
+		windowWidth = 310
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Adjust Spacing",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Treat sidebearings in frontmost font:", sizeStyle="small", selectable=True)
-		linePos += lineHeight
+		inset = 15
+		self.w.descriptionText = vanilla.TextBox("auto", "Treat sidebearings in frontmost font:", sizeStyle="small", selectable=True)
 
-		self.w.choice = vanilla.PopUpButton((inset, linePos, 125, 21), choices, callback=self.SavePreferences)
-		self.w.value = vanilla.EditText((inset + 130, linePos - 1, -inset, 21), "2", callback=self.SavePreferences)
-		linePos += lineHeight + 3
+		formatter = NSNumberFormatter.alloc().init()
+		formatter.setMaximumFractionDigits_(3)
+		self.w.choice = vanilla.PopUpButton("auto", choices, callback=self.SavePreferences)
+		self.w.value = SteppingEditText("auto", "2", callback=self.SavePreferences, formatter=formatter)
 
-		self.w.treatSBsText1 = vanilla.TextBox((inset, linePos + 2, 55, 14), "Apply to", sizeStyle="small", selectable=True)
-		self.w.treatPositiveSBs = vanilla.CheckBox((inset + 55, linePos - 1, 60, 20), "positive", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.treatNegativeSBs = vanilla.CheckBox((inset + 120, linePos - 1, -inset, 20), "negative sidebearings", value=False, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
+		self.w.treatSBsText1 = vanilla.TextBox("auto", "Apply to", sizeStyle="small", selectable=True)
+		self.w.treatPositiveSBs = vanilla.CheckBox("auto", "positive", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.treatNegativeSBs = vanilla.CheckBox("auto", "negative sidebearings", value=False, callback=self.SavePreferences, sizeStyle="small")
 
-		self.w.treatSBsText2 = vanilla.TextBox((inset, linePos + 2, 110, 14), "Negative treatment:", sizeStyle="small", selectable=True)
-		self.w.negativeChoice = vanilla.PopUpButton((inset + 110, linePos, -inset, 17), negativeChoices, sizeStyle="small", callback=self.SavePreferences)
-		linePos += lineHeight
+		self.w.treatSBsText2 = vanilla.TextBox("auto", "Negative treatment:", sizeStyle="small", selectable=True)
+		self.w.negativeChoice = vanilla.PopUpButton("auto", negativeChoices, sizeStyle="small", callback=self.SavePreferences)
 
-		self.w.updateMetricsKeys = vanilla.CheckBox((inset + 2, linePos, -inset, 18), "Update metrics keys and auto-alignments", value=False, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
+		self.w.updateMetricsKeys = vanilla.CheckBox("auto", "Update metrics keys and auto-alignments", value=False, callback=self.SavePreferences, sizeStyle="small")
 
-		self.w.applyToAllMasters = vanilla.CheckBox((inset + 2, linePos, -inset, 18), "Include ⚠️ ALL masters (otherwise current only)", value=False, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
+		self.w.applyToAllMasters = vanilla.CheckBox("auto", "Include ⚠️ ALL masters (otherwise current only)", value=False, callback=self.SavePreferences, sizeStyle="small")
 
-		self.w.applyToAllGlyphs = vanilla.CheckBox((inset + 2, linePos, -inset, 18), "Include ⚠️ ALL glyphs (otherwise selected only)", value=False, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
+		self.w.applyToAllGlyphs = vanilla.CheckBox("auto", "Include ⚠️ ALL glyphs (otherwise selected only)", value=False, callback=self.SavePreferences, sizeStyle="small")
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Adjust", callback=self.AdjustSpacingMain)
+		self.w.runButton = vanilla.Button("auto", "Adjust", callback=self.AdjustSpacingMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# labels are right-aligned and share one width, so the controls behind them line up:
+		for label in (self.w.treatSBsText1, self.w.treatSBsText2):
+			nsLabel = label.getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[choice(125)]-gap-[value]-inset-|",
+				"H:|-inset-[treatSBsText1]-gap-[treatPositiveSBs]-gap-[treatNegativeSBs]-(>=inset)-|",
+				"H:|-inset-[treatSBsText2]-gap-[negativeChoice]-inset-|",
+				"H:|-inset-[updateMetricsKeys]-(>=inset)-|",
+				"H:|-inset-[applyToAllMasters]-(>=inset)-|",
+				"H:|-inset-[applyToAllGlyphs]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[descriptionText]-row-[choice]-gap-[treatPositiveSBs]-row-[negativeChoice]-row-[updateMetricsKeys]-checkRow-[applyToAllMasters]-checkRow-[applyToAllGlyphs]-inset-[runButton]-inset-|",
+				{"view1": self.w.value, "attribute1": "centerY", "view2": self.w.choice, "attribute2": "centerY"},
+				{"view1": self.w.treatSBsText1, "attribute1": "centerY", "view2": self.w.treatPositiveSBs, "attribute2": "centerY"},
+				{"view1": self.w.treatNegativeSBs, "attribute1": "centerY", "view2": self.w.treatPositiveSBs, "attribute2": "centerY"},
+				{"view1": self.w.treatSBsText2, "attribute1": "centerY", "view2": self.w.negativeChoice, "attribute2": "centerY"},
+				{"view1": self.w.treatSBsText1, "attribute1": "width", "view2": self.w.treatSBsText2, "attribute2": "width"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -144,6 +186,9 @@ class AdjustSpacing(mekkaObject):
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+			elif value == 0 and (choice == 2 or (choice == 0 and negativeChoice != 0)):
+				# rounding by zero, or the reciprocal of a zero factor, would divide by zero
+				Message(title="Invalid Value", message=f"‘{choices[choice]}’ does not work with a value of 0. Please enter a different value.", OKButton=None)
 			else:
 				reportName = reportFontName(thisFont)
 				print(f"Adjust Spacing Report for {reportName}")

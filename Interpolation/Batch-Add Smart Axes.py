@@ -3,10 +3,12 @@ __doc__ = """
 Will add smart axes and additional smart layers to selected glyphs.
 """
 
-import vanilla
 from copy import copy
-from GlyphsApp import Glyphs, Message, GSSmartComponentAxis
+
+import vanilla
 from mekkablue import mekkaObject, getLegibleFont, reportFontName
+from GlyphsApp import Glyphs, Message, GSSmartComponentAxis
+from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 
 defaultRecipe = """
 Height: Low: 0
@@ -23,10 +25,11 @@ class BatchAddSmartAxes(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 350
+		windowWidth = 370
 		windowHeight = 260
 		windowWidthResize = 1000  # user can resize width by this value
 		windowHeightResize = 1000  # user can resize height by this value
+		# the window stays resizable, so the user can enlarge the recipe editor:
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Batch-Add Smart Axes",  # window title
@@ -36,11 +39,10 @@ class BatchAddSmartAxes(mekkaObject):
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Per line: axisName:smartLayerName:smartLayerMinMax (0/1)", sizeStyle="small", selectable=True)
-		linePos += lineHeight
+		inset = 15
+		self.w.descriptionText = vanilla.TextBox("auto", "Per line: axisName:smartLayerName:smartLayerMinMax (0/1)", sizeStyle="small", selectable=True)
 
-		self.w.recipe = vanilla.TextEditor((1, linePos, -1, -inset * 3), text=defaultRecipe, callback=self.SavePreferences, checksSpelling=False)
+		self.w.recipe = vanilla.TextEditor("auto", text=defaultRecipe, callback=self.SavePreferences, checksSpelling=False)
 		self.w.recipe.getNSScrollView().setHasVerticalScroller_(1)
 		self.w.recipe.getNSScrollView().setHasHorizontalScroller_(1)
 		self.w.recipe.getNSScrollView().setRulersVisible_(0)
@@ -61,9 +63,25 @@ class BatchAddSmartAxes(mekkaObject):
 		textView.setMinSize_(textSize)
 
 		# Run Button:
-		self.w.resetButton = vanilla.Button((inset, -20 - inset, 70, -inset), "Reset", callback=self.reset)
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Smartify", callback=self.BatchAddSmartAxesMain)
+		self.w.resetButton = vanilla.Button("auto", "Reset", callback=self.reset)
+		self.w.runButton = vanilla.Button("auto", "Smartify", callback=self.BatchAddSmartAxesMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# everything but the recipe editor hugs vertically, so the editor takes all the leftover height:
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+		self.w.recipe.getNSScrollView().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-1-[recipe]-1-|",
+				"H:|-inset-[resetButton(>=70)]-(>=gap)-[runButton(>=100)]-inset-|",
+				"V:|-inset-[descriptionText]-gap-[recipe(>=120)]-inset-[runButton]-inset-|",
+				"V:[resetButton]-inset-|",
+			],
+			metrics={"inset": inset, "gap": 8},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -103,8 +121,9 @@ class BatchAddSmartAxes(mekkaObject):
 				"""
 
 				# prepare axis input:
-				input = self.pref("recipe")
-				axisInput = [line.replace(" ", "").strip() for line in input.strip().splitlines() if line.split("#")[0].count(":") == 2]
+				recipe = self.pref("recipe")
+				# only the part before a comment counts:
+				axisInput = [line.split("#")[0].replace(" ", "").strip() for line in recipe.strip().splitlines() if line.split("#")[0].count(":") == 2]
 
 				print("Parsed input:")
 				print("\n".join(axisInput))

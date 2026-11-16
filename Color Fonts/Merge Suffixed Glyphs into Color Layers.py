@@ -3,10 +3,11 @@ __doc__ = """
 Takes the master layer of suffixed glyphs (e.g., x.shadow, x.body, x.front) and turns them in a specified order into CPAL Color layers of the unsuffixed glyph (e.g., Color 1, Color 0, Color 2 of x).
 """
 
+from copy import copy
 import vanilla
-from copy import copy as copy
-from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, getLegibleFont
+from GlyphsApp import Glyphs, Message
+from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 
 
 class MergeSuffixedGlyphsIntoColorLayers(mekkaObject):
@@ -19,25 +20,22 @@ class MergeSuffixedGlyphsIntoColorLayers(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 400
+		windowWidth = 420
 		windowHeight = 300
-		windowWidthResize = 1000  # user can resize width by this value
-		windowHeightResize = 1000  # user can resize height by this value
+		# resizable, so the user can enlarge the text editor:
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Merge Suffixed Glyphs into Color Layers",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Merge suffixed glyphs into the following color indexes:", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		self.w.descriptionText = vanilla.TextBox("auto", "Merge suffixed glyphs into the following color indexes:", sizeStyle='small', selectable=True)
 
-		self.w.indexToSuffix = vanilla.TextEditor((2, linePos, -2, -110), "# Syntax: CPAL index = glyph name suffix\n# list them in chronological order (bottom-up)\n# use hashtags for comments\n0=.shadow\n2=.body\n1=.front", callback=self.SavePreferences, checksSpelling=False)
+		self.w.indexToSuffix = vanilla.TextEditor("auto", "# Syntax: CPAL index = glyph name suffix\n# list them in chronological order (bottom-up)\n# use hashtags for comments\n0=.shadow\n2=.body\n1=.front", callback=self.SavePreferences, checksSpelling=False)
 		# self.w.indexToSuffix.setToolTip("Syntax: colorindex=.suffix, use hashtags for comments. List them in chronological order (bottom-up). Example:\n0=.shadow\n2=.body\n1=.front")
 
 		self.w.indexToSuffix.getNSScrollView().setHasVerticalScroller_(1)
@@ -57,20 +55,33 @@ class MergeSuffixedGlyphsIntoColorLayers(mekkaObject):
 		textSize.width = 1000
 		textView.setMinSize_(textSize)
 
-		linePos = -105
+		self.w.disableSuffixedGlyphs = vanilla.CheckBox("auto", "Deactivate export for glyphs with listed suffixes", value=True, callback=self.SavePreferences, sizeStyle='small')
 
-		self.w.disableSuffixedGlyphs = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Deactivate export for glyphs with listed suffixes", value=True, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.deletePreexistingColorLayers = vanilla.CheckBox("auto", "Delete preexisting Color layers in target glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
 
-		self.w.deletePreexistingColorLayers = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Delete preexisting Color layers in target glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
-
-		self.w.processCompleteFont = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Process complete font (otherwise only add into selected glyphs)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.processCompleteFont = vanilla.CheckBox("auto", "Process complete font (otherwise only add into selected glyphs)", value=False, callback=self.SavePreferences, sizeStyle='small')
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Merge", callback=self.MergeSuffixedGlyphsIntoColorLayersMain)
+		self.w.runButton = vanilla.Button("auto", "Merge", callback=self.MergeSuffixedGlyphsIntoColorLayersMain)
 		# self.w.setDefaultButton(self.w.runButton)
+
+		# everything hugs its content vertically, except the text editor, which takes the leftover height:
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+		self.w.indexToSuffix.getNSScrollView().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[indexToSuffix]-inset-|",
+				"H:|-inset-[disableSuffixedGlyphs]-(>=inset)-|",
+				"H:|-inset-[deletePreexistingColorLayers]-(>=inset)-|",
+				"H:|-inset-[processCompleteFont]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=80)]-inset-|",
+				"V:|-gap-[descriptionText]-gap-[indexToSuffix(>=100)]-gap-[disableSuffixedGlyphs]-checkRow-[deletePreexistingColorLayers]-checkRow-[processCompleteFont]-inset-[runButton]-inset-|",
+			],
+			metrics={"inset": inset, "gap": 8, "checkRow": 5},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -160,13 +171,7 @@ class MergeSuffixedGlyphsIntoColorLayers(mekkaObject):
 
 									if deleteThisLayer:
 										print("  🚫 Removing Color layer ‘%s’" % potentialColorLayer.name)
-										currentLayerID = potentialColorLayer.layerId
-										try:
-											# GLYPHS 3
-											targetGlyph.removeLayerForId_(currentLayerID)
-										except:
-											# GLYPHS 2
-											targetGlyph.removeLayerForKey_(currentLayerID)
+										targetGlyph.removeLayerForId_(potentialColorLayer.layerId)
 
 						for mapping in suffixMapping:
 							suffix = mapping[0]
@@ -184,23 +189,17 @@ class MergeSuffixedGlyphsIntoColorLayers(mekkaObject):
 									mID = master.id
 									colorLayer = copy(suffixGlyph.layers[mID])
 									colorLayer.associatedMasterId = mID
-									try:
-										# GLYPHS 3
-										colorLayer.setColorPaletteLayer_(1)
-										colorLayer.setAttribute_forKey_(colorIndex, "colorPalette")
-									except:
-										# GLYPHS 2
-										colorLayer.name = "Color %i" % colorIndex
+									colorLayer.attributes["colorPalette"] = colorIndex  # makes it a CPAL layer
 									targetGlyph.layers.append(colorLayer)
 
 				# self.w.close()  # delete if you want window to stay open
 
-			# Final report:
-			Glyphs.showNotification(
-				"%s: Done" % (thisFont.familyName),
-				"Merge Suffixed Glyphs into Color Layers is finished. Details in Macro Window",
-			)
-			print("\nDone.")
+				# Final report:
+				Glyphs.showNotification(
+					"%s: Done" % (thisFont.familyName),
+					"Merge Suffixed Glyphs into Color Layers is finished. Details in Macro Window",
+				)
+				print("\nDone.")
 
 		except Exception as e:
 			# brings macro window to front and reports error:

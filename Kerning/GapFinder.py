@@ -3,12 +3,20 @@ __doc__ = """
 Opens a new tab with kerning combos that have large gaps in the current fontmaster.
 """
 
-import vanilla
 from timeit import default_timer as timer
-from Foundation import NSNotFound
-from GlyphsApp import Glyphs, Message
+import vanilla
 from mekkablue import mekkaObject, caseDict
 from kernanalysis import distanceFromEntry
+from GlyphsApp import Glyphs, Message
+from AppKit import (
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityRequired,
+	NSLayoutPriorityWindowSizeStayPut,
+	NSTextAlignmentRight,
+)
+from Foundation import NSNotFound
 
 
 intervalList = (1, 3, 5, 10, 20)
@@ -42,69 +50,105 @@ class GapFinder(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 410
-		windowHeight = 260
-		windowWidthResize = 800  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 470
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"GapFinder",  # window title
-			minSize=(windowWidth, windowHeight),  # Maximum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Open tab with kern gaps in current master:", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		self.w.descriptionText = vanilla.TextBox("auto", "Open tab with kern gaps in current master:", sizeStyle='small', selectable=True)
 
-		self.w.textScript = vanilla.TextBox((inset, linePos + 2, 42, 14), "Script:", sizeStyle='small', selectable=True)
-		self.w.popupScript = vanilla.ComboBox((inset + 42, linePos - 1, 110, 18), ("latin", "cyrillic", "greek"), callback=self.SavePreferences, sizeStyle='small')
-		self.w.textDistance = vanilla.TextBox((inset + 160, linePos + 2, 100, 14), "Max distance:", sizeStyle='small')
-		self.w.maxDistance = vanilla.EditText((inset + 240, linePos - 1, -15, 19), "200", sizeStyle='small')
-		linePos += lineHeight
+		self.w.textScript = vanilla.TextBox("auto", "Script:", sizeStyle='small', selectable=True)
+		self.w.popupScript = vanilla.ComboBox("auto", ("latin", "cyrillic", "greek"), callback=self.SavePreferences, sizeStyle='small')
+		self.w.textDistance = vanilla.TextBox("auto", "Max distance:", sizeStyle='small')
+		self.w.maxDistance = vanilla.EditText("auto", "200", callback=self.SavePreferences, sizeStyle='small')
 
-		self.w.textSpeed = vanilla.TextBox((inset, linePos + 2, 42, 14), "Speed:", sizeStyle='small', selectable=True)
-		self.w.popupSpeed = vanilla.PopUpButton((inset + 42, linePos, 110, 17), ("very slow", "slow", "medium", "fast", "very fast"), callback=self.updateGUI, sizeStyle='small')
+		self.w.textSpeed = vanilla.TextBox("auto", "Speed:", sizeStyle='small', selectable=True)
+		self.w.popupSpeed = vanilla.PopUpButton("auto", ("very slow", "slow", "medium", "fast", "very fast"), callback=self.updateGUI, sizeStyle='small')
 		intervalIndex = self.pref("popupSpeed")
 		if intervalIndex is None:
 			intervalIndex = 0
-		self.w.text_speedExplanation = vanilla.TextBox((inset + 160, linePos + 2, -inset, 14), f"Measuring every {intervalList[intervalIndex]} units.", sizeStyle='small')
-		linePos += lineHeight
+		self.w.text_speedExplanation = vanilla.TextBox("auto", f"Measuring every {intervalList[intervalIndex]} units.", sizeStyle='small')
 
-		self.w.text_3 = vanilla.TextBox((inset, linePos + 2, 90, 14), "Left Category:", sizeStyle='small')
-		self.w.popupLeftCat = vanilla.PopUpButton((inset + 90, linePos, -inset, 17), categoryList, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.text_3 = vanilla.TextBox("auto", "Left Category:", sizeStyle='small')
+		self.w.popupLeftCat = vanilla.PopUpButton("auto", categoryList, callback=self.SavePreferences, sizeStyle='small')
 
-		self.w.text_4 = vanilla.TextBox((inset, linePos + 2, 90, 14), "Right Category:", sizeStyle='small')
-		self.w.popupRightCat = vanilla.PopUpButton((inset + 90, linePos, -inset, 17), categoryList, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.text_4 = vanilla.TextBox("auto", "Right Category:", sizeStyle='small')
+		self.w.popupRightCat = vanilla.PopUpButton("auto", categoryList, callback=self.SavePreferences, sizeStyle='small')
 
-		self.w.text_5 = vanilla.TextBox((inset, linePos + 2, 160, 14), "Exclude glyphs containing:", sizeStyle='small')
-		self.w.excludeSuffixes = vanilla.EditText((inset + 150, linePos, -inset, 19), ".locl, .alt, .sups, .sinf, .tf, .tosf, Ldot, ldot, Jacute, jacute", callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.text_5 = vanilla.TextBox("auto", "Exclude glyphs containing:", sizeStyle='small')
+		self.w.excludeSuffixes = vanilla.EditText("auto", ".locl, .alt, .sups, .sinf, .tf, .tosf, Ldot, ldot, Jacute, jacute", callback=self.SavePreferences, sizeStyle='small')
 
-		self.w.excludeNonExporting = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Exclude non-exporting glyphs", value=True, sizeStyle='small', callback=self.SavePreferences)
-		linePos += lineHeight
+		self.w.excludeNonExporting = vanilla.CheckBox("auto", "Exclude non-exporting glyphs", value=True, sizeStyle='small', callback=self.SavePreferences)
 
-		self.w.reportGapsInMacroWindow = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Also report in Macro Window (slower)", value=False, sizeStyle='small', callback=self.SavePreferences)
-		self.w.reuseCurrentTab = vanilla.CheckBox((inset + 240, linePos, -inset, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reportGapsInMacroWindow = vanilla.CheckBox("auto", "Also report in Macro Window (slower)", value=False, sizeStyle='small', callback=self.SavePreferences)
+		self.w.reuseCurrentTab = vanilla.CheckBox("auto", "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reuseCurrentTab.setToolTip("If enabled, will not open a new tab with newly added kern pairs, but reuse the current Edit tab. Will open an Edit tab if none is open.")
-		linePos += lineHeight
 
 		# Percentage:
-		self.w.bar = vanilla.ProgressBar((inset, linePos, -inset, 16))
-
-		# self.w.percentage = vanilla.TextBox((15 - 1, -30, -100 - 15, -15), "", sizeStyle='small')
+		self.w.bar = vanilla.ProgressBar("auto")
 
 		# Buttons:
-		self.w.nextButton = vanilla.Button((-inset - 210, -20 - inset, -inset - 100, -inset), "Next Master", callback=self.masterSwitch)
+		self.w.nextButton = vanilla.Button("auto", "Next Master", callback=self.masterSwitch)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Open Tab", callback=self.GapFinderMain)
+		self.w.runButton = vanilla.Button("auto", "Open Tab", callback=self.GapFinderMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# labels are right-aligned and hug their text, so the fields take the leftover width:
+		labelNames = ("textScript", "textSpeed", "text_3", "text_4", "text_5")
+		widestLabel = "text_5"  # the label with the longest text
+		for labelName in labelNames:
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		# all labels share the width of the widest one, so the fields line up:
+		widthRules = [
+			{"view1": getattr(self.w, labelName), "attribute1": "width", "view2": getattr(self.w, widestLabel), "attribute2": "width"}
+			for labelName in labelNames if labelName != widestLabel
+		]
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[textScript]-gap-[popupScript(>=110)]-gap-[textDistance]-gap-[maxDistance(60)]-inset-|",
+				"H:|-inset-[textSpeed]-gap-[popupSpeed]-gap-[text_speedExplanation]-(>=inset)-|",
+				"H:|-inset-[text_3]-gap-[popupLeftCat]-inset-|",
+				"H:|-inset-[text_4]-gap-[popupRightCat]-inset-|",
+				"H:|-inset-[text_5]-gap-[excludeSuffixes]-inset-|",
+				"H:|-inset-[excludeNonExporting]-(>=inset)-|",
+				"H:|-inset-[reportGapsInMacroWindow]-inset-[reuseCurrentTab]-(>=inset)-|",
+				"H:|-inset-[bar]-inset-|",
+				"H:|-(>=inset)-[nextButton(>=70)]-gap-[runButton(>=70)]-inset-|",
+				"V:|-gap-[descriptionText]-row-[popupScript]-row-[popupSpeed]-row-[popupLeftCat]-row-[popupRightCat]-row-[excludeSuffixes]-gap-[excludeNonExporting]-checkRow-[reportGapsInMacroWindow]-barGap-[bar(16)]-inset-[runButton]-inset-|",
+				"V:[nextButton]-inset-|",
+				# one baseline per row:
+				{"view1": self.w.textScript, "attribute1": "centerY", "view2": self.w.popupScript, "attribute2": "centerY"},
+				{"view1": self.w.textDistance, "attribute1": "centerY", "view2": self.w.popupScript, "attribute2": "centerY"},
+				{"view1": self.w.maxDistance, "attribute1": "centerY", "view2": self.w.popupScript, "attribute2": "centerY"},
+				{"view1": self.w.textSpeed, "attribute1": "centerY", "view2": self.w.popupSpeed, "attribute2": "centerY"},
+				{"view1": self.w.text_speedExplanation, "attribute1": "centerY", "view2": self.w.popupSpeed, "attribute2": "centerY"},
+				{"view1": self.w.text_3, "attribute1": "centerY", "view2": self.w.popupLeftCat, "attribute2": "centerY"},
+				{"view1": self.w.text_4, "attribute1": "centerY", "view2": self.w.popupRightCat, "attribute2": "centerY"},
+				{"view1": self.w.text_5, "attribute1": "centerY", "view2": self.w.excludeSuffixes, "attribute2": "centerY"},
+				{"view1": self.w.reuseCurrentTab, "attribute1": "centerY", "view2": self.w.reportGapsInMacroWindow, "attribute2": "centerY"},
+				# script combo box and speed popup look alike:
+				{"view1": self.w.popupSpeed, "attribute1": "width", "view2": self.w.popupScript, "attribute2": "width"},
+			] + widthRules,
+			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5, "barGap": 10},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -121,7 +165,7 @@ class GapFinder(mekkaObject):
 		self.w.text_speedExplanation.set(f"Measuring every {intervalList[intervalIndex]} units.")
 
 	def masterSwitch(self, sender=None):
-		if sender is self.w.nextButton:
+		if sender is self.w.nextButton and Glyphs.font:
 			Glyphs.font.masterIndex += 1
 
 	def nameUntilFirstPeriod(self, glyphName):
@@ -233,6 +277,9 @@ class GapFinder(mekkaObject):
 
 			# query frontmost fontmaster:
 			thisFont = Glyphs.font
+			if thisFont is None:
+				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+				return
 			thisFontMaster = thisFont.selectedFontMaster
 			thisFontMasterID = thisFontMaster.id
 
@@ -271,13 +318,14 @@ class GapFinder(mekkaObject):
 					),
 					OKButton=None,
 				)
+				return
 
 			if self.pref("reportGapsInMacroWindow"):
 				print(f"Maximum Distance: {maxDistance}\n")
 				print("Left glyphs:\n%s\n" % ", ".join(firstList))
 				print("Right glyphs:\n%s\n" % ", ".join(secondList))
 
-			tabString = "\n"
+			tabLines = []
 			gapCount = 0
 			numOfGlyphs = len(firstList)
 			for index in range(numOfGlyphs):
@@ -288,22 +336,21 @@ class GapFinder(mekkaObject):
 				leftLayer = thisFont.glyphs[firstGlyphName].layers[thisFontMasterID]
 
 				# cycle through right glyphs:
+				gapPairs = []
 				for secondGlyphName in secondList:
 					rightLayer = thisFont.glyphs[secondGlyphName].layers[thisFontMasterID]
 					kerning = self.effectiveKerning(firstGlyphName, secondGlyphName, thisFont, thisFontMasterID)
 					distanceBetweenShapes = self.minDistanceBetweenTwoLayers(leftLayer, rightLayer, interval=step, kerning=kerning, report=False)
 					if distanceBetweenShapes is not None and distanceBetweenShapes > maxDistance:
 						gapCount += 1
-						tabString += f"/{firstGlyphName}/{secondGlyphName}/space"
+						gapPairs.append(f"/{firstGlyphName}/{secondGlyphName}")
 						if self.pref("reportGapsInMacroWindow"):
 							print("- %s %s: %i" % (firstGlyphName, secondGlyphName, distanceBetweenShapes))
-				tabString += "\n"
+				if gapPairs:
+					tabLines.append("/space".join(gapPairs))
 
-			# clean up the tab string:
-			tabString = tabString[:-6].replace("/space\n", "\n")
-			while "\n\n" in tabString:
-				tabString = tabString.replace("\n\n", "\n")
-			tabString = tabString[1:]
+			# one line per left glyph, pairs separated by spaces:
+			tabString = "\n".join(tabLines)
 
 			# update progress bar:
 			self.w.bar.set(100)

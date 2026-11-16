@@ -11,8 +11,9 @@ Copies one layer to another layer across selected glyphs:
 """
 
 import vanilla
-from GlyphsApp import Glyphs, Message, GSLayer
 from mekkablue import mekkaObject, newGlyphWithName, UpdateButton, colorCountOfFirstPalette
+from GlyphsApp import Glyphs, Message, GSLayer
+from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 
 
 def isColorLayer(layer):
@@ -48,84 +49,123 @@ class CopyLayerToLayer(mekkaObject):
 		self.targetLayerSpecs = []
 
 		# Window 'self.w':
-		windowWidth = 300
-		windowHeight = 330
-		windowWidthResize = 300
-		windowHeightResize = 0
+		windowWidth = 380
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Copy Layer to Layer",
-			minSize=(windowWidth, windowHeight),
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),
-			autosaveName=self.domain("mainwindow")
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight, tabStop = 12, 15, 22, 80
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Copy layer contents from one layer to another:", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		self.w.descriptionText = vanilla.TextBox("auto", "Copy layer contents from one layer to another:", sizeStyle='small', selectable=True)
 
-		self.w.sourceFontText = vanilla.TextBox((inset, linePos + 2, tabStop, 14), "Source font:", sizeStyle='small', selectable=True)
-		self.w.sourceFontPopup = vanilla.PopUpButton((inset + tabStop, linePos, -inset - 25, 17), self.GetFonts(), sizeStyle='small', callback=self.UpdateSourceLayers)
-		self.w.sourceFontUpdateButton = UpdateButton((-inset - 20, linePos - 2, -inset, 18), callback=self.UpdateFontList)
-		linePos += lineHeight
+		self.w.sourceFontText = vanilla.TextBox("auto", "Source font:", sizeStyle='small', selectable=True)
+		self.w.sourceFontPopup = vanilla.PopUpButton("auto", self.GetFonts(), sizeStyle='small', callback=self.UpdateSourceLayers)
+		self.w.sourceFontUpdateButton = UpdateButton("auto", callback=self.UpdateFontList)
 
-		self.w.sourceLayerText = vanilla.TextBox((inset, linePos + 2, tabStop, 14), "Source layer:", sizeStyle='small', selectable=True)
-		self.w.sourceLayerPopup = vanilla.PopUpButton((inset + tabStop, linePos, -inset, 17), [], sizeStyle='small', callback=self.SavePreferences)
-		linePos += lineHeight
+		self.w.sourceLayerText = vanilla.TextBox("auto", "Source layer:", sizeStyle='small', selectable=True)
+		self.w.sourceLayerPopup = vanilla.PopUpButton("auto", [], sizeStyle='small', callback=self.SavePreferences)
 
-		self.w.targetFontText = vanilla.TextBox((inset, linePos + 2, tabStop, 14), "Target font:", sizeStyle='small', selectable=True)
-		self.w.targetFontPopup = vanilla.PopUpButton((inset + tabStop, linePos, -inset, 17), self.GetFonts(), sizeStyle='small', callback=self.UpdateTargetLayers)
-		linePos += lineHeight
+		self.w.targetFontText = vanilla.TextBox("auto", "Target font:", sizeStyle='small', selectable=True)
+		self.w.targetFontPopup = vanilla.PopUpButton("auto", self.GetFonts(), sizeStyle='small', callback=self.UpdateTargetLayers)
 
-		self.w.targetLayerText = vanilla.TextBox((inset, linePos + 2, tabStop, 14), "Target layer:", sizeStyle='small', selectable=True)
-		self.w.targetLayerPopup = vanilla.PopUpButton((inset + tabStop, linePos, -inset, 17), [], sizeStyle='small', callback=self.SavePreferences)
-		linePos += lineHeight
+		self.w.targetLayerText = vanilla.TextBox("auto", "Target layer:", sizeStyle='small', selectable=True)
+		self.w.targetLayerPopup = vanilla.PopUpButton("auto", [], sizeStyle='small', callback=self.SavePreferences)
 
 		# Include options
-		self.w.includeText = vanilla.TextBox((inset, linePos + 2, 60, 14), "Include:", sizeStyle='small', selectable=True)
+		self.w.includeText = vanilla.TextBox("auto", "Include:", sizeStyle='small', selectable=True)
 
-		self.w.includePaths = vanilla.CheckBox((inset + 60, linePos, 65, 20), "Paths", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includePaths = vanilla.CheckBox("auto", "Paths", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includePaths.setToolTip("Copy all paths (outlines) from the source layer.")
 
-		self.w.includeComponents = vanilla.CheckBox((inset + 135, linePos, 80, 20), "Components", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeComponents = vanilla.CheckBox("auto", "Components", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeComponents.setToolTip("Copy all components (references to other glyphs) from the source layer.")
-		linePos += lineHeight
 
-		self.w.includeAnchors = vanilla.CheckBox((inset + 60, linePos, 65, 20), "Anchors", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeAnchors = vanilla.CheckBox("auto", "Anchors", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeAnchors.setToolTip("Copy all anchors (attachment points) from the source layer. Anchors of the same name in the target are replaced.")
 
-		self.w.includeMetrics = vanilla.CheckBox((inset + 135, linePos, 80, 20), "Metrics", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeMetrics = vanilla.CheckBox("auto", "Metrics", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeMetrics.setToolTip("Copy layer width and sidebearing metrics from the source layer.")
 
-		self.w.includeHints = vanilla.CheckBox((inset + 210, linePos, 90, 20), "Hints", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeHints = vanilla.CheckBox("auto", "Hints", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeHints.setToolTip("Copy all hints (TrueType instructions) from the source layer.")
-		linePos += lineHeight
 
-		self.w.separator1 = vanilla.HorizontalLine((inset, linePos + 5, -inset, 1))
+		self.w.separator1 = vanilla.HorizontalLine("auto")
 
 		# Options with tooltips
-		linePos += 12
-		self.w.intoBackground = vanilla.CheckBox((inset, linePos, -inset, 20), "Copy into background instead", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.intoBackground = vanilla.CheckBox("auto", "Copy into background instead", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.intoBackground.setToolTip("Copies source layer content into the background of the target layer instead of the foreground.")
-		linePos += lineHeight
 
-		self.w.createIfNotPresent = vanilla.CheckBox((inset, linePos, -inset, 20), "Create target glyph & layer if not already present", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.createIfNotPresent = vanilla.CheckBox("auto", "Create target glyph & layer if not already present", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.createIfNotPresent.setToolTip("Automatically creates the target layer (and glyph if necessary) if it doesn't exist. Useful for adding new layers to all selected glyphs.")
-		linePos += lineHeight
 
-		self.w.addToContents = vanilla.CheckBox((inset, linePos, -inset, 20), "Add to layer contents (don't overwrite)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.addToContents = vanilla.CheckBox("auto", "Add to layer contents (don't overwrite)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.addToContents.setToolTip("Appends source content to target layer instead of replacing it. Useful for combining multiple design elements.")
-		linePos += lineHeight
 
-		self.w.applyFontWide = vanilla.CheckBox((inset, linePos, -inset, 20), "Apply font-wide (all glyphs in source font)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.applyFontWide = vanilla.CheckBox("auto", "Apply font-wide (all glyphs in source font)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.applyFontWide.setToolTip("Processes all glyphs in the source font instead of only selected glyphs in the target font. If not selected, will process only selected glyphs.")
-		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Copy Layers", sizeStyle='regular', callback=self.CopyLayerToLayerMain)
+		self.w.runButton = vanilla.Button("auto", "Copy Layers", sizeStyle='regular', callback=self.CopyLayerToLayerMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# right-aligned labels of one width, so the popups and checkboxes start at one x-position:
+		labelNames = ("sourceFontText", "sourceLayerText", "targetFontText", "targetLayerText", "includeText")
+		widestLabel = "sourceLayerText"
+		for labelName in labelNames:
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+		widthRules = [
+			{"view1": getattr(self.w, labelName), "attribute1": "width", "view2": getattr(self.w, widestLabel), "attribute2": "width"}
+			for labelName in labelNames if labelName != widestLabel
+		]
+
+		# the cells of the Include grid share one width, so the columns line up:
+		gridCheckBoxes = (self.w.includeComponents, self.w.includePaths, self.w.includeAnchors, self.w.includeMetrics, self.w.includeHints)
+		columnRules = [
+			{"view1": cell, "attribute1": "width", "view2": gridCheckBoxes[0], "attribute2": "width"}
+			for cell in gridCheckBoxes[1:]
+		]
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[sourceFontText]-gap-[sourceFontPopup]-gap-[sourceFontUpdateButton]-inset-|",
+				"H:|-inset-[sourceLayerText]-gap-[sourceLayerPopup]-inset-|",
+				"H:|-inset-[targetFontText]-gap-[targetFontPopup]-inset-|",
+				"H:|-inset-[targetLayerText]-gap-[targetLayerPopup]-inset-|",
+				"H:|-inset-[includeText]-gap-[includePaths]-gap-[includeComponents]-(>=inset)-|",
+				"H:[includeText]-gap-[includeAnchors]-gap-[includeMetrics]-gap-[includeHints]-(>=inset)-|",
+				"H:|-inset-[separator1]-inset-|",
+				"H:|-inset-[intoBackground]-(>=inset)-|",
+				"H:|-inset-[createIfNotPresent]-(>=inset)-|",
+				"H:|-inset-[addToContents]-(>=inset)-|",
+				"H:|-inset-[applyFontWide]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=120)]-inset-|",
+				"V:|-inset-[descriptionText]-headlineGap-[sourceFontPopup]-row-[sourceLayerPopup]-row-[targetFontPopup]-row-[targetLayerPopup]-sectionGap-[includePaths]-checkRow-[includeAnchors]-sectionGap-[separator1(1)]-sectionGap-[intoBackground]-checkRow-[createIfNotPresent]-checkRow-[addToContents]-checkRow-[applyFontWide]-inset-[runButton]-inset-|",
+				# one baseline per row:
+				{"view1": self.w.sourceFontText, "attribute1": "centerY", "view2": self.w.sourceFontPopup, "attribute2": "centerY"},
+				{"view1": self.w.sourceFontUpdateButton, "attribute1": "centerY", "view2": self.w.sourceFontPopup, "attribute2": "centerY"},
+				{"view1": self.w.sourceLayerText, "attribute1": "centerY", "view2": self.w.sourceLayerPopup, "attribute2": "centerY"},
+				{"view1": self.w.targetFontText, "attribute1": "centerY", "view2": self.w.targetFontPopup, "attribute2": "centerY"},
+				{"view1": self.w.targetLayerText, "attribute1": "centerY", "view2": self.w.targetLayerPopup, "attribute2": "centerY"},
+				{"view1": self.w.includeText, "attribute1": "centerY", "view2": self.w.includePaths, "attribute2": "centerY"},
+				{"view1": self.w.includeComponents, "attribute1": "centerY", "view2": self.w.includePaths, "attribute2": "centerY"},
+				{"view1": self.w.includeMetrics, "attribute1": "centerY", "view2": self.w.includeAnchors, "attribute2": "centerY"},
+				{"view1": self.w.includeHints, "attribute1": "centerY", "view2": self.w.includeAnchors, "attribute2": "centerY"},
+			] + widthRules + columnRules,
+			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5, "headlineGap": 10, "sectionGap": 10},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -175,8 +215,10 @@ class CopyLayerToLayer(mekkaObject):
 		"""Returns a list of font names for the popups"""
 		myFontList = ["Current Font"]
 		for thisFont in Glyphs.fonts:
-			fontName = thisFont.filepath.lastPathComponent() if thisFont.filepath else "<unsaved file>"
-			myFontList.append('%s (family: %s)' % (fontName, thisFont.familyName))
+			if thisFont.filepath:
+				myFontList.append('%s (family: %s)' % (thisFont.filepath.lastPathComponent(), thisFont.familyName))
+			else:
+				myFontList.append('%s (unsaved)' % thisFont.familyName)
 		return myFontList
 
 	def GetFont(self, fontPopup):

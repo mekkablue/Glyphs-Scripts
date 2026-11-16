@@ -3,11 +3,16 @@ __doc__ = """
 Insert many instances at once with a recipe.
 """
 
-import vanilla
 import codecs
-from AppKit import NSDictionary
-from GlyphsApp import Glyphs, GSAxis, GSCustomParameter, GSInstance, INSTANCETYPESINGLE, INSTANCETYPEVARIABLE, GetSaveFile, GetOpenFile, Message
+import vanilla
 from mekkablue import mekkaObject, getLegibleFont
+from GlyphsApp import Glyphs, GSAxis, GSCustomParameter, GSInstance, INSTANCETYPESINGLE, INSTANCETYPEVARIABLE, GetSaveFile, GetOpenFile, Message
+from AppKit import (
+	NSDictionary,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultLow,
+	NSLayoutPriorityWindowSizeStayPut,
+)
 
 INSTANCETYPEPARTICLE = 4  # GSInstance.type for axis particle instances (Glyphs 4+)
 
@@ -68,7 +73,7 @@ def tagForAxisName(axisName):
 		"Optical Size": "opsz",
 	}
 
-	if tagDict[axisName]:
+	if tagDict.get(axisName):
 		return tagDict[axisName]
 	else:
 		tag = ""
@@ -89,6 +94,7 @@ def parseAxes(code):
 	axisKey = None
 	axisIndex = 0
 	for thisLine in code.splitlines():
+		thisLine = thisLine.strip()
 		if thisLine:
 			if thisLine[0] == "#":
 				# new axis
@@ -99,7 +105,7 @@ def parseAxes(code):
 					axisName = thisLine[1:].strip()
 					axisTag = ""
 				if not axisTag:
-					tagForAxisName(axisName)
+					axisTag = tagForAxisName(axisName)
 				axisKey = "%03i,%s:%s" % (axisIndex, axisName, axisTag)
 				axisDict[axisKey] = []
 				axisIndex += 1
@@ -142,32 +148,6 @@ def parsePosInfo(posInfo):
 
 def isGlyphs4OrHigher():
 	return bool(Glyphs.versionNumber) and Glyphs.versionNumber >= 4
-
-
-def setExternalAxisValue(instance, axisId, axisIndex, axisLoc):
-	"""
-	Glyphs 4: instances carry their user-space coordinates in .externalAxesValues
-	(design space: .internalAxesValues), and the Axis Location parameter is not in
-	use anymore. Returns True if the coordinate could be set.
-	"""
-	for selectorName in ("setExternalAxisValueValue_forId_", "setExternAxisValueValue_forId_"):
-		setter = getattr(instance, selectorName, None)
-		if setter and axisId:
-			try:
-				setter(float(axisLoc), axisId)
-				return True
-			except:
-				pass
-
-	externalAxesValues = getattr(instance, "externalAxesValues", None)
-	if externalAxesValues is not None and axisIndex is not None:
-		try:
-			externalAxesValues[axisIndex] = float(axisLoc)
-			return True
-		except:
-			pass
-
-	return False
 
 
 def externalAxisValue(instance, axisName, axisIndex):
@@ -261,8 +241,10 @@ def elidableParticleNames(font, axisId):
 def addLocationToInstance(instance, axisName, axisLoc, axisId=None, axisIndex=None):
 	if isGlyphs4OrHigher():
 		# GLYPHS 4: no more Axis Location parameter, user-space coordinates live on the instance
-		if not setExternalAxisValue(instance, axisId, axisIndex, axisLoc):
-			print(f"⚠️ Could not set external {axisName} coordinate {axisLoc} in ‘{instance.name}’.")
+		if axisIndex is None:
+			print(f"⚠️ Could not set external {axisName} coordinate {axisLoc} in ‘{instance.name}’: no such axis.")
+		else:
+			instance.externalAxesValues[axisIndex] = float(axisLoc)
 	else:
 		# GLYPHS 2+3:
 		paramName = "Axis Location"
@@ -297,9 +279,9 @@ def styleLinkInstance(instance, axisName, particle, defaultName="Regular"):
 
 
 def removeElidableNames(instance, fallbackName="Regular", splitString=" "):
-	if not "*" in instance.name:
+	if "*" not in instance.name:
 		return
-	
+
 	particles = instance.name.split(splitString)
 	elidable = len(particles) > 1
 
@@ -310,7 +292,7 @@ def removeElidableNames(instance, fallbackName="Regular", splitString=" "):
 		if not particle.endswith("*"):
 			newParticles.append(particle)
 		elif not elidable:
-			newParticles.append(particle[:1])
+			newParticles.append(particle[:-1])  # the only particle: keep it, without the asterisk
 
 	# fallback for fallback name
 	if not newParticles:
@@ -351,6 +333,7 @@ class InstanceCooker(mekkaObject):
 		windowHeight = 300
 		windowWidthResize = 1000  # user can resize width by this value
 		windowHeightResize = 1000  # user can resize height by this value
+		# the window stays resizable, so the user can enlarge the recipe editor:
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Instance Cooker",  # window title
@@ -360,11 +343,10 @@ class InstanceCooker(mekkaObject):
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Enter recipe (see tooltips):", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		inset = 15
+		self.w.descriptionText = vanilla.TextBox("auto", "Enter recipe (see tooltips):", sizeStyle='small', selectable=True)
 
-		self.w.recipe = vanilla.TextEditor((1, linePos, -1, -inset * 3), text="", callback=self.SavePreferences, checksSpelling=False)
+		self.w.recipe = vanilla.TextEditor("auto", text="", callback=self.SavePreferences, checksSpelling=False)
 		self.w.recipe.setToolTip("Syntax:\n#Axisname\n#Axisname:tag\nposition:instance name particle\ninternal>external:instance name particle\n* after particle for elidable names\n\nExample:\n#Weight\n100>400:Regular*\n120>500:Medium\n150>600:Semibold\n#Width:wdth\n75:Condensed\n100:Regular*\n125:Extended")
 		self.w.recipe.getNSScrollView().setHasVerticalScroller_(1)
 		self.w.recipe.getNSScrollView().setHasHorizontalScroller_(1)
@@ -383,22 +365,39 @@ class InstanceCooker(mekkaObject):
 		textSize = textView.minSize()
 		textSize.width = 1000
 		textView.setMinSize_(textSize)
-		# textView.textContainer().setWidthTracksTextView_(0)
-		# textView.textContainer().setContainerSize_(textSize)
+
+		# Buttons:
+		self.w.openButton = vanilla.Button("auto", "Open…", callback=self.importRecipe)
+		self.w.openButton.setToolTip("Load a recipe from a text file.")
+		self.w.saveButton = vanilla.Button("auto", "Save…", callback=self.exportRecipe)
+		self.w.saveButton.setToolTip("Save the current recipe as a text file.")
+		self.w.resetButton = vanilla.Button("auto", "Reset", callback=self.resetRecipe)
+		self.w.resetButton.setToolTip("Replace the current recipe with the default recipe, including the recipe instructions.")
+		self.w.extractButton = vanilla.Button("auto", "Extract", callback=self.extractRecipe)
+		self.w.extractButton.setToolTip("Build a recipe from the instances of the frontmost font.")
 
 		# Run Button:
-		buttonPos = inset
-		buttonWidth = 70
-		buttonGap = 20
-		self.w.openButton = vanilla.Button((buttonPos, -20 - inset, buttonWidth, -inset), "Open…", callback=self.importRecipe)
-		buttonPos += buttonWidth + buttonGap
-		self.w.saveButton = vanilla.Button((buttonPos, -20 - inset, buttonWidth, -inset), "Save…", callback=self.exportRecipe)
-		buttonPos += buttonWidth + buttonGap
-		self.w.resetButton = vanilla.Button((buttonPos, -20 - inset, buttonWidth, -inset), "Reset", callback=self.resetRecipe)
-		buttonPos += buttonWidth + buttonGap
-		self.w.extractButton = vanilla.Button((buttonPos, -20 - inset, buttonWidth, -inset), "Extract", callback=self.extractRecipe)
-		self.w.runButton = vanilla.Button((-140 - inset, -20 - inset, -inset, -inset), "Cook Instances", callback=self.InstanceCookerMain)
+		self.w.runButton = vanilla.Button("auto", "Cook Instances", callback=self.InstanceCookerMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# everything but the recipe editor hugs vertically, so the editor takes all the leftover height:
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+		self.w.recipe.getNSScrollView().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-(>=inset)-|",
+				"H:|-1-[recipe]-1-|",
+				"H:|-inset-[openButton(>=70)]-gap-[saveButton(>=70)]-gap-[resetButton(>=70)]-gap-[extractButton(>=70)]-(>=gap)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[descriptionText]-gap-[recipe(>=150)]-inset-[runButton]-inset-|",
+				"V:[openButton]-inset-|",
+				"V:[saveButton]-inset-|",
+				"V:[resetButton]-inset-|",
+				"V:[extractButton]-inset-|",
+			],
+			metrics={"inset": inset, "gap": 8},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -407,17 +406,17 @@ class InstanceCooker(mekkaObject):
 		self.w.open()
 		self.w.makeKey()
 
-
 	def exportRecipe(self, sender=None):
 		self.SavePreferences()
-		filePath = GetSaveFile(message="Save Recipe", ProposedFileName="instance recipe.txt", filetypes=("txt"))
+		# positional arguments: the second one is called ProposedFileName in Glyphs 3, proposedFileName in Glyphs 4
+		filePath = GetSaveFile("Save Recipe", "instance recipe.txt", ["txt"])
 		if filePath:
 			fileContent = self.pref("recipe")
 			saveFileInLocation(content=fileContent, filePath=filePath)
 
 
 	def importRecipe(self, sender=None):
-		filePath = GetOpenFile(message="Open Recipe", allowsMultipleSelection=False, filetypes=("txt"))
+		filePath = GetOpenFile(message="Open Recipe", allowsMultipleSelection=False, filetypes=["txt"])
 		if filePath:
 			fileContent = readFileFromLocation(filePath=filePath)
 			if fileContent:
@@ -502,9 +501,9 @@ class InstanceCooker(mekkaObject):
 
 				# add style linking:
 				if axisTag == "wght" and styleCoord == 400:
-					axisLocation += f">700.0"
+					axisLocation += ">700.0"
 				if axisTag == "ital" and styleCoord == 0:
-					axisLocation += f">1"
+					axisLocation += ">1"
 
 				# add style name:
 				styleName = styleInfo[1]
@@ -528,7 +527,7 @@ class InstanceCooker(mekkaObject):
 			return
 
 		if firstVF.customParameters[paramName]:
-			return # do not overwrite existing axis values
+			return  # do not overwrite existing axis values
 
 		# turn user entry into STAT axis values:
 		axisLocations = self.axisLocationsFromRecipe(recipeDict)
@@ -541,7 +540,7 @@ class InstanceCooker(mekkaObject):
 				axisLocations.append("ital; 1=Oblique")
 			else:
 				axisLocations.append("ital; 0>1=Roman")
-		
+
 		# add axis values parameters to VF:
 		for axisLocation in axisLocations:
 			parameter = GSCustomParameter(paramName, axisLocation)
@@ -564,9 +563,9 @@ class InstanceCooker(mekkaObject):
 			else:
 				print("Instance Cooker Report for %s" % thisFont.familyName)
 				if thisFont.filepath:
-					print(thisFont.filepath)
+					print(f"📄 {thisFont.filepath}")
 				else:
-					print("⚠️ The font file has not been saved yet.")
+					print(f"📄 {thisFont.familyName} (unsaved)")
 				print()
 
 				recipe = self.pref("recipe")
@@ -694,15 +693,15 @@ class InstanceCooker(mekkaObject):
 				thisFont.instances = [i for i in thisFont.instances if i.type in keptTypes] + instances
 				instanceCount = len(instances)
 
-			# Final report:
-			print("\nAdded %i instance%s to %s. Details in Macro Window." % (
-				instanceCount,
-				"" if instanceCount == 1 else "s",
-				thisFont.familyName,
-			))
-			thisFont.parent.windowController().showFontInfoWindowWithTabSelected_(2)
-			self.w.close()
-			print("\n✅ Done.")
+				# Final report:
+				print("\nAdded %i instance%s to %s." % (
+					instanceCount,
+					"" if instanceCount == 1 else "s",
+					thisFont.familyName,
+				))
+				thisFont.parent.windowController().showFontInfoWindowWithTabSelected_(2)
+				self.w.close()
+				print("\n✅ Done.")
 
 		except Exception as e:
 			# brings macro window to front and reports error:

@@ -3,11 +3,18 @@ __doc__="""
 Duplexes all masters according to one master you pick, so all widths are synced across all masters. Great for preparing your font for the Sync Metrics with First Master parameter.
 """
 
-import vanilla, sys
-from copy import copy
-from AppKit import NSPoint, NSMidX, NSMidY, NSAffineTransform, NSAffineTransformStruct
-from GlyphsApp import Glyphs, GSLayer, GSCustomParameter, Message
+import vanilla
 from mekkablue import mekkaObject, UpdateButton, reportFontName
+from GlyphsApp import Glyphs, GSLayer, GSCustomParameter, Message
+from AppKit import (
+	NSAffineTransform,
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityDefaultLow,
+	NSLayoutPriorityWindowSizeStayPut,
+)
+from Foundation import NSMidX
 
 def mixedGlyphDatabase(glyphs):
 	mixedDict = {}
@@ -118,45 +125,58 @@ class Duplexer(mekkaObject):
 	
 	def __init__( self ):
 		# Window 'self.w':
-		windowWidth  = 300
-		windowHeight = 200
-		windowWidthResize  = 600 # user can resize width by this value
-		windowHeightResize = 0   # user can resize height by this value
+		windowWidth = 400
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight), # default window size
-			"Duplexer", # window title
-			minSize = (windowWidth, windowHeight), # minimum size (for resizing)
-			maxSize = (windowWidth + windowWidthResize, windowHeight + windowHeightResize), # maximum size (for resizing)
-			autosaveName = self.domain("mainwindow") # stores last window position and size
+			(windowWidth, windowHeight),  # default window size
+			"Duplexer",  # window title
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
-		
+
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Sync widths of all masters (‘duplex’)", sizeStyle="small", selectable=True)
-		linePos += lineHeight
-		
-		self.w.baseText = vanilla.TextBox((inset, linePos+2, 60, 14), "Based on:", sizeStyle="small", selectable=True)
-		self.w.base = vanilla.PopUpButton((inset+60, linePos, -inset-20, 17), [], sizeStyle="small", callback=self.SavePreferences)
-		self.w.baseUpdate = UpdateButton((-inset-16, linePos-3, -inset, 18), callback=self.updateUI)
-		linePos += lineHeight
-		
-		self.w.allGlyphs = vanilla.CheckBox((inset+3, linePos-1, -inset+3, 20), "Apply to ALL glyphs (otherwise selected only)", value=True, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
-		
-		self.w.excludeSpecialGlyphs = vanilla.CheckBox((inset+3, linePos-1, -inset+3, 20), "Exclude special glyphs (_corner, _smart, etc.)", value=True, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
-		
-		self.w.fixMetricsKeys = vanilla.CheckBox((inset+3, linePos-1, -inset+3, 20), "Keep metrics keys on base master only", value=True, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
-		
-		self.w.addSyncParameter = vanilla.CheckBox((inset+3, linePos-1, -inset+3, 20), "Add ‘Link Metrics With Master’ parameter", value=False, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
-		
-		
-		
+		inset = 15
+		self.w.descriptionText = vanilla.TextBox("auto", "Sync widths of all masters (‘duplex’)", sizeStyle="small", selectable=True)
+
+		self.w.baseText = vanilla.TextBox("auto", "Based on:", sizeStyle="small", selectable=True)
+		self.w.base = vanilla.PopUpButton("auto", [], sizeStyle="small", callback=self.SavePreferences)
+		self.w.baseUpdate = UpdateButton("auto", callback=self.updateUI)
+		# the label hugs its text, the popup takes the leftover width and truncates long master entries:
+		self.w.baseText.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.base.getNSPopUpButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.base.getNSPopUpButton().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.allGlyphs = vanilla.CheckBox("auto", "Apply to ALL glyphs (otherwise selected only)", value=True, callback=self.SavePreferences, sizeStyle="small")
+
+		self.w.excludeSpecialGlyphs = vanilla.CheckBox("auto", "Exclude special glyphs (_corner, _smart, etc.)", value=True, callback=self.SavePreferences, sizeStyle="small")
+
+		self.w.fixMetricsKeys = vanilla.CheckBox("auto", "Keep metrics keys on base master only", value=True, callback=self.SavePreferences, sizeStyle="small")
+
+		self.w.addSyncParameter = vanilla.CheckBox("auto", "Add ‘Link Metrics With Master’ parameter", value=False, callback=self.SavePreferences, sizeStyle="small")
+
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80-inset, -20-inset, -inset, -inset), "Duplex", sizeStyle="regular", callback=self.DuplexerMain)
+		self.w.runButton = vanilla.Button("auto", "Duplex", sizeStyle="regular", callback=self.DuplexerMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[baseText]-gap-[base]-gap-[baseUpdate]-inset-|",
+				"H:|-inset-[allGlyphs]-(>=inset)-|",
+				"H:|-inset-[excludeSpecialGlyphs]-(>=inset)-|",
+				"H:|-inset-[fixMetricsKeys]-(>=inset)-|",
+				"H:|-inset-[addSyncParameter]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=80)]-inset-|",
+				"V:|-gap-[descriptionText]-row-[base]-row-[allGlyphs]-checkRow-[excludeSpecialGlyphs]-checkRow-[fixMetricsKeys]-checkRow-[addSyncParameter]-inset-[runButton]-inset-|",
+				{"view1": self.w.baseText, "attribute1": "centerY", "view2": self.w.base, "attribute2": "centerY"},
+				{"view1": self.w.baseUpdate, "attribute1": "centerY", "view2": self.w.base, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
+		)
 		
 		# Load Settings:
 		if not self.LoadPreferences():
@@ -204,12 +224,12 @@ class Duplexer(mekkaObject):
 				base = self.pref("base")
 				if self.w.base.getItems() != self.masterList():
 					menu = self.w.base.getItems()
-					firstMaster = menu[0]
+					firstMaster = menu[0] if menu else "no font"
 					firstMaster = firstMaster[firstMaster.find(".")+1:firstMaster.find("‘")].strip()
 					masterCount = len(menu)
 					Message(
 						title="Font mismatch",
-						message="The settings in the script appear to be for a different font ({firstMaster} with {masterCount} masters) than the current frontmost font ({font.familyName} with {len(font.masters)} masters).",
+						message=f"The settings in the script appear to be for a different font ({firstMaster} with {masterCount} masters) than the current frontmost font ({font.familyName} with {len(font.masters)} masters). Press the update button next to the master menu and try again.",
 						OKButton=None,
 						)
 					return

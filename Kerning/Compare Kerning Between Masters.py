@@ -4,8 +4,16 @@ Report differences in kerning structures between two masters.
 """
 
 import vanilla
-from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, newLineControlLayer, reportFontName, UpdateButton
+from GlyphsApp import Glyphs, Message
+from AppKit import (
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityRequired,
+	NSLayoutPriorityWindowSizeStayPut,
+	NSTextAlignmentRight,
+)
 
 
 class CompareKerningBetweenMasters(mekkaObject):
@@ -23,49 +31,70 @@ class CompareKerningBetweenMasters(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 350
-		windowHeight = 240
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Compare Kerning Between Masters",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 10, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Compare kerning between two masters in frontmost font:", sizeStyle="small", selectable=True)
-		linePos += lineHeight
+		inset = 15
+		self.w.descriptionText = vanilla.TextBox("auto", "Compare kerning between two masters in frontmost font:", sizeStyle="small", selectable=True)
 
-		tab = 70
-		self.w.firstMasterText = vanilla.TextBox((inset, linePos + 2, tab, 14), "1st Master:", sizeStyle="small", selectable=True)
-		self.w.firstMaster = vanilla.PopUpButton((inset + tab, linePos, -inset, 17), self.menuItemsForFrontMostFont(), sizeStyle="small", callback=self.SavePreferences)
-		linePos += lineHeight
+		self.w.firstMasterText = vanilla.TextBox("auto", "1st Master:", sizeStyle="small", selectable=True)
+		self.w.firstMaster = vanilla.PopUpButton("auto", self.menuItemsForFrontMostFont(), sizeStyle="small", callback=self.SavePreferences)
 
-		self.w.secondMasterText = vanilla.TextBox((inset, linePos + 2, tab, 14), "2nd Master:", sizeStyle="small", selectable=True)
-		self.w.secondMaster = vanilla.PopUpButton((inset + tab, linePos, -inset - 20, 17), self.menuItemsForFrontMostFont(), sizeStyle="small", callback=self.SavePreferences)
-		self.w.updateButton = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.updateUI)
-		linePos += int(lineHeight * 1.5)
+		self.w.secondMasterText = vanilla.TextBox("auto", "2nd Master:", sizeStyle="small", selectable=True)
+		self.w.secondMaster = vanilla.PopUpButton("auto", self.menuItemsForFrontMostFont(), sizeStyle="small", callback=self.SavePreferences)
+		self.w.updateButton = UpdateButton("auto", callback=self.updateUI)
 
-		self.w.kernTypeText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Types of kerning to compare:", sizeStyle="small", selectable=True)
-		linePos += lineHeight
+		self.w.kernTypeText = vanilla.TextBox("auto", "Types of kerning to compare:", sizeStyle="small", selectable=True)
 
-		tab = 140
-		self.w.group2group = vanilla.CheckBox((inset + 2, linePos - 1, tab, 20), "@group ↔︎ @group", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.group2glyph = vanilla.CheckBox((inset + tab, linePos - 1, -inset + tab, 20), "@group ↔︎ glyph", value=True, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
-		self.w.glyph2group = vanilla.CheckBox((inset + 2, linePos - 1, tab, 20), "glyph ↔︎ @group", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.glyph2glyph = vanilla.CheckBox((inset + tab, linePos - 1, -inset + tab, 20), "glyph ↔︎ glyph", value=True, callback=self.SavePreferences, sizeStyle="small")
-		linePos += int(lineHeight * 1.5)
+		self.w.group2group = vanilla.CheckBox("auto", "@group ↔︎ @group", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.group2glyph = vanilla.CheckBox("auto", "@group ↔︎ glyph", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.glyph2group = vanilla.CheckBox("auto", "glyph ↔︎ @group", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.glyph2glyph = vanilla.CheckBox("auto", "glyph ↔︎ glyph", value=True, callback=self.SavePreferences, sizeStyle="small")
 
-		self.w.reuseTab = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
+		self.w.reuseTab = vanilla.CheckBox("auto", "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle="small")
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Compare", callback=self.CompareKerningBetweenMastersMain)
+		self.w.runButton = vanilla.Button("auto", "Compare", callback=self.CompareKerningBetweenMastersMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# labels are right-aligned and hug their text, so the popups take the leftover width:
+		for label in (self.w.firstMasterText, self.w.secondMasterText):
+			nsLabel = label.getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[firstMasterText]-gap-[firstMaster]-inset-|",
+				"H:|-inset-[secondMasterText]-gap-[secondMaster]-gap-[updateButton]-inset-|",
+				"H:|-inset-[kernTypeText]-inset-|",
+				"H:|-inset-[group2group]-inset-[group2glyph]-(>=inset)-|",
+				"H:|-inset-[glyph2group]-inset-[glyph2glyph]-(>=inset)-|",
+				"H:|-inset-[reuseTab]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[descriptionText]-row-[firstMaster]-row-[secondMaster]-section-[kernTypeText]-row-[group2group]-checkRow-[glyph2group]-section-[reuseTab]-inset-[runButton]-inset-|",
+				"V:[kernTypeText]-row-[group2glyph]-checkRow-[glyph2glyph]",
+				{"view1": self.w.firstMasterText, "attribute1": "centerY", "view2": self.w.firstMaster, "attribute2": "centerY"},
+				{"view1": self.w.secondMasterText, "attribute1": "centerY", "view2": self.w.secondMaster, "attribute2": "centerY"},
+				{"view1": self.w.updateButton, "attribute1": "centerY", "view2": self.w.secondMaster, "attribute2": "centerY"},
+				# labels and the checkbox columns share one width each:
+				{"view1": self.w.firstMasterText, "attribute1": "width", "view2": self.w.secondMasterText, "attribute2": "width"},
+				{"view1": self.w.glyph2group, "attribute1": "width", "view2": self.w.group2group, "attribute2": "width"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5, "section": 12},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -227,7 +256,6 @@ class CompareKerningBetweenMasters(mekkaObject):
 						kerningInFirstMaster = thisFont.kerningForPair(firstMasterID, Lname, Rname)
 						kerningInSecondMaster = thisFont.kerningForPair(secondMasterID, Lname, Rname)
 						if kerningInFirstMaster is None or kerningInSecondMaster is None:
-							missingKernCount += 1
 							targetList = None
 							if LisGroup and RisGroup and group2group:
 								if kerningInFirstMaster is None:
@@ -263,6 +291,7 @@ class CompareKerningBetweenMasters(mekkaObject):
 									skippedCount += 1
 									continue
 
+								missingKernCount += 1
 								targetList.append(glyphOnLSide.layers[firstMaster.id])
 								targetList.append(glyphOnRSide.layers[firstMaster.id])
 								targetList.append(spaceGlyph.layers[firstMaster.id])
@@ -335,7 +364,7 @@ class CompareKerningBetweenMasters(mekkaObject):
 						tab.layers = list(tab.layers) + glyph2glyphLayersMissingSecond
 						addNewline()
 
-					print(f"\nDone. Found {missingKernCount} cases of misisng kern pairs.")
+					print(f"\nDone. Found {missingKernCount} cases of missing kern pairs.")
 
 		except Exception as e:
 			# brings macro window to front and reports error:

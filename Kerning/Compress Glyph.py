@@ -4,8 +4,14 @@ Compresses all instances of a glyph to its respective group kerning.
 """
 
 import vanilla
+from mekkablue import mekkaObject, match, reportFontName, UpdateButton
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, match, reportFontName
+from AppKit import (
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultLow,
+	NSLayoutPriorityWindowSizeStayPut,
+)
 
 
 class CompressGlyph(mekkaObject):
@@ -20,43 +26,57 @@ class CompressGlyph(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 335
-		windowHeight = 160
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 350
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Compress Glyph",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "In frontmost font, compress kernings for this glyph:", sizeStyle="small", selectable=True)
-		linePos += lineHeight
+		inset = 15
+		self.w.descriptionText = vanilla.TextBox("auto", "In frontmost font, compress kernings for this glyph:", sizeStyle="small", selectable=True)
 
-		self.w.glyphName = vanilla.ComboBox((inset, linePos - 4, -inset - 25, 24), (), callback=self.SavePreferences)
+		self.w.glyphName = vanilla.ComboBox("auto", (), callback=self.SavePreferences)
 		self.w.glyphName.setToolTip("The name of the glyph you want to compress. Use * as wildcard for matching many glyphs.")
-		self.w.updateButton = vanilla.SquareButton((-inset - 20, linePos, -inset, 18), "↺", callback=self.update)
-		linePos += lineHeight + 3
+		self.w.updateButton = UpdateButton("auto", callback=self.update)
+		self.w.updateButton.setToolTip("Reloads the glyph names of the frontmost font into the combo box.")
 
-		self.w.compressText = vanilla.TextBox((inset, linePos + 2, 140, 14), "Compress when glyph is", sizeStyle="small", selectable=True)
-		self.w.compressLeft = vanilla.CheckBox((inset + 140, linePos - 1, 65, 20), "left side", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.compressRight = vanilla.CheckBox((inset + 205, linePos - 1, -inset, 20), "right side of pair", value=False, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
+		self.w.compressText = vanilla.TextBox("auto", "Compress when glyph is", sizeStyle="small", selectable=True)
+		self.w.compressLeft = vanilla.CheckBox("auto", "left side", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.compressRight = vanilla.CheckBox("auto", "right side of pair", value=False, callback=self.SavePreferences, sizeStyle="small")
 
-		self.w.allMasters = vanilla.CheckBox((inset + 2, linePos - 1, 120, 20), "⚠️ ALL masters", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.verbose = vanilla.CheckBox((inset + 120, linePos - 1, -inset, 20), "Verbose report in Macro window", value=False, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
+		self.w.allMasters = vanilla.CheckBox("auto", "⚠️ ALL masters", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.verbose = vanilla.CheckBox("auto", "Verbose report in Macro window", value=False, callback=self.SavePreferences, sizeStyle="small")
 
-		# Run Button:
-		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Compress", callback=self.CompressGlyphMain)
+		# Status line and Run Button:
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small", selectable=True)
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton = vanilla.Button("auto", "Compress", callback=self.CompressGlyphMain)
 		self.w.setDefaultButton(self.w.runButton)
 
-		self.w.status = vanilla.TextBox((inset, -14 - inset, -inset - 90, 14), "🤖 Ready.", sizeStyle="small", selectable=True)
-		linePos += lineHeight
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[glyphName]-gap-[updateButton]-inset-|",
+				"H:|-inset-[compressText]-gap-[compressLeft]-gap-[compressRight]-(>=inset)-|",
+				"H:|-inset-[allMasters]-inset-[verbose]-(>=inset)-|",
+				"H:|-inset-[status]-gap-[runButton(>=70)]-inset-|",
+				"V:|-gap-[descriptionText]-row-[glyphName]-gap-[compressLeft]-checkRow-[allMasters]-inset-[runButton]-inset-|",
+				{"view1": self.w.updateButton, "attribute1": "centerY", "view2": self.w.glyphName, "attribute2": "centerY"},
+				{"view1": self.w.compressText, "attribute1": "centerY", "view2": self.w.compressLeft, "attribute2": "centerY"},
+				{"view1": self.w.compressRight, "attribute1": "centerY", "view2": self.w.compressLeft, "attribute2": "centerY"},
+				{"view1": self.w.verbose, "attribute1": "centerY", "view2": self.w.allMasters, "attribute2": "centerY"},
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -67,8 +87,12 @@ class CompressGlyph(mekkaObject):
 		self.w.makeKey()
 
 	def update(self, sender=None):
-		names = list([g.name for g in Glyphs.font.glyphs])
-		names.extend(sorted(set([f'*{g.name[g.name.find("."):]}' for g in Glyphs.font.glyphs if "." in g.name and not g.name.startswith(".")])))
+		font = Glyphs.font
+		if not font:
+			self.w.glyphName.setItems(())
+			return
+		names = [g.name for g in font.glyphs]
+		names.extend(sorted(set(f'*{g.name[g.name.find("."):]}' for g in font.glyphs if "." in g.name and not g.name.startswith("."))))
 		self.w.glyphName.setItems(names)
 
 	def CompressGlyphMain(self, sender=None):
@@ -113,7 +137,7 @@ class CompressGlyph(mekkaObject):
 
 				if not glyphNames:
 					Message(
-						title="No glyphs matching ‘{glyphName}’",
+						title=f"No glyphs matching ‘{glyphName}’",
 						message=f"In the current font ({thisFont.familyName}), there is no glyph like ‘{glyphName}’.",
 						OKButton="Oops",
 					)
@@ -122,7 +146,11 @@ class CompressGlyph(mekkaObject):
 				totalCount = 0
 				for glyphName in glyphNames:
 					glyph = thisFont.glyphs[glyphName]
-					self.w.status.set(f"🗜️ Compressing {glyphName}...")
+					if glyph is None:
+						self.w.status.set(f"⚠️ No glyph ‘{glyphName}’ in font.")
+						print(f"⚠️ No glyph named ‘{glyphName}’ in the font. Skipping.\n")
+						continue
+					self.w.status.set(f"🔠 {glyphName}")
 					print(f"🗜️ Compressing {glyphName}...")
 
 					gID = glyph.id

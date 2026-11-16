@@ -4,9 +4,9 @@ Import many masters at once with the Import Master parameter.
 """
 
 import vanilla
-from AppKit import NSNotificationCenter
-from GlyphsApp import Glyphs, GSCustomParameter, Message
 from mekkablue import mekkaObject, UpdateButton
+from GlyphsApp import Glyphs, GSCustomParameter, Message
+from AppKit import NSNotificationCenter, NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 
 
 def menuForFonts(fonts):
@@ -41,8 +41,6 @@ def cleanParametersFromFont(font, cpName="Import Master"):
 
 def importMastersFromFontToFont(importedFont, targetFont, searchFor="", useRelativePath=False):
 	importedPath = importedFont.filepath
-	importedFileName = importedPath.lastPathComponent()
-	importedDir = importedPath.stringByDeletingLastPathComponent()
 	importedRelativePath = importedPath.relativePathFromBaseDirPath_(targetFont.filepath.stringByDeletingLastPathComponent())
 	for importedMaster in importedFont.masters:
 		if searchFor and searchFor not in importedMaster.name:
@@ -65,73 +63,99 @@ class BatchImportMasters(mekkaObject):
 		"searchFor": "",
 		"useRelativePath": True,
 		"resetParameters": True,
+		"suppressMessage": False,
 	}
 
 	currentFonts = Glyphs.fonts
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 350
-		windowHeight = 230
-		windowWidthResize = 300  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 480
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Batch-Import Masters",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Batch-add ‘Import Master’ parameters to target font:", sizeStyle="small", selectable=True)
-		linePos += lineHeight
+		self.w.descriptionText = vanilla.TextBox("auto", "Batch-add ‘Import Master’ parameters to target font:", sizeStyle="small", selectable=True)
 
-		indent = 75
-		self.w.targetFontText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Target font:", sizeStyle="small", selectable=True)
-		self.w.targetFont = vanilla.PopUpButton((inset + indent, linePos, -inset - 20, 17), (), sizeStyle="small", callback=self.SavePreferences)
-		self.w.updateButton = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.UpdateUI)
+		self.w.targetFontText = vanilla.TextBox("auto", "Target font:", sizeStyle="small", selectable=True)
+		self.w.targetFont = vanilla.PopUpButton("auto", (), sizeStyle="small", callback=self.SavePreferences)
+		self.w.updateButton = UpdateButton("auto", callback=self.updateUI)
 		self.w.updateButton.setToolTip("Will update all the menus and buttons of this window. Click here if you opened or closed a font since you invoked the script, or after you changed the source font.")
 		tooltip = "The font that receives the Import Master parameters."
 		self.w.targetFont.setToolTip(tooltip)
 		self.w.targetFontText.setToolTip(tooltip)
-		linePos += lineHeight
 
-		self.w.sourceFontText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Source font:", sizeStyle="small", selectable=True)
-		self.w.sourceFont = vanilla.PopUpButton((inset + indent, linePos, -inset, 17), (), sizeStyle="small", callback=self.SavePreferences)
+		self.w.sourceFontText = vanilla.TextBox("auto", "Source font:", sizeStyle="small", selectable=True)
+		self.w.sourceFont = vanilla.PopUpButton("auto", (), sizeStyle="small", callback=self.SavePreferences)
 		tooltip = "The font the custom parameters refer to."
 		self.w.sourceFont.setToolTip(tooltip)
 		self.w.sourceFontText.setToolTip(tooltip)
-		linePos += lineHeight
 
-		indent = 195
-		self.w.searchForText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Source master name must contain:", sizeStyle="small", selectable=True)
-		self.w.searchFor = vanilla.ComboBox((inset + indent, linePos - 1, -inset, 19), (masterNameParticlesForFont(self.currentFonts[0]) if self.currentFonts else ()), sizeStyle="small", callback=self.SavePreferences)
+		self.w.searchForText = vanilla.TextBox("auto", "Source master name must contain:", sizeStyle="small", selectable=True)
+		self.w.searchFor = vanilla.ComboBox("auto", (sorted(masterNameParticlesForFont(self.currentFonts[0])) if self.currentFonts else ()), sizeStyle="small", callback=self.SavePreferences)
 		tooltip = "If set, will only import masters that contain this name particle. Leave empty to import all masters of the source font."
 		self.w.searchFor.setToolTip(tooltip)
 		self.w.searchForText.setToolTip(tooltip)
-		linePos += lineHeight
 
-		self.w.useRelativePath = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Use relative font path in parameter values", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.useRelativePath = vanilla.CheckBox("auto", "Use relative font path in parameter values", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.useRelativePath.setToolTip("If set, will add a relative path rather than an absolute path. Better for git repos.")
-		linePos += lineHeight
 
-		self.w.resetParameters = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Delete all existing Import Master parameters in target font", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.resetParameters = vanilla.CheckBox("auto", "Delete all existing Import Master parameters in target font", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.resetParameters.setToolTip("If set, will first clean out all existing ‘Import Master’ parameters, so the font will only have the ‘Import Master’ parameters you add.")
-		linePos += lineHeight
 
-		self.w.suppressMessage = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Suppress confirmation dialog", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.suppressMessage = vanilla.CheckBox("auto", "Suppress confirmation dialog", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.suppressMessage.setToolTip("After you add the masters, there is a success dialog confirming the import. If it gets on your nerves, check this checkbox.")
-		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Import", callback=self.BatchImportMastersMain)
+		self.w.runButton = vanilla.Button("auto", "Import", callback=self.BatchImportMastersMain)
 		self.w.setDefaultButton(self.w.runButton)
 
-		self.UpdateUI()
+		# checkboxes stretch vertically by default; with everything hugging,
+		# the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
 
-		# Load Settings:
+		# labels are right-aligned and share the width of the widest one, so the fields line up:
+		labelNames = ("targetFontText", "sourceFontText", "searchForText")
+		widestLabel = "searchForText"
+		for labelName in labelNames:
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+		widthRules = [
+			{"view1": getattr(self.w, labelName), "attribute1": "width", "view2": getattr(self.w, widestLabel), "attribute2": "width"}
+			for labelName in labelNames if labelName != widestLabel
+		]
+
+		# long font names must not widen the window:
+		for popup in (self.w.targetFont, self.w.sourceFont):
+			popup.getNSPopUpButton().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[targetFontText]-gap-[targetFont(>=100)]-gap-[updateButton]-inset-|",
+				"H:|-inset-[sourceFontText]-gap-[sourceFont(>=100)]-inset-|",
+				"H:|-inset-[searchForText]-gap-[searchFor(>=100)]-inset-|",
+				"H:|-inset-[useRelativePath]-(>=inset)-|",
+				"H:|-inset-[resetParameters]-(>=inset)-|",
+				"H:|-inset-[suppressMessage]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-inset-[descriptionText]-headlineGap-[targetFont]-row-[sourceFont]-row-[searchFor]-headlineGap-[useRelativePath]-checkRow-[resetParameters]-checkRow-[suppressMessage]-inset-[runButton]-inset-|",
+				{"view1": self.w.targetFontText, "attribute1": "centerY", "view2": self.w.targetFont, "attribute2": "centerY"},
+				{"view1": self.w.updateButton, "attribute1": "centerY", "view2": self.w.targetFont, "attribute2": "centerY"},
+				{"view1": self.w.sourceFontText, "attribute1": "centerY", "view2": self.w.sourceFont, "attribute2": "centerY"},
+				{"view1": self.w.searchForText, "attribute1": "centerY", "view2": self.w.searchFor, "attribute2": "centerY"},
+			] + widthRules,
+			metrics={"inset": 15, "gap": 8, "row": 6, "checkRow": 5, "headlineGap": 10},
+		)
+
+		# Load Settings (also fills the menus, see updateUI):
 		self.LoadPreferences()
 
 		# Open window and focus on it:
@@ -163,7 +187,7 @@ class BatchImportMasters(mekkaObject):
 				if choiceIndex < len(self.currentFonts):
 					sourceFont = self.currentFonts[choiceIndex]
 					particles = masterNameParticlesForFont(sourceFont)
-					self.w.searchFor.setItems(particles)
+					self.w.searchFor.setItems(sorted(particles))
 					self.w.searchFor.set(searchBoxContent)  # circumvent bug
 		else:
 			Glyphs.defaults[self.domain("sourceFont")] = 0
@@ -200,26 +224,23 @@ class BatchImportMasters(mekkaObject):
 					if self.prefBool("resetParameters"):
 						cleanParametersFromFont(font, cpName="Import Master")
 					importMastersFromFontToFont(importedFont, font, searchFor=self.pref("searchFor"), useRelativePath=self.pref("useRelativePath"))
-
-				except Exception as e:
-					raise e
 				finally:
 					font.enableUpdateInterface()
 					for thisUI in (font.currentTab, font.fontView):
 						NSNotificationCenter.defaultCenter().postNotificationName_object_("GSUpdateInterface", thisUI)
 					if font.currentTab:
 						font.currentTab.reflow()
-					print("\n✅ Done.")
-					if not self.pref("suppressMessage"):
-						Message(
-							title="Imported Masters",
-							message="Successfully imported all masters. Consider saving, closing and reopening the file in case you experience UI glitches.",
-							OKButton=None,
-						)
+
+				# only reached if the import went through without an error:
+				print("\n✅ Done.")
+				if not self.pref("suppressMessage"):
+					Message(
+						title="Imported Masters",
+						message="Successfully imported all masters. Consider saving, closing and reopening the file in case you experience UI glitches.",
+						OKButton=None,
+					)
 
 				# self.w.close()  # delete if you want window to stay open
-
-			print("\nDone.")
 
 		except Exception as e:
 			# brings macro window to front and reports error:

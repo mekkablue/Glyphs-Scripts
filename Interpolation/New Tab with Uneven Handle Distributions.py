@@ -3,58 +3,95 @@ __doc__ = """
 Finds glyphs where handle distributions change too much (e.g., from balanced to harmonised).
 """
 
+import objc
 import vanilla
-from GlyphsApp import Glyphs, CURVE, Message, distance
 from mekkablue import mekkaObject
 from mekkablue.geometry import intersectionLineLinePoints, bezierWithPoints
+from GlyphsApp import Glyphs, CURVE, Message, distance
+from AppKit import (
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultLow,
+	NSLayoutPriorityWindowSizeStayPut,
+)
+from Foundation import NSNumberFormatter
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 class NewTabWithUnevenHandleDistributions(mekkaObject):
 	prefDict = {
 		"factorChange": 0,
-		"factorChangeEntry": "2.5",
+		"factorChangeEntry": 2.5,
 		"anyMaxToNotMax": 1,
 		"markInFirstMaster": 0,
 	}
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 310
-		windowHeight = 170
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 350
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"New Tab with Uneven Handle Distributions",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow"),  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 12, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, lineHeight * 2), "Finds compatible glyphs with curve segments in which the handle distribution changes too much:", sizeStyle='small', selectable=True)
-		linePos += int(lineHeight * 1.8)
+		inset = 15
+		self.w.descriptionText = vanilla.TextBox("auto", "Finds compatible glyphs with curve segments in which the handle distribution changes too much:", sizeStyle='small', selectable=True)
+		# the description wraps: it takes the width it is given instead of demanding one long line
+		self.w.descriptionText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
-		self.w.factorChange = vanilla.CheckBox((inset + 2, linePos, 230, 20), "Tolerated change factor (BCP1÷BCP2):", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.factorChangeEntry = vanilla.EditText((inset + 230, linePos, -inset, 19), "2.5", callback=self.SavePreferences, sizeStyle='small')
+		formatter = NSNumberFormatter.alloc().init()
+		formatter.setMinimum_(0)
+		formatter.setMaximumFractionDigits_(3)
+		self.w.factorChange = vanilla.CheckBox("auto", "Tolerated change factor (BCP1÷BCP2):", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.factorChangeEntry = SteppingEditText("auto", "2.5", callback=self.SavePreferences, sizeStyle='small', formatter=formatter)
 		factorChangeTooltipText = "Calculates length ratios of handles in a curve segment in every master. If the ratio differs by more than the given factor in one or more masters, glyph will be reported."
 		self.w.factorChange.setToolTip(factorChangeTooltipText)
 		self.w.factorChangeEntry.setToolTip(factorChangeTooltipText)
-		linePos += lineHeight
 
-		self.w.anyMaxToNotMax = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Any handle that changes from 100% to non-100%", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.anyMaxToNotMax = vanilla.CheckBox("auto", "Any handle that changes from 100% to non-100%", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.anyMaxToNotMax.setToolTip("Finds BCPs that are maximized (100%) in one master, but not in other masters.")
-		linePos += lineHeight
 
-		self.w.markInFirstMaster = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Mark affected curve segments in first master", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.markInFirstMaster = vanilla.CheckBox("auto", "Mark affected curve segments in first master", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.markInFirstMaster.enable(False)
 		self.w.markInFirstMaster.setToolTip("Not implemented yet. Sorry.")
-		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Open Tab", callback=self.NewTabWithUnevenHandleDistributionsMain)
+		self.w.runButton = vanilla.Button("auto", "Open Tab", callback=self.NewTabWithUnevenHandleDistributionsMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[factorChange]-gap-[factorChangeEntry(60)]-(>=inset)-|",
+				"H:|-inset-[anyMaxToNotMax]-(>=inset)-|",
+				"H:|-inset-[markInFirstMaster]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=100)]-inset-|",
+				# the first checkbox has a field behind it, so the whole stack gets the wider gap:
+				"V:|-gap-[descriptionText(28)]-headlineGap-[factorChange]-stackRow-[anyMaxToNotMax]-stackRow-[markInFirstMaster]-inset-[runButton]-inset-|",
+				{"view1": self.w.factorChangeEntry, "attribute1": "centerY", "view2": self.w.factorChange, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "stackRow": 8, "headlineGap": 10},
+		)
+
+		# older versions stored the factor as text, but the stepping field needs a number:
+		storedFactor = self.pref("factorChangeEntry")
+		if isinstance(storedFactor, str):
+			try:
+				self.setPref("factorChangeEntry", float(storedFactor.replace(",", ".")))
+			except ValueError:
+				self.setPref("factorChangeEntry", self.prefDict["factorChangeEntry"])
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -64,8 +101,18 @@ class NewTabWithUnevenHandleDistributions(mekkaObject):
 		self.w.makeKey()
 
 	def factor(self, A, B, C, D, intersection):
-		handlePercentage1 = distance(A.position, B.position) / distance(A.position, intersection)
-		handlePercentage2 = distance(D.position, C.position) / distance(D.position, intersection)
+		"""
+		Returns the ratio of the two handle percentages, or None if it cannot be
+		calculated (retracted handle, or intersection on top of an on-curve node).
+		"""
+		maxLength1 = distance(A.position, intersection)
+		maxLength2 = distance(D.position, intersection)
+		if not maxLength1 or not maxLength2:
+			return None
+		handlePercentage1 = distance(A.position, B.position) / maxLength1
+		handlePercentage2 = distance(D.position, C.position) / maxLength2
+		if not handlePercentage1 or not handlePercentage2:
+			return None
 		return handlePercentage1 / handlePercentage2
 
 	def factorChangeIsTooBig(self, maxFactorChange, firstFactor, pathIndex, indexA, indexB, indexC, indexD, otherLayers):
@@ -78,6 +125,8 @@ class NewTabWithUnevenHandleDistributions(mekkaObject):
 			intersection = intersectionLineLinePoints(A.position, B.position, C.position, D.position)
 			if intersection:
 				otherFactor = self.factor(A, B, C, D, intersection)
+				if otherFactor is None:
+					continue
 				factorChange = otherFactor / firstFactor
 				if factorChange > maxFactorChange or factorChange < 1 / maxFactorChange:
 					return True
@@ -117,12 +166,15 @@ class NewTabWithUnevenHandleDistributions(mekkaObject):
 				Glyphs.clearLog()
 				print("New Tab with Uneven Handle Distributions\nReport for %s" % thisFont.familyName)
 				if thisFont.filepath:
-					print(thisFont.filepath)
+					print(f"📄 {thisFont.filepath}")
+				else:
+					print(f"📄 {thisFont.familyName} (unsaved)")
 				print()
 
 				# query user options:
-				shouldCheckFactorChange = self.pref("factorChange")
 				maxFactorChange = self.prefFloat("factorChangeEntry")
+				# a factor of 0 (or an empty field) cannot be tolerated, there is nothing to compare against:
+				shouldCheckFactorChange = self.pref("factorChange") and maxFactorChange > 0
 				shouldCheckAnyMaxToNotMax = self.pref("anyMaxToNotMax")
 				markInFirstMaster = self.pref("markInFirstMaster")
 
@@ -155,7 +207,7 @@ class NewTabWithUnevenHandleDistributions(mekkaObject):
 										if firstIntersection:
 											if shouldCheckFactorChange:
 												firstFactor = self.factor(firstPrevNode, firstBCP1, firstBCP2, firstNode, firstIntersection)
-												if self.factorChangeIsTooBig(maxFactorChange, firstFactor, i, indexPrevNode, indexBCP1, indexBCP2, j, otherLayers):
+												if firstFactor is not None and self.factorChangeIsTooBig(maxFactorChange, firstFactor, i, indexPrevNode, indexBCP1, indexBCP2, j, otherLayers):
 													if thisGlyph.name not in affectedGlyphs:
 														affectedGlyphs.append(thisGlyph.name)
 													if markInFirstMaster:

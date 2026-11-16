@@ -4,8 +4,14 @@ Intersect two sets of glyphs with each other in order to get all possible glyph 
 """
 
 import vanilla
-from GlyphsApp import Glyphs, GSFeature, Message
 from mekkablue import mekkaObject, reportFontName
+from GlyphsApp import Glyphs, GSFeature, Message
+from AppKit import (
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultLow,
+	NSLayoutPriorityWindowSizeStayPut,
+)
 
 defaultTokens = (
 	"$[category like 'Letter' and case in {upper,lower}]  # UPPERCASE AND LOWERCASE LETTERS",
@@ -35,44 +41,55 @@ class KernStringMixer(mekkaObject):
 	}
 
 	def __init__(self):
-		for prefName in self.prefDict.keys():
-			Glyphs.registerDefault(self.domain(prefName), self.prefDict[prefName])
-
 		# Window 'self.w':
-		windowWidth = 300
-		windowHeight = 180
-		windowWidthResize = 800  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 420
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Kern String Mixer",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Mix glyphs for a new tab of all possible glyph combos:", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		self.w.descriptionText = vanilla.TextBox("auto", "Mix glyphs for a new tab of all possible glyph combos:", sizeStyle='small', selectable=True)
 
 		tokenHelpText = "Write a token. Click on the help button for more info."
-		self.w.mixString1 = vanilla.ComboBox((inset, linePos - 1, -inset, 23), defaultTokens, callback=self.SavePreferences)
+		self.w.mixString1 = vanilla.ComboBox("auto", defaultTokens, callback=self.SavePreferences)
 		self.w.mixString1.setToolTip(tokenHelpText)
-		linePos += lineHeight + 7
 
-		self.w.mixString2 = vanilla.ComboBox((inset, linePos - 1, -inset, 23), defaultTokens, callback=self.SavePreferences)
+		self.w.mixString2 = vanilla.ComboBox("auto", defaultTokens, callback=self.SavePreferences)
 		self.w.mixString2.setToolTip(tokenHelpText)
-		linePos += lineHeight + 7
 
-		self.w.reuseTab = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Reuse current tab", value=self.pref("reuseTab"), callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.reuseTab = vanilla.CheckBox("auto", "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
 
 		# Buttons at bottom:
-		self.w.helpTokens = vanilla.HelpButton((inset, -20 - inset, 24, 21), callback=self.openURL)
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Mix", callback=self.KernStringMixerMain)
+		self.w.helpTokens = vanilla.HelpButton("auto", callback=self.openURL)
+		self.w.runButton = vanilla.Button("auto", "Mix", callback=self.KernStringMixerMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# the combo boxes take the window width, however long their tokens are:
+		for comboBox in (self.w.mixString1, self.w.mixString2):
+			comboBox.getNSComboBox().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[mixString1]-inset-|",
+				"H:|-inset-[mixString2]-inset-|",
+				"H:|-inset-[reuseTab]-(>=inset)-|",
+				"H:|-inset-[helpTokens]-(>=gap)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[descriptionText]-row-[mixString1]-row-[mixString2]-gap-[reuseTab]-inset-[runButton]-inset-|",
+				{"view1": self.w.helpTokens, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()

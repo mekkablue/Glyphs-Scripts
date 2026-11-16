@@ -3,9 +3,17 @@ __doc__ = """
 Will add RSB =| if the RSB is the same as the LSB in all masters.
 """
 
+import objc
 import vanilla
-from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject
+from GlyphsApp import Glyphs, Message
+from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
+from Foundation import NSNumberFormatter
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 class AddMetricsKeysforSymmetricGlyphs(mekkaObject):
@@ -17,33 +25,51 @@ class AddMetricsKeysforSymmetricGlyphs(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 304
-		windowHeight = 140
+		windowWidth = 310
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Add Metrics Keys for Symmetric Shapes",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Insert ‘=|’ in RSB if LSB and RSB are the same", sizeStyle='small')
-		linePos += lineHeight
+		inset = 15
+		self.w.descriptionText = vanilla.TextBox("auto", "Insert ‘=|’ in RSB if LSB and RSB are the same", sizeStyle='small')
 
-		self.w.toleranceText = vanilla.TextBox((inset, linePos + 3, 65, 14), "Tolerance", sizeStyle='small')
-		self.w.tolerance = vanilla.EditText((inset + 60, linePos, 50, 19), "2", callback=self.SavePreferences, sizeStyle='small')
-		self.w.toleranceUnitsText = vanilla.TextBox((128, linePos + 3, 50, 14), "units", sizeStyle='small')
-		linePos += lineHeight + 3
+		formatter = NSNumberFormatter.alloc().init()
+		formatter.setMaximumFractionDigits_(2)
+		formatter.setMinimum_(0)
+		self.w.toleranceText = vanilla.TextBox("auto", "Tolerance", sizeStyle='small')
+		self.w.tolerance = SteppingEditText("auto", "2", callback=self.SavePreferences, sizeStyle='small', formatter=formatter)
+		self.w.toleranceUnitsText = vanilla.TextBox("auto", "units", sizeStyle='small')
 
-		self.w.updateMetrics = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Update metrics of affected glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.updateMetrics = vanilla.CheckBox("auto", "Update metrics of affected glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
 
-		self.w.allGlyphs = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "⚠️ Apply to ALL glyphs in font (ignore selection)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.allGlyphs = vanilla.CheckBox("auto", "⚠️ Apply to ALL glyphs in font (ignore selection)", value=False, callback=self.SavePreferences, sizeStyle='small')
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Insert", callback=self.AddMetricsKeysforSymmetricGlyphsMain)
+		self.w.runButton = vanilla.Button("auto", "Insert", callback=self.AddMetricsKeysforSymmetricGlyphsMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[toleranceText]-gap-[tolerance(50)]-gap-[toleranceUnitsText]-(>=inset)-|",
+				"H:|-inset-[updateMetrics]-(>=inset)-|",
+				"H:|-inset-[allGlyphs]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[descriptionText]-row-[tolerance]-row-[updateMetrics]-checkRow-[allGlyphs]-inset-[runButton]-inset-|",
+				{"view1": self.w.toleranceText, "attribute1": "centerY", "view2": self.w.tolerance, "attribute2": "centerY"},
+				{"view1": self.w.toleranceUnitsText, "attribute1": "centerY", "view2": self.w.tolerance, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -128,17 +154,17 @@ class AddMetricsKeysforSymmetricGlyphs(mekkaObject):
 
 				self.w.close()  # delete if you want window to stay open
 
-			# Final report:
-			if tabText:
-				thisFont.newTab(tabText)
-			Glyphs.showNotification(
-				"%s: Done" % (thisFont.familyName),
-				"Added RSB=| in %i glyph%s. Details in Macro Window" % (
-					count,
-					"" if count == 0 else "s",
-				),
-			)
-			print("\nDone.")
+				# Final report:
+				if tabText:
+					thisFont.newTab(tabText)
+				Glyphs.showNotification(
+					"%s: Done" % (thisFont.familyName),
+					"Added RSB=| in %i glyph%s. Details in Macro Window" % (
+						count,
+						"" if count == 1 else "s",
+					),
+				)
+				print("\nDone.")
 
 		except Exception as e:
 			# brings macro window to front and reports error:

@@ -4,8 +4,9 @@ Compares open fonts and builds a lits of differing glyph info, including Unicode
 """
 
 import vanilla
-from GlyphsApp import Glyphs
 from mekkablue import mekkaObject, UpdateButton
+from GlyphsApp import Glyphs
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 
 # CONSTANTS:
 
@@ -60,36 +61,50 @@ missingValue = "–"
 
 
 class CompareGlyphInfo(mekkaObject):
+	metrics = {"inset": 8, "gap": 8}
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 400
+		windowWidth = 500
 		windowHeight = 160
-		windowWidthResize = 1000  # user can resize width by this value
-		windowHeightResize = 1000  # user can resize height by this value
+		# resizable, so the user can enlarge the list:
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Compare Glyph Info",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
-		self.linePos, inset, lineHeight = 7, 6, 22
+		self.w.descriptionText = vanilla.TextBox("auto", "Compare between fonts:", sizeStyle='small', selectable=True)
 
-		self.w.descriptionText = vanilla.TextBox((inset, self.linePos + 1, 140, 14), "Compare between fonts:", sizeStyle='small', selectable=True)
-
-		self.w.whatToCompare = vanilla.PopUpButton((inset + 140, self.linePos - 1, -160 - inset - 10, 18), thingsToCompare, sizeStyle='small', callback=self.Reload)
+		self.w.whatToCompare = vanilla.PopUpButton("auto", thingsToCompare, sizeStyle='small', callback=self.Reload)
 		self.w.whatToCompare.setToolTip("Choose which glyph info to compare between all open fonts.")
 
-		self.w.ignoreMissingGlyphs = vanilla.CheckBox((-160 - inset, self.linePos + 1, -inset - 25, 14), "Ignore missing glyphs", value=False, callback=self.Reload, sizeStyle='small')
+		self.w.ignoreMissingGlyphs = vanilla.CheckBox("auto", "Ignore missing glyphs", value=False, callback=self.Reload, sizeStyle='small')
 		self.w.ignoreMissingGlyphs.setToolTip("If activated, will only list glyphs that are present in ALL open fonts.")
 
-		self.w.updateButton = UpdateButton((-inset - 18, self.linePos - 3, -inset - 4, 18), callback=self.Reload)
+		self.w.updateButton = UpdateButton("auto", callback=self.Reload)
 		self.w.updateButton.setToolTip("Reload with currently opened fonts. Useful if you just opened or closed a font, or brought another font forward.")
 
-		self.linePos += lineHeight
+		# the controls above the list hug their content vertically, the list takes the leftover height:
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+		# label and checkbox hug their text, so the popup takes the leftover width:
+		self.w.descriptionText.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.ignoreMissingGlyphs.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-gap-[whatToCompare(>=110)]-gap-[ignoreMissingGlyphs]-gap-[updateButton]-inset-|",
+				"V:|-inset-[whatToCompare]",
+				{"view1": self.w.descriptionText, "attribute1": "centerY", "view2": self.w.whatToCompare, "attribute2": "centerY"},
+				{"view1": self.w.ignoreMissingGlyphs, "attribute1": "centerY", "view2": self.w.whatToCompare, "attribute2": "centerY"},
+				{"view1": self.w.updateButton, "attribute1": "centerY", "view2": self.w.whatToCompare, "attribute2": "centerY"},
+			],
+			metrics=self.metrics,
+		)
+
 		self.Reload()
 
 		# Open window and focus on it:
@@ -250,7 +265,7 @@ class CompareGlyphInfo(mekkaObject):
 				pass
 
 			self.w.List = vanilla.List(
-				(0, self.linePos, -0, -0),
+				"auto",
 				self.listContent(),
 				columnDescriptions=self.getColumnHeaders(),
 				drawVerticalLines=True,
@@ -262,6 +277,16 @@ class CompareGlyphInfo(mekkaObject):
 			)
 
 			self.w.List.getNSTableView().setToolTip_("Double click to open the selected glyphs in all fonts. You can select more than one line.")
+
+			# the list is rebuilt with every reload (its columns depend on the open fonts), so it gets its rules here:
+			self.w.List.getNSScrollView().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationVertical)
+			self.w.addAutoPosSizeRules(
+				[
+					"H:|[List]|",
+					"V:[whatToCompare]-gap-[List(>=80)]|",
+				],
+				metrics=self.metrics,
+			)
 		except Exception as e:
 			print("Reload Error: %s\n" % e)
 			import traceback

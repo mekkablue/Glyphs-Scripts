@@ -4,11 +4,12 @@ Lists some Font Info values for all opened fonts.
 """
 
 import vanilla
-from GlyphsApp import Glyphs
 from mekkablue import mekkaObject
+from GlyphsApp import Glyphs
+from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultLow
 
 keyList = [
-	["Family Name", "familyName", 160], ["Major", "versionMajor", 40], ["Minor", "versionMinor", 40], ["Grid", "gridLength", 40], ["Designer", "designer", 200],
+	["Family Name", "familyName", 160], ["Major", "versionMajor", 40], ["Minor", "versionMinor", 40], ["Grid", "grid", 40], ["Designer", "designer", 200],
 	["Designer URL", "designerURL", 200], ["Manufacturer", "manufacturer", 200], ["Manufacturer URL", "manufacturerURL", 200], ["Copyright", "copyright", 200]
 	# ["UPM", "upm"],
 	# ["Date", "date", 100]
@@ -29,19 +30,17 @@ class FontInfoOverview(mekkaObject):
 		# Window 'self.w':
 		windowWidth = 600
 		windowHeight = 200
-		windowWidthResize = 1200  # user can resize width by this value
-		windowHeightResize = 1200  # user can resize height by this value
+		# the list is the main content, so the window stays resizable (hence minSize):
 		self.w = vanilla.Window(
 			(windowWidth, windowHeight),  # default window size
 			"Font Info Overview",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow"),  # stores last window position and size
 		)
 
 		# List:
 		self.w.List = vanilla.List(
-			(0, 0, -0, -45),
+			"auto",
 			self.listContent(),
 			columnDescriptions=[{
 				"title": kl[0],
@@ -58,12 +57,27 @@ class FontInfoOverview(mekkaObject):
 		)
 
 		# Buttons:
-		self.w.reloadButton = vanilla.Button((-130 - 90 - 15, -35, -130 - 15 * 2, -15), "Reload", callback=self.Reload)
-		self.w.applyButton = vanilla.Button((-130 - 15, -35, -15, -15), "Apply Changes", callback=self.Apply)
+		self.w.reloadButton = vanilla.Button("auto", "Reload", callback=self.Reload)
+		self.w.applyButton = vanilla.Button("auto", "Apply Changes", callback=self.Apply)
 		# self.w.setDefaultButton(self.w.reloadButton)
 
 		# Counter:
-		self.w.changeCounter = vanilla.TextBox((15, -31, -250, 16), "Changes: -", sizeStyle='small')
+		self.w.changeCounter = vanilla.TextBox("auto", "Changes: -", sizeStyle='small')
+
+		# the list takes all the height the user gives the window:
+		self.w.List.getNSScrollView().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|[List]|",
+				"H:|-inset-[changeCounter]-(>=gap)-[reloadButton(>=70)]-gap-[applyButton(>=70)]-inset-|",
+				"V:|[List(>=100)]-inset-[applyButton]-inset-|",
+				"V:[reloadButton]-inset-|",
+				{"view1": self.w.changeCounter, "attribute1": "centerY", "view2": self.w.applyButton, "attribute2": "centerY"},
+			],
+			metrics={"inset": 15, "gap": 8},
+		)
+
 		self.updateCounter()
 
 		# open the window
@@ -91,10 +105,23 @@ class FontInfoOverview(mekkaObject):
 
 	def listContent(self):
 		try:
-			listDictOfOpenFonts = [dict([[kl[1], eval("f." + kl[1])] for kl in keyList] + [["fontObj", f]]) for f in Glyphs.fonts]
+			listDictOfOpenFonts = [dict([[kl[1], getattr(f, kl[1])] for kl in keyList] + [["fontObj", f]]) for f in Glyphs.fonts]
 			return listDictOfOpenFonts
 		except Exception as e:
 			print("listContent Error: %s" % e)
+			return []
+
+	def valueForFont(self, currentFontValue, listValue):
+		# an edited list cell holds a string, an empty one for a deleted entry,
+		# while the font has a number, or None for an unset entry:
+		if isinstance(currentFontValue, (int, float)) and not isinstance(listValue, (int, float)):
+			try:
+				return type(currentFontValue)(listValue)
+			except (TypeError, ValueError):
+				return currentFontValue  # not a number, keep the value of the font
+		if currentFontValue is None and listValue == "":
+			return None
+		return listValue
 
 	def updateCounter(self):
 		try:
@@ -104,8 +131,8 @@ class FontInfoOverview(mekkaObject):
 				thisFont = thisFontInfo["fontObj"]
 				for thisKey in thisFontInfo.keys():
 					if thisKey != "fontObj":
-						currentFontValue = eval("thisFont.%s" % thisKey)
-						listValue = thisFontInfo[thisKey]
+						currentFontValue = getattr(thisFont, thisKey)
+						listValue = self.valueForFont(currentFontValue, thisFontInfo[thisKey])
 						if currentFontValue != listValue:
 							changeCounter += 1
 			self.w.changeCounter.set("Unsaved changes: %i" % changeCounter)
@@ -135,12 +162,11 @@ class FontInfoOverview(mekkaObject):
 					thisFont = thisFontInfo["fontObj"]
 					for thisKey in thisFontInfo.keys():
 						if thisKey != "fontObj":
-							fontPropertyString = "thisFont.%s" % thisKey
-							currentFontValue = eval(fontPropertyString)
-							listValue = thisFontInfo[thisKey]
+							currentFontValue = getattr(thisFont, thisKey)
+							listValue = self.valueForFont(currentFontValue, thisFontInfo[thisKey])
 							if currentFontValue != listValue:
 								print("Setting %s to '%s' in %s." % (thisKey, listValue, thisFont))
-								exec("%s = listValue" % fontPropertyString)
+								setattr(thisFont, thisKey, listValue)
 			self.updateCounter()
 		except Exception as e:
 			print("Apply Error: %s" % e)

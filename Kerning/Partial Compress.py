@@ -4,8 +4,9 @@ Compress kerning, but for certain glyphs only.
 """
 
 import vanilla
-from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, reportFontName
+from GlyphsApp import Glyphs, Message
+from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 
 
 class PartialCompress(mekkaObject):
@@ -19,32 +20,42 @@ class PartialCompress(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 280
-		windowHeight = 130
-		windowWidthResize = 200  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Partial Compress",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Compress kern pairs with glyphs containing:", sizeStyle="small", selectable=True)
-		linePos += lineHeight
+		inset = 15
+		self.w.descriptionText = vanilla.TextBox("auto", "Compress kern pairs with glyphs containing:", sizeStyle="small", selectable=True)
 
-		self.w.searchFor = vanilla.EditText((inset, linePos, -inset, 19), ".dnom", callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
+		self.w.searchFor = vanilla.EditText("auto", ".dnom", callback=self.SavePreferences, sizeStyle="small")
 
-		self.w.allMasters = vanilla.CheckBox((inset + 2, linePos - 1, 125, 20), "⚠️ on ALL masters", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.allFonts = vanilla.CheckBox((inset + 125, linePos - 1, -inset, 20), "⚠️ in ALL fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
+		self.w.allMasters = vanilla.CheckBox("auto", "⚠️ on ALL masters", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allFonts = vanilla.CheckBox("auto", "⚠️ in ALL fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Compress", callback=self.PartialCompressMain)
+		self.w.runButton = vanilla.Button("auto", "Compress", callback=self.PartialCompressMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[searchFor]-inset-|",
+				"H:|-inset-[allMasters]-inset-[allFonts]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[descriptionText]-row-[searchFor]-gap-[allMasters]-inset-[runButton]-inset-|",
+				{"view1": self.w.allFonts, "attribute1": "centerY", "view2": self.w.allMasters, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -96,8 +107,11 @@ class PartialCompress(mekkaObject):
 							lGroup = lID
 						else:
 							L = thisFont.glyphForId_(lID)
+							if L is None:
+								continue  # stale glyph ID
 							lName = L.name
-							lGroup = f"@MMK_L_{L.rightKerningGroup}"
+							# a glyph without a group cannot be compressed:
+							lGroup = f"@MMK_L_{L.rightKerningGroup}" if L.rightKerningGroup else None
 
 						if not lGroup:
 							continue
@@ -110,8 +124,11 @@ class PartialCompress(mekkaObject):
 								rGroup = rID
 							else:
 								R = thisFont.glyphForId_(rID)
+								if R is None:
+									continue  # stale glyph ID
 								rName = R.name
-								rGroup = f"@MMK_R_{R.leftKerningGroup}"
+								# a glyph without a group cannot be compressed:
+								rGroup = f"@MMK_R_{R.leftKerningGroup}" if R.leftKerningGroup else None
 
 							if not rGroup:
 								continue
@@ -127,6 +144,7 @@ class PartialCompress(mekkaObject):
 								value = thisFont.kerning[m.id][lID][rID]
 								removeList.append((m.id, lName, rName))
 								thisFont.setKerningForPair(m.id, lGroup, rGroup, value)
+								break  # one match is enough, do not list the pair twice
 
 				print(f"Compressing {len(removeList)} pairs...")
 				for removeCandidate in removeList:

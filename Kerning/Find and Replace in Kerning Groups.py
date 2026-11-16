@@ -4,8 +4,16 @@ Finds and replaces text in the metrics keys of selected glyphs. Leave the Find s
 """
 
 import vanilla
-from GlyphsApp import Glyphs
 from mekkablue import mekkaObject
+from GlyphsApp import Glyphs, Message
+from AppKit import (
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityRequired,
+	NSLayoutPriorityWindowSizeStayPut,
+	NSTextAlignmentRight,
+)
 
 
 class KerningGroupReplacer(mekkaObject):
@@ -18,64 +26,71 @@ class KerningGroupReplacer(mekkaObject):
 
 	def __init__(self):
 		windowWidth = 335
-		windowHeight = 155
-		windowWidthResize = 1000  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Find and Replace in Kerning Groups",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
-		linePos, inset, lineHeight = 10, 12, 22
+		inset = 12
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "In selected glyphs, replace in group names:", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		self.w.descriptionText = vanilla.TextBox("auto", "In selected glyphs, replace in group names:", sizeStyle='small', selectable=True)
 
-		self.w.text_left = vanilla.TextBox((inset + 60, linePos + 2, -inset - 70, 14), "Left Groups", sizeStyle='small')
-		self.w.text_right = vanilla.TextBox((inset + 180, linePos + 2, -inset, 14), "Right Groups", sizeStyle='small')
-		linePos += lineHeight
+		self.w.text_left = vanilla.TextBox("auto", "Left Groups", sizeStyle='small')
+		self.w.text_right = vanilla.TextBox("auto", "Right Groups", sizeStyle='small')
 
-		self.w.text_Find = vanilla.TextBox((inset, linePos + 3, 55, 20), "Find", sizeStyle='small')
-		self.w.leftSearchFor = vanilla.EditText((inset + 60, linePos, 120 - 5, 20), ".tf", callback=self.SavePreferences, sizeStyle='small', placeholder='(leave these blank ...')
-		self.w.rightSearchFor = vanilla.EditText((inset + 180, linePos, -inset, 20), ".tf", callback=self.SavePreferences, sizeStyle='small', placeholder='... to append)')
-		linePos += lineHeight
+		self.w.text_Find = vanilla.TextBox("auto", "Find", sizeStyle='small')
+		self.w.leftSearchFor = vanilla.EditText("auto", ".tf", callback=self.SavePreferences, sizeStyle='small', placeholder='(leave these blank ...')
+		self.w.rightSearchFor = vanilla.EditText("auto", ".tf", callback=self.SavePreferences, sizeStyle='small', placeholder='... to append)')
 
-		self.w.text_Replace = vanilla.TextBox((inset, linePos + 3, 55, 20), "Replace", sizeStyle='small')
-		self.w.leftReplaceBy = vanilla.EditText((inset + 60, linePos, 120 - 5, 20), "", callback=self.SavePreferences, sizeStyle='small', placeholder='(empty)')
-		self.w.rightReplaceBy = vanilla.EditText((inset + 180, linePos, -inset, 20), "", callback=self.SavePreferences, sizeStyle='small', placeholder='(empty)')
-		linePos += lineHeight
+		self.w.text_Replace = vanilla.TextBox("auto", "Replace", sizeStyle='small')
+		self.w.leftReplaceBy = vanilla.EditText("auto", "", callback=self.SavePreferences, sizeStyle='small', placeholder='(empty)')
+		self.w.rightReplaceBy = vanilla.EditText("auto", "", callback=self.SavePreferences, sizeStyle='small', placeholder='(empty)')
 
-		self.w.runButton = vanilla.Button((-110, -20 - inset, -inset, -inset), "Replace", callback=self.KerningGroupReplaceMain)
+		self.w.runButton = vanilla.Button("auto", "Replace", callback=self.KerningGroupReplaceMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# with everything hugging, the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# labels are right-aligned and hug their text, so the fields take the leftover width:
+		for label in (self.w.text_Find, self.w.text_Replace):
+			nsLabel = label.getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[text_Find]-gap-[leftSearchFor]-gap-[rightSearchFor]-inset-|",
+				"H:|-inset-[text_Replace]-gap-[leftReplaceBy]-gap-[rightReplaceBy]-inset-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[descriptionText]-gap-[text_left]-headGap-[leftSearchFor]-row-[leftReplaceBy]-inset-[runButton]-inset-|",
+				{"view1": self.w.text_right, "attribute1": "centerY", "view2": self.w.text_left, "attribute2": "centerY"},
+				{"view1": self.w.rightSearchFor, "attribute1": "centerY", "view2": self.w.leftSearchFor, "attribute2": "centerY"},
+				{"view1": self.w.rightReplaceBy, "attribute1": "centerY", "view2": self.w.leftReplaceBy, "attribute2": "centerY"},
+				{"view1": self.w.text_Find, "attribute1": "centerY", "view2": self.w.leftSearchFor, "attribute2": "centerY"},
+				{"view1": self.w.text_Replace, "attribute1": "centerY", "view2": self.w.leftReplaceBy, "attribute2": "centerY"},
+				# labels share one width, and so do the two columns:
+				{"view1": self.w.text_Find, "attribute1": "width", "view2": self.w.text_Replace, "attribute2": "width"},
+				{"view1": self.w.rightSearchFor, "attribute1": "width", "view2": self.w.leftSearchFor, "attribute2": "width"},
+				{"view1": self.w.rightReplaceBy, "attribute1": "width", "view2": self.w.leftReplaceBy, "attribute2": "width"},
+				# column headers sit above their columns:
+				{"view1": self.w.text_left, "attribute1": "leading", "view2": self.w.leftSearchFor, "attribute2": "leading"},
+				{"view1": self.w.text_left, "attribute1": "width", "view2": self.w.leftSearchFor, "attribute2": "width"},
+				{"view1": self.w.text_right, "attribute1": "leading", "view2": self.w.rightSearchFor, "attribute2": "leading"},
+				{"view1": self.w.text_right, "attribute1": "width", "view2": self.w.rightSearchFor, "attribute2": "width"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6, "headGap": 4},
+		)
 
 		self.LoadPreferences()
 
-		self.inset = inset
-		self.w.bind("resize", self.stretchBoxes)
-		self.stretchBoxes()
 		self.w.open()
 		self.w.makeKey()
-
-	def stretchBoxes(self, sender=None):
-		windowWidth = self.w.getPosSize()[2]
-		netWindowWidth = windowWidth - 2 * self.inset
-		columnWidth = int((netWindowWidth - 60) / 2) - 3
-		rightColumnX = self.inset + 60 + int((netWindowWidth - 60) / 2) + 6
-
-		x, y, width, height = self.w.leftSearchFor.getPosSize()
-		self.w.leftSearchFor.setPosSize((x, y, columnWidth, height), animate=False)
-		x, y, width, height = self.w.leftReplaceBy.getPosSize()
-		self.w.leftReplaceBy.setPosSize((x, y, columnWidth, height), animate=False)
-
-		x, y, width, height = self.w.text_right.getPosSize()
-		self.w.text_right.setPosSize((rightColumnX, y, columnWidth, height), animate=False)
-		x, y, width, height = self.w.rightSearchFor.getPosSize()
-		self.w.rightSearchFor.setPosSize((rightColumnX, y, columnWidth, height), animate=False)
-		x, y, width, height = self.w.rightReplaceBy.getPosSize()
-		self.w.rightReplaceBy.setPosSize((rightColumnX, y, columnWidth, height), animate=False)
 
 	def replaceGroupName(self, groupName, searchString, replaceString):
 		try:
@@ -122,11 +137,15 @@ class KerningGroupReplacer(mekkaObject):
 
 	def KerningGroupReplaceMain(self, sender):
 		Glyphs.clearLog()
-		Glyphs.font.disableUpdateInterface()
+		Font = Glyphs.font
+		if Font is None:
+			Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+			return
+
+		Font.disableUpdateInterface()
 		try:
 			self.SavePreferences()
 
-			Font = Glyphs.font
 			selectedLayers = Font.selectedLayers
 			currentLayers = [layer for layer in selectedLayers if layer.parent.name is not None]
 
@@ -136,8 +155,8 @@ class KerningGroupReplacer(mekkaObject):
 			RreplaceBy = self.pref("rightReplaceBy")
 
 			for thisLayer in currentLayers:
+				thisGlyph = thisLayer.parent
 				try:
-					thisGlyph = thisLayer.parent
 					self.replaceInGroups(thisGlyph, LsearchFor, LreplaceBy, RsearchFor, RreplaceBy)
 				except Exception as e:
 					print("Error while processing glyph %s:" % thisGlyph.name)
@@ -149,7 +168,7 @@ class KerningGroupReplacer(mekkaObject):
 			raise e
 
 		finally:
-			Glyphs.font.enableUpdateInterface()
+			Font.enableUpdateInterface()
 
 
 KerningGroupReplacer()

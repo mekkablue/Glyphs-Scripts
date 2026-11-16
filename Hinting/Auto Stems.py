@@ -4,9 +4,17 @@ Derive one H and one V stem value for all your masters by measuring certain shap
 """
 
 import vanilla
-from Foundation import NSPoint
-from GlyphsApp import Glyphs, GSMetric, Message
 from mekkablue import mekkaObject, UpdateButton, reportFontName
+from GlyphsApp import Glyphs, GSMetric, Message
+from AppKit import (
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityRequired,
+	NSLayoutPriorityWindowSizeStayPut,
+	NSTextAlignmentRight,
+)
+from Foundation import NSPoint
 
 whichMeasure = (
 	"bounds",
@@ -37,58 +45,87 @@ class AutoStems(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 430
-		windowHeight = 140
+		windowWidth = 460
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Auto Stems",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		inset = 15
 		glyphNames = self.glyphNames()
-		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Measure shapes in the font and derive stem entries", sizeStyle="small", selectable=True)
-		linePos += lineHeight
+		self.w.descriptionText = vanilla.TextBox("auto", "Measure shapes in the font and derive stem entries", sizeStyle="small", selectable=True)
 
-		self.w.vText1 = vanilla.TextBox((inset, linePos + 2, 48, 14), "V Stem", sizeStyle="small", selectable=True)
-		self.w.vMeasure = vanilla.PopUpButton((inset + 48, linePos, 82, 17), whichMeasure, sizeStyle="small", callback=self.SavePreferences)
+		self.w.vText1 = vanilla.TextBox("auto", "V Stem", sizeStyle="small", selectable=True)
+		self.w.vMeasure = vanilla.PopUpButton("auto", whichMeasure, sizeStyle="small", callback=self.SavePreferences)
 		self.w.vMeasure.setToolTip("Bounds: the width of the enclosing rectangle for the selected shape.\n\nDiameter: the distance between the outermost points of the shape when cut horizontally in the center.")
-		self.w.vText2 = vanilla.TextBox((inset + 133, linePos + 2, 17, 14), "of", sizeStyle="small", selectable=True)
-		self.w.vShape = vanilla.PopUpButton((inset + 150, linePos, 110, 17), whichShape, sizeStyle="small", callback=self.SavePreferences)
+		self.w.vText2 = vanilla.TextBox("auto", "of", sizeStyle="small", selectable=True)
+		self.w.vShape = vanilla.PopUpButton("auto", whichShape, sizeStyle="small", callback=self.SavePreferences)
 		self.w.vShape.setToolTip("Which shape in the glyph to measure for the vertical stem.")
-		self.w.vText3 = vanilla.TextBox((inset + 263, linePos + 2, 17, 14), "of", sizeStyle="small", selectable=True)
-		self.w.vStemGlyph = vanilla.ComboBox((inset + 280, linePos - 1, -inset - 25, 19), glyphNames, sizeStyle="small", callback=self.SavePreferences)
+		self.w.vText3 = vanilla.TextBox("auto", "of", sizeStyle="small", selectable=True)
+		self.w.vStemGlyph = vanilla.ComboBox("auto", glyphNames, sizeStyle="small", callback=self.SavePreferences)
 		self.w.vStemGlyph.setToolTip("Pick a glyph to measure for the vertical stem.")
-		self.w.vReset = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
+		self.w.vReset = UpdateButton("auto", callback=self.update)
 		resetToolTip = "Reload the glyph list of the frontmost font."
 		self.w.vReset.setToolTip(resetToolTip)
-		linePos += lineHeight
 
-		self.w.hText1 = vanilla.TextBox((inset, linePos + 2, 48, 14), "H Stem", sizeStyle="small", selectable=True)
-		self.w.hMeasure = vanilla.PopUpButton((inset + 48, linePos, 82, 17), whichMeasure, sizeStyle="small", callback=self.SavePreferences)
+		self.w.hText1 = vanilla.TextBox("auto", "H Stem", sizeStyle="small", selectable=True)
+		self.w.hMeasure = vanilla.PopUpButton("auto", whichMeasure, sizeStyle="small", callback=self.SavePreferences)
 		self.w.hMeasure.setToolTip("Bounds: the height of the enclosing rectangle for the selected shape.\n\nDiameter: the distance between the outermost points of the shape when cut vertically in the center.")
-		self.w.hText2 = vanilla.TextBox((inset + 133, linePos + 2, 17, 14), "of", sizeStyle="small", selectable=True)
-		self.w.hShape = vanilla.PopUpButton((inset + 150, linePos, 110, 17), whichShape, sizeStyle="small", callback=self.SavePreferences)
+		self.w.hText2 = vanilla.TextBox("auto", "of", sizeStyle="small", selectable=True)
+		self.w.hShape = vanilla.PopUpButton("auto", whichShape, sizeStyle="small", callback=self.SavePreferences)
 		self.w.hShape.setToolTip("Which shape in the glyph to measure for the horizontal stem.")
-		self.w.hText3 = vanilla.TextBox((inset + 263, linePos + 2, 17, 14), "of", sizeStyle="small", selectable=True)
-		self.w.hStemGlyph = vanilla.ComboBox((inset + 280, linePos - 1, -inset - 25, 19), glyphNames, sizeStyle="small", callback=self.SavePreferences)
+		self.w.hText3 = vanilla.TextBox("auto", "of", sizeStyle="small", selectable=True)
+		self.w.hStemGlyph = vanilla.ComboBox("auto", glyphNames, sizeStyle="small", callback=self.SavePreferences)
 		self.w.hStemGlyph.setToolTip("Pick a glyph to measure for the horizontal stem.")
-		self.w.hReset = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
+		self.w.hReset = UpdateButton("auto", callback=self.update)
 		self.w.hReset.setToolTip(resetToolTip)
-		linePos += lineHeight
 
-		self.w.overwriteExisting = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "⚠️ Overwrite existing stems", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.overwriteExisting = vanilla.CheckBox("auto", "⚠️ Overwrite existing stems", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.overwriteExisting.setToolTip("If checked, will delete existing stem values before adding its measurements. Be careful.")
-		linePos += lineHeight
 
-		self.w.allFonts = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Process ⚠️ ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allFonts = vanilla.CheckBox("auto", "Process ⚠️ ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.allFonts.setToolTip("If checked, will process all fonts currently opened in Glyphs. Otherwise just the frontmost font.")
-		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Add Stems", callback=self.AutoStemsMain)
+		self.w.runButton = vanilla.Button("auto", "Add Stems", callback=self.AutoStemsMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# labels hug their text, so the combo boxes take the leftover width:
+		for labelName in ("vText1", "hText1", "vText2", "hText2", "vText3", "hText3"):
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+		for label in (self.w.vText1, self.w.hText1):
+			label.getNSTextField().setAlignment_(NSTextAlignmentRight)
+		for popup in (self.w.vMeasure, self.w.hMeasure, self.w.vShape, self.w.hShape):
+			popup.getNSPopUpButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+
+		rules = [
+			"H:|-inset-[descriptionText]-inset-|",
+			"H:|-inset-[vText1]-gap-[vMeasure]-gap-[vText2]-gap-[vShape]-gap-[vText3]-gap-[vStemGlyph(>=100)]-gap-[vReset]-inset-|",
+			"H:|-inset-[hText1]-gap-[hMeasure]-gap-[hText2]-gap-[hShape]-gap-[hText3]-gap-[hStemGlyph(>=100)]-gap-[hReset]-inset-|",
+			"H:|-inset-[overwriteExisting]-(>=inset)-|",
+			"H:|-inset-[allFonts]-(>=gap)-[runButton(>=70)]-inset-|",
+			"V:|-gap-[descriptionText]-row-[vStemGlyph]-row-[hStemGlyph]-row-[overwriteExisting]-row-[runButton]-inset-|",
+			{"view1": self.w.allFonts, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
+			{"view1": self.w.hText1, "attribute1": "width", "view2": self.w.vText1, "attribute2": "width"},
+			{"view1": self.w.hMeasure, "attribute1": "width", "view2": self.w.vMeasure, "attribute2": "width"},
+			{"view1": self.w.hShape, "attribute1": "width", "view2": self.w.vShape, "attribute2": "width"},
+		]
+		# one baseline per row:
+		for direction in "vh":
+			combo = getattr(self.w, f"{direction}StemGlyph")
+			for suffix in ("Text1", "Measure", "Text2", "Shape", "Text3", "Reset"):
+				rules.append({"view1": getattr(self.w, direction + suffix), "attribute1": "centerY", "view2": combo, "attribute2": "centerY"})
+		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "row": 6})
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -177,7 +214,7 @@ class AutoStems(mekkaObject):
 			if allFonts:
 				fonts = Glyphs.fonts
 			else:
-				fonts = (Glyphs.font, )
+				fonts = (Glyphs.font, ) if Glyphs.font else ()
 
 			if not fonts:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
@@ -187,6 +224,13 @@ class AutoStems(mekkaObject):
 				reportName = reportFontName(f)
 				print(f"Auto Stems Report for {reportName}")
 				print()
+
+				# check for the glyphs first, before the stems of the font are touched:
+				missingGlyphNames = [glyphName for glyphName in (vStemGlyph, hStemGlyph) if not f.glyphs[glyphName]]
+				if missingGlyphNames:
+					print(f"❌ Missing in this font, cannot measure: {', '.join(missingGlyphNames)}. Skipping font.\n")
+					Message(title="Auto Stems: Glyph Missing", message=f"Cannot measure stems in {f.familyName}, because the font has no glyph named {' or '.join(missingGlyphNames)}.", OKButton=None)
+					continue
 
 				if overwriteExisting:
 					f.setStems_(())

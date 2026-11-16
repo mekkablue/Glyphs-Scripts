@@ -3,14 +3,29 @@ __doc__ = """
 Finds kinks in interpolation space, reports them in the Macro window and opens a new tab with affected glyphs.
 """
 
-import vanilla
 from math import hypot
-from Foundation import NSPoint
-from GlyphsApp import Glyphs, GSInstance, GSAnnotation, CIRCLE, GSSMOOTH, GSOFFCURVE, Message, subtractPoints
+import objc
+import vanilla
 from mekkablue import mekkaObject, setMacroDivider
+from GlyphsApp import Glyphs, GSInstance, GSAnnotation, CIRCLE, GSSMOOTH, GSOFFCURVE, Message, subtractPoints
+from AppKit import (
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityDefaultLow,
+	NSLayoutPriorityRequired,
+	NSLayoutPriorityWindowSizeStayPut,
+	NSTextAlignmentRight,
+)
+from Foundation import NSNumberFormatter, NSPoint
 
 tempMarker = "###DELETEME###"
 nodeMarker = "⛔️"
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 def distanceBetweenPoints(node1, node2):
@@ -32,6 +47,8 @@ def intersect(pointA, pointB, pointC, pointD):
 	xtop = (x4 - x3) * (x2 * y1 - x1 * y2) - (x2 - x1) * (x4 * y3 - x3 * y4)
 	ytop = (y1 - y2) * (x4 * y3 - x3 * y4) - (y3 - y4) * (x2 * y1 - x1 * y2)
 	divisor = (y4 - y3) * (x2 - x1) - (y2 - y1) * (x4 - x3)
+	if divisor == 0:
+		return None  # parallel lines, or A and B (or C and D) coincide
 
 	x = xtop / divisor
 	y = ytop / divisor
@@ -44,6 +61,8 @@ def orthogonalDistance(pivot, A, B):
 		x, y = subtractPoints(A, B)
 		pivot2 = NSPoint(pivot.x + y, pivot.y - x)
 		intersection = intersect(pivot, pivot2, A, B)
+		if intersection is None:
+			return 0  # previous and next node in the same spot: no line to measure against
 		return distanceBetweenPoints(intersection, pivot)
 	except:
 		import traceback
@@ -78,27 +97,28 @@ class KinkFinder(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 350
-		windowHeight = 265
-		windowWidthResize = 200  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 520
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Kink Finder",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow"),  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 30), "Find glyphs where kinks between triplets appear in interpolation, and the kink exceeds the given threshold size.", sizeStyle='small', selectable=True)
-		linePos += lineHeight * 2
+		inset = 15
+		self.w.descriptionText = vanilla.TextBox("auto", "Find glyphs where kinks between triplets appear in interpolation, and the kink exceeds the given threshold size.", sizeStyle='small', selectable=True)
+		# the description wraps: it takes the width it is given instead of demanding one long line
+		self.w.descriptionText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
-		self.w.text_1 = vanilla.TextBox((inset, linePos, 145, 14), "Acceptable max kink size:", sizeStyle='small')
-		self.w.maxKinkSize = vanilla.EditText((inset + 145, linePos - 3, -inset, 19), "3", sizeStyle='small', callback=self.SavePreferences)
-		self.w.maxKinkSize.setToolTip("Measured in units as the perpendicular distance between middle point and the line between first and third points.")
-		linePos += lineHeight
+		formatter = NSNumberFormatter.alloc().init()
+		formatter.setMinimum_(0)
+		formatter.setMaximumFractionDigits_(2)
+		self.w.text_1 = vanilla.TextBox("auto", "Acceptable max kink size:", sizeStyle='small')
+		self.w.maxKinkSize = SteppingEditText("auto", "3", sizeStyle='small', callback=self.SavePreferences, formatter=formatter)
+		tooltipText = "Measured in units as the perpendicular distance between middle point and the line between first and third points."
+		self.w.text_1.setToolTip(tooltipText)
+		self.w.maxKinkSize.setToolTip(tooltipText)
 
 		self.findKinksWhereOptions = (
 			"between all masters (false positives with 6+ masters)",
@@ -107,38 +127,65 @@ class KinkFinder(mekkaObject):
 			"in all current active and inactive instances",
 			"in masters instead (not in interpolations)",
 		)
-		self.w.findKinksWhereText = vanilla.TextBox((inset, linePos + 2, 60, 14), "Find kinks", sizeStyle='small', selectable=True)
-		self.w.findKinksWhere = vanilla.PopUpButton((inset + 60, linePos, -inset, 17), self.findKinksWhereOptions, sizeStyle='small', callback=self.SavePreferences)
-		linePos += lineHeight
+		self.w.findKinksWhereText = vanilla.TextBox("auto", "Find kinks", sizeStyle='small', selectable=True)
+		self.w.findKinksWhere = vanilla.PopUpButton("auto", self.findKinksWhereOptions, sizeStyle='small', callback=self.SavePreferences)
+		tooltipText = "Where to look for kinks: in interpolations half way between the masters, in the instances of the font, or in the master layers themselves."
+		self.w.findKinksWhereText.setToolTip(tooltipText)
+		self.w.findKinksWhere.setToolTip(tooltipText)
 
-		# self.w.betweenAdjacentMastersOnly.setToolTip("If checked, will look for kinks between masters 0+1, 1+2, 1+3, but NOT between 0+2, 1+3 or 0+3. Makes sense if you have only one axis (e.g. weight) and more than two masters in interpolation order (lightest through boldest).")
-
-		self.w.allGlyphs = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Process all glyphs in font (ignore selection)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allGlyphs = vanilla.CheckBox("auto", "Process all glyphs in font (ignore selection)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.allGlyphs.setToolTip("If unchecked, will only process the current glyph(s).")
-		linePos += lineHeight
 
-		self.w.exportingOnly = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Ignore non-exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.exportingOnly = vanilla.CheckBox("auto", "Ignore non-exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.exportingOnly.setToolTip("If checked, will skip glyphs that do not export. Always skips compounds.")
-		linePos += lineHeight
 
-		self.w.markKinks = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Mark kinky nodes in first layer", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.markKinks = vanilla.CheckBox("auto", "Mark kinky nodes in first layer", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.markKinks.setToolTip("If checked, will mark affected nodes with a warning emoji and the maximum kink distance. Will mark the corresponding node in the first layer if it finds a kink in an instance. Will use an annotation if the node cannot be found (e.g. if the kink happens in a corner component).")
-		linePos += lineHeight
 
-		self.w.reportIncompatibilities = vanilla.CheckBox((inset + 2, linePos - 1, 180, 20), "Also report incompatibilities", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reportIncompatibilities = vanilla.CheckBox("auto", "Also report incompatibilities", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reportIncompatibilities.setToolTip("If checked, will warn about incompatibilities. Usually you want this off, especially when you have bracket layers.")
 
-		self.w.bringMacroWindowToFront = vanilla.CheckBox((inset + 180, linePos - 1, -inset, 20), "Macro Window to front", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.bringMacroWindowToFront = vanilla.CheckBox("auto", "Macro Window to front", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.bringMacroWindowToFront.setToolTip("A detailed report is written to the Macro Window. Activate this check box, and the Macro Window will be brought to the front ever time you run this script.")
-		linePos += lineHeight
 
-		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
+		self.w.progress = vanilla.ProgressBar("auto")
 		self.w.progress.set(0)  # set progress indicator to zero
-		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Open Tab", callback=self.KinkFinderMain)
+		self.w.runButton = vanilla.Button("auto", "Open Tab", callback=self.KinkFinderMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# labels are right-aligned and share the width of the widest one, so the fields line up:
+		for label in (self.w.text_1, self.w.findKinksWhereText):
+			nsLabel = label.getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[text_1]-gap-[maxKinkSize(60)]-(>=inset)-|",
+				"H:|-inset-[findKinksWhereText]-gap-[findKinksWhere]-inset-|",
+				"H:|-inset-[allGlyphs]-(>=inset)-|",
+				"H:|-inset-[exportingOnly]-(>=inset)-|",
+				"H:|-inset-[markKinks]-(>=inset)-|",
+				"H:|-inset-[reportIncompatibilities]-gap-[bringMacroWindowToFront]-(>=inset)-|",
+				"H:|-inset-[progress]-inset-|",
+				"H:|-(>=inset)-[runButton(>=100)]-inset-|",
+				"V:|-gap-[descriptionText(28)]-headlineGap-[maxKinkSize]-row-[findKinksWhere]-headlineGap-[allGlyphs]-checkRow-[exportingOnly]-checkRow-[markKinks]-checkRow-[reportIncompatibilities]-barGap-[progress(16)]-inset-[runButton]-inset-|",
+				{"view1": self.w.text_1, "attribute1": "centerY", "view2": self.w.maxKinkSize, "attribute2": "centerY"},
+				{"view1": self.w.findKinksWhereText, "attribute1": "centerY", "view2": self.w.findKinksWhere, "attribute2": "centerY"},
+				{"view1": self.w.bringMacroWindowToFront, "attribute1": "centerY", "view2": self.w.reportIncompatibilities, "attribute2": "centerY"},
+				{"view1": self.w.findKinksWhereText, "attribute1": "width", "view2": self.w.text_1, "attribute2": "width"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5, "headlineGap": 10, "barGap": 12},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -146,7 +193,6 @@ class KinkFinder(mekkaObject):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
 
 	def updateUI(self, sender=None):
 		# 0: between all masters (false positives with 6+ masters)
@@ -331,6 +377,9 @@ class KinkFinder(mekkaObject):
 
 			# query user settings:
 			thisFont = Glyphs.font
+			if thisFont is None:
+				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+				return
 			maxKink = self.prefFloat("maxKinkSize")
 			kinkyGlyphNames = []
 			kinkyLayers = []
@@ -359,7 +408,7 @@ class KinkFinder(mekkaObject):
 				# update progress bar:
 				self.w.progress.set(int(100 * (float(index) / numOfGlyphs)))
 
-				# skip glyph if not 
+				# skip glyph if not exporting:
 				if not thisGlyph.export and self.pref("exportingOnly"):
 					skippedGlyphNames.append(thisGlyph.name)
 					continue

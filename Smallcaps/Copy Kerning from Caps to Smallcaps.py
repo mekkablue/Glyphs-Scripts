@@ -3,9 +3,19 @@ __doc__ = """
 Looks for cap kerning pairs and reduplicates their kerning for corresponding .sc glyphs, if they are available in the font. Please be careful: Will overwrite existing SC kerning pairs.
 """
 
+import objc
 import vanilla
-from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject
+from GlyphsApp import Glyphs, Message
+from AppKit import (
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityRequired,
+	NSLayoutPriorityWindowSizeStayPut,
+	NSTextAlignmentRight,
+)
+from Foundation import NSNumberFormatter
 
 if Glyphs.versionNumber >= 3:
 	from GlyphsApp import GSUppercase, GSSmallcaps
@@ -113,6 +123,11 @@ def isSmallcap(glyph):
 	return False
 
 
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
+
+
 class CopyKerningFromCapsToSmallcaps(mekkaObject):
 	prefDict = {
 		"smallcapSuffix": ".sc",
@@ -126,52 +141,89 @@ class CopyKerningFromCapsToSmallcaps(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 360
-		windowHeight = 208
+		windowWidth = 370
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Copy Kerning from Caps to Smallcaps",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		tab = 105
-		self.w.smallcapSuffixText = vanilla.TextBox((inset, linePos + 2, 110, 14), "Smallcap suffix", sizeStyle='small')
-		self.w.smallcapSuffix = vanilla.ComboBox((inset + tab, linePos - 1, -inset, 19), smallcapSuffixes, sizeStyle='small', callback=self.SavePreferences)
-		linePos += lineHeight
+		inset = 15
 
-		self.w.namingSchemeText = vanilla.TextBox((inset, linePos + 2, 110, 14), "SC naming scheme", sizeStyle='small')
-		self.w.namingScheme = vanilla.PopUpButton((inset + tab, linePos, -inset, 17), namingSchemeOptions, sizeStyle='small', callback=self.SavePreferences)
-		linePos += lineHeight
+		self.w.smallcapSuffixText = vanilla.TextBox("auto", "Smallcap suffix", sizeStyle='small')
+		self.w.smallcapSuffix = vanilla.ComboBox("auto", smallcapSuffixes, sizeStyle='small', callback=self.SavePreferences)
 
-		self.w.includeAllMasters = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "⚠️ Include all masters (otherwise current master only)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.namingSchemeText = vanilla.TextBox("auto", "SC naming scheme", sizeStyle='small')
+		self.w.namingScheme = vanilla.PopUpButton("auto", namingSchemeOptions, sizeStyle='small', callback=self.SavePreferences)
 
-		# self.w.copyCapCapToCapSC = vanilla.CheckBox((inset + 2, linePos-1, -inset, 20), "Add cap-to-cap → cap-to-smallcap", value=True, callback=self.SavePreferences, sizeStyle='small')
-		# linePos += lineHeight
+		self.w.includeAllMasters = vanilla.CheckBox("auto", "⚠️ Include all masters (otherwise current master only)", value=False, callback=self.SavePreferences, sizeStyle='small')
 
-		self.w.includeNonLetters = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include smallcap non-letters (otherwise only from caps)", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeNonLetters = vanilla.CheckBox("auto", "Include smallcap non-letters (otherwise only from caps)", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeNonLetters.setToolTip("Includes smallcap figures, punctuation, etc. E.g. copies kerning for parenright if there is  parenright.sc.")
-		linePos += lineHeight
 
-		self.w.figureSuffixText = vanilla.TextBox((inset, linePos + 2, 90, 14), "Figure suffix", sizeStyle='small')
-		self.w.figureSuffix = vanilla.EditText((inset + tab, linePos, -inset, 19), ".lf", callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.figureSuffixText = vanilla.TextBox("auto", "Figure suffix", sizeStyle='small')
+		self.w.figureSuffix = vanilla.EditText("auto", ".lf", callback=self.SavePreferences, sizeStyle='small')
 
-		self.w.factorText = vanilla.TextBox((inset, linePos + 2, 90, 14), "Kerning factor", sizeStyle='small')
-		self.w.factor = vanilla.EditText((inset + tab, linePos, -inset, 19), "1.0", callback=self.SavePreferences, sizeStyle='small')
-		self.w.factor.setToolTip("Multiplier applied to the source (caps) kerning value before copying it to the smallcap pair. Defaults to 1.0 (= copy as-is). Use e.g. 0.8 to scale down, or 1.2 to scale up.")
-		linePos += lineHeight
+		factorFormatter = NSNumberFormatter.alloc().init()
+		factorFormatter.setMaximumFractionDigits_(3)
+		self.w.factorText = vanilla.TextBox("auto", "Kerning factor", sizeStyle='small')
+		self.w.factor = SteppingEditText("auto", "1.0", callback=self.SavePreferences, sizeStyle='small', formatter=factorFormatter)
+		tooltipText = "Multiplier applied to the source (caps) kerning value before copying it to the smallcap pair. Defaults to 1.0 (= copy as-is). Use e.g. 0.8 to scale down, or 1.2 to scale up."
+		self.w.factorText.setToolTip(tooltipText)
+		self.w.factor.setToolTip(tooltipText)
 
-		self.w.roundByText = vanilla.TextBox((inset, linePos + 2, 90, 14), "Round by", sizeStyle='small')
-		self.w.roundBy = vanilla.EditText((inset + tab, linePos, -inset, 19), "5", callback=self.SavePreferences, sizeStyle='small')
-		self.w.roundBy.setToolTip("Rounds the resulting kerning value to the nearest multiple of this number. Defaults to 5. Use 1 for no rounding, 10 for coarser snapping, etc.")
-		linePos += lineHeight
+		roundByFormatter = NSNumberFormatter.alloc().init()
+		roundByFormatter.setMaximumFractionDigits_(3)
+		roundByFormatter.setMinimum_(0)
+		self.w.roundByText = vanilla.TextBox("auto", "Round by", sizeStyle='small')
+		self.w.roundBy = SteppingEditText("auto", "5", callback=self.SavePreferences, sizeStyle='small', formatter=roundByFormatter)
+		tooltipText = "Rounds the resulting kerning value to the nearest multiple of this number. Defaults to 5. Use 1 for no rounding, 10 for coarser snapping, etc."
+		self.w.roundByText.setToolTip(tooltipText)
+		self.w.roundBy.setToolTip(tooltipText)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Copy", callback=self.CopyKerningFromCapsToSmallcapsMain)
+		self.w.runButton = vanilla.Button("auto", "Copy", callback=self.CopyKerningFromCapsToSmallcapsMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# labels are right-aligned and share the width of the widest one, so the fields line up:
+		labelNames = ("smallcapSuffixText", "namingSchemeText", "figureSuffixText", "factorText", "roundByText")
+		widestLabel = "namingSchemeText"
+		for labelName in labelNames:
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+		widthRules = [
+			{"view1": getattr(self.w, labelName), "attribute1": "width", "view2": getattr(self.w, widestLabel), "attribute2": "width"}
+			for labelName in labelNames if labelName != widestLabel
+		]
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[smallcapSuffixText]-gap-[smallcapSuffix]-inset-|",
+				"H:|-inset-[namingSchemeText]-gap-[namingScheme]-inset-|",
+				"H:|-inset-[includeAllMasters]-(>=inset)-|",
+				"H:|-inset-[includeNonLetters]-(>=inset)-|",
+				"H:|-inset-[figureSuffixText]-gap-[figureSuffix]-inset-|",
+				"H:|-inset-[factorText]-gap-[factor(60)]-(>=inset)-|",
+				"H:|-inset-[roundByText]-gap-[roundBy(60)]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-inset-[smallcapSuffix]-row-[namingScheme]-row-[includeAllMasters]-checkRow-[includeNonLetters]-row-[figureSuffix]-row-[factor]-row-[roundBy]-inset-[runButton]-inset-|",
+				{"view1": self.w.smallcapSuffixText, "attribute1": "centerY", "view2": self.w.smallcapSuffix, "attribute2": "centerY"},
+				{"view1": self.w.namingSchemeText, "attribute1": "centerY", "view2": self.w.namingScheme, "attribute2": "centerY"},
+				{"view1": self.w.figureSuffixText, "attribute1": "centerY", "view2": self.w.figureSuffix, "attribute2": "centerY"},
+				{"view1": self.w.factorText, "attribute1": "centerY", "view2": self.w.factor, "attribute2": "centerY"},
+				{"view1": self.w.roundByText, "attribute1": "centerY", "view2": self.w.roundBy, "attribute2": "centerY"},
+			] + widthRules,
+			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -372,12 +424,12 @@ class CopyKerningFromCapsToSmallcaps(mekkaObject):
 
 				self.w.close()  # delete if you want window to stay open
 
-			# Final report:
-			Glyphs.showNotification(
-				"%s: Done" % (thisFont.familyName),
-				"Copy Kerning from Caps to Smallcaps is finished. Details in Macro Window",
-			)
-			print("\nDone.")
+				# Final report:
+				Glyphs.showNotification(
+					"%s: Done" % (thisFont.familyName),
+					"Copy Kerning from Caps to Smallcaps is finished. Details in Macro Window",
+				)
+				print("\nDone.")
 
 		except Exception as e:
 			# brings macro window to front and reports error:

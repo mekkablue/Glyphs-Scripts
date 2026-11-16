@@ -3,18 +3,26 @@ __doc__ = """
 Extracts, resets and inserts an ‘avar’ axis mapping for the Axis Mappings parameter.
 """
 
+from collections import OrderedDict
+
+import objc
 import vanilla
 from axisMethods import extremeMasterValuesNative, coefficient, valueForCoefficient, masterValueForAxisTag, extremeStyleValuesNative, styleValueForAxisTag
-from Foundation import NSMutableDictionary
-from collections import OrderedDict
-from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, getLegibleFont, UpdateButton
+from GlyphsApp import Glyphs, Message
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
+from Foundation import NSMutableDictionary, NSNumberFormatter
 
 fallbackText = """
 Only lines containing a dash "-" followed by a greater sign ">" are interpreted
 Write comments freely, anything after a hashtag "#" will always be ignored
 # SYNTAX: slider value the user *sees* -> slider value the user *gets*
 """
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 def addAxisMappingGlyphsFontLevel(thisFont, minValue, maxValue, mappingRecipe, axisTag):
@@ -44,10 +52,10 @@ def addAxisMappingGlyphsFontLevel(thisFont, minValue, maxValue, mappingRecipe, a
 	mappings = thisFont.customParameters[parameterName]
 	if not mappings:
 		print("🙌 Adding new %s parameter" % parameterName)
-		mappings = NSMutableDictionary.alloc().initWithObject_forKey_(axisMapping, "wght")
-		mappings.addObject_forKey_(axisMapping, axisTag)
+		mappings = NSMutableDictionary.alloc().initWithObject_forKey_(axisMapping, axisTag)
 	else:
 		print("🧩 Inserting %s mapping into existing %s parameter" % (axisTag, parameterName))
+		mappings = NSMutableDictionary.dictionaryWithDictionary_(mappings)  # the stored parameter may be immutable
 		mappings.setObject_forKey_(axisMapping, axisTag)
 	thisFont.customParameters[parameterName] = mappings
 	return len(axisMapping.allKeys())
@@ -56,8 +64,11 @@ def addAxisMappingGlyphsFontLevel(thisFont, minValue, maxValue, mappingRecipe, a
 def addAxisMappingGlyphsInstanceLevel(thisFont, minValue, maxValue, mappingRecipe, axisTag):
 
 	tagToNameDict = OrderedDict([(axis.axisTag, axis.name) for axis in thisFont.axes])
-	axisName = tagToNameDict["wght"]
-	axisIndex = list(tagToNameDict.keys()).index("wght")
+	if axisTag not in tagToNameDict:
+		print("❌ No axis with the tag ‘%s’ in this font." % axisTag)
+		return 0
+	axisName = tagToNameDict[axisTag]
+	axisIndex = list(tagToNameDict.keys()).index(axisTag)
 
 	entriesCount = 0
 
@@ -86,15 +97,20 @@ def addAxisMappingGlyphsInstanceLevel(thisFont, minValue, maxValue, mappingRecip
 					axisLocation = thisInstance.customParameters['Axis Location']
 
 					# making sure that we have python types
-					existingMappingValues = []
+					newAxisLocation = []
+					axisIsListed = False
 					for entry in axisLocation:
 						thisAxisName = entry['Axis']
 						thisAxisLocation = entry['Location']
 						if thisAxisName == axisName:
 							thisAxisLocation = nativeTargetValue
-						entry = dict(Axis=thisAxisName, Location=thisAxisLocation)
-						print("🧩 Inserting %s mapping into existing 'Axis Location' parameter of '%s' instance" % (thisAxisName, thisInstance.name))
-						entriesCount += 1
+							axisIsListed = True
+						newAxisLocation.append(dict(Axis=thisAxisName, Location=thisAxisLocation))
+					if not axisIsListed:
+						newAxisLocation.append(dict(Axis=axisName, Location=nativeTargetValue))
+					thisInstance.customParameters['Axis Location'] = newAxisLocation
+					print("🧩 Inserting %s mapping into existing 'Axis Location' parameter of '%s' instance" % (axisName, thisInstance.name))
+					entriesCount += 1
 				else:
 					thisInstance.customParameters['Axis Location'] = [dict(Axis=axisName, Location=nativeTargetValue)]
 					print("🙌 Adding new 'Axis Location' parameter to an '%s' instance" % (thisInstance.name))
@@ -114,50 +130,48 @@ class AxisMapper(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 380
-		windowHeight = 160
+		windowWidth = 550
+		windowHeight = 260
 		windowWidthResize = 500  # user can resize width by this value
-		windowHeightResize = 600  # user can resize height by this value
+		windowHeightResize = 800  # user can resize height by this value
+		# the window stays resizable, so the user can enlarge the recipe editor:
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Axis Mapper",  # window title
-			minSize=(windowWidth, windowHeight + 19),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize + 19),  # maximum size (for resizing)
+			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
+			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 4, 15, 21
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Axis Mapping from user-visible (not native) values", sizeStyle='small')
-		linePos += lineHeight
+		self.w.descriptionText = vanilla.TextBox("auto", "Axis Mapping from user-visible (not native) values", sizeStyle='small')
 
-		self.w.axisPicker = vanilla.ComboBox((inset, linePos - 1, 60, 20), self.AxisListForFrontmostFont(), callback=self.SavePreferences, sizeStyle='small')
+		self.w.axisPicker = vanilla.ComboBox("auto", self.AxisListForFrontmostFont(), callback=self.SavePreferences, sizeStyle='small')
 		self.w.axisPicker.setToolTip("Pick or type the 4-letter tag of the axis for which you want to edit the mapping.")
-		self.w.axisReset = UpdateButton((inset + 63, linePos - 1, 20, 18), callback=self.resetAxisList)
+		self.w.axisReset = UpdateButton("auto", callback=self.resetAxisList)
 		self.w.axisReset.setToolTip("Will populate the axis picker with the tags for all axes in the frontmost font.")
 
-		self.w.minText = vanilla.TextBox((inset + 88, linePos + 3, 55, 14), "Axis Min", sizeStyle='small')
-		self.w.minValue = vanilla.EditText((inset + 88 + 50, linePos, 40, 19), self.MinimumForCurrentAxis(), callback=self.SavePreferences, sizeStyle='small')
+		self.w.minText = vanilla.TextBox("auto", "Axis Min", sizeStyle='small')
+		self.w.minValue = SteppingEditText("auto", self.MinimumForCurrentAxis(), callback=self.SavePreferences, sizeStyle='small', formatter=NSNumberFormatter.alloc().init())
 		tooltipText = "User-visible slider minimum, typically set with an Axis Location parameter. Not (necessarily) the native master value."
 		self.w.minText.setToolTip(tooltipText)
 		self.w.minValue.setToolTip(tooltipText)
-		self.w.minValueReset = UpdateButton((inset + 88 + 50 + 40, linePos - 1, 20, 18), callback=self.resetMinimum)
+		self.w.minValueReset = UpdateButton("auto", callback=self.resetMinimum)
 		self.w.minValueReset.setToolTip("Will attempt to guess the user-visible slider minimum of the frontmost font.")
 
-		self.w.maxText = vanilla.TextBox((inset + 202, linePos + 3, 55, 14), "Axis Max", sizeStyle='small')
-		self.w.maxValue = vanilla.EditText((inset + 202 + 52, linePos, 40, 19), self.MaximumForCurrentAxis(), callback=self.SavePreferences, sizeStyle='small')
+		self.w.maxText = vanilla.TextBox("auto", "Axis Max", sizeStyle='small')
+		self.w.maxValue = SteppingEditText("auto", self.MaximumForCurrentAxis(), callback=self.SavePreferences, sizeStyle='small', formatter=NSNumberFormatter.alloc().init())
 		tooltipText = "User-visible slider maximum, typically set with an Axis Location parameter. Not (necessarily) the native master value."
 		self.w.maxText.setToolTip(tooltipText)
 		self.w.maxValue.setToolTip(tooltipText)
-		self.w.maxValueReset = UpdateButton((inset + 202 + 52 + 40, linePos - 1, 20, 18), callback=self.resetMaximum)
+		self.w.maxValueReset = UpdateButton("auto", callback=self.resetMaximum)
 		self.w.maxValueReset.setToolTip("Will attempt to guess the user-visible slider maximum of the frontmost font.")
-		self.w.mappingLevel = vanilla.PopUpButton((inset + 202 + 52 + 40 + 25, linePos, 120, 18), ['instance level', 'font level'], sizeStyle='small')
+		self.w.mappingLevel = vanilla.PopUpButton("auto", ['instance level', 'font level'], sizeStyle='small')
 		self.w.mappingLevel.setToolTip("Choose level in which the custom parameter for axis mapping will be added.")
-		# self.w.mappingLevel.set(value)
-		linePos += lineHeight + 2
 
-		self.w.mappingRecipe = vanilla.TextEditor((0, linePos, -0, - inset * 3), text=fallbackText.strip(), callback=self.SavePreferences, checksSpelling=False)
+		self.w.mappingRecipe = vanilla.TextEditor("auto", text=fallbackText.strip(), callback=self.SavePreferences, checksSpelling=False)
 
 		legibleFont = getLegibleFont()
 
@@ -165,15 +179,47 @@ class AxisMapper(mekkaObject):
 		textView.setFont_(legibleFont)
 
 		# Buttons:
-		self.w.recipeButton = vanilla.Button((inset, -20 - inset, 120, -inset), "Reset Recipe", callback=self.ResetRecipe)
+		self.w.recipeButton = vanilla.Button("auto", "Reset Recipe", callback=self.ResetRecipe)
 		self.w.recipeButton.setToolTip("Construct a fallback axis mapping recipe for axis and the min/max values above, based on the existing active instances. Can be a good start for creating new mappings. Respects the weightClass settings for the 'wght' axis.")
 
-		self.w.extractButton = vanilla.Button((inset + 130, -20 - inset, 120, -inset), "Extract Recipe", callback=self.ExtractAxisMapping)
+		self.w.extractButton = vanilla.Button("auto", "Extract Recipe", callback=self.ExtractAxisMapping)
 		self.w.extractButton.setToolTip("Extract the axis mapping recipe for the chosen axis from an existing Axis Mappings parameter, and into the min/max values specified above. Will do nothing if it fails. Great for editing existing mappings.")
 
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Map", callback=self.AxisMapperMain)
+		self.w.runButton = vanilla.Button("auto", "Map", callback=self.AxisMapperMain)
 		self.w.runButton.setToolTip("Write the current mapping recipe into an Axis Mappings parameter for the frontmost font.")
 		self.w.setDefaultButton(self.w.runButton)
+
+		# everything but the recipe editor hugs vertically, so the editor takes all the leftover height:
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+		self.w.mappingRecipe.getNSScrollView().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationVertical)
+
+		# the labels hug their text, the popup takes the leftover width:
+		for label in (self.w.minText, self.w.maxText):
+			nsLabel = label.getNSTextField()
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		topRowViews = (
+			self.w.axisReset, self.w.minText, self.w.minValue, self.w.minValueReset,
+			self.w.maxText, self.w.maxValue, self.w.maxValueReset, self.w.mappingLevel,
+		)
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[axisPicker(70)]-4-[axisReset]-sectionGap-[minText]-gap-[minValue(50)]-4-[minValueReset]-sectionGap-[maxText]-gap-[maxValue(50)]-4-[maxValueReset]-sectionGap-[mappingLevel(>=110)]-inset-|",
+				"H:|[mappingRecipe]|",
+				"H:|-inset-[recipeButton(>=70)]-gap-[extractButton(>=70)]-(>=gap)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[descriptionText]-gap-[axisPicker]-gap-[mappingRecipe(>=120)]-inset-[runButton]-inset-|",
+				"V:[recipeButton]-inset-|",
+				"V:[extractButton]-inset-|",
+			] + [
+				# one baseline for the top row:
+				{"view1": view, "attribute1": "centerY", "view2": self.w.axisPicker, "attribute2": "centerY"}
+				for view in topRowViews
+			],
+			metrics={"inset": inset, "gap": 8, "sectionGap": 14},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -258,7 +304,8 @@ class AxisMapper(mekkaObject):
 			nativeMasterMin, nativeMasterMax = extremeMasterValuesNative(font, axisTag=axisTag)
 			nativeStyleMin, nativeStyleMax = extremeStyleValuesNative(font, axisTag=axisTag)
 
-			userMasterMin, userMasterMax = float(self.w.minValue.get()), float(self.w.maxValue.get())
+			self.SavePreferences()
+			userMasterMin, userMasterMax = self.prefFloat("minValue"), self.prefFloat("maxValue")
 
 			mappingDict = {
 				userMasterMin: "%i -> %i  # Min" % (userMasterMin, userMasterMin),
@@ -285,12 +332,13 @@ class AxisMapper(mekkaObject):
 				text += line
 				text += "\n"
 
-		text += "\n"
-		text += "\nBased on "
-		if font.filepath:
-			text += "%s\n" % font.filepath.lastPathComponent()
-		else:
-			text += "%s (unsaved file)\n" % font.familyName
+		if font:
+			text += "\n"
+			text += "\nBased on "
+			if font.filepath:
+				text += "%s\n" % font.filepath.lastPathComponent()
+			else:
+				text += "%s (unsaved)\n" % font.familyName
 		text += fallbackText
 		self.w.mappingRecipe.set(text.strip())
 
@@ -327,7 +375,7 @@ class AxisMapper(mekkaObject):
 				if thisFont.filepath:
 					text += "%s\n" % thisFont.filepath.lastPathComponent()
 				else:
-					text += "%s (unsaved file)\n" % thisFont.familyName
+					text += "%s (unsaved)\n" % thisFont.familyName
 				text += "Range translated: %i-%i → %i-%i:\n" % (minValueNative, maxValueNative, minValue, maxValue)
 				text += fallbackText
 				self.setPref("mappingRecipe", text.strip())
@@ -365,12 +413,12 @@ class AxisMapper(mekkaObject):
 				else:
 					entriesNumber = addAxisMappingGlyphsFontLevel(thisFont, minValue, maxValue, mappingRecipe, axisTag)
 
-			# Final report:
-			Glyphs.showNotification(
-				"‘%s’ mapping for %s" % (axisTag, thisFont.familyName),
-				"Inserted ‘%s’ mapping with %i entries. Details in Macro Window" % (axisTag, entriesNumber),
-			)
-			print("\nDone.")
+				# Final report:
+				Glyphs.showNotification(
+					"‘%s’ mapping for %s" % (axisTag, thisFont.familyName),
+					"Inserted ‘%s’ mapping with %i entries. Details in Macro Window" % (axisTag, entriesNumber),
+				)
+				print("\nDone.")
 
 		except Exception as e:
 			# brings macro window to front and reports error:

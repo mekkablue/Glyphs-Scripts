@@ -3,44 +3,64 @@ __doc__ = """
 Increase sidebearings of selected glyphs by a percentage value.
 """
 
+import objc
 import vanilla
-from GlyphsApp import Glyphs
 from mekkablue import mekkaObject
+from GlyphsApp import Glyphs, Message
+from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
+from Foundation import NSNumberFormatter
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 class ChangeMetricsbyPercentage(mekkaObject):
 	prefDict = {
 		"LSB": True,
 		"RSB": True,
-		"changeValue": "+10.0",
+		"changeValue": 10,
 	}
 
 	def __init__(self):
-		windowWidth = 390
-		windowHeight = 42
+		windowWidth = 450
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Change Metrics of Selected Glyphs by Percentage",
-			autosaveName=self.domain("mainwindow")
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
-		linePos, inset = 12, 15
-		xPos = inset
-		self.w.text_1 = vanilla.TextBox((xPos, linePos + 2, 50, 14), "Increase", sizeStyle='small')
-		xPos += 55
-		self.w.LSB = vanilla.CheckBox((xPos, linePos, 40, 18), "LSB", value=True, sizeStyle='small', callback=self.SavePreferences)
-		xPos += 44
-		self.w.RSB = vanilla.CheckBox((xPos, linePos, 50, 18), "RSB by", value=True, sizeStyle='small', callback=self.SavePreferences)
-		xPos += 57
-		self.w.changeValue = vanilla.EditText((xPos, linePos - 1, 55, 20), "+10.0", sizeStyle='small')
-		xPos += 56
-		self.w.text_3 = vanilla.TextBox((xPos, linePos + 2, 17, 14), "%", sizeStyle='small')
-		xPos += 20
-		self.w.revertButton = vanilla.Button((xPos, linePos, 60, 19), "⟲ Revert", sizeStyle='small', callback=self.ChangeMetricsbyPercentageMain)
-		xPos += 66
-		self.w.runButton = vanilla.Button((xPos, linePos, 60, 19), "Change", sizeStyle='small', callback=self.ChangeMetricsbyPercentageMain)
+		inset = 15
+		formatter = NSNumberFormatter.alloc().init()
+		formatter.setMaximumFractionDigits_(2)
+		self.w.text_1 = vanilla.TextBox("auto", "Increase", sizeStyle='small')
+		self.w.LSB = vanilla.CheckBox("auto", "LSB", value=True, sizeStyle='small', callback=self.SavePreferences)
+		self.w.RSB = vanilla.CheckBox("auto", "RSB by", value=True, sizeStyle='small', callback=self.SavePreferences)
+		self.w.changeValue = SteppingEditText("auto", "10", sizeStyle='small', callback=self.SavePreferences, formatter=formatter)
+		self.w.text_3 = vanilla.TextBox("auto", "%", sizeStyle='small')
+		self.w.revertButton = vanilla.Button("auto", "⟲ Revert", sizeStyle='small', callback=self.ChangeMetricsbyPercentageMain)
+		self.w.runButton = vanilla.Button("auto", "Change", sizeStyle='small', callback=self.ChangeMetricsbyPercentageMain)
 
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		rowViews = (self.w.text_1, self.w.LSB, self.w.RSB, self.w.text_3, self.w.revertButton, self.w.runButton)
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[text_1]-gap-[LSB]-gap-[RSB]-gap-[changeValue(55)]-3-[text_3]-(>=gap)-[revertButton(>=60)]-gap-[runButton(>=60)]-inset-|",
+				"V:|-inset-[changeValue]-inset-|",
+			] + [
+				{"view1": view, "attribute1": "centerY", "view2": self.w.changeValue, "attribute2": "centerY"}
+				for view in rowViews
+			],
+			metrics={"inset": inset, "gap": 8},
+		)
 
 		self.LoadPreferences()
 
@@ -58,13 +78,22 @@ class ChangeMetricsbyPercentage(mekkaObject):
 	def ChangeMetricsbyPercentageMain(self, sender):
 		try:
 			Font = Glyphs.font
+			if Font is None:
+				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+				return
 			selectedLayers = Font.selectedLayers
+
+			# update settings to the latest user input:
+			self.SavePreferences()
 
 			changeLSB = self.w.LSB.get()
 			changeRSB = self.w.RSB.get()
-			change = (100.0 + float(self.w.changeValue.get())) / 100.0
+			change = (100.0 + self.prefFloat("changeValue")) / 100.0
 
 			if sender == self.w.revertButton:
+				if change == 0:
+					Message(title="Cannot Revert", message="A change of −100% sets the sidebearings to zero and cannot be reverted.", OKButton=None)
+					return
 				change = 1.0 / change
 
 			for thisLayer in selectedLayers:
@@ -79,7 +108,10 @@ class ChangeMetricsbyPercentage(mekkaObject):
 
 						# counteract movement in glyphs that reference this glyph as a component:
 						for g in self.findGlyphsThatReferenceGlyphAsComponent(thisLayer.parent):
-							for c in g.layers[layer_id].components:
+							referencingLayer = g.layers[layer_id]
+							if referencingLayer is None:
+								continue  # e.g. a special layer that only exists in the selected glyph
+							for c in referencingLayer.components:
 								if c.componentName == thisLayer.parent.name:
 
 									# if component is rotated or mirrored, we need to reverse the LSB change
@@ -94,13 +126,11 @@ class ChangeMetricsbyPercentage(mekkaObject):
 					if changeRSB:
 						thisLayer.RSB *= change
 
-			self.SavePreferences()
-
 			# self.w.close()
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print(" Error: %s" % e)
+			print("Change Metrics by Percentage Error: %s" % e)
 
 
 ChangeMetricsbyPercentage()

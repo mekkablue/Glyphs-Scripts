@@ -4,8 +4,14 @@ Manage the sidebearings and widths of bracket layers.
 """
 
 import vanilla
-from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject
+from GlyphsApp import Glyphs, Message
+from AppKit import (
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultLow,
+	NSLayoutPriorityWindowSizeStayPut,
+)
 
 
 class BracketMetricsManager(mekkaObject):
@@ -21,36 +27,53 @@ class BracketMetricsManager(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 330
-		windowHeight = 180
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Bracket Metrics Manager",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 30), u"In selected glyphs, syncs metrics of bracket layers with their associated layer, e.g. ‘Bold [90]’ with ‘Bold’.", sizeStyle='small', selectable=True)
-		linePos += lineHeight * 2
+		self.w.descriptionText = vanilla.TextBox("auto", "In selected glyphs, syncs metrics of bracket layers with their associated layer, e.g. ‘Bold [90]’ with ‘Bold’.", sizeStyle='small', selectable=True)
+		# the description wraps: it takes the width it is given instead of demanding one long line
+		self.w.descriptionText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
-		self.w.syncLSB = vanilla.CheckBox((inset + 2, linePos - 1, 85, 20), "Sync LSB", value=False, callback=self.syncAction, sizeStyle='small')
-		self.w.syncRSB = vanilla.CheckBox((inset + 85, linePos - 1, 85, 20), "Sync RSB", value=False, callback=self.syncAction, sizeStyle='small')
-		self.w.syncWidth = vanilla.CheckBox((inset + 85 * 2, linePos - 1, -inset, 20), "Sync Width", value=False, callback=self.syncAction, sizeStyle='small')
-		linePos += lineHeight
+		self.w.syncLSB = vanilla.CheckBox("auto", "Sync LSB", value=False, callback=self.syncAction, sizeStyle='small')
+		self.w.syncRSB = vanilla.CheckBox("auto", "Sync RSB", value=False, callback=self.syncAction, sizeStyle='small')
+		self.w.syncWidth = vanilla.CheckBox("auto", "Sync Width", value=False, callback=self.syncAction, sizeStyle='small')
 
-		self.w.applyToAllGlyphsWithBrackets = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Apply to all glyphs in font that have bracket layers", value=False, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.applyToAllGlyphsWithBrackets = vanilla.CheckBox("auto", "Apply to all glyphs in font that have bracket layers", value=False, callback=self.SavePreferences, sizeStyle='small')
 
-		self.w.reportOnly = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Only report, do not change metrics", value=False, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.reportOnly = vanilla.CheckBox("auto", "Only report, do not change metrics", value=False, callback=self.SavePreferences, sizeStyle='small')
 
-		self.w.openTab = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Open tab with affected bracket glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.openTab = vanilla.CheckBox("auto", "Open tab with affected bracket glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Sync", callback=self.BracketMetricsManagerMain)
+		self.w.runButton = vanilla.Button("auto", "Sync", callback=self.BracketMetricsManagerMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[syncLSB]-gap-[syncRSB]-gap-[syncWidth]-(>=inset)-|",
+				"H:|-inset-[applyToAllGlyphsWithBrackets]-(>=inset)-|",
+				"H:|-inset-[reportOnly]-(>=inset)-|",
+				"H:|-inset-[openTab]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=80)]-inset-|",
+				"V:|-gap-[descriptionText(28)]-gap-[syncLSB]-checkRow-[applyToAllGlyphsWithBrackets]-checkRow-[reportOnly]-checkRow-[openTab]-inset-[runButton]-inset-|",
+				{"view1": self.w.syncRSB, "attribute1": "centerY", "view2": self.w.syncLSB, "attribute2": "centerY"},
+				{"view1": self.w.syncWidth, "attribute1": "centerY", "view2": self.w.syncLSB, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "checkRow": 5},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -150,7 +173,7 @@ class BracketMetricsManager(mekkaObject):
 				# Clear macro window log:
 				Glyphs.clearLog()
 				print("Bracket Metrics for: %s" % thisFont.familyName)
-				print("Path: %s" % thisFont.filepath)
+				print("Path: %s" % (thisFont.filepath or "%s (unsaved)" % thisFont.familyName))
 				print()
 
 				if self.pref("applyToAllGlyphsWithBrackets"):

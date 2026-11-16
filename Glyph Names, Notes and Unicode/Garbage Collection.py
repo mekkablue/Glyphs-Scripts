@@ -4,8 +4,17 @@ Removes annotations, glyph notes, guides, and node names.
 """
 
 import vanilla
-from GlyphsApp import Glyphs
 from mekkablue import mekkaObject, UpdateButton, clearGuides, guidesOf
+from GlyphsApp import Glyphs
+from AppKit import (
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityDefaultLow,
+	NSLayoutPriorityRequired,
+	NSLayoutPriorityWindowSizeStayPut,
+	NSTextAlignmentRight,
+)
 
 
 def extractUserDataKeys(obj):
@@ -51,110 +60,145 @@ class GarbageCollection(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 330
-		windowHeight = 410
+		windowWidth = 340
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Garbage Collection",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 10, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, lineHeight * 1.8), "Clean frontmost font", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		inset = 15
+		self.w.descriptionText = vanilla.TextBox("auto", "Clean frontmost font", sizeStyle='small', selectable=True)
 
-		self.w.removeNodeNames = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Remove all node names 🔥❌👌🏻⛔️🧨 in font", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.removeNodeNames = vanilla.CheckBox("auto", "Remove all node names 🔥❌👌🏻⛔️🧨 in font", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.removeNodeNames.setToolTip("Deletes node markers, as employed by many mekkablue scripts to mark problematic spots.")
-		linePos += lineHeight
 
-		self.w.removeAnnotations = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Remove all annotations 💬➕➖➚◯ in font", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.removeAnnotations = vanilla.CheckBox("auto", "Remove all annotations 💬➕➖➚◯ in font", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.removeAnnotations.setToolTip("Deletes annotations created with the Annotation Tool (A), e.g. circles, arrows, and texts.")
-		linePos += lineHeight
 
-		self.w.removeLocalGuides = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Remove all local (blue) guides 🔵 in font", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.removeLocalGuides = vanilla.CheckBox("auto", "Remove all local (blue) guides 🔵 in font", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.removeLocalGuides.setToolTip("Deletes blue guides.")
-		linePos += lineHeight
 
-		self.w.removeGlobalGuides = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Remove all global (red) guides 🔴 in font", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.removeGlobalGuides = vanilla.CheckBox("auto", "Remove all global (red) guides 🔴 in font", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.removeGlobalGuides.setToolTip("Deletes red guides.")
-		linePos += lineHeight
 
-		self.w.removeGlyphNotes = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Remove all glyph notes in font", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.removeGlyphNotes = vanilla.CheckBox("auto", "Remove all glyph notes in font", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.removeGlyphNotes.setToolTip("Deletes glyph notes as entered in list view or through the Glyph Note Palette (plug-in).")
-		linePos += lineHeight
 
-		self.w.removeColors = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Remove all glyph and layer colors 🟠🟡🟢🟣 in font", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.removeColors = vanilla.CheckBox("auto", "Remove all glyph and layer colors 🟠🟡🟢🟣 in font", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.removeColors.setToolTip("Resets all glyph and layer colors to none.")
-		linePos += lineHeight
 
-		self.w.clearBackgroundLayers = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Clear all background layers in font", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.clearBackgroundLayers = vanilla.CheckBox("auto", "Clear all background layers in font", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.clearBackgroundLayers.setToolTip("If checked, will clear all background layers (Cmd-B) of all layers.")
-		linePos += lineHeight
 
-		self.w.removeBackupLayers = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Remove all backup layers in font", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.removeBackupLayers = vanilla.CheckBox("auto", "Remove all backup layers in font", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.removeBackupLayers.setToolTip("If checked, will remove all unused layers, i.e., all non-master, non-color, non-intermediate and non-alternate layers.")
-		linePos += lineHeight
 
-		self.w.line1 = vanilla.HorizontalLine((inset, linePos, -inset, 1))
-		linePos += 6
+		self.w.line1 = vanilla.HorizontalLine("auto")
 
-		self.w.currentMasterOnly = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Limit clean-up to current master only", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.currentMasterOnly = vanilla.CheckBox("auto", "Limit clean-up to current master only", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.currentMasterOnly.setToolTip("If checked, applies the clean-up to layers of the current font master only. Exception: glyph notes are not master-specific.")
-		linePos += lineHeight
 
-		self.w.selectedGlyphsOnly = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Limit clean-up to selected glyphs only", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.selectedGlyphsOnly = vanilla.CheckBox("auto", "Limit clean-up to selected glyphs only", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.selectedGlyphsOnly.setToolTip("If checked, applies the clean-up only to selected glyphs. Otherwise, to all glyphs in the font.")
-		linePos += lineHeight
 
-		self.w.allFonts = vanilla.CheckBox((inset + 2, linePos - 1, 180, 20), "⚠️ Apply to ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allFonts = vanilla.CheckBox("auto", "⚠️ Apply to ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.allFonts.setToolTip("If checked, will work on ALL currently open fonts; otherwise only the frontmost font file open.")
 
-		self.w.verbose = vanilla.CheckBox((inset + 180, linePos - 1, -inset, 20), "Verbose reporting", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.verbose = vanilla.CheckBox("auto", "Verbose reporting", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.verbose.setToolTip("Verbose reporting in Macro Window (slow).")
-		linePos += lineHeight
 
-		self.w.line2 = vanilla.HorizontalLine((inset, linePos, -inset, 1))
-		linePos += 6
+		self.w.line2 = vanilla.HorizontalLine("auto")
 
-		self.w.userDataText = vanilla.TextBox((inset, linePos + 2, 115, 14), "Remove userData in", sizeStyle='small', selectable=True)
-		self.w.userDataFont = vanilla.CheckBox((inset + 115, linePos - 1, 43, 20), "font", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.userDataMasters = vanilla.CheckBox((inset + 115 + 43, linePos - 1, 63, 20), "masters", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.userDataInstances = vanilla.CheckBox((inset + 115 + 43 + 63, linePos - 1, 75, 20), "instances", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.userDataText = vanilla.TextBox("auto", "Remove userData in", sizeStyle='small', selectable=True)
+		self.w.userDataFont = vanilla.CheckBox("auto", "font", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.userDataMasters = vanilla.CheckBox("auto", "masters", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.userDataInstances = vanilla.CheckBox("auto", "instances", value=False, callback=self.SavePreferences, sizeStyle='small')
 		tooltip = "Remove userData from the frontmost font, its masters, and/or instances.\n\n⚠️ Attention: the font/masters/instances options do NOT respect the ‘Limit’ settings above."
 		self.w.userDataText.setToolTip(tooltip)
 		self.w.userDataFont.setToolTip(tooltip)
 		self.w.userDataMasters.setToolTip(tooltip)
 		self.w.userDataInstances.setToolTip(tooltip)
-		linePos += lineHeight
 
-		self.w.userDataGlyphs = vanilla.CheckBox((inset + 115, linePos - 1, 58, 20), "glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.userDataLayers = vanilla.CheckBox((inset + 115 + 58, linePos - 1, -inset, 20), "layers", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.userDataGlyphs = vanilla.CheckBox("auto", "glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.userDataLayers = vanilla.CheckBox("auto", "layers", value=False, callback=self.SavePreferences, sizeStyle='small')
 		tooltip = "Remove userData from glyphs and/or layers. Will respect the ‘Limit’ settings above."
 		self.w.userDataGlyphs.setToolTip(tooltip)
 		self.w.userDataLayers.setToolTip(tooltip)
-		linePos += lineHeight
 
-		self.w.userDataKeysText = vanilla.TextBox((inset, linePos + 3, 92, 14), "…only keys with", sizeStyle='small', selectable=True)
-		self.w.userDataKeys = vanilla.EditText((inset + 92, linePos, -inset - 22, 19), "UFO, fontlab, public", callback=self.SavePreferences, sizeStyle='small')
+		self.w.userDataKeysText = vanilla.TextBox("auto", "…only keys with", sizeStyle='small', selectable=True)
+		self.w.userDataKeys = vanilla.EditText("auto", "UFO, fontlab, public", callback=self.SavePreferences, sizeStyle='small')
 		tooltip = "Comma-separated list of search strings for userData keys to delete. Leave empty to remove all."
 		self.w.userDataKeysText.setToolTip(tooltip)
 		self.w.userDataKeys.setToolTip(tooltip)
-		self.w.userDataUpdate = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.updateUserDataUI)
+		self.w.userDataUpdate = UpdateButton("auto", callback=self.updateUserDataUI)
 		self.w.userDataUpdate.setToolTip("Add the userData keys of frontmost font.")
-		linePos += lineHeight + 3
 
-		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
+		self.w.progress = vanilla.ProgressBar("auto")
 		self.w.progress.set(0)  # set progress indicator to zero
-		linePos += lineHeight
 
-		self.w.statusText = vanilla.TextBox((inset, -17 - inset, -80 - inset, 14), "", sizeStyle='small', selectable=False)
-
-		self.updateUI()
+		self.w.statusText = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle='small', selectable=False)
+		self.w.statusText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Clean", callback=self.GarbageCollectionMain)
+		self.w.runButton = vanilla.Button("auto", "Clean", callback=self.GarbageCollectionMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# labels are right-aligned, hug their text and share one width:
+		for label in (self.w.userDataText, self.w.userDataKeysText):
+			nsLabel = label.getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		checkBoxNames = (
+			"removeNodeNames",
+			"removeAnnotations",
+			"removeLocalGuides",
+			"removeGlobalGuides",
+			"removeGlyphNotes",
+			"removeColors",
+			"clearBackgroundLayers",
+			"removeBackupLayers",
+			"currentMasterOnly",
+			"selectedGlyphsOnly",
+		)
+		rules = ["H:|-inset-[descriptionText]-inset-|"]
+		rules += [f"H:|-inset-[{name}]-(>=inset)-|" for name in checkBoxNames]
+		rules += [
+			"H:|-inset-[line1]-inset-|",
+			"H:|-inset-[allFonts]-gap-[verbose]-(>=inset)-|",
+			"H:|-inset-[line2]-inset-|",
+			"H:|-inset-[userDataText]-gap-[userDataFont]-gap-[userDataMasters]-gap-[userDataInstances]-(>=inset)-|",
+			"H:[userDataGlyphs]-gap-[userDataLayers]-(>=inset)-|",
+			"H:|-inset-[userDataKeysText]-gap-[userDataKeys]-gap-[userDataUpdate]-inset-|",
+			"H:|-inset-[progress]-inset-|",
+			"H:|-inset-[statusText]-(>=gap)-[runButton(>=70)]-inset-|",
+			(
+				"V:|-gap-[descriptionText]-row-[removeNodeNames]-checkRow-[removeAnnotations]-checkRow-[removeLocalGuides]-checkRow-[removeGlobalGuides]"
+				"-checkRow-[removeGlyphNotes]-checkRow-[removeColors]-checkRow-[clearBackgroundLayers]-checkRow-[removeBackupLayers]"
+				"-gap-[line1(1)]-gap-[currentMasterOnly]-checkRow-[selectedGlyphsOnly]-checkRow-[allFonts]"
+				"-gap-[line2(1)]-gap-[userDataFont]-checkRow-[userDataGlyphs]-row-[userDataKeys]-barGap-[progress(16)]-barGap-[runButton]-inset-|"
+			),
+			{"view1": self.w.verbose, "attribute1": "centerY", "view2": self.w.allFonts, "attribute2": "centerY"},
+			{"view1": self.w.userDataText, "attribute1": "centerY", "view2": self.w.userDataFont, "attribute2": "centerY"},
+			{"view1": self.w.userDataMasters, "attribute1": "centerY", "view2": self.w.userDataFont, "attribute2": "centerY"},
+			{"view1": self.w.userDataInstances, "attribute1": "centerY", "view2": self.w.userDataFont, "attribute2": "centerY"},
+			{"view1": self.w.userDataGlyphs, "attribute1": "left", "view2": self.w.userDataFont, "attribute2": "left"},
+			{"view1": self.w.userDataLayers, "attribute1": "centerY", "view2": self.w.userDataGlyphs, "attribute2": "centerY"},
+			{"view1": self.w.userDataKeysText, "attribute1": "centerY", "view2": self.w.userDataKeys, "attribute2": "centerY"},
+			{"view1": self.w.userDataUpdate, "attribute1": "centerY", "view2": self.w.userDataKeys, "attribute2": "centerY"},
+			{"view1": self.w.userDataKeysText, "attribute1": "width", "view2": self.w.userDataText, "attribute2": "width"},
+			{"view1": self.w.statusText, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
+		]
+		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5, "barGap": 12})
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -178,6 +222,8 @@ class GarbageCollection(mekkaObject):
 				return
 
 	def updateUserDataUI(self, sender=None):
+		if not Glyphs.font:
+			return
 		userDataKeysForFrontmostFont = allUserDataKeysForFont(Glyphs.font)
 		if userDataKeysForFrontmostFont:
 			existingKeys = self.w.userDataKeys.get().strip()
@@ -248,6 +294,10 @@ class GarbageCollection(mekkaObject):
 		else:
 			theseFonts = (Glyphs.font, )
 
+		if not theseFonts or not theseFonts[0]:
+			self.log("❌ No font open.")
+			return
+
 		for fontIndex, thisFont in enumerate(theseFonts):
 			try:
 				thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
@@ -274,7 +324,7 @@ class GarbageCollection(mekkaObject):
 
 				userDataGlyphs = self.pref("userDataGlyphs")
 				userDataLayers = self.pref("userDataLayers")
-				userDataKeys = [k.strip() for k in self.pref("userDataKeys").split(",")]
+				userDataKeys = [k.strip() for k in self.pref("userDataKeys").split(",") if k.strip()]
 
 				# set up counters:
 				removeNodeNamesFont = 0
@@ -287,7 +337,7 @@ class GarbageCollection(mekkaObject):
 				print(f"🔠 Processing {len(glyphs)} glyphs...")
 				for i, thisGlyph in enumerate(glyphs):
 					# update progress bar:
-					self.w.progress.set((fontIndex + 1) * int(100 * i / len(glyphs)) / len(theseFonts))
+					self.w.progress.set((fontIndex + i / len(glyphs)) * 100 / len(theseFonts))
 
 					# glyph counters:
 					removeNodeNamesGlyph = 0
@@ -295,7 +345,7 @@ class GarbageCollection(mekkaObject):
 					removeAnnotationsGlyph = 0
 					layerDeletionCount = 0
 
-					self.log(f"🔤 Cleaning {thisGlyph.name} ...")
+					self.log(f"🔠 {thisGlyph.name}")
 
 					# layer clean-up:
 					for thisLayer in thisGlyph.layers:

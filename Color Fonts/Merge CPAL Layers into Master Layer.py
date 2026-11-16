@@ -3,9 +3,12 @@ __doc__ = """
 Takes all CPAL/COLR layers and puts copies of their shapes into the master layer.
 """
 
+import objc
 import vanilla
-from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, reportFontName
+from GlyphsApp import Glyphs, Message
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityWindowSizeStayPut
+from Foundation import NSNumberFormatter
 
 
 allOptions = (
@@ -13,6 +16,11 @@ allOptions = (
 	"⚠️ ALL CPAL/COLR glyphs in current font",
 	"⚠️ ALL CPAL/COLR glyphs in ⚠️ ALL fonts",
 )
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 class MergeCPALLayersIntoMasterLayer(mekkaObject):
@@ -29,43 +37,62 @@ class MergeCPALLayersIntoMasterLayer(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 320
-		windowHeight = 180
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0   # user can resize height by this value
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Merge CPAL Layers into Master Layer",  # window title
-			minSize=(windowWidth, windowHeight + 19),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize + 19),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Merge CPAL/COLR shapes into master layers", sizeStyle="small", selectable=True)
-		linePos += lineHeight
+		inset = 15
+		self.w.descriptionText = vanilla.TextBox("auto", "Merge CPAL/COLR shapes into master layers", sizeStyle="small", selectable=True)
 
-		self.w.allText = vanilla.TextBox((inset, linePos + 2, 30, 14), "for:", sizeStyle="small", selectable=True)
-		self.w.all = vanilla.PopUpButton((inset + 30, linePos, -inset, 17), allOptions, sizeStyle="small", callback=self.SavePreferences)
-		linePos += lineHeight
-		
-		self.w.removeOverlap = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Remove overlap and tidy up paths", value=False, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
-		
-		self.w.removeSmallItems = vanilla.CheckBox((inset, linePos-1, 160, 20), "Remove items smaller than", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.removeSmallItemsThreshold = vanilla.EditText((inset+160, linePos-1, 40, 19), "400", callback=self.SavePreferences, sizeStyle="small")
-		self.w.removeSmallItemsText = vanilla.TextBox((inset+205, linePos+2, -inset, 20), "square units", sizeStyle="small")
-		linePos += lineHeight
-		
-		self.w.overwrite = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Overwrite existing master layers", value=True, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
+		self.w.allText = vanilla.TextBox("auto", "for:", sizeStyle="small", selectable=True)
+		self.w.all = vanilla.PopUpButton("auto", allOptions, sizeStyle="small", callback=self.SavePreferences)
 
-		self.w.verbose = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Verbose reporting in Macro window (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
+		self.w.removeOverlap = vanilla.CheckBox("auto", "Remove overlap and tidy up paths", value=False, callback=self.SavePreferences, sizeStyle="small")
+
+		self.w.removeSmallItems = vanilla.CheckBox("auto", "Remove items smaller than", value=False, callback=self.SavePreferences, sizeStyle="small")
+		formatter = NSNumberFormatter.alloc().init()
+		formatter.setAllowsFloats_(False)
+		formatter.setMinimum_(0)
+		self.w.removeSmallItemsThreshold = SteppingEditText("auto", "400", callback=self.SavePreferences, sizeStyle="small", formatter=formatter)
+		self.w.removeSmallItemsText = vanilla.TextBox("auto", "square units", sizeStyle="small")
+
+		self.w.overwrite = vanilla.CheckBox("auto", "Overwrite existing master layers", value=True, callback=self.SavePreferences, sizeStyle="small")
+
+		self.w.verbose = vanilla.CheckBox("auto", "Verbose reporting in Macro window (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-90 - inset, -20 - inset, -inset, -inset), "Merge", callback=self.MergeCPALLayersIntoMasterLayerMain)
+		self.w.runButton = vanilla.Button("auto", "Merge", callback=self.MergeCPALLayersIntoMasterLayerMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging,
+		# the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# the label hugs its text, so the popup takes the leftover width:
+		self.w.allText.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[allText]-gap-[all]-inset-|",
+				"H:|-inset-[removeOverlap]-(>=inset)-|",
+				"H:|-inset-[removeSmallItems]-gap-[removeSmallItemsThreshold(50)]-gap-[removeSmallItemsText]-(>=inset)-|",
+				"H:|-inset-[overwrite]-(>=inset)-|",
+				"H:|-inset-[verbose]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=90)]-inset-|",
+				# the stack has one checkbox with a field behind it, so all rows take the wider gap:
+				"V:|-gap-[descriptionText]-row-[all]-stackRow-[removeOverlap]-stackRow-[removeSmallItems]-stackRow-[overwrite]-stackRow-[verbose]-inset-[runButton]-inset-|",
+				{"view1": self.w.allText, "attribute1": "centerY", "view2": self.w.all, "attribute2": "centerY"},
+				{"view1": self.w.removeSmallItemsThreshold, "attribute1": "centerY", "view2": self.w.removeSmallItems, "attribute2": "centerY"},
+				{"view1": self.w.removeSmallItemsText, "attribute1": "centerY", "view2": self.w.removeSmallItems, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6, "stackRow": 8},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -73,6 +100,9 @@ class MergeCPALLayersIntoMasterLayer(mekkaObject):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
+
+	def updateUI(self, sender=None):
+		self.w.removeSmallItemsThreshold.enable(bool(self.w.removeSmallItems.get()))
 
 	def MergeCPALLayersIntoMasterLayerMain(self, sender=None):
 		try:
@@ -86,7 +116,7 @@ class MergeCPALLayersIntoMasterLayer(mekkaObject):
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
 				countGlyphs = 0
-				if self.pref("all") > 1: # 0, 1 = current font; 2 = all fonts
+				if self.pref("all") > 1:  # 0, 1 = current font; 2 = all fonts
 					theseFonts = Glyphs.fonts
 				else:
 					theseFonts = (Glyphs.font, )
@@ -130,9 +160,10 @@ class MergeCPALLayersIntoMasterLayer(mekkaObject):
 								masterLayer.removeOverlap()
 								masterLayer.cleanUpPaths()
 							if self.pref("removeSmallItems"):
-								for i in range(len(masterLayer.shapes)-1,-1,-1):
+								threshold = self.prefFloat("removeSmallItemsThreshold")
+								for i in range(len(masterLayer.shapes) - 1, -1, -1):
 									shape = masterLayer.shapes[i]
-									if shape.area() < float(self.pref("removeSmallItemsThreshold")):
+									if abs(shape.area()) < threshold:
 										del masterLayer.shapes[i]
 
 							print(f"🌈 {thisGlyph.name}: merged color shapes into Ⓜ️ {m.name}")

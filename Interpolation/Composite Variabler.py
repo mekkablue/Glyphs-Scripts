@@ -4,8 +4,9 @@ Reduplicates Brace and Bracket layers of components in the composites in which t
 """
 
 import vanilla
-from GlyphsApp import Glyphs, Message, GSLayer
 from mekkablue import mekkaObject
+from GlyphsApp import Glyphs, Message, GSLayer
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 
 
 class CompositeVariabler(mekkaObject):
@@ -22,62 +23,75 @@ class CompositeVariabler(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 405
-		windowHeight = 280
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 420
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Composite Variabler",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 28), "Reduplicates special layers of components in the composites in which they are used. Makes bracket and brace layers work.", sizeStyle='small', selectable=True)
-		linePos += lineHeight * 2
+		self.w.descriptionText = vanilla.TextBox("auto", "Reduplicates special layers of components in the composites in which they are used. Makes bracket and brace layers work.", sizeStyle='small', selectable=True)
+		# the description wraps: it takes the width it is given, and gets a fixed height in the rules
+		self.w.descriptionText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
-		self.w.processBracketLayers = vanilla.CheckBox((inset + 2, linePos - 1, windowWidth // 2, 20), "Process [BRACKET] layers", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.processBraceLayers = vanilla.CheckBox((inset + windowWidth // 2, linePos - 1, -inset, 20), "Process {BRACE} layers", value=True, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.processBracketLayers = vanilla.CheckBox("auto", "Process [BRACKET] layers", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.processBraceLayers = vanilla.CheckBox("auto", "Process {BRACE} layers", value=True, callback=self.SavePreferences, sizeStyle='small')
 
-		self.w.allGlyphs = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include all exporting glyphs in font (otherwise only selected glyphs)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allGlyphs = vanilla.CheckBox("auto", "Include all exporting glyphs in font (otherwise only selected glyphs)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.allGlyphs.setToolTip("If checked, all glyphs in the font will be processed and receive the special (brace and bracket) layers of their respective components. If unchecked, only selected composite glyphs get processed.")
-		linePos += lineHeight
 
-		self.w.decomposeBrackets = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Decompose special layers in composites (currently broken)", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.decomposeBrackets = vanilla.CheckBox("auto", "Decompose special layers in composites (currently broken)", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.decomposeBrackets.setToolTip("If checked, will decompose bracket layers. This is necessary for bracket layers to work in OTVAR fonts in Glyphs 2.6.")
-		linePos += lineHeight
 
-		self.w.deleteExistingSpecialLayers = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Delete pre-existing special layers in composites", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.deleteExistingSpecialLayers = vanilla.CheckBox("auto", "Delete pre-existing special layers in composites", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.deleteExistingSpecialLayers.setToolTip("If checked, will delete all bracket or brace layers found in processed composite glyphs.")
-		linePos += lineHeight
 
-		self.w.justBackupInstead = vanilla.CheckBox((inset * 2, linePos - 1, -inset, 20), "Don’t delete, just backup and deactivate instead", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.justBackupInstead = vanilla.CheckBox("auto", "Don’t delete, just backup and deactivate instead", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.justBackupInstead.setToolTip("If checked, will not delete, but just deactivate the layer by renaming it from ‘[100]’ to ‘#100#’.")
-		linePos += lineHeight
 
-		self.w.openTab = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Open tab with affected composites", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.openTab = vanilla.CheckBox("auto", "Open tab with affected composites", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.openTab.setToolTip("If checked, will open a tab with all composites that have received new special layers.")
-		linePos += lineHeight
 
-		self.w.catchNestedComponents = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Catch all nested components (slower)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.catchNestedComponents = vanilla.CheckBox("auto", "Catch all nested components (slower)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.catchNestedComponents.setToolTip("If checked, will count max component depth (number of nestings, i.e. components of components of components, etc.) in the font, and repeat the whole process as many times. Will take significantly longer. Use this only if you need it (unlikely) and know what you are doing.")
-		linePos += lineHeight
 
-		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
+		self.w.progress = vanilla.ProgressBar("auto")
 		self.w.progress.set(0)  # set progress indicator to zero
-		linePos += lineHeight
 
-		self.w.processedGlyph = vanilla.TextBox((inset, linePos + 2, -80 - inset, 14), "", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		self.w.processedGlyph = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle='small', selectable=True)
+		self.w.processedGlyph.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Run", callback=self.CompositeVariablerMain)
+		self.w.runButton = vanilla.Button("auto", "Run", callback=self.CompositeVariablerMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[processBracketLayers]-gap-[processBraceLayers]-(>=inset)-|",
+				"H:|-inset-[allGlyphs]-(>=inset)-|",
+				"H:|-inset-[decomposeBrackets]-(>=inset)-|",
+				"H:|-inset-[deleteExistingSpecialLayers]-(>=inset)-|",
+				"H:|-indent-[justBackupInstead]-(>=inset)-|",
+				"H:|-inset-[openTab]-(>=inset)-|",
+				"H:|-inset-[catchNestedComponents]-(>=inset)-|",
+				"H:|-inset-[progress]-inset-|",
+				"H:|-inset-[processedGlyph]-(>=gap)-[runButton(>=80)]-inset-|",
+				"V:|-inset-[descriptionText(28)]-headlineGap-[processBracketLayers]-checkRow-[allGlyphs]-checkRow-[decomposeBrackets]-checkRow-[deleteExistingSpecialLayers]-checkRow-[justBackupInstead]-checkRow-[openTab]-checkRow-[catchNestedComponents]-barGap-[progress(16)]-inset-[runButton]-inset-|",
+				{"view1": self.w.processBraceLayers, "attribute1": "centerY", "view2": self.w.processBracketLayers, "attribute2": "centerY"},
+				{"view1": self.w.processedGlyph, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "indent": inset * 2 + 3, "gap": 8, "checkRow": 5, "headlineGap": 10, "barGap": 12},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -111,7 +125,7 @@ class CompositeVariabler(mekkaObject):
 					for component in layer.components:
 						depth = self.countNest(component)
 						depths.append(depth)
-		return max(depths)
+		return max(depths) if depths else 1
 
 	def isBracketLayer(self, layer):
 		if Glyphs.versionNumber >= 4:
@@ -178,6 +192,7 @@ class CompositeVariabler(mekkaObject):
 				glyphs = set([layer.parent for layer in thisFont.selectedLayers if layer.parent.export])
 				print("Processing selected glyphs (%i in total)..." % len(glyphs))
 
+			affectedGlyphs = []  # collected across all nesting iterations
 			for depthIteration in range(depth):
 				depthStatusAddition = ""
 				if depth > 1:
@@ -185,13 +200,12 @@ class CompositeVariabler(mekkaObject):
 					depthStatusAddition = "%i: " % (depthIteration + 1)
 
 				glyphCount = len(glyphs)
-				affectedGlyphs = []
 				layersToDecompose = []
 				for i, currentGlyph in enumerate(glyphs):
 
 					# status update
 					self.w.progress.set(i * 100.0 / glyphCount)
-					processMessage = "%s%s" % (depthStatusAddition, currentGlyph.name)
+					processMessage = "🔠 %s%s" % (depthStatusAddition, currentGlyph.name)
 					self.w.processedGlyph.set(processMessage)
 					# print processMessage
 
@@ -275,7 +289,8 @@ class CompositeVariabler(mekkaObject):
 
 			# status update
 			self.w.progress.set(100)
-			self.w.processedGlyph.set("Done.")
+			numOfGlyphs = len(set(affectedGlyphs))
+			self.w.processedGlyph.set("✅ Added layers to %i composite glyph%s." % (numOfGlyphs, "" if numOfGlyphs == 1 else "s"))
 			print("Done.")
 
 			if affectedGlyphs:
