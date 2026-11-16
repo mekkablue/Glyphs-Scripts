@@ -7,8 +7,8 @@ from GlyphsApp import Glyphs
 from mekkablue import newGlyphWithName
 
 thisFont = Glyphs.font
-allGlyphNames = [x.name for x in thisFont.glyphs]
-selectedLayers = thisFont.selectedLayers
+allGlyphNames = [x.name for x in thisFont.glyphs] if thisFont else []
+selectedLayers = thisFont.selectedLayers if thisFont else []
 
 
 def findSuffix(glyphName):
@@ -59,5 +59,7 @@ def process(sourceLayer):
 	print("Created %s" % targetGlyphName)
 
 
+if not thisFont:
+	print("Please open a font first.")
 for thisLayer in selectedLayers:
 	process(thisLayer)

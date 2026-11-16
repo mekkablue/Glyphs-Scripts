@@ -123,7 +123,7 @@ class CreateAlignmentZonesforSelectedGlyphs(mekkaObject):
 		return False
 
 	def addZoneToMaster(self, zonePosition, zoneSize, master, blueFuzz=0, isTop=True, masterIndex=0):
-		if self.zoneIsOverlappingWithExistingOne(zonePosition, zoneSize, master, blueFuzz=0):
+		if self.zoneIsOverlappingWithExistingOne(zonePosition, zoneSize, master, blueFuzz=blueFuzz):
 			print("❌ Zone p:%i s:%i cannot be added to master ‘%s’: existing zone in the way." % (zonePosition, zoneSize, master.name))
 			return 0
 		else:
@@ -181,6 +181,10 @@ class CreateAlignmentZonesforSelectedGlyphs(mekkaObject):
 					# GLYPHS 2
 					selectedGlyphs = [layer.parent for layer in thisFont.selectedLayers if layer.paths or layer.components]
 
+				if not selectedGlyphs:
+					Message(title="No Glyphs Selected", message="Select one or more glyphs with outlines and run the script again.", OKButton=None)
+					return
+
 				addedZoneCount = 0
 
 				blueFuzz = 0  # fallback
@@ -237,16 +241,16 @@ class CreateAlignmentZonesforSelectedGlyphs(mekkaObject):
 						master.sortAlignmentZones()
 						master.setAlignmentZones_(master.alignmentZones)  # triggers UI redraw in Font Info > Masters
 
-					# Floating notification:
-					Glyphs.showNotification(
-						"%s: Done." % (thisFont.familyName),
-						"Added %i zone%s based on %i selected glyph%s. Detailed report in Macro Window." % (
-							addedZoneCount,
-							"" if addedZoneCount == 1 else "s",
-							len(selectedGlyphs),
-							"" if len(selectedGlyphs) == 1 else "s",
-						),
-					)
+				# Floating notification:
+				Glyphs.showNotification(
+					"%s: Done." % (thisFont.familyName),
+					"Added %i zone%s based on %i selected glyph%s. Detailed report in Macro Window." % (
+						addedZoneCount,
+						"" if addedZoneCount == 1 else "s",
+						len(selectedGlyphs),
+						"" if len(selectedGlyphs) == 1 else "s",
+					),
+				)
 
 		except Exception as e:
 			# brings macro window to front and reports error:

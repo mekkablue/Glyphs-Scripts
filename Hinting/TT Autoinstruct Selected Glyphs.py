@@ -69,10 +69,10 @@ Glyphs.showNotification(
 	"TT-Autoinstructed %s" % (thisFont.familyName),
 	"Processed %i glyph%s, details in Macro Window." % (
 		len(selectedLayers),
-		"" if len(selectedLayers) == 0 else "s",
+		"" if len(selectedLayers) == 1 else "s",
 	),
 )
 print("\nProcessed %i glyph%s." % (
 	len(selectedLayers),
-	"" if len(selectedLayers) == 0 else "s",
+	"" if len(selectedLayers) == 1 else "s",
 ))

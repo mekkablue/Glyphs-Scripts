@@ -7,7 +7,7 @@ from GlyphsApp import Glyphs, GSGuide, GSNode, GSAnchor, addPoints
 from mekkablue.geometry import angle
 
 thisFont = Glyphs.font  # frontmost font
-selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
+selectedLayers = thisFont.selectedLayers if thisFont else ()  # active layers of selected glyphs
 
 
 def newGuide(position, angle=0):
@@ -57,8 +57,8 @@ if len(selectedLayers) == 1:
 					guideBetweenPoints = newGuide(middlePoint, angleBetweenPoints)
 					thisLayer.guides.append(guideBetweenPoints)
 
-				# select it:
-				thisLayer.selection.append(guideBetweenPoints)
+					# select it:
+					thisLayer.selection.append(guideBetweenPoints)
 
 		elif len(currentPointSelection) == 1:
 			point = currentPointSelection[0]

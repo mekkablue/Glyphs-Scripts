@@ -1,6 +1,4 @@
 # MenuTitle: Snap Selected Points to Nearest Metric in All Masters
-
-
 __doc__ = """
 Select points and run this script to snap them to the nearest metric in each compatible layer, given they are no more than 2 units away from the metric. Reports in the Macro window.
 """
@@ -10,7 +8,9 @@ from GlyphsApp import Glyphs, GSNode
 threshold = 2
 alignedNodesCount = 0
 
-for selectedLayer in Glyphs.font.selectedLayers:
+font = Glyphs.font
+selectedLayers = font.selectedLayers if font else []
+for selectedLayer in selectedLayers:
 	glyph = selectedLayer.parent
 	originalCompareString = selectedLayer.compareString()
 
@@ -33,4 +33,4 @@ for selectedLayer in Glyphs.font.selectedLayers:
 					alignedNodesCount += 1
 					break
 
-print(f"Aligned {alignedNodesCount} points in {', '.join([selectedLayer.parent.name for l in Glyphs.font.selectedLayers])}.")
+print(f"Aligned {alignedNodesCount} points in {', '.join([l.parent.name for l in selectedLayers])}.")

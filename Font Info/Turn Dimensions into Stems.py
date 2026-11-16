@@ -11,7 +11,7 @@ font = Glyphs.font
 if not font:
 	print("Please open a font first.")
 else:
-	dimensions = font.userData["GSDimensionPlugin.Dimensions"]
+	dimensions = font.userData["GSDimensionPlugin.Dimensions"] or {}
 
 	for masterID in dimensions.keys():
 		master = font.fontMasterForId_(masterID)

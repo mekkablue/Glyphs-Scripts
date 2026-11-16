@@ -5,19 +5,19 @@ __doc__ = """
 Toggle frontmost tab between LTR (horizontal) and vertical writing direction. Useful for setting a keyboard shortcuts.
 """
 
-from GlyphsApp import Glyphs, LTRTTB
+from GlyphsApp import Glyphs
 
 if Glyphs.versionNumber < 4.0:
 	# Glyphs 3 only had the old name, dropped in Glyphs 4:
-	from GlyphsApp import LTR as GSLTR
+	from GlyphsApp import LTR as GSLTR, LTRTTB as GSVertical
 else:
-	from GlyphsApp import GSLTR
+	from GlyphsApp import GSLTR, GSVertical
 
 if Glyphs.font:
 	thisTab = Glyphs.font.currentTab
 	if thisTab:
 		if thisTab.direction == GSLTR:
-			newDirection = LTRTTB
+			newDirection = GSVertical
 		else:
 			newDirection = GSLTR
 		thisTab.direction = newDirection

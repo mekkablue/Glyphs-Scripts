@@ -8,7 +8,6 @@ Asks you for an image file and inserts it as background image into all selected 
 from GlyphsApp import Glyphs, GSBackgroundImage, GetOpenFile
 
 Font = Glyphs.font
-selectedLayers = Font.selectedLayers
 
 
 def process(thisLayer, imageFilePath):
@@ -23,25 +22,32 @@ def process(thisLayer, imageFilePath):
 	return "OK."
 
 
-Font.disableUpdateInterface()
-try:
-	imageFilePath = GetOpenFile(message="Select an image:", allowsMultipleSelection=False, filetypes=["jpeg", "png", "tif", "gif", "pdf"])
+if Font is None:
+	print("⚠️ No font open.")
+else:
+	selectedLayers = Font.selectedLayers
+	Font.disableUpdateInterface()
+	try:
+		imageFilePath = GetOpenFile(message="Select an image:", allowsMultipleSelection=False, filetypes=["jpeg", "png", "tif", "gif", "pdf"])
 
-	print("Putting %s into:" % imageFilePath)
+		if imageFilePath:
+			print("Putting %s into:" % imageFilePath)
 
-	for thisLayer in selectedLayers:
-		thisGlyph = thisLayer.parent
-		# thisGlyph.beginUndo()  # undo grouping causes crashes
-		print("-- %s: %s" % (thisGlyph.name, process(thisLayer, imageFilePath)))
-		# thisGlyph.endUndo()  # undo grouping causes crashes
+			for thisLayer in selectedLayers:
+				thisGlyph = thisLayer.parent
+				# thisGlyph.beginUndo()  # undo grouping causes crashes
+				print("-- %s: %s" % (thisGlyph.name, process(thisLayer, imageFilePath)))
+				# thisGlyph.endUndo()  # undo grouping causes crashes
+		else:
+			print("No image file chosen.")
 
-except Exception as e:
-	Glyphs.showMacroWindow()
-	print("\n⚠️ Script Error:\n")
-	import traceback
-	print(traceback.format_exc())
-	print()
-	raise e
+	except Exception as e:
+		Glyphs.showMacroWindow()
+		print("\n⚠️ Script Error:\n")
+		import traceback
+		print(traceback.format_exc())
+		print()
+		raise e
 
-finally:
-	Font.enableUpdateInterface()
+	finally:
+		Font.enableUpdateInterface()

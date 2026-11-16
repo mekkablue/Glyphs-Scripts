@@ -6,7 +6,7 @@ For selected glyphs, it works like Glyph > Update Glyph Info, but will not chang
 from GlyphsApp import Glyphs
 
 thisFont = Glyphs.font  # frontmost font
-selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
+selectedLayers = (thisFont.selectedLayers if thisFont else ())  # active layers of selected glyphs
 
 Glyphs.clearLog()  # clears log in Macro window
 print("Reset Unicode Codepoints Based on GlyphData:")

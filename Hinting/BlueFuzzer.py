@@ -82,6 +82,8 @@ class BlueFuzzer(mekkaObject):
 	def BlueFuzzerMain(self, sender):
 		try:
 			Font = Glyphs.font
+			if Font is None:
+				return
 
 			self.SavePreferences()
 			fuzzValue = self.prefInt("fuzzValue")

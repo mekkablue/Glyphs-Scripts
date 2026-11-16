@@ -10,8 +10,7 @@ from GlyphsApp import Glyphs, GSFeature, Message
 
 lookupTitle = "hebrewPresentationForms"
 thisFont = Glyphs.font
-theseGlyphs = thisFont.glyphs
-firstMasterID = thisFont.masters[0].id
+theseGlyphs = thisFont.glyphs if thisFont else ()
 
 
 def updated_code(oldcode, beginsig, endsig, newcode):
@@ -77,9 +76,11 @@ for thisGlyph in theseGlyphs:
 			if snippet:
 				lookup += "\tsub %s by %s;  # %s\n" % (snippet, glyphName, thisGlyph.unicode)
 			else:
-				lookup += "\t# could not create rule for %s" % glyphName
+				lookup += "\t# could not create rule for %s\n" % glyphName
 
-if lookup:
+if not thisFont:
+	Message(title="No Font Open", message="Please open a font first.", OKButton=None)
+elif lookup:
 	lineCount = lookup.splitlines().__len__()
 	lookup = "\nlookup %s {\n%s\n} %s;\n\nscript hebr;\nlookup %s;\n" % (lookupTitle, lookup[:-1], lookupTitle, lookupTitle)
 	reportMessage = create_otfeature(featureName="ccmp", featureCode=lookup, targetFont=thisFont, codesig=lookupTitle.upper())

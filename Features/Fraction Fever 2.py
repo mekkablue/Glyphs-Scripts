@@ -136,51 +136,54 @@ def create_otfeature(featurename="frac", featurecode="# empty feature code", tar
 
 
 # brings macro window to front and clears its log:
-Glyphs.clearLog()
-print(create_otfeature(featurename="frac", featurecode=fractionFeverCode, targetfont=Font, codesig="FRACTION-FEVER-2"))
+if not Font:
+	print("Please open a font first.")
+else:
+	Glyphs.clearLog()
+	print(create_otfeature(featurename="frac", featurecode=fractionFeverCode, targetfont=Font, codesig="FRACTION-FEVER-2"))
 
-# Check which glyphs still need to be created:
-necessaryGlyphs = (
-	"zero",
-	"one",
-	"two",
-	"three",
-	"four",
-	"five",
-	"six",
-	"seven",
-	"eight",
-	"nine",
-	"zero.numr",
-	"one.numr",
-	"two.numr",
-	"three.numr",
-	"four.numr",
-	"five.numr",
-	"six.numr",
-	"seven.numr",
-	"eight.numr",
-	"nine.numr",
-	"zero.dnom",
-	"one.dnom",
-	"two.dnom",
-	"three.dnom",
-	"four.dnom",
-	"five.dnom",
-	"six.dnom",
-	"seven.dnom",
-	"eight.dnom",
-	"nine.dnom",
-	"slash",
-	"fraction",
-	"space",
-	"thinspace",
-)
+	# Check which glyphs still need to be created:
+	necessaryGlyphs = (
+		"zero",
+		"one",
+		"two",
+		"three",
+		"four",
+		"five",
+		"six",
+		"seven",
+		"eight",
+		"nine",
+		"zero.numr",
+		"one.numr",
+		"two.numr",
+		"three.numr",
+		"four.numr",
+		"five.numr",
+		"six.numr",
+		"seven.numr",
+		"eight.numr",
+		"nine.numr",
+		"zero.dnom",
+		"one.dnom",
+		"two.dnom",
+		"three.dnom",
+		"four.dnom",
+		"five.dnom",
+		"six.dnom",
+		"seven.dnom",
+		"eight.dnom",
+		"nine.dnom",
+		"slash",
+		"fraction",
+		"space",
+		"thinspace",
+	)
 
-existingGlyphNames = [g.name for g in Font.glyphs]
-glyphsToBeCreated = [n for n in necessaryGlyphs if n not in existingGlyphNames]
+	existingGlyphNames = [g.name for g in Font.glyphs]
+	glyphsToBeCreated = [n for n in necessaryGlyphs if n not in existingGlyphNames]
 
-if len(glyphsToBeCreated) > 0:
-	Glyphs.showMacroWindow()
-	print("These glyphs still need to be created for the feature to work:")
-	print(" ".join(glyphsToBeCreated))
+	if len(glyphsToBeCreated) > 0:
+		Glyphs.showMacroWindow()
+		print("These glyphs still need to be created for the feature to work:")
+		print(" ".join(glyphsToBeCreated))

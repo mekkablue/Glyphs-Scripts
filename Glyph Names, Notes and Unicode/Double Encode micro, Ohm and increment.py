@@ -37,10 +37,11 @@ shouldApplyToAllFonts = shiftKeyPressed and commandKeyPressed
 if shouldApplyToAllFonts:
 	fonts = Glyphs.fonts
 else:
-	fonts = (Glyphs.font, )
+	fonts = (Glyphs.font, ) if Glyphs.font else ()
 
 for thisFont in fonts:
-	print(f"DOUBLE ENCODE REPORT: {thisFont.filepath.lastPathComponent().stringByDeletingDotSuffix()}")
+	fileName = thisFont.filepath.lastPathComponent().stringByDeletingDotSuffix() if thisFont.filepath else f"{thisFont.familyName} (unsaved)"
+	print(f"DOUBLE ENCODE REPORT: {fileName}")
 	thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 	try:
 		for codeInfo in codeInfos:

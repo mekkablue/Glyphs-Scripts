@@ -25,29 +25,33 @@ def process(thisLayer):
 
 
 Font = Glyphs.font
-FontMaster = Font.selectedFontMaster
-selectedLayers = Font.selectedLayers
-newFolder = GetFolder(message="Choose location of placed images:", allowsMultipleSelection=False)
 
-Glyphs.clearLog()
-Glyphs.showMacroWindow()
-Font.disableUpdateInterface()
-try:
-	if newFolder:
-		print("New image path for selected glyphs:\n%s" % newFolder)
-		for thisLayer in selectedLayers:
-			thisGlyph = thisLayer.parent
-			# thisGlyph.beginUndo()  # undo grouping causes crashes
-			print("-- %s: %s" % (thisGlyph.name, process(thisLayer)))
-			# thisGlyph.endUndo()  # undo grouping causes crashes
+if Font is None:
+	print("⚠️ No font open.")
+else:
+	FontMaster = Font.selectedFontMaster
+	selectedLayers = Font.selectedLayers
+	newFolder = GetFolder(message="Choose location of placed images:", allowsMultipleSelection=False)
 
-except Exception as e:
+	Glyphs.clearLog()
 	Glyphs.showMacroWindow()
-	print("\n⚠️ Script Error:\n")
-	import traceback
-	print(traceback.format_exc())
-	print()
-	raise e
+	Font.disableUpdateInterface()
+	try:
+		if newFolder:
+			print("New image path for selected glyphs:\n%s" % newFolder)
+			for thisLayer in selectedLayers:
+				thisGlyph = thisLayer.parent
+				# thisGlyph.beginUndo()  # undo grouping causes crashes
+				print("-- %s: %s" % (thisGlyph.name, process(thisLayer)))
+				# thisGlyph.endUndo()  # undo grouping causes crashes
 
-finally:
-	Font.enableUpdateInterface()  # re-enables UI updates in Font View
+	except Exception as e:
+		Glyphs.showMacroWindow()
+		print("\n⚠️ Script Error:\n")
+		import traceback
+		print(traceback.format_exc())
+		print()
+		raise e
+
+	finally:
+		Font.enableUpdateInterface()  # re-enables UI updates in Font View
