@@ -802,77 +802,77 @@ SYMBOLS = (
 	(
 		"buildEstimated",
 		"estimated ℮",
-		"Will build estimated ℮ and scale it to the size of your lining zero, if available.",
+		"℮, scaled to your lining zero if there is one.",
 		buildEstimated,
 		("estimated", ),
 	),
 	(
 		"buildBars",
 		"bar | brokenbar ¦",
-		"Will model bar | and brokenbar ¦ after your slash /, or if there is no slash, use the master’s stem values for their width. Without a slash, they extend from the lowest descender to the highest ascender of all masters.",
+		"| and ¦, modeled on your slash; without one, stem width from the master and lowest descender to highest ascender.",
 		buildBars,
 		("bar", "brokenbar"),
 	),
 	(
 		"buildEmptyset",
 		"emptyset ∅",
-		"Will build emptyset ∅: a circle with a slash, with the stem thickness of bar and brokenbar (but at most 18% of the height). Its height is the average of x-height and cap height plus the overshoot of your zero.",
+		"∅: circle with slash, stem as in bar (max. 18% of height), between x-height and cap height plus your zero’s overshoot.",
 		buildEmptyset,
 		("emptyset", ),
 	),
 	(
 		"buildDottedCircle",
 		"dottedCircle ◌",
-		"Will build dottedCircle ◌.",
+		"◌: twelve dots, with top, bottom (and ogonekcomb) anchors.",
 		buildDottedCircle,
 		("dottedCircle", ),
 	),
 	(
 		"buildCurrency",
 		"currency ¤",
-		"Will build currency.",
+		"¤: circle with four fins, 60% cap height, stem as in slash or master.",
 		buildCurrency,
 		("currency", ),
 	),
 	(
 		"buildLozenge",
 		"lozenge ◊",
-		"Will build lozenge.",
+		"◊: outlined diamond, 70% cap height, stem as in slash or master.",
 		buildLozenge,
 		("lozenge", ),
 	),
 	(
 		"buildDaggers",
 		"dagger † | daggerdbl ‡",
-		"Will build dagger † and daggerdbl ‡ as simple crosses of overlapping rectangles (two and three): 60% of the cap height, butted up against the cap height, with the stem width of your slash or master stems. Respects the italic angle.",
+		"† and ‡: crosses of overlapping rectangles, 60% cap height, top at cap height.",
 		buildDaggers,
 		("dagger", "daggerdbl"),
 	),
 	(
 		"buildNotdef",
 		".notdef",
-		"Will build the mandatory .notdef glyph based on the boldest available question mark.",
+		".notdef: boldest question mark in a circle, tofu rectangle in the background; just the rectangle without a question mark.",
 		buildNotdef,
 		(".notdef", ),
 	),
 	(
 		"buildProduct",
 		"product ∏",
-		"Will build product ∏: three overlapping rectangles, 110% cap height, stems measured as for bar (slash, else master stems), horizontals at 85% of the stem. Respects the italic angle.",
+		"∏: three overlapping rectangles, 110% cap height.",
 		buildProduct,
 		("product", ),
 	),
 	(
 		"buildSummation",
 		"summation ∑",
-		"Will build summation ∑: one contour with opened corners (small triangles of overlap), 110% cap height, stems measured as for bar (slash, else master stems), horizontals at 85% of the stem. Respects the italic angle.",
+		"∑: one contour with overlapping corners, 110% cap height.",
 		buildSummation,
 		("summation", ),
 	),
 	(
 		"buildRadical",
 		"radical √",
-		"Will build radical √: one contour with opened corners (small triangles of overlap), 110% cap height, stems measured as for bar (slash, else master stems), horizontals at 85% of the stem. Respects the italic angle.",
+		"√: one contour with overlapping corners, 110% cap height, RSB =0.",
 		buildRadical,
 		("radical", ),
 	),
@@ -906,18 +906,18 @@ class BuildSymbols(mekkaObject):
 
 		# Other options:
 		self.w.override = vanilla.CheckBox("auto", "Overwrite existing glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.override.setToolTip("If checked, will create fresh symbols even if they already exist. If unchecked, will skip glyphs that already exist.")
+		self.w.override.setToolTip("Rebuilds symbols that already exist; otherwise they are skipped.")
 		self.w.backupLayers = vanilla.CheckBox("auto", "Backup existing layers", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.backupLayers.setToolTip("If checked, will create backup layers when the glyph gets overwritten. Only available in combination with ‘Overwrite existing glyphs’.")
+		self.w.backupLayers.setToolTip("Keeps the old outlines in backup layers. Needs ‘Overwrite existing glyphs’.")
 
 		self.w.newTab = vanilla.CheckBox("auto", "Open tab with new glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.newTab.setToolTip("If checked, will open a new tab with the newly created symbols.")
+		self.w.newTab.setToolTip("Shows the symbols in a tab.")
 		self.w.reuseTab = vanilla.CheckBox("auto", "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reuseTab.setToolTip("If checked, will reuse the current tab, and open a new tab only if there is no Edit tab open already. Highly recommended.")
+		self.w.reuseTab.setToolTip("Uses the current tab; opens a new one only if there is none.")
 
 		# Status line:
 		self.w.statusText = vanilla.TextBox("auto", "🔮 Will build up to – glyphs.", sizeStyle="small")
-		self.w.statusText.setToolTip("Before you run: how many glyphs the checked symbols will build at most (existing glyphs are skipped unless you overwrite them). While running: the glyphs being built. Afterwards: how many glyphs were built.")
+		self.w.statusText.setToolTip("Glyphs to build (at most), then progress, then result.")
 		self.w.statusText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# Run Button:
