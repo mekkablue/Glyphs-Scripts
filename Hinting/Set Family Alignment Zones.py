@@ -4,9 +4,10 @@ Inserts Family Alignment Zones parameter with values based on an instance. Needs
 """
 
 import os
-import vanilla
-from AppKit import NSFont
 from copy import deepcopy
+
+import vanilla
+from AppKit import NSFont, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message, TTF, PLAIN, INSTANCETYPEVARIABLE
 from mekkablue import mekkaObject, UpdateButton
 from ttfautohintoptions import parameterName, valuelessOptions, availableOptionsDict, availableOptions, removeFromAutohintOptions, dictToParameterValue, ttfAutohintDict, glyphInterpolation, idotlessMeasure, writeOptionsToInstance
@@ -20,47 +21,66 @@ class SetFamilyAlignmentZones(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 350
-		windowHeight = 134
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 400
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Set Family Alignment Zones",  # window title
-			minSize=(windowWidth, windowHeight + 19),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize + 19),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, lineHeight * 2), "Choose an instance (typically the Regular), and insert its zones as PostScript Family Alignment Zones.", sizeStyle='small', selectable=True)
-		linePos += int(lineHeight * 1.7)
+		self.w.descriptionText = vanilla.TextBox("auto", "Choose an instance (typically the Regular), and insert its zones as PostScript Family Alignment Zones.", sizeStyle='small', selectable=True)
+		# a text block that wraps takes the width it is given, instead of demanding one long line:
+		self.w.descriptionText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
-		self.w.instanceText = vanilla.TextBox((inset, linePos + 2, inset + 55, 14), "Instance", sizeStyle='small')
-		self.w.instancePicker = vanilla.PopUpButton((inset + 51, linePos, -inset - 22, 19), (), sizeStyle='small')
-		self.w.instancePicker.setToolTip("Choose the instance that will likely be used most (probably the Regular or Book). Its interpolated zones will be used as Family Alignment Zones. Inactive instances are marked with ‘inactive’.")
+		instanceTooltip = "Choose the instance that will likely be used most (probably the Regular or Book). Its interpolated zones will be used as Family Alignment Zones. Inactive instances are marked with ‘inactive’."
+		self.w.instanceText = vanilla.TextBox("auto", "Instance", sizeStyle='small')
+		self.w.instanceText.setToolTip(instanceTooltip)
+		self.w.instancePicker = vanilla.PopUpButton("auto", (), sizeStyle='small')
+		self.w.instancePicker.setToolTip(instanceTooltip)
 
 		# set font to tabular figures:
 		popUpFont = NSFont.monospacedDigitSystemFontOfSize_weight_(NSFont.smallSystemFontSize(), 0.0)
 		self.w.instancePicker.getNSPopUpButton().setFont_(popUpFont)
 
-		self.w.updateButton = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.updateInstancePicker)
+		self.w.updateButton = UpdateButton("auto", callback=self.updateInstancePicker)
 		self.w.updateButton.setToolTip("Click to update the menu with the instances of the currently frontmost font.")
-		linePos += lineHeight
-		
-		self.w.addTTReference = vanilla.CheckBox((inset, linePos-1, -inset, 20), "Also add as reference TTF to ttfautohint options", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.addTTReference.setToolTip("Will write a TTF of the same instance into /Users/Shared/ttf/ and a --reference option to all existing ‘TTF Autohint Options’ parameters in Font Info > Exports.")
+
+		self.w.addTTReference = vanilla.CheckBox("auto", "Also add as reference TTF to ttfautohint options", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.addTTReference.setToolTip("Will write a TTF of the same instance into /Users/Shared/.ttf/ and a --reference option to all existing ‘TTF Autohint Options’ parameters in Font Info > Exports.")
 
 		# Help Buttons:
-		self.w.helpTutorialPS = vanilla.HelpButton((inset, -20 - inset, 22, 22), callback=self.openURL)
+		self.w.helpTutorialPS = vanilla.HelpButton("auto", callback=self.openURL)
 		self.w.helpTutorialPS.setToolTip("Will open the glyphsapp.com tutorial about PS Hinting, at the section that explains Family Alignment Zones.")
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-110 - inset, -20 - inset, -inset, -inset), "Insert FAZ", callback=self.SetFamilyAlignmentZonesMain)
+		self.w.runButton = vanilla.Button("auto", "Insert FAZ", callback=self.SetFamilyAlignmentZonesMain)
 		self.w.setDefaultButton(self.w.runButton)
-		
+
+		# checkboxes stretch vertically by default; with everything hugging,
+		# the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.instanceText.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[instanceText]-gap-[instancePicker]-gap-[updateButton]-inset-|",
+				"H:|-inset-[addTTReference]-(>=inset)-|",
+				"H:|-inset-[helpTutorialPS]-(>=gap)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[descriptionText(28)]-row-[instancePicker]-row-[addTTReference]-inset-[runButton]-inset-|",
+				"V:[helpTutorialPS]-inset-|",
+				{"view1": self.w.instanceText, "attribute1": "centerY", "view2": self.w.instancePicker, "attribute2": "centerY"},
+				{"view1": self.w.updateButton, "attribute1": "centerY", "view2": self.w.instancePicker, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 8},
+		)
+
 		# Open window and focus on it:
 		self.LoadPreferences()
 		self.updateInstancePicker()
@@ -165,15 +185,17 @@ class SetFamilyAlignmentZones(mekkaObject):
 			Glyphs.clearLog()  # clears macro window log
 			self.SavePreferences()
 			thisFont = Glyphs.font  # frontmost font
+			if not thisFont:
+				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+				return
 			print(f"👾 Family Alignment Zones Report for {thisFont.familyName}")
-			if thisFont.filepath:
-				print(f"📄 {thisFont.filepath}")
+			print(f"📄 {thisFont.filepath}" if thisFont.filepath else f"📄 {thisFont.familyName} (unsaved)")
 
 			instanceName = self.w.instancePicker.getItem()
 			instanceIndex = int(instanceName[:instanceName.find(":")])
 			thisInstance = [i for i in thisFont.instances if i.type == 0][instanceIndex]
 			
-			print(f"\n🤖 Adding PS family alignment zones...")
+			print("\n🤖 Adding PS family alignment zones...")
 			if thisInstance.name in instanceName:
 				# POSTSCRIPT FAMILY ZONES
 				if Glyphs.versionNumber >= 3:
