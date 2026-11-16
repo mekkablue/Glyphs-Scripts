@@ -36,7 +36,6 @@ minusTabScale = 0.735  # zoom of the tab for editing the minus
 
 # Proportions of the shapes, relative to the stroke or to the length of the bars:
 multiplyScale = 0.9  # bounding box of × relative to the length of the bars
-chevronAngle = 30.0  # angle of the arms of < and > against the horizontal axis, in degrees
 caretAngle = 45.0  # angle of the arms of ^ against the vertical axis, in degrees
 waveHandleStart = 0.33  # Bézier handle lengths (fraction of a quarter wave) that approximate a sine wave
 waveHandleEnd = 0.36
@@ -263,6 +262,8 @@ class Proportions(object):
 		self.slashOverhang = plan["slashOverhang"]  # of the slash in ≠
 		self.slashStrokeChange = plan["slashStrokeChange"]  # stroke width of the slash in ≠, relative to the stroke
 		self.slashAngle = plan["slashAngle"]  # of the slash in ≠, clockwise from vertical, in degrees
+		self.multiplyAngle = plan["multiplyAngle"]  # of × : both diagonals rotated, 0 is a crossing of 90°
+		self.chevronAngle = max(5.0, min(plan["chevronAngle"], 80.0))  # of the arms of < and > against the horizontal
 		self.waveBend = plan["waveBend"]  # amplitude of the waves in ≈ and ~: corner nodes to the first extremes
 		self.slashEnds = plan["slashEnds"]  # cut of the ends of the slash in ≠: 0 horizontal, 100 perpendicular, 200 vertical
 		self.multiplyExtension = plan["multiplyExtension"]  # of the arms of ×
@@ -299,9 +300,13 @@ def plusShapes(p):
 
 def multiplyShapes(p):
 	armLength = math.sqrt(2.0) * p.length * multiplyScale - p.stroke + 2 * p.multiplyExtension
-	# after rotating, the horizontal bar runs up to the right, the vertical bar up to the left:
-	arms = crossShapes(armLength, armLength, p.corrected((1, 1)), p.corrected((-1, 1)))
-	return [p.slant(rotate(arm, 45)) for arm in arms]
+	shapes = []
+	# one diagonal runs up to the right, the other up to the left. Positive angles rotate both toward the horizontal.
+	for angle in (45.0 - p.multiplyAngle, 135.0 + p.multiplyAngle):
+		direction = (math.cos(math.radians(angle)), math.sin(math.radians(angle)))
+		arm = rectangle(span(0, armLength), span(0, p.corrected(direction)))
+		shapes.append(p.slant(rotate(arm, angle)))
+	return shapes
 
 
 def divideShapes(p):
@@ -417,11 +422,12 @@ def chevronStrokes(p, angle, mirrored):
 	return p.corrected((directionX, directionY)), p.corrected((directionX, -directionY))
 
 
-def chevronShape(p, mirrored, angle=chevronAngle):
+def chevronShape(p, mirrored, angle=None):
 	"""
 	< or >, as wide as the bars are long, with the outer apex cut off by the Miter value. The overshoot draws the inner
 	apex point toward the cut, so the joint of the arms does not get too heavy.
 	"""
+	angle = p.chevronAngle if angle is None else angle
 	upperStroke, lowerStroke = chevronStrokes(p, angle, mirrored)
 	outline = chevronOutline(angle, upperStroke, lowerStroke, p.miter * p.stroke, width=p.length, innerShift=p.kneeCap)
 	return mirrorHorizontally(outline) if mirrored else outline
@@ -456,11 +462,11 @@ def chevronWithBar(p, mirrored):
 
 	plainHeight = heightOf(chevronShape(p, mirrored))
 	targetHeight = plainHeight - p.adaptation * barBlock
-	low, high = 10.0, chevronAngle  # flatter chevrons are not worth having, the glyph gets taller instead
+	low, high = 5.0, p.chevronAngle  # as flat as the arm angle field allows, beyond that the glyph gets taller instead
 	while low < high and not chevronFits(p, mirrored, low):
 		low += 1.0
 	if targetHeight >= plainHeight:
-		angle = chevronAngle  # no adaptation
+		angle = p.chevronAngle  # no adaptation
 	elif heightOf(chevronShape(p, mirrored, low)) >= targetHeight:
 		angle = low
 	else:
@@ -643,6 +649,8 @@ class BuildMathOperators(mekkaObject):
 		"slashStroke": 0,
 		"slashAngle": 27,
 		"slashEnds": 0,
+		"multiplyAngle": 0,
+		"chevronAngle": 30,
 		"multiplyExtension": 0,
 		"miter": 80,
 		"italic": True,
@@ -657,7 +665,7 @@ class BuildMathOperators(mekkaObject):
 	}
 
 	def __init__(self):
-		windowWidth = 520
+		windowWidth = 500
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
@@ -741,6 +749,16 @@ class BuildMathOperators(mekkaObject):
 		addField("shapeDistance", "±≤≥", 100, "Space between the plus and the minus in ±, and between the chevron and the bar in ≤ ≥, from edge to edge, in units. The field behind it adapts the height.", 1)
 		addField("shapeAdaptation", None, 100, "Adaptation of the height of ± and ≤ ≥, in percent. 100: ± is as tall as + (its plus gets a shorter vertical stroke) and ≤ ≥ are as tall as < > (their chevron gets flatter). 0: no adaptation, the plus and the chevron stay as they are and ± and ≤ ≥ get taller by the distance and the bar. In between: partly.", 0, 100)
 
+		tooltipText = "Angles: the crossing of the diagonals in ×, the angle of the arms of < and >, and the angle and the end cuts of the slash in ≠."
+		self.w.anglesLabel = vanilla.TextBox("auto", "Angles", sizeStyle="small")
+		self.w.anglesLabel.setToolTip(tooltipText)
+		addField("multiplyAngle", "×", 0, "Crossing of the diagonals of ×, in degrees: 0 is a crossing of 90°. Negative values rotate both diagonals toward vertical by that many degrees, positive values toward horizontal. The arms keep their length, so × gets wider or taller.", -40, 40)
+		addField("chevronAngle", "<>", 30, "Angle of the arms of < and > against the horizontal, in degrees. It controls their vertical size: the smaller the angle, the flatter they are (5° is the smallest), the larger, the taller (80° is the largest). ≤ and ≥ derive from < and > through the distances and the adaptation.", 5, 80)
+		addField("slashAngle", None, 27, "Angle of the slash in ≠, clockwise from vertical, in degrees: 0 is a vertical slash, 27 is the usual slant.", -80, 80)
+		addField("slashEnds", None, 0, "Cut at the ends of the slash in ≠: 0 is a horizontal cutoff, 100 is perpendicular to the stroke, 200 is a vertical cutoff. In between, the cut turns gradually. For very upright slashes a vertical cutoff would run along the stroke, so it is limited to what keeps the shape valid.", 0, 200)
+		self.w.slashAnglesLabel = vanilla.TextBox("auto", "≠", sizeStyle="small")
+		self.w.slashAnglesLabel.setToolTip("The slash in ≠. First field: its angle, clockwise from vertical, in degrees. Second field: the cut at its ends, 0 horizontal, 100 perpendicular, 200 vertical.")
+
 		tooltipText = "Optical corrections, in units: the overshoot of the dots in ÷, the extra extension of ×, the knee caps of < > ≤ ≥, and the overhang and the stroke width of the slash in ≠."
 		self.w.correctionsLabel = vanilla.TextBox("auto", "Corrections", sizeStyle="small")
 		self.w.correctionsLabel.setToolTip(tooltipText)
@@ -749,10 +767,8 @@ class BuildMathOperators(mekkaObject):
 		addField("kneeCap", "<>≤≥", 10, "Knee cap of < > ≤ ≥: the inner apex point is drawn this many units toward the cut-off outer apex, to lighten the joint of the arms. The shape itself does not overshoot the bars.", 0)
 		addField("slashOverhang", None, 80, "Overhang of the slash in ≠: how far it reaches beyond the outer edges of the two bars, in units.", 0)
 		addField("slashStroke", None, 0, "Stroke width change of the slash in ≠, in units, added to the stroke (negative: thinner).", -99, 99)
-		addField("slashAngle", None, 27, "Angle of the slash in ≠, clockwise from vertical, in degrees: 0 is a vertical slash, 27 is the usual slant.", -80, 80)
-		addField("slashEnds", None, 0, "Cut at the ends of the slash in ≠: 0 is a horizontal cutoff, 100 is perpendicular to the stroke, 200 is a vertical cutoff. In between, the cut turns gradually. For very upright slashes a vertical cutoff would run along the stroke, so it is limited to what keeps the shape valid.", 0, 200)
 		self.w.slashLabel = vanilla.TextBox("auto", "≠", sizeStyle="small")
-		self.w.slashLabel.setToolTip("The slash in ≠. First field: how far it reaches beyond the bars, in units. Second field: change of its stroke width, in units. Third field: its angle, clockwise from vertical. Fourth field: the cut at its ends, 0 horizontal, 100 perpendicular, 200 vertical.")
+		self.w.slashLabel.setToolTip("The slash in ≠. First field: how far it reaches beyond the bars, in units. Second field: change of its stroke width, in units. ")
 
 		tooltipText = "Cuts off the pointed apex of < > ≤ ≥ with a vertical line (parallel to the italic angle in slanted masters), so that the blunt end is this percentage of the stroke tall. 0 keeps the sharp point."
 		self.w.miterLabel = vanilla.TextBox("auto", "Miter", sizeStyle="small")
@@ -817,14 +833,14 @@ class BuildMathOperators(mekkaObject):
 		self.w.descriptionText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# the labels end at one x-position:
-		labelNames = ("drawLabel", "widthLabel", "centerLabel", "sidebearingLabel", "strokeLabel", "distancesLabel", "correctionsLabel", "miterLabel", "italicLabel", "scopeLabel")
+		labelNames = ("drawLabel", "widthLabel", "centerLabel", "sidebearingLabel", "strokeLabel", "distancesLabel", "anglesLabel", "correctionsLabel", "miterLabel", "italicLabel", "scopeLabel")
 		widestLabel = "sidebearingLabel"
 		for labelName in labelNames:
 			nsLabel = getattr(self.w, labelName).getNSTextField()
 			nsLabel.setAlignment_(NSTextAlignmentRight)
 			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
 			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
-		for labelName in ("dotDistanceLabel", "barDistanceLabel", "waveBendLabel", "shapeDistanceLabel", "dotOvershootLabel", "multiplyExtensionLabel", "kneeCapLabel", "slashLabel"):
+		for labelName in ("dotDistanceLabel", "barDistanceLabel", "waveBendLabel", "shapeDistanceLabel", "dotOvershootLabel", "multiplyExtensionLabel", "kneeCapLabel", "slashLabel", "multiplyAngleLabel", "chevronAngleLabel", "slashAnglesLabel"):
 			nsLabel = getattr(self.w, labelName).getNSTextField()
 			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
 			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
@@ -849,7 +865,8 @@ class BuildMathOperators(mekkaObject):
 			"H:|-inset-[sidebearingLabel]-gap-[sidebearing(60)]-gap-[sidebearingText]-(>=inset)-|",
 			"H:|-inset-[strokeLabel]-gap-[stroke(60)]-gap-[resetStroke]-gap-[strokeText]-(>=inset)-|",
 			"H:|-inset-[distancesLabel]-gap-[dotDistance(fieldWidth)]-tight-[dotDistanceLabel]-pair-[barDistance(fieldWidth)]-tight-[barDistanceLabel]-pair-[waveBend(fieldWidth)]-tight-[waveBendLabel]-pair-[shapeDistance(fieldWidth)]-tight-[shapeAdaptation(fieldWidth)]-tight-[shapeDistanceLabel]-(>=inset)-|",
-			"H:|-inset-[correctionsLabel]-gap-[dotOvershoot(fieldWidth)]-tight-[dotOvershootLabel]-pair-[multiplyExtension(fieldWidth)]-tight-[multiplyExtensionLabel]-pair-[kneeCap(fieldWidth)]-tight-[kneeCapLabel]-pair-[slashOverhang(fieldWidth)]-tight-[slashStroke(fieldWidth)]-tight-[slashAngle(fieldWidth)]-tight-[slashEnds(fieldWidth)]-tight-[slashLabel]-(>=inset)-|",
+			"H:|-inset-[anglesLabel]-gap-[multiplyAngle(fieldWidth)]-tight-[multiplyAngleLabel]-pair-[chevronAngle(fieldWidth)]-tight-[chevronAngleLabel]-pair-[slashAngle(fieldWidth)]-tight-[slashEnds(fieldWidth)]-tight-[slashAnglesLabel]-(>=inset)-|",
+			"H:|-inset-[correctionsLabel]-gap-[dotOvershoot(fieldWidth)]-tight-[dotOvershootLabel]-pair-[multiplyExtension(fieldWidth)]-tight-[multiplyExtensionLabel]-pair-[kneeCap(fieldWidth)]-tight-[kneeCapLabel]-pair-[slashOverhang(fieldWidth)]-tight-[slashStroke(fieldWidth)]-tight-[slashLabel]-(>=inset)-|",
 			"H:|-inset-[miterLabel]-gap-[miter(60)]-gap-[miterText]-(>=inset)-|",
 			"H:|-inset-[italicLabel]-gap-[italic]-(>=inset)-|",
 			"H:[wiper(60)]-gap-[wiperText]-(>=inset)-|",
@@ -859,7 +876,7 @@ class BuildMathOperators(mekkaObject):
 			"H:|-inset-[status]-inset-|",
 			"H:|-inset-[tabButton]-(>=inset)-[drawButton(>=70)]-inset-|",
 			(
-				"V:|-inset-[descriptionText(42)]-row-[drawMode(radioHeight)]-section-[includeLessGreater]-row-[widthMode]-row-[centerMode]-section-[sidebearing]-row-[stroke]-row-[dotDistance]-row-[dotOvershoot]-row-[miter]"
+				"V:|-inset-[descriptionText(42)]-row-[drawMode(radioHeight)]-section-[includeLessGreater]-row-[widthMode]-row-[centerMode]-section-[sidebearing]-row-[stroke]-row-[dotDistance]-row-[multiplyAngle]-row-[dotOvershoot]-row-[miter]"
 				"-section-[italic]-row-[wiper]-row-[angleAdjustment]-section-[scope]-section-[overwrite]-checkRow-[backup]-section-[status]-inset-[drawButton]-inset-|"
 			),
 			"V:[tabButton]-inset-|",
@@ -871,6 +888,8 @@ class BuildMathOperators(mekkaObject):
 			# between an element and the next is the same. Only the labels of the columns above each other share a width:
 			aligned("dotOvershootLabel", "dotDistanceLabel", "width"),
 			aligned("multiplyExtensionLabel", "barDistanceLabel", "width"),
+			aligned("multiplyAngleLabel", "dotDistanceLabel", "width"),
+			aligned("chevronAngleLabel", "barDistanceLabel", "width"),
 			# the button sits next to the last radio button, the one for the minus:
 			aligned("editMinusButton", "drawMode", "bottom"),
 			aligned("deriveValuesButton", "drawMode", "bottom"),
@@ -894,7 +913,8 @@ class BuildMathOperators(mekkaObject):
 			("sidebearing", ("sidebearingLabel", "sidebearingText")),
 			("stroke", ("strokeLabel", "resetStroke", "strokeText")),
 			("dotDistance", ("distancesLabel", "dotDistanceLabel", "barDistance", "barDistanceLabel", "waveBend", "waveBendLabel", "shapeDistance", "shapeAdaptation", "shapeDistanceLabel")),
-			("dotOvershoot", ("correctionsLabel", "dotOvershootLabel", "multiplyExtension", "multiplyExtensionLabel", "kneeCap", "kneeCapLabel", "slashOverhang", "slashStroke", "slashAngle", "slashEnds", "slashLabel")),
+			("dotOvershoot", ("correctionsLabel", "dotOvershootLabel", "multiplyExtension", "multiplyExtensionLabel", "kneeCap", "kneeCapLabel", "slashOverhang", "slashStroke", "slashLabel")),
+			("multiplyAngle", ("anglesLabel", "multiplyAngleLabel", "chevronAngle", "chevronAngleLabel", "slashAngle", "slashEnds", "slashAnglesLabel")),
 			("miter", ("miterLabel", "miterText")),
 			("italic", ("italicLabel", )),
 			("wiper", ("wiperText", )),
@@ -1119,6 +1139,8 @@ class BuildMathOperators(mekkaObject):
 				"slashStrokeChange": int(round(float(self.pref("slashStroke")))),
 				"slashAngle": float(self.pref("slashAngle")),
 				"slashEnds": float(self.pref("slashEnds")),
+				"multiplyAngle": float(self.pref("multiplyAngle")),
+				"chevronAngle": float(self.pref("chevronAngle")),
 				"multiplyExtension": int(round(float(self.pref("multiplyExtension")))),
 				"miter": float(self.pref("miter")),
 				"wiper": float(self.pref("wiper")),
@@ -1129,7 +1151,7 @@ class BuildMathOperators(mekkaObject):
 			return None
 		distances = (settings["dotDistance"], settings["shapeDistance"], settings["barDistance"])
 		corrections = (settings["overshoot"], settings["kneeCap"], settings["slashOverhang"])
-		if settings["stroke"] < 1 or settings["plusWidth"] < 1 or settings["sidebearing"] < 0 or min(distances) < 1 or min(corrections) < 0 or settings["waveBend"] < 0 or settings["miter"] < 0 or not 0 <= settings["wiper"] <= 100 or not 0 <= settings["adaptation"] <= 100 or not -80 <= settings["slashAngle"] <= 80 or not 0 <= settings["slashEnds"] <= 200 or not -45 <= settings["angleAdjustment"] <= 45:
+		if settings["stroke"] < 1 or settings["plusWidth"] < 1 or settings["sidebearing"] < 0 or min(distances) < 1 or min(corrections) < 0 or settings["waveBend"] < 0 or settings["miter"] < 0 or not 0 <= settings["wiper"] <= 100 or not 0 <= settings["adaptation"] <= 100 or not -80 <= settings["slashAngle"] <= 80 or not 0 <= settings["slashEnds"] <= 200 or not -40 <= settings["multiplyAngle"] <= 40 or not 5 <= settings["chevronAngle"] <= 80 or not -45 <= settings["angleAdjustment"] <= 45:
 			return None
 		settings["takeFromMinus"] = self.prefInt("drawMode") == 1 and not forceFromScratch
 		settings["widthMode"] = self.prefInt("widthMode")
@@ -1245,6 +1267,8 @@ class BuildMathOperators(mekkaObject):
 			"slashStrokeChange": settings["slashStrokeChange"],
 			"slashAngle": settings["slashAngle"],
 			"slashEnds": settings["slashEnds"],
+			"multiplyAngle": settings["multiplyAngle"],
+			"chevronAngle": settings["chevronAngle"],
 			"multiplyExtension": settings["multiplyExtension"],
 			"miter": settings["miter"],
 			"correction": settings["wiper"],
