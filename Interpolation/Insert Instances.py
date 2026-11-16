@@ -4,21 +4,22 @@ Inserts instances, based on the Luc(as), Pablo, Abraham, Schneider and Maciej al
 In Glyphs 4+, presents a redesigned UI for inserting axis particles.
 """
 
-from Foundation import NSDictionary, NSMutableArray, NSMutableDictionary
 import vanilla
-from GlyphsApp import Glyphs, GSInstance, INSTANCETYPESINGLE
+import objc
 from mekkablue import mekkaObject, UpdateButton
+from GlyphsApp import Glyphs, GSInstance, INSTANCETYPESINGLE
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSSize, NSTextAlignmentRight, NSWindowStyleMaskResizable
+from Foundation import NSDictionary, NSMutableArray, NSMutableDictionary, NSNumberFormatter
 
-try:
+if Glyphs.versionNumber >= 4:
 	from GlyphsApp import GSNameParticle
-except ImportError:
-	try:
-		import objc
-		GSNameParticle = objc.lookUpClass("GSNameParticle")
-	except Exception:
-		GSNameParticle = None
 
 INSTANCETYPEPARTICLE = 4  # GSInstance.type for axis particle instances (Glyphs 4+)
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 rangemin = 3
 rangemax = 11
@@ -170,11 +171,11 @@ def _safeAttrName(tag):
 class InstanceMaker(mekkaObject):
 	"""GUI for injecting instances."""
 	prefDict = {
-		"numberOfInstances": "6",
+		"numberOfInstances": 3,  # index of "6" in the popup (3 to 11)
 		"prefix": "",
 		"master1": 1,  # self.MasterList(1),
 		"master2": -1,  # self.MasterList(-1),
-		"width": "100",
+		"width": 100,
 		"algorithm": 0,
 		"existingInstances": False,
 		"maciej": False,
@@ -192,102 +193,171 @@ class InstanceMaker(mekkaObject):
 	def __init__(self):
 
 		# Window 'self.w':
-		windowWidth = 360
-		windowHeight = 400
-		windowWidthResize = 0  # user can resize width by this value
-		windowHeightResize = 300  # user can resize height by this value
+		windowWidth = 400
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Insert weight instances",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
-		linePos, inset, lineHeight = 12, 15, 26
+		# UI elements:
+		inset = 15
 
-		self.w.text_1 = vanilla.TextBox((inset - 1, linePos + 2, 35, 14), "Insert", sizeStyle='small')
-		self.w.numberOfInstances = vanilla.PopUpButton((inset + 37, linePos, 40, 17), [str(x) for x in range(3, 12)], callback=self.UpdateSample, sizeStyle='small')
+		self.w.text_1 = vanilla.TextBox("auto", "Insert", sizeStyle='small')
+		self.w.numberOfInstances = vanilla.PopUpButton("auto", [str(x) for x in range(3, 12)], callback=self.UpdateSample, sizeStyle='small')
 		self.w.numberOfInstances.setToolTip("Choose how many weights you want to add.")
-		self.w.text_2 = vanilla.TextBox((inset + 30 + 50, linePos + 2, 105, 14), "weights with prefix", sizeStyle='small')
-		self.w.prefix = vanilla.EditText((inset + 30 + 50 + 105, linePos - 1, -inset, 19), "A-", callback=self.UpdateSample, sizeStyle='small')
+		self.w.text_2 = vanilla.TextBox("auto", "weights with prefix", sizeStyle='small')
+		self.w.prefix = vanilla.EditText("auto", "A-", callback=self.UpdateSample, sizeStyle='small')
 		self.w.prefix.setToolTip("Choose text that is added at the beginning of each instance, e.g., 'Condensed'.")
-		linePos += lineHeight
 
-		self.w.text_3 = vanilla.TextBox((inset - 1, linePos + 2, 60, 14), "from:", sizeStyle='small')
-		self.w.master1 = vanilla.ComboBox((inset + 35, linePos - 1, 62, 19), self.MasterList(1), callback=self.UpdateSample, sizeStyle='small')
+		self.w.text_3 = vanilla.TextBox("auto", "from:", sizeStyle='small')
+		self.w.master1 = vanilla.ComboBox("auto", self.MasterList(1), callback=self.UpdateSample, sizeStyle='small')
 		self.w.master1.setToolTip("Weight value for the first instance being added, typically the stem width of your lightest weight.")
-		self.w.text_4 = vanilla.TextBox((inset + 50 + 55 * 1, linePos + 2, 55, 14), "through:", sizeStyle='small')
-		self.w.master2 = vanilla.ComboBox((inset + 50 + 55 * 2, linePos - 1, 62, 19), self.MasterList(-1), callback=self.UpdateSample, sizeStyle='small')
+		self.w.text_4 = vanilla.TextBox("auto", "through:", sizeStyle='small')
+		self.w.master2 = vanilla.ComboBox("auto", self.MasterList(-1), callback=self.UpdateSample, sizeStyle='small')
 		self.w.master2.setToolTip("Weight value for the last instance being added, typically the stem width of your boldest weight.")
-		self.w.text_5 = vanilla.TextBox((inset + 65 + 55 * 3, linePos + 2, 55, 14), "at width:", sizeStyle='small')
-		self.w.width = vanilla.EditText((inset + 65 + 55 * 4, linePos - 1, -inset, 19), "100", callback=self.UpdateSample, sizeStyle='small')
+		self.w.text_5 = vanilla.TextBox("auto", "at width:", sizeStyle='small')
+		widthFormatter = NSNumberFormatter.alloc().init()
+		widthFormatter.setMinimum_(1)
+		self.w.width = SteppingEditText("auto", "100", callback=self.UpdateSample, sizeStyle='small', formatter=widthFormatter)
 		self.w.width.setToolTip("The Width value for the instances being added. Default is 100. Adapt accordingly if you are adding condensed or extended instances.")
-		linePos += lineHeight
 
-		self.w.text_6 = vanilla.TextBox((inset - 1, linePos + 2, 60, 14), "using", sizeStyle='small')
-		self.w.algorithm = vanilla.PopUpButton((inset + 35, linePos, 125, 17), ("linear", "Pablo", "Schneider", "Abraham", "Luc(as)", "Reverse Luc(as)", "Mirrored Luc(as)"), callback=self.UpdateSample, sizeStyle='small')
+		self.w.text_6 = vanilla.TextBox("auto", "using", sizeStyle='small')
+		self.w.algorithm = vanilla.PopUpButton("auto", distributionNames, callback=self.UpdateSample, sizeStyle='small')
 		self.w.algorithm.setToolTip(distributionExplanation)
-		self.w.text_7 = vanilla.TextBox((inset + 40 + 125, linePos + 2, 110, 14), "distribution.", sizeStyle='small')
-		self.w.help_instances = vanilla.HelpButton((-15 - 21, linePos + 2, -inset, 20), callback=self.openURL)
-		linePos += lineHeight
+		self.w.text_7 = vanilla.TextBox("auto", "distribution.", sizeStyle='small')
+		self.w.help_instances = vanilla.HelpButton("auto", callback=self.openURL)
 
-		self.w.existingInstances = vanilla.RadioGroup((inset + 20, linePos, -10, 60), ("Leave existing instances as they are", "Deactivate existing instances", "Delete existing instances"), callback=self.SavePreferences, sizeStyle='small')
+		self.w.existingInstances = vanilla.VerticalRadioGroup("auto", ("Leave existing instances as they are", "Deactivate existing instances", "Delete existing instances"), callback=self.SavePreferences, sizeStyle='small')
 		self.w.existingInstances.set(0)
-		linePos += int(lineHeight * 2.4)
 
-		self.w.naturalNames = vanilla.CheckBox((inset + 2, linePos, inset + 225, 19), "Use 'natural' weight names, starting at:", value=False, callback=self.UpdateSample, sizeStyle='small')
+		self.w.naturalNames = vanilla.CheckBox("auto", "Use 'natural' weight names, starting at:", value=False, callback=self.UpdateSample, sizeStyle='small')
 		self.w.naturalNames.setToolTip("Prefill with standard names and style linking. If turned off, will use the Weight number as instance name.")
-		self.w.firstName = vanilla.PopUpButton((inset + 225, linePos, -inset, 17), naturalNames, callback=self.UpdateSample, sizeStyle='small')
+		self.w.firstName = vanilla.PopUpButton("auto", naturalNames, callback=self.UpdateSample, sizeStyle='small')
 		self.w.firstName.setToolTip("If you use natural weight names, choose here the name of your lightest weight.")
-		try:  # workaround for macOS 10.9
-			self.w.firstName.enable(self.w.naturalNames.getNSButton().isEnabled())
-		except:
-			pass
-		linePos += lineHeight - 8
 
-		if Glyphs.versionNumber >= 3:
-			self.w.axisLocation = vanilla.CheckBox((inset + 20, linePos, 220, 20), "Set Axis Location for each instance", value=True, callback=self.SavePreferences, sizeStyle='small')
-			self.w.axisLocationMaster = vanilla.CheckBox((inset + 227, linePos, -inset, 20), "and master", value=True, callback=self.SavePreferences, sizeStyle='small')
+		hasAxisLocation = Glyphs.versionNumber >= 3
+		if hasAxisLocation:
+			self.w.axisLocation = vanilla.CheckBox("auto", "Set Axis Location for each instance", value=True, callback=self.SavePreferences, sizeStyle='small')
+			self.w.axisLocationMaster = vanilla.CheckBox("auto", "and master", value=True, callback=self.SavePreferences, sizeStyle='small')
 			self.w.axisLocation.setToolTip("If enabled, will add an Axis Location parameter with the proper usWeightClass value in Font Info → Exports.\n\nHINT: Do not forget to set Axis Location parameters for each master in Font Info → Masters, and remove the Axis Mappings parameter in Font Info → Font if you have one.")
 			self.w.axisLocationMaster.setToolTip("If enabled, will attempt to set Axis Locations for masters as well. Only works if there is an instance that matches the respective master.")
-			linePos += lineHeight - 8
 
-		self.w.italicStyle = vanilla.CheckBox((inset + 20, linePos, -inset, 20), "Italic suffixes and style linking", value=False, callback=self.UpdateSample, sizeStyle='small')
+		self.w.italicStyle = vanilla.CheckBox("auto", "Italic suffixes and style linking", value=False, callback=self.UpdateSample, sizeStyle='small')
 		self.w.italicStyle.setToolTip("If enabled, will add the word 'Italic' to all instances, and also add italic style linking.")
-		linePos += lineHeight
 
-		self.w.maciej = vanilla.CheckBox((inset + 2, linePos - 1, 160, 19), "Maciej y distribution from:", value=False, callback=self.UpdateSample, sizeStyle='small')
+		self.w.maciej = vanilla.CheckBox("auto", "Maciej y distribution from:", value=False, callback=self.UpdateSample, sizeStyle='small')
 		self.w.maciej.setToolTip("An algorithm proposed by Maciej Ratajski, which introduces slightly different interpolation for y coordinates. Will add interpolationWeightY parameters to the instances. If these value differ greatly from the weight interpolation values, interpolation of your diagonals may suffer.")
-		self.w.text_maciej_1 = vanilla.TextBox((inset + 165 + 55, linePos + 2, 55, 19), "through:", sizeStyle='small')
-		self.w.maciej_light = vanilla.ComboBox((inset + 160, linePos - 1, 55, 19), self.MasterList(1), callback=self.UpdateSample, sizeStyle='small')
-		self.w.maciej_bold = vanilla.ComboBox((inset + 160 + 55 + 55, linePos - 1, -inset, 19), self.MasterList(-1), callback=self.UpdateSample, sizeStyle='small')
-		linePos += lineHeight - 6
+		self.w.maciej_light = vanilla.ComboBox("auto", self.MasterList(1), callback=self.UpdateSample, sizeStyle='small')
+		self.w.text_maciej_1 = vanilla.TextBox("auto", "through:", sizeStyle='small')
+		self.w.maciej_bold = vanilla.ComboBox("auto", self.MasterList(-1), callback=self.UpdateSample, sizeStyle='small')
 
-		self.w.text_maciej_2 = vanilla.TextBox((inset + 15, linePos, -40, 40), "Provide horizontal stem widths in extreme masters to interpolate contrast rather than stems.", sizeStyle='small', selectable=True)
-		self.w.help_maciej = vanilla.HelpButton((-inset - 21, linePos + 4, -inset, 20), callback=self.openURL)
+		self.w.text_maciej_2 = vanilla.TextBox("auto", "Provide horizontal stem widths in extreme masters to interpolate contrast rather than stems.", sizeStyle='small', selectable=True)
+		self.w.help_maciej = vanilla.HelpButton("auto", callback=self.openURL)
 		self.w.help_maciej.setToolTip("Will open a website with a detailed description of the Maciej algorithm. Requires an internet connection.")
-		linePos += int(lineHeight * 1.2)
 
-		self.w.shouldRound = vanilla.CheckBox((inset + 2, linePos, 200, 20), "Round all interpolation values", value=True, callback=self.UpdateSample, sizeStyle='small')
+		self.w.shouldRound = vanilla.CheckBox("auto", "Round all interpolation values", value=True, callback=self.UpdateSample, sizeStyle='small')
 		self.w.shouldRound.setToolTip("If enabled, will round all calculated weight values to integers. Usually a good idea.")
 
-		self.w.keepWindowOpen = vanilla.CheckBox((inset + 200, linePos, -inset, 20), "Keep window open", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.keepWindowOpen = vanilla.CheckBox("auto", "Keep window open", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.keepWindowOpen.setToolTip("If checked, will not close this window after applying the distribution.")
-		linePos += lineHeight
 
-		self.w.sample = vanilla.Box((inset, linePos, -inset, -30 - inset))
-		self.w.sample.text = vanilla.TextBox((5, 5, -5, -5), "", sizeStyle='small')
+		# the sample takes the leftover height if the user enlarges the window:
+		self.w.sample = vanilla.Box("auto")
+		self.w.sample.text = vanilla.TextBox("auto", "", sizeStyle='small')
+		self.w.sample.addAutoPosSizeRules(["H:|-5-[text]-5-|", "V:|-5-[text]-(>=5)-|"])
 
 		# buttons:
-		self.w.createButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Insert", callback=self.CreateInstances)
+		self.w.createButton = vanilla.Button("auto", "Insert", callback=self.CreateInstances)
 		self.w.setDefaultButton(self.w.createButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content, except for the sample box, which may grow:
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+		self.w.sample.getNSBox().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationVertical)
+
+		# the sample and the explanation wrap, so they must not demand one long line or height:
+		for textBox in (self.w.sample.text, self.w.text_maciej_2):
+			textBox.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.sample.text.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationVertical)
+
+		# labels in front of fields are right-aligned and share one width, so the fields line up:
+		labelNames = ("text_1", "text_3", "text_6")
+		for labelName in labelNames:
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+		widthRules = [{"view1": getattr(self.w, labelName), "attribute1": "width", "view2": self.w.text_1, "attribute2": "width"} for labelName in labelNames if labelName != "text_1"]
+
+		# the checkbox hugs its text, the popup behind it stretches:
+		self.w.naturalNames.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.firstName.getNSPopUpButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
+		rules = [
+			"H:|-inset-[text_1]-gap-[numberOfInstances]-gap-[text_2]-gap-[prefix]-inset-|",
+			"H:|-inset-[text_3]-gap-[master1(62)]-gap-[text_4]-gap-[master2(62)]-gap-[text_5]-gap-[width(>=50)]-inset-|",
+			"H:|-inset-[text_6]-gap-[algorithm]-gap-[text_7]-(>=gap)-[help_instances]-inset-|",
+			"H:|-indent-[existingInstances]-(>=inset)-|",
+			"H:|-inset-[naturalNames]-gap-[firstName]-inset-|",
+			"H:|-indent-[italicStyle]-(>=inset)-|",
+			"H:|-inset-[maciej]-gap-[maciej_light(55)]-gap-[text_maciej_1]-gap-[maciej_bold(55)]-(>=inset)-|",
+			"H:|-indent-[text_maciej_2]-gap-[help_maciej]-inset-|",
+			"H:|-inset-[shouldRound]-gap-[keepWindowOpen]-(>=inset)-|",
+			"H:|-inset-[sample]-inset-|",
+			"H:|-(>=inset)-[createButton(>=70)]-inset-|",
+			# one baseline per row:
+			{"view1": self.w.text_1, "attribute1": "centerY", "view2": self.w.prefix, "attribute2": "centerY"},
+			{"view1": self.w.numberOfInstances, "attribute1": "centerY", "view2": self.w.prefix, "attribute2": "centerY"},
+			{"view1": self.w.text_2, "attribute1": "centerY", "view2": self.w.prefix, "attribute2": "centerY"},
+			{"view1": self.w.text_3, "attribute1": "centerY", "view2": self.w.master1, "attribute2": "centerY"},
+			{"view1": self.w.text_4, "attribute1": "centerY", "view2": self.w.master1, "attribute2": "centerY"},
+			{"view1": self.w.master2, "attribute1": "centerY", "view2": self.w.master1, "attribute2": "centerY"},
+			{"view1": self.w.text_5, "attribute1": "centerY", "view2": self.w.master1, "attribute2": "centerY"},
+			{"view1": self.w.width, "attribute1": "centerY", "view2": self.w.master1, "attribute2": "centerY"},
+			{"view1": self.w.text_6, "attribute1": "centerY", "view2": self.w.algorithm, "attribute2": "centerY"},
+			{"view1": self.w.text_7, "attribute1": "centerY", "view2": self.w.algorithm, "attribute2": "centerY"},
+			{"view1": self.w.help_instances, "attribute1": "centerY", "view2": self.w.algorithm, "attribute2": "centerY"},
+			{"view1": self.w.firstName, "attribute1": "centerY", "view2": self.w.naturalNames, "attribute2": "centerY"},
+			{"view1": self.w.maciej_light, "attribute1": "centerY", "view2": self.w.maciej, "attribute2": "centerY"},
+			{"view1": self.w.text_maciej_1, "attribute1": "centerY", "view2": self.w.maciej, "attribute2": "centerY"},
+			{"view1": self.w.maciej_bold, "attribute1": "centerY", "view2": self.w.maciej, "attribute2": "centerY"},
+			{"view1": self.w.help_maciej, "attribute1": "centerY", "view2": self.w.text_maciej_2, "attribute2": "centerY"},
+			{"view1": self.w.keepWindowOpen, "attribute1": "centerY", "view2": self.w.shouldRound, "attribute2": "centerY"},
+			# the first popup and the first combo box are equally wide:
+			{"view1": self.w.numberOfInstances, "attribute1": "width", "view2": self.w.master1, "attribute2": "width"},
+		] + widthRules
+		stack = "[naturalNames]-stackRow-"
+		if hasAxisLocation:
+			rules += [
+				"H:|-indent-[axisLocation]-gap-[axisLocationMaster]-(>=inset)-|",
+				{"view1": self.w.axisLocationMaster, "attribute1": "centerY", "view2": self.w.axisLocation, "attribute2": "centerY"},
+			]
+			stack += "[axisLocation]-stackRow-"
+		rules.append(f"V:|-inset-[prefix]-row-[master1]-row-[algorithm]-sectionGap-[existingInstances(radioHeight)]-sectionGap-{stack}[italicStyle]-stackRow-[maciej]-stackRow-[text_maciej_2(28)]-stackRow-[shouldRound]-sectionGap-[sample(>=100)]-inset-[createButton]-inset-|")
+
+		self.w.addAutoPosSizeRules(
+			rules,
+			metrics={"inset": inset, "indent": inset + 20, "gap": 8, "row": 8, "stackRow": 8, "sectionGap": 10, "radioHeight": self.w.existingInstances.getFittingHeight()},
+		)
 
 		self.LoadPreferences()
 
 		self.w.open()
 		self.UpdateSample(self)
 		self.w.makeKey()
+
+		# make the window vertically resizable, starting at the size that Auto Layout determined,
+		# so the sample can grow. (Content sizes set directly on the NSWindow, so the title bar
+		# is not counted twice.)
+		nsWindow = self.w.getNSWindow()
+		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
+		nsWindow.layoutIfNeeded()  # make sure the content has its final size before we read it
+		contentSize = nsWindow.contentView().frame().size
+		nsWindow.setContentMinSize_(NSSize(contentSize.width, contentSize.height))
+		nsWindow.setContentMaxSize_(NSSize(contentSize.width, contentSize.height + 400))
 
 	def axisTag(self, axis):
 		if Glyphs.versionNumber >= 3:
@@ -409,10 +479,10 @@ class InstanceMaker(mekkaObject):
 					"%s (%.01f)" % (self.completeStyleName(prefix, "%.0f" % weight), weight) for weight in distributedValues
 				)
 
-			max = float(distributedValues[-1])
-			min = float(distributedValues[0])
-			growth = (max / min)**(1.0 / (n - 1))
-			if self.w.algorithm.getItem() == "Luc(as)":
+			lastValue = float(distributedValues[-1])
+			firstValue = float(distributedValues[0])
+			if self.w.algorithm.getItem() == "Luc(as)" and firstValue != 0:
+				growth = (lastValue / firstValue)**(1.0 / (n - 1))
 				sampleText += ",%s growth: %.1f%%" % (
 					" average" if self.pref("shouldRound") else "",
 					(growth - 1) * 100,
@@ -515,6 +585,9 @@ class InstanceMaker(mekkaObject):
 	def CreateInstances(self, sender):
 		try:
 			theFont = Glyphs.font
+			if theFont is None:
+				print("❌ Insert Instances: no font open.")
+				return
 			paramName = "Axis Location"
 
 			if self.DealWithExistingInstances():
@@ -657,17 +730,15 @@ class InstanceMaker(mekkaObject):
 def buildNameParticle(name, internalValue, externalValue):
 	"""
 	Returns a GSNameParticle with the supplied name and axis values.
-	Uses ObjC accessors because GSNameParticle is not Python-wrapped (yet).
-	setInternal_()/setExternal_() work just as well as the ...Value_ variants.
 	"""
 	particle = GSNameParticle.alloc().init()
-	particle.setName_(name)
-	particle.setInternalValue_(float(internalValue))
+	particle.name = name
+	particle.internal = float(internalValue)
 	if externalValue is None or float(externalValue) == float(internalValue):
 		# no mapping necessary if both values are the same:
-		particle.setExternalValue_(None)
+		particle.external = None
 	else:
-		particle.setExternalValue_(float(externalValue))
+		particle.external = float(externalValue)
 	return particle
 
 
@@ -712,10 +783,6 @@ def insertParticlesIntoFont(font, particlesDict):
 				del font.instances[i]
 				count += 1
 		print(f"\t🗑️ Removed {count} existing particle instance(s).")
-
-	if GSNameParticle is None:
-		print("\t❌ GSNameParticle not available in this version of Glyphs.")
-		return
 
 	# Build axis tag → axisId lookup:
 	axisIdForTag = {axis.axisTag: axis.axisId for axis in font.axes}
@@ -775,9 +842,6 @@ class InstanceMakerV4(mekkaObject):
 		"elidableNames": "Regular, Normal, Roman",
 	}
 
-	# Width of the left-column labels, sized to fit "Distribution:" at sizeStyle="small"
-	_labelW = 82
-
 	def __init__(self):
 		thisFont = Glyphs.font
 
@@ -804,85 +868,45 @@ class InstanceMakerV4(mekkaObject):
 				self.prefDict[f"{safeTag}_range"] = "min:max"
 
 		inset = 15
-		lineHeight = 26
 		windowWidth = 390
-		# NSTextAlignmentRight = 2
-		rightAlign = 2
-
-		# Calculate required window height
-		linePos = 12
-		linePos += lineHeight  # remove checkboxes row
-		linePos += lineHeight  # elidable names row
-		linePos += 9           # header divider
-		for i, axisInfo in enumerate(self.fontAxes):
-			linePos += lineHeight  # section title
-			linePos += lineHeight  # first data row (first/last weight OR values)
-			linePos += lineHeight  # second data row (distribution OR range)
-			if i < len(self.fontAxes) - 1:
-				linePos += 9  # divider between sections
-		if not self.fontAxes:
-			linePos += lineHeight  # "no axes" message
-		linePos += 75  # bottom divider + button row + inset
-
-		windowHeight = linePos
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Insert Instances",
-			minSize=(windowWidth, windowHeight),
-			maxSize=(windowWidth + 1000, windowHeight),
-			autosaveName=self.domain("mainwindow_v4"),
+			autosaveName=self.domain("mainwindow_v4"),  # stores last window position
 		)
-
-		linePos = 12
 
 		# Row: Remove checkboxes
-		self.w.removeInstances = vanilla.CheckBox(
-			(inset, linePos, 185, 20),
-			"Remove existing instances",
-			value=False,
-			callback=self.SavePreferences,
-			sizeStyle="small",
-		)
+		self.w.removeInstances = vanilla.CheckBox("auto", "Remove existing instances", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.removeInstances.setToolTip("Remove all existing instances from the frontmost font before inserting.")
-		self.w.removeParticles = vanilla.CheckBox(
-			(inset + 192, linePos, -inset, 20),
-			"Remove existing particles",
-			value=False,
-			callback=self.SavePreferences,
-			sizeStyle="small",
-		)
+		self.w.removeParticles = vanilla.CheckBox("auto", "Remove existing particles", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.removeParticles.setToolTip("Remove all existing axis particles from the frontmost font before inserting. If off, the new particles will be added as an additional set, and existing particles will stay as they are.")
-		linePos += lineHeight
 
 		# Row: Elidable names
-		self.w.elidableLabel = vanilla.TextBox(
-			(inset, linePos + 2, 102, 14),
-			"Elidable names:",
-			sizeStyle="small",
-		)
-		self.w.elidableNames = vanilla.EditText(
-			(inset + 103, linePos - 1, -inset - 22, 19),
-			self.defaultElidableNames,
-			callback=self.SavePreferences,
-			sizeStyle="small",
-		)
-		self.w.elidableNames.setToolTip("Comma-separated style names that are elidable: they can be omitted from composite names, e.g. 'Condensed Regular' becomes 'Condensed'.")
-		self.w.elidableNamesReset = UpdateButton(
-			(-inset - 18, linePos - 1, -inset, 18),
-			callback=self.resetElidableNames,
-		)
+		self.w.elidableLabel = vanilla.TextBox("auto", "Elidable names:", sizeStyle="small")
+		self.w.elidableNames = vanilla.EditText("auto", self.defaultElidableNames, callback=self.SavePreferences, sizeStyle="small")
+		tooltipText = "Comma-separated style names that are elidable: they can be omitted from composite names, e.g. 'Condensed Regular' becomes 'Condensed'."
+		self.w.elidableLabel.setToolTip(tooltipText)
+		self.w.elidableNames.setToolTip(tooltipText)
+		self.w.elidableNamesReset = UpdateButton("auto", callback=self.resetElidableNames)
 		self.w.elidableNamesReset.setToolTip(f"Reset to defaults: {self.defaultElidableNames}")
-		linePos += lineHeight
 
 		# Divider below header
-		self.w.dividerTop = vanilla.HorizontalLine((inset, linePos, -inset, 1))
-		linePos += 9
+		self.w.dividerTop = vanilla.HorizontalLine("auto")
+
+		rules = [
+			"H:|-inset-[removeInstances]-gap-[removeParticles]-(>=inset)-|",
+			"H:|-inset-[elidableLabel]-gap-[elidableNames]-gap-[elidableNamesReset]-inset-|",
+			"H:|-inset-[dividerTop]-inset-|",
+			{"view1": self.w.removeParticles, "attribute1": "centerY", "view2": self.w.removeInstances, "attribute2": "centerY"},
+			{"view1": self.w.elidableLabel, "attribute1": "centerY", "view2": self.w.elidableNames, "attribute2": "centerY"},
+			{"view1": self.w.elidableNamesReset, "attribute1": "centerY", "view2": self.w.elidableNames, "attribute2": "centerY"},
+		]
+		verticalChain = "V:|-inset-[removeInstances]-stackRow-[elidableNames]-sectionGap-[dividerTop(1)]"
+		labelNames = ["elidableLabel"]  # right-aligned, all as wide as the first one, so the fields line up
 
 		# Per-axis sections
-		labelW = self._labelW  # common left-column label width for consistent input alignment
-		inputX = inset + labelW + 2  # x where all left-column inputs start
-
 		if self.fontAxes:
 			for i, axisInfo in enumerate(self.fontAxes):
 				tag = axisInfo["tag"]
@@ -890,133 +914,116 @@ class InstanceMakerV4(mekkaObject):
 				name = axisInfo["name"]
 
 				# Section title: "Particles for: wght (Weight)"
-				setattr(
-					self.w,
-					f"sectionTitle_{safeTag}",
-					vanilla.TextBox((inset, linePos + 2, -inset, 14), f"Particles for: {tag} ({name})", sizeStyle="small"),
-				)
-				linePos += lineHeight
+				titleName = f"sectionTitle_{safeTag}"
+				setattr(self.w, titleName, vanilla.TextBox("auto", f"Particles for: {tag} ({name})", sizeStyle="small"))
+				rules.append(f"H:|-inset-[{titleName}]-(>=inset)-|")
+				verticalChain += f"-sectionGap-[{titleName}]"
 
 				if tag == "wght":
-					# "First:" label (right-aligned) + popup
-					firstLabel = vanilla.TextBox((inset, linePos + 2, labelW, 14), "First:", sizeStyle="small")
-					firstLabel.getNSTextField().setAlignment_(rightAlign)
-					setattr(self.w, f"firstWeightLabel_{safeTag}", firstLabel)
-
-					firstPicker = vanilla.PopUpButton(
-						(inputX, linePos, 122, 17),
-						list(naturalNames),
-						callback=self.SavePreferences,
-						sizeStyle="small",
-					)
+					# "First:" label + popup
+					setattr(self.w, f"firstWeightLabel_{safeTag}", vanilla.TextBox("auto", "First:", sizeStyle="small"))
+					firstPicker = vanilla.PopUpButton("auto", list(naturalNames), callback=self.SavePreferences, sizeStyle="small")
 					firstPicker.setToolTip("Name of the lightest weight particle to add.")
 					setattr(self.w, "wght_firstName", firstPicker)
 
-					# "Last:" label (right-aligned) + popup (same row, Last popup stretches)
-					lastLabelX = inputX + 122 + 8
-					lastLabel = vanilla.TextBox((lastLabelX, linePos + 2, 44, 14), "Last:", sizeStyle="small")
-					lastLabel.getNSTextField().setAlignment_(rightAlign)
-					setattr(self.w, f"lastWeightLabel_{safeTag}", lastLabel)
-
-					lastPicker = vanilla.PopUpButton(
-						(lastLabelX + 46, linePos, -inset, 17),
-						list(naturalNames),
-						callback=self.SavePreferences,
-						sizeStyle="small",
-					)
+					# "Last:" label + popup (same row)
+					setattr(self.w, f"lastWeightLabel_{safeTag}", vanilla.TextBox("auto", "Last:", sizeStyle="small"))
+					lastPicker = vanilla.PopUpButton("auto", list(naturalNames), callback=self.SavePreferences, sizeStyle="small")
 					lastPicker.setToolTip("Name of the heaviest weight particle to add.")
 					setattr(self.w, "wght_lastName", lastPicker)
-					linePos += lineHeight
 
-					# "Distribution:" label (right-aligned) + popup
-					distLabel = vanilla.TextBox((inset, linePos + 2, labelW, 14), "Distribution:", sizeStyle="small")
-					distLabel.getNSTextField().setAlignment_(rightAlign)
-					setattr(self.w, f"distributionLabel_{safeTag}", distLabel)
-
-					distPicker = vanilla.PopUpButton(
-						(inputX, linePos, 130, 17),
-						list(distributionNames),
-						callback=self.SavePreferences,
-						sizeStyle="small",
-					)
+					# "Distribution:" label + popup
+					setattr(self.w, f"distributionLabel_{safeTag}", vanilla.TextBox("auto", "Distribution:", sizeStyle="small"))
+					distPicker = vanilla.PopUpButton("auto", list(distributionNames), callback=self.SavePreferences, sizeStyle="small")
 					distPicker.setToolTip(distributionExplanation)
 					setattr(self.w, "wght_algorithm", distPicker)
 
 					# number of weight particles that will be inserted:
-					self.w.wght_particleCount = vanilla.TextBox(
-						(inputX + 130 + 16, linePos + 2, -inset, 14),
-						"",
-						sizeStyle="small",
-					)
+					self.w.wght_particleCount = vanilla.TextBox("auto", "", sizeStyle="small")
 					self.w.wght_particleCount.setToolTip("Number of weight particles that will be inserted, from First through Last.")
-					linePos += lineHeight
+
+					labelNames += [f"firstWeightLabel_{safeTag}", f"distributionLabel_{safeTag}"]
+					rules += [
+						f"H:|-inset-[firstWeightLabel_{safeTag}]-gap-[wght_firstName(>=110)]-gap-[lastWeightLabel_{safeTag}]-gap-[wght_lastName]-inset-|",
+						f"H:|-inset-[distributionLabel_{safeTag}]-gap-[wght_algorithm]-gap-[wght_particleCount]-(>=inset)-|",
+						{"view1": getattr(self.w, f"firstWeightLabel_{safeTag}"), "attribute1": "centerY", "view2": firstPicker, "attribute2": "centerY"},
+						{"view1": getattr(self.w, f"lastWeightLabel_{safeTag}"), "attribute1": "centerY", "view2": firstPicker, "attribute2": "centerY"},
+						{"view1": lastPicker, "attribute1": "centerY", "view2": firstPicker, "attribute2": "centerY"},
+						{"view1": getattr(self.w, f"distributionLabel_{safeTag}"), "attribute1": "centerY", "view2": distPicker, "attribute2": "centerY"},
+						{"view1": self.w.wght_particleCount, "attribute1": "centerY", "view2": distPicker, "attribute2": "centerY"},
+						# the three popups are equally wide:
+						{"view1": lastPicker, "attribute1": "width", "view2": firstPicker, "attribute2": "width"},
+						{"view1": distPicker, "attribute1": "width", "view2": firstPicker, "attribute2": "width"},
+					]
+					verticalChain += "-row-[wght_firstName]-row-[wght_algorithm]"
 
 				else:
-					# "Values:" label (right-aligned) + field
-					valLabel = vanilla.TextBox((inset, linePos + 2, labelW, 14), "Values:", sizeStyle="small")
-					valLabel.getNSTextField().setAlignment_(rightAlign)
-					setattr(self.w, f"valuesLabel_{safeTag}", valLabel)
-
-					valField = vanilla.EditText(
-						(inputX, linePos - 1, -inset, 19),
-						"",
-						callback=self.SavePreferences,
-						sizeStyle="small",
-					)
+					# "Values:" label + field
+					valuesLabelName = f"valuesLabel_{safeTag}"
+					setattr(self.w, valuesLabelName, vanilla.TextBox("auto", "Values:", sizeStyle="small"))
+					valField = vanilla.EditText("auto", "", callback=self.SavePreferences, sizeStyle="small")
 					valField.setToolTip("Comma-separated axis values to use as particles. They will be distributed linearly across the defined range.")
 					setattr(self.w, f"{safeTag}_values", valField)
-					linePos += lineHeight
 
-					# "Range:" label (right-aligned) + field
-					rangeLabel = vanilla.TextBox((inset, linePos + 2, labelW, 14), "Range:", sizeStyle="small")
-					rangeLabel.getNSTextField().setAlignment_(rightAlign)
-					setattr(self.w, f"rangeLabel_{safeTag}", rangeLabel)
-
-					rangeField = vanilla.EditText(
-						(inputX, linePos - 1, -inset, 19),
-						"min:max",
-						callback=self.SavePreferences,
-						sizeStyle="small",
-					)
+					# "Range:" label + field
+					rangeLabelName = f"rangeLabel_{safeTag}"
+					setattr(self.w, rangeLabelName, vanilla.TextBox("auto", "Range:", sizeStyle="small"))
+					rangeField = vanilla.EditText("auto", "min:max", callback=self.SavePreferences, sizeStyle="small")
 					rangeField.setToolTip("Distribution range as min:max. Use 'min'/'max' for the axis endpoints, or leave as 'min:max' for the full range. Examples: 'min:100', '200:max', '75:125'.")
 					setattr(self.w, f"{safeTag}_range", rangeField)
-					linePos += lineHeight
+
+					labelNames += [valuesLabelName, rangeLabelName]
+					rules += [
+						f"H:|-inset-[{valuesLabelName}]-gap-[{safeTag}_values]-inset-|",
+						f"H:|-inset-[{rangeLabelName}]-gap-[{safeTag}_range]-inset-|",
+						{"view1": getattr(self.w, valuesLabelName), "attribute1": "centerY", "view2": valField, "attribute2": "centerY"},
+						{"view1": getattr(self.w, rangeLabelName), "attribute1": "centerY", "view2": rangeField, "attribute2": "centerY"},
+					]
+					verticalChain += f"-row-[{safeTag}_values]-row-[{safeTag}_range]"
 
 				# Divider between axis sections (not after the last one)
 				if i < len(self.fontAxes) - 1:
-					setattr(
-						self.w,
-						f"divider_{safeTag}",
-						vanilla.HorizontalLine((inset, linePos, -inset, 1)),
-					)
-					linePos += 9
+					dividerName = f"divider_{safeTag}"
+					setattr(self.w, dividerName, vanilla.HorizontalLine("auto"))
+					rules.append(f"H:|-inset-[{dividerName}]-inset-|")
+					verticalChain += f"-sectionGap-[{dividerName}(1)]"
 		else:
-			self.w.noAxesMessage = vanilla.TextBox(
-				(inset, linePos + 2, -inset, 14),
-				"No axes found in the frontmost font.",
-				sizeStyle="small",
-			)
-			linePos += lineHeight
+			self.w.noAxesMessage = vanilla.TextBox("auto", "No axes found in the frontmost font.", sizeStyle="small")
+			rules.append("H:|-inset-[noAxesMessage]-(>=inset)-|")
+			verticalChain += "-sectionGap-[noAxesMessage]"
 
-		# Divider above button bar (10px above button top)
-		self.w.dividerBottom = vanilla.HorizontalLine((inset, -47, -inset, 1))
+		# Divider above button bar
+		self.w.dividerBottom = vanilla.HorizontalLine("auto")
 
-		# Reset at bottom-left, Insert at bottom-right — regular size (22px tall)
-		self.w.resetButton = vanilla.Button(
-			(inset, -22 - inset, 90, -inset),
-			"Reset",
-			callback=self.resetAction,
-			sizeStyle="regular",
-		)
+		# Reset at bottom-left, Insert at bottom-right
+		self.w.resetButton = vanilla.Button("auto", "Reset", callback=self.resetAction)
 		self.w.resetButton.setToolTip("Reset all form fields to their defaults.")
-		self.w.insertButton = vanilla.Button(
-			(-80 - inset, -22 - inset, -inset, -inset),
-			"Insert",
-			callback=self.insertAction,
-			sizeStyle="regular",
-		)
+		self.w.insertButton = vanilla.Button("auto", "Insert", callback=self.insertAction)
 		self.w.insertButton.setToolTip("Insert axis particles into the frontmost font.")
 		self.w.setDefaultButton(self.w.insertButton)
+
+		verticalChain += "-sectionGap-[dividerBottom(1)]-inset-[insertButton]-inset-|"
+		rules += [
+			"H:|-inset-[dividerBottom]-inset-|",
+			"H:|-inset-[resetButton(>=70)]-(>=gap)-[insertButton(>=70)]-inset-|",
+			verticalChain,
+			"V:[resetButton]-inset-|",
+		]
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# labels are right-aligned and share one width, so the fields line up:
+		for labelName in labelNames:
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+		rules += [{"view1": getattr(self.w, labelName), "attribute1": "width", "view2": self.w.elidableLabel, "attribute2": "width"} for labelName in labelNames[1:]]
+
+		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "row": 8, "stackRow": 8, "sectionGap": 10})
 
 		self.LoadPreferences()
 		self.w.open()
@@ -1063,22 +1070,10 @@ class InstanceMakerV4(mekkaObject):
 		self.SavePreferences()
 
 	def _axisRange(self, axisInfo, thisFont):
-		"""Return (min, max) for an axis. Attribute names vary across Glyphs versions."""
-		axis = axisInfo["axis"]
-		for minAttr, maxAttr in (("minimum", "maximum"), ("axisMin", "axisMax"), ("min", "max")):
-			try:
-				return float(getattr(axis, minAttr)), float(getattr(axis, maxAttr))
-			except AttributeError:
-				pass
-		# Fall back: use the spread of master axis values
-		try:
-			axisId = axis.axisId
-			vals = [float(m.axisValueValueForId_(axisId)) for m in thisFont.masters]
-			if vals:
-				return min(vals), max(vals)
-		except Exception:
-			pass
-		return 0.0, 1000.0
+		"""Return (min, max) of an axis, i.e., the spread of the master coordinates on that axis."""
+		axisId = axisInfo["axis"].axisId
+		values = [float(master.internalAxesValues[axisId]) for master in thisFont.masters]
+		return min(values), max(values)
 
 	def buildParticlesDict(self):
 		thisFont = Glyphs.font
