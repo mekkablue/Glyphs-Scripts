@@ -316,10 +316,10 @@ def otVarFileName(thisFont, thisInstance=None):
 		if fileName.endswith(".otf"):
 			fileName = fileName[:-4]
 		if "{{{familyNames}}}" in fileName:
-			# Glyphs appends "VF" to the unresolved family name (e.g. "{{{familyNames}}} VF"),
-			# so build the file name from the resolved family name instead, without spaces,
-			# like the exported file (e.g. "Flintstone VF" > FlintstoneVF.otf):
-			fileName = familyNameOfInstance(thisInstance).replace(" ", "")
+			# Glyphs appends "VF" to the unresolved family name (e.g. "{{{familyNames}}} Corner VF"),
+			# so resolve the placeholder in that name (keeping the "VF") and remove the spaces,
+			# like the exported file (e.g. "Flintstone Corner VF" > FlintstoneCornerVF.otf):
+			fileName = resolveFamilyNamesPlaceholder(fileName, thisFont).replace(" ", "")
 		if not fileName:
 			fileName = thisInstance.customParameters["fileName"]
 			if not fileName:
