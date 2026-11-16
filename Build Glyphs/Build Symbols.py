@@ -1,6 +1,6 @@
 # MenuTitle: Build Symbols
 __doc__ = """
-Creates an estimated glyph and draws an estimated sign in it. Does the same for bar and brokenbar, for which it respects standard stems and italic angle, and for emptyset, dottedCircle, currency, lozenge, product, summation, radical, dagger, daggerdbl and .notdef. Stem widths are measured on the slash, else taken from the master stems, else defaulted, so it also works in an empty font.
+Creates an estimated glyph and draws an estimated sign in it. Does the same for bar and brokenbar, for which it respects standard stems and italic angle, and for emptyset, dottedCircle, currency, lozenge, product, summation, radical, partialdiff, dagger, daggerdbl and .notdef. Stem widths are measured on the slash, else taken from the master stems, else defaulted, so it also works in an empty font.
 """
 
 import math
@@ -166,6 +166,15 @@ def zeroGlyphOf(font):
 		if font.glyphs[zeroName]:
 			return font.glyphs[zeroName]
 	return None
+
+
+def overshootOf(zeroGlyph, master):
+	"""Returns the overshoot of the zero in the master (at least 5), or 5 if there is no zero or it is empty."""
+	if zeroGlyph:
+		zeroBounds = zeroGlyph.layers[master.id].bounds
+		if zeroBounds is not None and zeroBounds.size.height > 0:
+			return abs(min(-5.0, zeroBounds.origin.y))
+	return 5.0
 
 
 def slashLayerOf(font, master):
@@ -465,11 +474,7 @@ def buildEmptyset(font, override=False, backupLayers=False):
 		layer = glyph.layers[master.id]
 
 		# height: average of x-height and cap height, plus overshoot at bottom and top:
-		overshoot = 5.0
-		if zeroGlyph:
-			zeroBounds = zeroGlyph.layers[master.id].bounds
-			if zeroBounds is not None and zeroBounds.size.height > 0:
-				overshoot = abs(min(-5.0, zeroBounds.origin.y))
+		overshoot = overshootOf(zeroGlyph, master)
 		baseHeight = (master.xHeight + capHeightOf(master)) * 0.5
 		height = baseHeight + 2 * overshoot
 		radius = height * 0.5
@@ -746,6 +751,74 @@ def radicalPenData(width, height, stem, bar):
 	), )
 
 
+def arcSegments(center, radius, startDegrees, endDegrees):
+	"""Returns curve segments (three points each) for the arc around the center, in pieces of at most 90°; counterclockwise if end > start."""
+	pieceCount = max(1, math.ceil(abs(endDegrees - startDegrees) / 90.0 - 1e-9))
+	segments = []
+	for index in range(pieceCount):
+		startAngle = math.radians(startDegrees + (endDegrees - startDegrees) * index / pieceCount)
+		endAngle = math.radians(startDegrees + (endDegrees - startDegrees) * (index + 1) / pieceCount)
+		handleLength = 4.0 / 3.0 * math.tan((endAngle - startAngle) / 4.0) * radius
+		segments.append((
+			(center[0] + radius * math.cos(startAngle) - handleLength * math.sin(startAngle), center[1] + radius * math.sin(startAngle) + handleLength * math.cos(startAngle)),
+			(center[0] + radius * math.cos(endAngle) + handleLength * math.sin(endAngle), center[1] + radius * math.sin(endAngle) - handleLength * math.cos(endAngle)),
+			(center[0] + radius * math.cos(endAngle), center[1] + radius * math.sin(endAngle)),
+		))
+	return segments
+
+
+def ellipsePenData(centerX, centerY, radiusX, radiusY, clockwise=False):
+	"""An ellipse as one path, starting at its rightmost point."""
+	handleX = radiusX * CIRCLE_HANDLE
+	handleY = radiusY * CIRCLE_HANDLE
+	direction = -1 if clockwise else 1
+	segments = []
+	for quarter in range(4):
+		startAngle = math.radians(90 * quarter * direction)
+		endAngle = math.radians(90 * (quarter + 1) * direction)
+		segments.append((
+			(centerX + radiusX * math.cos(startAngle) - direction * handleX * math.sin(startAngle), centerY + radiusY * math.sin(startAngle) + direction * handleY * math.cos(startAngle)),
+			(centerX + radiusX * math.cos(endAngle) + direction * handleX * math.sin(endAngle), centerY + radiusY * math.sin(endAngle) - direction * handleY * math.cos(endAngle)),
+			(centerX + radiusX * math.cos(endAngle), centerY + radiusY * math.sin(endAngle)),
+		))
+	return ((centerX + radiusX, centerY), *segments)
+
+
+def partialdiffPenData(width, height, stem, bar):
+	"""
+	∂ as two overlapping contours: the bowl, an elliptical ring, and the arm, a stroke of constant thickness that rises
+	along the right side of the bowl and bends over to the left. The bottom end of the arm enters the near-vertical curve of the bowl.
+	Origin bottom left, counterclockwise.
+	"""
+	bowlHeight = height * 0.58
+	radiusX = width * 0.5
+	radiusY = bowlHeight * 0.5
+
+	# arm: centerline radius of its bend, and the bend’s center, so that the outer curve touches the top:
+	bendRadius = width * 0.4
+	outerRadius = bendRadius + stem * 0.5
+	innerRadius = bendRadius - stem * 0.5
+	bendCenter = (width - stem * 0.5 - bendRadius, height - outerRadius)
+	armBottom = radiusY - stem * 0.25  # slightly below the middle of the bowl
+	armLeft = width - stem
+	bendEnd = 135.0  # degrees: the arm ends pointing down and to the left
+
+	terminalInner = (bendCenter[0] + innerRadius * math.cos(math.radians(bendEnd)), bendCenter[1] + innerRadius * math.sin(math.radians(bendEnd)))
+	arm = (
+		(armLeft, armBottom),
+		(width, armBottom),
+		(width, bendCenter[1]),
+		*arcSegments(bendCenter, outerRadius, 0.0, bendEnd),
+		terminalInner,
+		*arcSegments(bendCenter, innerRadius, bendEnd, 0.0),
+	)
+	return (
+		ellipsePenData(radiusX, radiusY, radiusX, radiusY),
+		ellipsePenData(radiusX, radiusY, radiusX - stem, radiusY - bar, clockwise=True),
+		arm,
+	)
+
+
 def buildPolygonSymbol(
 	font, glyphName, unicodeValue, penDataFunction, boxFunction, widthFactor, maxStemFactor, override=False, backupLayers=False, rightKey="=|"
 ):
@@ -780,6 +853,16 @@ def buildProduct(font, override=False, backupLayers=False):
 
 def buildSummation(font, override=False, backupLayers=False):
 	buildPolygonSymbol(font, "summation", "2211", summationPenData, bigSymbolBoxOfMaster, 0.527, 0.12, override=override, backupLayers=backupLayers)
+
+
+def buildPartialdiff(font, override=False, backupLayers=False):
+	zeroGlyph = zeroGlyphOf(font)
+
+	def boxOfMaster(master):  # cap height with overshoot at the top and bottom
+		overshoot = overshootOf(zeroGlyph, master)
+		return -overshoot, capHeightOf(master) + 2 * overshoot
+
+	buildPolygonSymbol(font, "partialdiff", "2202", partialdiffPenData, boxOfMaster, 0.46, 0.12, override=override, backupLayers=backupLayers)
 
 
 def buildDaggers(font, override=False, backupLayers=False):
@@ -840,6 +923,13 @@ SYMBOLS = (
 		"◊: outlined diamond, 70% cap height, stem as in slash or master.",
 		buildLozenge,
 		("lozenge", ),
+	),
+	(
+		"buildPartialdiff",
+		"partialdiff ∂",
+		"∂: ring with an arm bending over to the left, cap height plus overshoot.",
+		buildPartialdiff,
+		("partialdiff", ),
 	),
 	(
 		"buildDaggers",
