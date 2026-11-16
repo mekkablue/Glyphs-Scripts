@@ -8,9 +8,6 @@ Moves PostScript (stem and ghost) hints from the current layer to the first mast
 from GlyphsApp import Glyphs, GSHint, TOPGHOST, BOTTOMGHOST, STEM, TTANCHOR, TTSTEM, TTALIGN, TTINTERPOLATE, TTDIAGONAL, TTDELTA
 
 thisFont = Glyphs.font  # frontmost font
-selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
-firstMaster = thisFont.masters[0]
-firstMasterId = firstMaster.id
 supportedHintTypes = (
 	TOPGHOST,
 	BOTTOMGHOST,
@@ -72,34 +69,40 @@ def transferHintsFromTo(sourceLayer, targetLayer):
 	deleteHintsOnLayer(sourceLayer)
 
 
-thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
-try:
-	# brings macro window to front and clears its log:
-	Glyphs.clearLog()
+if thisFont is None:
+	print("⚠️ No font open.")
+else:
+	selectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
+	firstMasterId = thisFont.masters[0].id
 
-	for thisLayer in selectedLayers:
-		thisGlyph = thisLayer.parent
-		if thisLayer.layerId != firstMasterId:
-			firstLayer = thisGlyph.layers[firstMasterId]
-			if thisGlyph.mastersCompatibleForLayers_([thisLayer, firstLayer]):
-				print("Transfering hints in: %s" % thisGlyph.name)
-				# thisGlyph.beginUndo()  # undo grouping causes crashes
-				transferHintsFromTo(thisLayer, firstLayer)
-				# thisGlyph.endUndo()  # undo grouping causes crashes
+	thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
+	try:
+		# brings macro window to front and clears its log:
+		Glyphs.clearLog()
+
+		for thisLayer in selectedLayers:
+			thisGlyph = thisLayer.parent
+			if thisLayer.layerId != firstMasterId:
+				firstLayer = thisGlyph.layers[firstMasterId]
+				if thisGlyph.mastersCompatibleForLayers_([thisLayer, firstLayer]):
+					print("Transfering hints in: %s" % thisGlyph.name)
+					# thisGlyph.beginUndo()  # undo grouping causes crashes
+					transferHintsFromTo(thisLayer, firstLayer)
+					# thisGlyph.endUndo()  # undo grouping causes crashes
+				else:
+					Glyphs.showMacroWindow()
+					print("%s: layers incompatible." % thisGlyph.name)
 			else:
 				Glyphs.showMacroWindow()
-				print("%s: layers incompatible." % thisGlyph.name)
-		else:
-			Glyphs.showMacroWindow()
-			print("%s: layer '%s' is already the first master layer." % (thisGlyph.name, thisLayer.name))
+				print("%s: layer '%s' is already the first master layer." % (thisGlyph.name, thisLayer.name))
 
-except Exception as e:
-	Glyphs.showMacroWindow()
-	print("\n⚠️ Script Error:\n")
-	import traceback
-	print(traceback.format_exc())
-	print()
-	raise e
+	except Exception as e:
+		Glyphs.showMacroWindow()
+		print("\n⚠️ Script Error:\n")
+		import traceback
+		print(traceback.format_exc())
+		print()
+		raise e
 
-finally:
-	thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
+	finally:
+		thisFont.enableUpdateInterface()  # re-enables UI updates in Font View

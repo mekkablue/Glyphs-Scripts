@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, unicode_literals
 __doc__ = """
-Deletes all paths in visible layers of selected glyphs.
+Deletes all open paths in visible layers of selected glyphs.
 """
 
 from GlyphsApp import Glyphs
 
 Font = Glyphs.font
-selectedLayers = Font.selectedLayers
+selectedLayers = Font.selectedLayers if Font else []
 
 
 def process(thisLayer):
@@ -29,16 +29,17 @@ def process(thisLayer):
 	return count
 
 
-Font.disableUpdateInterface()
-try:
-	for thisLayer in selectedLayers:
-		print("Removing %i open paths in %s." % (process(thisLayer), thisLayer.parent.name))
-except Exception as e:
-	Glyphs.showMacroWindow()
-	print("\n⚠️ Script Error:\n")
-	import traceback
-	print(traceback.format_exc())
-	print()
-	raise e
-finally:
-	Font.enableUpdateInterface()  # re-enables UI updates in Font View
+if Font:
+	Font.disableUpdateInterface()
+	try:
+		for thisLayer in selectedLayers:
+			print("Removing %i open paths in %s." % (process(thisLayer), thisLayer.parent.name))
+	except Exception as e:
+		Glyphs.showMacroWindow()
+		print("\n⚠️ Script Error:\n")
+		import traceback
+		print(traceback.format_exc())
+		print()
+		raise e
+	finally:
+		Font.enableUpdateInterface()  # re-enables UI updates in Font View

@@ -116,7 +116,7 @@ def nearestSegmentTimeForPoint(pt, nodes):
 		raise ValueError("nodes must contain either 2 points (line) or 4 points (cubic Bézier)")
 
 font = Glyphs.font
-selectedLayers = font.selectedLayers
+selectedLayers = font.selectedLayers if font else []
 if len(selectedLayers) == 1:
 	layer = selectedLayers[0]
 	for s in layer.selection:

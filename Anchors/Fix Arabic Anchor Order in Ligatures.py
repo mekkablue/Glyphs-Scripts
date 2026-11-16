@@ -31,9 +31,9 @@ def addListOfAnchors(thisLayer, baseName, listOfCoordinates):
 		makeAnchor(thisLayer, "%s_%i" % (baseName, i + 1), currCoord[0], currCoord[1])
 
 
-def deleteAnchors(listOfAnchors):
-	for i in range(len(listOfAnchors))[::-1]:
-		del listOfAnchors[i]
+def deleteAnchors(thisLayer, listOfAnchors):
+	for thisAnchor in listOfAnchors:
+		thisLayer.anchors.remove(thisAnchor)
 
 
 def process(thisLayer):
@@ -42,8 +42,8 @@ def process(thisLayer):
 	topAnchorCoords = sorted([[a.x, a.y] for a in topAnchors], key=lambda l: l[0], reverse=True)
 	bottomAnchorCoords = sorted([[a.x, a.y] for a in bottomAnchors], key=lambda l: l[0], reverse=True)
 
-	deleteAnchors(topAnchors)
-	deleteAnchors(bottomAnchors)
+	deleteAnchors(thisLayer, topAnchors)
+	deleteAnchors(thisLayer, bottomAnchors)
 
 	addListOfAnchors(thisLayer, "top", topAnchorCoords)
 	addListOfAnchors(thisLayer, "bottom", bottomAnchorCoords)

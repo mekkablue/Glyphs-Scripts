@@ -12,6 +12,9 @@ def process(thisLayer):
 	glyphName = thisLayer.parent.name
 	baseGlyphName = glyphName[:glyphName.find(".")]
 	baseGlyph = Font.glyphs[baseGlyphName]
+	if not baseGlyph:
+		print("⚠️ Layer: %s, no base glyph %s found, skipping." % (thisLayer.name, baseGlyphName))
+		return 0
 	baseLayer = baseGlyph.layers[thisLayer.master.id]
 
 	print("Layer: %s, replicating from %s" % (thisLayer.name, baseGlyphName))

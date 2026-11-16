@@ -32,7 +32,7 @@ def intersectionOnXHeight(thisLayer):
 	listOfIntersections = sliceIntersections(thisLayer, originPoint, targetPoint)
 
 	# print("intersectionOnXHeight:", listOfIntersections, originPoint, targetPoint)  # DEBUG
-	if listOfIntersections:
+	if len(listOfIntersections) > 2:  # the first and last entries are the start and end points of the slice
 		rightmostIntersection = listOfIntersections[-2].pointValue()
 		return rightmostIntersection
 	else:
@@ -61,7 +61,8 @@ def process(thisLayer):
 			thisLayer.setSelection_(itemsToBeSelected)
 		else:
 			# put it on the x-height, at least:
-			toprightAnchor.y = 0
+			xHeight = thisLayer.master.xHeight or 500
+			toprightAnchor.y = xHeight
 			print("  ⚠️ %s: moved %s to xHeight. No outline intersection on x-height." % (thisLayer.name, toprightAnchor.name))
 	else:
 		print("  ❓ %s: no anchor topright or _topright found." % thisLayer.name)

@@ -8,7 +8,6 @@ Sets all TT stem hints to ‘no stem’ in selected glyphs. In complex paths, it
 from GlyphsApp import Glyphs, TTSTEM
 
 thisFont = Glyphs.font  # frontmost font
-listOfSelectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
 
 
 def process(thisLayer):
@@ -20,11 +19,15 @@ def process(thisLayer):
 	return returnValue
 
 
-for thisLayer in listOfSelectedLayers:
-	thisGlyph = thisLayer.parent
-	# thisGlyph.beginUndo()  # undo grouping causes crashes
-	if process(thisLayer):
-		print("%s: OK." % thisGlyph.name)
-	else:
-		print("%s: no TT stems found." % thisGlyph.name)
-	# thisGlyph.endUndo()  # undo grouping causes crashes
+if thisFont is None:
+	print("⚠️ No font open.")
+else:
+	listOfSelectedLayers = thisFont.selectedLayers  # active layers of selected glyphs
+	for thisLayer in listOfSelectedLayers:
+		thisGlyph = thisLayer.parent
+		# thisGlyph.beginUndo()  # undo grouping causes crashes
+		if process(thisLayer):
+			print("%s: OK." % thisGlyph.name)
+		else:
+			print("%s: no TT stems found." % thisGlyph.name)
+		# thisGlyph.endUndo()  # undo grouping causes crashes

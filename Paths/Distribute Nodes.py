@@ -8,7 +8,8 @@ Distributes the selected nodes horizontally or vertically, depending on the boun
 from GlyphsApp import Glyphs
 
 Font = Glyphs.font
-selectedLayer = Font.selectedLayers[0]
+selectedLayer = Font.selectedLayers[0] if Font and Font.selectedLayers else None
+selection = ()
 
 try:
 	selection = selectedLayer.selection
@@ -43,7 +44,7 @@ try:
 		Font.enableUpdateInterface()  # re-enables UI updates in Font View
 
 except Exception as e:
-	if selection == ():
+	if not selection:
 		print("Cannot distribute nodes: nothing selected in frontmost layer.")
 	else:
 		print("Error. Cannot distribute nodes:", selection)

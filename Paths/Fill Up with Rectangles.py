@@ -74,24 +74,27 @@ def process(thisLayer):
 		return "🆗 not empty, skipped"
 
 
-Glyphs.clearLog()  # clears macro window log
-
 thisFont = Glyphs.font
-print(f"‘Fill Up with Rectangles’ report for: {thisFont.familyName}\n")
-
-selectedLayers = thisFont.selectedLayers
-if not selectedLayers:
-	selectedLayers = [g.layers[thisFont.selectedFontMaster.id] for g in thisFont.glyphs]
-
-try:
-	for thisLayer in selectedLayers:
-		thisGlyph = thisLayer.parent
-		if thisGlyph:
-			print(f"Filling {thisGlyph.name}: {process(thisLayer)}.")
-except Exception as e:
+if not thisFont:
 	Glyphs.showMacroWindow()
-	import traceback
-	print(f"\n⚠️ Script Error:\n\n{traceback.format_exc()}\n")
-	raise e
+	print("Fill Up with Rectangles: no font open.")
+else:
+	Glyphs.clearLog()  # clears macro window log
+	print(f"‘Fill Up with Rectangles’ report for: {thisFont.familyName}\n")
 
-print("\nDone.")
+	selectedLayers = thisFont.selectedLayers
+	if not selectedLayers:
+		selectedLayers = [g.layers[thisFont.selectedFontMaster.id] for g in thisFont.glyphs]
+
+	try:
+		for thisLayer in selectedLayers:
+			thisGlyph = thisLayer.parent
+			if thisGlyph:
+				print(f"Filling {thisGlyph.name}: {process(thisLayer)}.")
+	except Exception as e:
+		Glyphs.showMacroWindow()
+		import traceback
+		print(f"\n⚠️ Script Error:\n\n{traceback.format_exc()}\n")
+		raise e
+
+	print("\nDone.")
