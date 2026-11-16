@@ -4,6 +4,7 @@ Creates postscriptFontName entries (Name ID 6) for all instances with options to
 """
 
 import vanilla
+from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 from string import ascii_letters, digits
 from GlyphsApp import Glyphs, GSDocument, GSProjectDocument, INSTANCETYPESINGLE, Message
 from mekkablue import mekkaObject
@@ -61,7 +62,7 @@ def shortenPSStyleName(psStyleName):
 def removePSNameFromInstance(i, key="postscriptFontName"):
 	for cpIndex in range(len(i.customParameters) - 1, -1, -1):
 		cp = i.customParameters[cpIndex]
-		if cp.name == "Name Table Entry" and cp.value.split(";")[0].split()[0] == "6":
+		if cp.name == "Name Table Entry" and cp.value.split(";")[0].split()[:1] == ["6"]:
 			del i.customParameters[cpIndex]
 
 	while i.propertyForName_(key):
@@ -107,41 +108,53 @@ class PSNameMaker(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 300
-		windowHeight = 180
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 320
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"PS Name Maker",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Recalculates and resets PS Names in instances:", sizeStyle="small", selectable=True)
-		linePos += lineHeight
+		inset = 15
+		self.w.descriptionText = vanilla.TextBox("auto", "Recalculates and resets PS Names in instances:", sizeStyle="small", selectable=True)
 
-		self.w.addAsNameEntryParameter = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Add as custom parameter (OTVAR safe)", value=True, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
+		self.w.addAsNameEntryParameter = vanilla.CheckBox("auto", "Add as custom parameter (OTVAR safe)", value=True, callback=self.SavePreferences, sizeStyle="small")
 
-		self.w.shortenStyleNames = vanilla.CheckBox((inset + 2, linePos - 1, -inset - 30, 20), "Shorten style names (Tech Note #5088)", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.helpButton = vanilla.HelpButton((-inset - 28, linePos - 3, -inset, 25), callback=self.openURL)
-		linePos += lineHeight
+		self.w.shortenStyleNames = vanilla.CheckBox("auto", "Shorten style names (Tech Note #5088)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.helpButton = vanilla.HelpButton("auto", callback=self.openURL)
+		self.w.helpButton.setToolTip("Opens Adobe’s Font Tech Note #5088 on font names in your web browser.")
 
-		self.w.allFonts = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Apply to ⚠️ ALL open documents", value=False, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
+		self.w.allFonts = vanilla.CheckBox("auto", "Apply to ⚠️ ALL open documents", value=False, callback=self.SavePreferences, sizeStyle="small")
 
-		self.w.includeInactiveInstances = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include inactive instances", value=True, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
+		self.w.includeInactiveInstances = vanilla.CheckBox("auto", "Include inactive instances", value=True, callback=self.SavePreferences, sizeStyle="small")
 
-		self.w.removeButton = vanilla.Button((inset, -20 - inset, 90, -inset), "Remove", callback=self.PSNameMakerMain)
+		self.w.removeButton = vanilla.Button("auto", "Remove", callback=self.PSNameMakerMain)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Add", callback=self.PSNameMakerMain)
+		self.w.runButton = vanilla.Button("auto", "Add", callback=self.PSNameMakerMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[addAsNameEntryParameter]-(>=inset)-|",
+				"H:|-inset-[shortenStyleNames]-gap-[helpButton]-(>=inset)-|",
+				"H:|-inset-[allFonts]-(>=inset)-|",
+				"H:|-inset-[includeInactiveInstances]-(>=inset)-|",
+				"H:|-inset-[removeButton(>=70)]-(>=gap)-[runButton(>=70)]-inset-|",
+				"V:|-inset-[descriptionText]-headlineGap-[addAsNameEntryParameter]-stackRow-[shortenStyleNames]-stackRow-[allFonts]-stackRow-[includeInactiveInstances]-inset-[runButton]-inset-|",
+				"V:[removeButton]-inset-|",
+				{"view1": self.w.helpButton, "attribute1": "centerY", "view2": self.w.shortenStyleNames, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "headlineGap": 10, "stackRow": 8},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -177,8 +190,6 @@ class PSNameMaker(mekkaObject):
 					theseDocs = (theseDocs[0], )
 
 				for thisDoc in theseDocs:
-					print(thisDoc, type(thisDoc))
-
 					if isinstance(thisDoc, GSProjectDocument):
 						thisFont = thisDoc.font()
 						instances = thisDoc.instances
@@ -190,11 +201,10 @@ class PSNameMaker(mekkaObject):
 					else:
 						continue
 
-					print("filePath", filePath)
 					if filePath:
 						reportName = f"{filePath.lastPathComponent()}\n📄 {filePath}"
 					else:
-						reportName = f"{thisFont.familyName}\n⚠️ The file has not been saved yet."
+						reportName = f"{thisFont.familyName} (unsaved)"
 					print(f"PS Name Maker Report for {reportName}")
 					print()
 					for thisInstance in instances:

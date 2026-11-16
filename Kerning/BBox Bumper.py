@@ -5,10 +5,17 @@ Like Auto Bumper, but with the bounding box of a group of glyphs, and the kernin
 
 import vanilla
 import math
-from Foundation import NSRect, NSUnionRect, NSIsEmptyRect, NSInsetRect, NSStringFromRect, NSAffineTransform, NSAffineTransformStruct
+import objc
+from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
+from Foundation import NSNumberFormatter, NSRect, NSUnionRect, NSIsEmptyRect, NSInsetRect, NSStringFromRect, NSAffineTransform, NSAffineTransformStruct
 from kernanalysis import stringToListOfGlyphsForFont, minDistanceBetweenTwoLayers
 from GlyphsApp import Glyphs, GSFeature, GSLayer, GSPath, Message
 from mekkablue import mekkaObject, UpdateButton
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 def updatedCode(oldCode, beginSig, endSig, newCode):
@@ -216,102 +223,188 @@ class BBoxBumperKerning(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 570
-		windowHeight = 334
-		windowWidthResize = 500  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 640
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"BBox Bumper Kerning as Feature Code",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		shift = 90
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Bump the bbox of an OT Class (defined by a token) with other glyphs, and insert kern feature:", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		formatter = NSNumberFormatter.alloc().init()
+		formatter.setAllowsFloats_(False)  # integers only
+		thresholdFormatter = NSNumberFormatter.alloc().init()
+		thresholdFormatter.setAllowsFloats_(False)
+		thresholdFormatter.setMinimum_(0)
+		roundFormatter = NSNumberFormatter.alloc().init()
+		roundFormatter.setAllowsFloats_(False)
+		roundFormatter.setMinimum_(1)
+		percentFormatter = NSNumberFormatter.alloc().init()
+		percentFormatter.setAllowsFloats_(False)
+		percentFormatter.setMinimum_(0)
+		percentFormatter.setMaximum_(100)
 
-		self.w.tokenText = vanilla.TextBox((0, linePos + 2, inset + shift - 5, 14), "▪️BBox token:", sizeStyle='small', selectable=True)
-		self.w.tokenText.getNSTextField().setAlignment_(2)
-		self.w.token = vanilla.ComboBox((inset + shift, linePos - 2, -inset - 230, 21), self.tokens, callback=self.SavePreferences)
-		self.w.token.getNSComboBox(
-		).setToolTip_("Describe a glyph class predicate for defining an OT class, for which the class bbox is calculated and bumped against other glyphs.")
-		self.w.helpToken = vanilla.HelpButton((-inset - 230, linePos - 2, -inset - 200, 21), callback=self.openURL)
+		self.w.descriptionText = vanilla.TextBox("auto", "Bump the bbox of an OT Class (defined by a token) with other glyphs, and insert kern feature:", sizeStyle='small', selectable=True)
+
+		self.w.tokenText = vanilla.TextBox("auto", "▪️BBox token:", sizeStyle='small', selectable=True)
+		self.w.token = vanilla.ComboBox("auto", self.tokens, callback=self.SavePreferences)
+		tooltipText = "Describe a glyph class predicate for defining an OT class, for which the class bbox is calculated and bumped against other glyphs."
+		self.w.tokenText.setToolTip(tooltipText)
+		self.w.token.getNSComboBox().setToolTip_(tooltipText)
+		self.w.helpToken = vanilla.HelpButton("auto", callback=self.openURL)
 		self.w.helpToken.setToolTip("Opens the 'Tokens' tutorial in a web browser. Look for 'glyph class predicates'.")
-		self.w.otClassNameText = vanilla.TextBox((-inset - 200, linePos + 2, shift - 5, 14), "OT classname:", sizeStyle='small', selectable=True)
-		self.w.otClassNameText.getNSTextField().setAlignment_(2)
-		self.w.otClassName = vanilla.ComboBox((-inset - 200 + shift, linePos - 2, -inset - 22, 21), self.classNames, callback=self.SavePreferences)
-		self.w.otClassName.setToolTip("Name of the OT class. Make sure it is unique for all the fonts.")
-		self.w.otClassNameUpdate = UpdateButton((-inset - 20, linePos - 3, -inset, 20), callback=self.updateClassName)
+		self.w.otClassNameText = vanilla.TextBox("auto", "OT classname:", sizeStyle='small', selectable=True)
+		self.w.otClassName = vanilla.ComboBox("auto", self.classNames, callback=self.SavePreferences)
+		tooltipText = "Name of the OT class. Make sure it is unique for all the fonts."
+		self.w.otClassNameText.setToolTip(tooltipText)
+		self.w.otClassName.setToolTip(tooltipText)
+		self.w.otClassNameUpdate = UpdateButton("auto", callback=self.updateClassName)
 		self.w.otClassNameUpdate.setToolTip("Auto-fill classname for the current token.")
-		linePos += lineHeight + 2
 
-		self.w.minDistanceText = vanilla.TextBox((0, linePos + 3, inset + shift - 5, 14), "Min distance:", sizeStyle='small', selectable=True)
-		self.w.minDistanceText.getNSTextField().setAlignment_(2)
-		self.w.minDistance = vanilla.EditText((inset + shift, linePos, shift // 2.2, 19), "40", callback=self.SavePreferences, sizeStyle='small')
-		self.w.minDistance.setToolTip("Minimum distance between other glyphs and the class bbox. Setting a value here will create positive kerning.")
-		self.w.maxDistanceText = vanilla.TextBox((inset + shift * 1.5 - 5, linePos + 3, shift, 14), "Max distance:", sizeStyle='small', selectable=True)
-		self.w.maxDistanceText.getNSTextField().setAlignment_(2)
-		self.w.maxDistance = vanilla.EditText((inset + shift * 2.5, linePos, shift // 2.2, 19), "100", callback=self.SavePreferences, sizeStyle='small')
-		self.w.maxDistance.setToolTip("Maximum distance between other glyphs and the class bbox. Setting a value here will create negative kerning.")
-		self.w.bboxBubbleExtensionText = vanilla.TextBox((inset + shift * 3 - 5, linePos + 3, shift, 14), "Extend bbox:", sizeStyle='small', selectable=True)
-		self.w.bboxBubbleExtensionText.getNSTextField().setAlignment_(2)
-		self.w.bboxBubbleExtension = vanilla.EditText((inset + shift * 4, linePos, shift // 2.2, 19), "5", callback=self.SavePreferences, sizeStyle='small')
-		self.w.bboxBubbleExtension.setToolTip("Extend the class bbox by this amount in units.")
-		self.w.thresholdKerningText = vanilla.TextBox((inset + shift * 4.5 - 5, linePos + 3, shift, 14), "Kern threshold:", sizeStyle='small', selectable=True)
-		self.w.thresholdKerningText.getNSTextField().setAlignment_(2)
-		self.w.thresholdKerning = vanilla.EditText((inset + shift * 5.5, linePos, shift // 2.2, 19), "15", callback=self.SavePreferences, sizeStyle='small')
-		self.w.thresholdKerning.setToolTip("Will insert the calculated (positive or negative) kerning only if it is at least this amount.")
-		linePos += lineHeight
+		self.w.minDistanceText = vanilla.TextBox("auto", "Min distance:", sizeStyle='small', selectable=True)
+		self.w.minDistance = SteppingEditText("auto", "40", callback=self.SavePreferences, sizeStyle='small', formatter=formatter)
+		tooltipText = "Minimum distance between other glyphs and the class bbox. Setting a value here will create positive kerning."
+		self.w.minDistanceText.setToolTip(tooltipText)
+		self.w.minDistance.setToolTip(tooltipText)
+		self.w.maxDistanceText = vanilla.TextBox("auto", "Max distance:", sizeStyle='small', selectable=True)
+		self.w.maxDistance = SteppingEditText("auto", "100", callback=self.SavePreferences, sizeStyle='small', formatter=formatter)
+		tooltipText = "Maximum distance between other glyphs and the class bbox. Setting a value here will create negative kerning."
+		self.w.maxDistanceText.setToolTip(tooltipText)
+		self.w.maxDistance.setToolTip(tooltipText)
+		self.w.bboxBubbleExtensionText = vanilla.TextBox("auto", "Extend bbox:", sizeStyle='small', selectable=True)
+		self.w.bboxBubbleExtension = SteppingEditText("auto", "5", callback=self.SavePreferences, sizeStyle='small', formatter=formatter)
+		tooltipText = "Extend the class bbox by this amount in units."
+		self.w.bboxBubbleExtensionText.setToolTip(tooltipText)
+		self.w.bboxBubbleExtension.setToolTip(tooltipText)
+		self.w.thresholdKerningText = vanilla.TextBox("auto", "Kern threshold:", sizeStyle='small', selectable=True)
+		self.w.thresholdKerning = SteppingEditText("auto", "15", callback=self.SavePreferences, sizeStyle='small', formatter=thresholdFormatter)
+		tooltipText = "Will insert the calculated (positive or negative) kerning only if it is at least this amount."
+		self.w.thresholdKerningText.setToolTip(tooltipText)
+		self.w.thresholdKerning.setToolTip(tooltipText)
 
-		self.w.roundByText = vanilla.TextBox((inset + shift * 3 - 5, linePos + 3, shift, 14), "Round by:", sizeStyle='small', selectable=True)
-		self.w.roundByText.getNSTextField().setAlignment_(2)
-		self.w.roundBy = vanilla.EditText((inset + shift * 4, linePos, shift // 2.2, 19), "5", callback=self.SavePreferences, sizeStyle='small')
-		self.w.roundBy.setToolTip("All kerning values will be rounded by this value. Insert 1 for no rounding.")
-		self.w.thresholdWidthText = vanilla.TextBox((inset + shift * 4.5 - 5, linePos + 3, shift, 14), "Overkern %:", sizeStyle='small', selectable=True)
-		self.w.thresholdWidthText.getNSTextField().setAlignment_(2)
-		self.w.thresholdWidth = vanilla.EditText((inset + shift * 5.5, linePos, shift // 2.2, 19), "40", callback=self.SavePreferences, sizeStyle='small')
-		self.w.thresholdWidth.setToolTip("Overkern protection. Makes sure that no glyph (in the bbox class) is kerned more than this percentage of its width. Keep below 50.	")
-		linePos += int(lineHeight * 1.5)
+		self.w.roundByText = vanilla.TextBox("auto", "Round by:", sizeStyle='small', selectable=True)
+		self.w.roundBy = SteppingEditText("auto", "5", callback=self.SavePreferences, sizeStyle='small', formatter=roundFormatter)
+		tooltipText = "All kerning values will be rounded by this value. Insert 1 for no rounding."
+		self.w.roundByText.setToolTip(tooltipText)
+		self.w.roundBy.setToolTip(tooltipText)
+		self.w.thresholdWidthText = vanilla.TextBox("auto", "Overkern %:", sizeStyle='small', selectable=True)
+		self.w.thresholdWidth = SteppingEditText("auto", "40", callback=self.SavePreferences, sizeStyle='small', formatter=percentFormatter)
+		tooltipText = "Overkern protection. Makes sure that no glyph (in the bbox class) is kerned more than this percentage of its width. Keep below 50."
+		self.w.thresholdWidthText.setToolTip(tooltipText)
+		self.w.thresholdWidth.setToolTip(tooltipText)
 
-		self.w.otherGlyphsText = vanilla.TextBox((0, linePos + 2, inset + shift - 5, 14), "🔠 Bump with:", sizeStyle='small', selectable=True)
-		self.w.otherGlyphsText.getNSTextField().setAlignment_(2)
-		self.w.otherGlyphs = vanilla.ComboBox((inset + shift, linePos - 1, -inset, 19), self.otherGlyphsSuggestions, sizeStyle='small', callback=self.SavePreferences)
-		self.w.otherGlyphs.setToolTip("The glyphs against which the class bbox is bumped for determining kerning.")
-		linePos += int(lineHeight + 1.2)
-		self.w.otherGlyphsOnLeftSide = vanilla.CheckBox((inset + shift, linePos - 1, -inset, 20), "Bump-kern with these glyphs to the LEFT of BBox: 🔠▪️", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.otherGlyphsText = vanilla.TextBox("auto", "🔠 Bump with:", sizeStyle='small', selectable=True)
+		self.w.otherGlyphs = vanilla.ComboBox("auto", self.otherGlyphsSuggestions, sizeStyle='small', callback=self.SavePreferences)
+		tooltipText = "The glyphs against which the class bbox is bumped for determining kerning."
+		self.w.otherGlyphsText.setToolTip(tooltipText)
+		self.w.otherGlyphs.setToolTip(tooltipText)
+		self.w.otherGlyphsOnLeftSide = vanilla.CheckBox("auto", "Bump-kern with these glyphs to the LEFT of BBox: 🔠▪️", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.otherGlyphsOnLeftSide.setToolTip("If enabled, will create kerning with the bump glyphs on the left side, and the class bbox on the right side.")
-		linePos += lineHeight
-		self.w.otherGlyphsOnRightSide = vanilla.CheckBox((inset + shift, linePos - 1, -inset, 20), "Bump-kern with these glyphs to the RIGHT of BBox: ▪️🔠", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.otherGlyphsOnRightSide = vanilla.CheckBox("auto", "Bump-kern with these glyphs to the RIGHT of BBox: ▪️🔠", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.otherGlyphsOnRightSide.setToolTip("If enabled, will create kerning with class bbox on the left side, and the the bump glyphs on the right side.")
-		linePos += lineHeight
-		self.w.allowKerningExceptions = vanilla.CheckBox((inset + shift, linePos - 1, -inset, 20), "Allow kerning exception if no kerning group is set", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allowKerningExceptions = vanilla.CheckBox("auto", "Allow kerning exception if no kerning group is set", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.allowKerningExceptions.setToolTip("If one of the bump glyphs does not have a kerning group, you can allow a kerning exception, i.e., kerning with just the bump glyph. If disabled, only group kerning and no kerning exceptions will be created.")
-		linePos += lineHeight
-		self.w.removeRegularKerning = vanilla.CheckBox((inset + shift, linePos - 1, -inset, 20), "Remove respective pairs from regular kerning", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.removeRegularKerning = vanilla.CheckBox("auto", "Remove respective pairs from regular kerning", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.removeRegularKerning.setToolTip("For every pair inserted into the kern feature code, delete the corresponding pair from the font’s regular kerning (in all masters), so the feature code is not overridden. Kerning between the glyphs of the bbox token (and their kerning group members) is preserved.")
-		linePos += int(lineHeight * 1.5)
 
-		self.w.scopeText = vanilla.TextBox((inset, linePos + 2, shift - 5, 14), "Measure in:", sizeStyle='small', selectable=True)
-		self.w.scopeText.getNSTextField().setAlignment_(2)
-		self.w.scope = vanilla.PopUpButton((inset + shift, linePos, 250, 17), self.scope, sizeStyle='small', callback=self.SavePreferences)
-		self.w.scope.setToolTip("Kern feature will be created per font, same for all masters. Here you can define which masters should be measured for determining the kerning pairs.")
-		linePos += lineHeight
+		self.w.scopeText = vanilla.TextBox("auto", "Measure in:", sizeStyle='small', selectable=True)
+		self.w.scope = vanilla.PopUpButton("auto", self.scope, sizeStyle='small', callback=self.SavePreferences)
+		tooltipText = "Kern feature will be created per font, same for all masters. Here you can define which masters should be measured for determining the kerning pairs."
+		self.w.scopeText.setToolTip(tooltipText)
+		self.w.scope.setToolTip(tooltipText)
 
 		# Progress bar:
-		self.w.bar = vanilla.ProgressBar((inset, linePos + 2, -inset, 16))
-		linePos += lineHeight
+		self.w.bar = vanilla.ProgressBar("auto")
 
-		# Run Button:
-		self.w.status = vanilla.TextBox((inset, -20 - inset, -250 - inset, 14), "", sizeStyle="small")
-		self.w.openFeaturesButton = vanilla.Button((-230 - inset, -20 - inset, -130 - inset, -inset), "Open Features", callback=self.openFeatures)
+		# Status line and buttons:
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.openFeaturesButton = vanilla.Button("auto", "Open Features", callback=self.openFeatures)
 		self.w.openFeaturesButton.setToolTip("Opens Font Info > Features so you can inspect the inserted kern feature code.")
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Bump BBox", callback=self.BBoxBumperKerningMain)
+		self.w.runButton = vanilla.Button("auto", "Bump BBox", callback=self.BBoxBumperKerningMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# labels are right-aligned and hug their text; the labels in the first column share one width,
+		# and so do the labels in the other columns:
+		firstColumnLabels = ("tokenText", "minDistanceText", "roundByText", "otherGlyphsText", "scopeText")
+		otherColumnLabels = ("otClassNameText", "maxDistanceText", "bboxBubbleExtensionText", "thresholdKerningText", "thresholdWidthText")
+		for labelName in firstColumnLabels + otherColumnLabels:
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		widthRules = [{
+			"view1": getattr(self.w, labelName),
+			"attribute1": "width",
+			"view2": self.w.otherGlyphsText,
+			"attribute2": "width",
+		} for labelName in firstColumnLabels if labelName != "otherGlyphsText"]
+		widthRules += [{
+			"view1": getattr(self.w, labelName),
+			"attribute1": "width",
+			"view2": self.w.thresholdKerningText,
+			"attribute2": "width",
+		} for labelName in otherColumnLabels if labelName != "thresholdKerningText"]
+		# the numeric fields share one width:
+		numericFields = ("minDistance", "maxDistance", "bboxBubbleExtension", "thresholdKerning", "roundBy", "thresholdWidth")
+		widthRules += [{
+			"view1": getattr(self.w, fieldName),
+			"attribute1": "width",
+			"view2": self.w.minDistance,
+			"attribute2": "width",
+		} for fieldName in numericFields[1:]]
+
+		centerRules = []
+		for labelName, fieldName in (
+			("tokenText", "token"),
+			("helpToken", "token"),
+			("otClassNameText", "token"),
+			("otClassName", "token"),
+			("otClassNameUpdate", "token"),
+			("minDistanceText", "minDistance"),
+			("maxDistanceText", "minDistance"),
+			("maxDistance", "minDistance"),
+			("bboxBubbleExtensionText", "minDistance"),
+			("bboxBubbleExtension", "minDistance"),
+			("thresholdKerningText", "minDistance"),
+			("thresholdKerning", "minDistance"),
+			("roundByText", "roundBy"),
+			("thresholdWidthText", "roundBy"),
+			("thresholdWidth", "roundBy"),
+			("otherGlyphsText", "otherGlyphs"),
+			("scopeText", "scope"),
+			("status", "runButton"),
+			("openFeaturesButton", "runButton"),
+		):
+			centerRules.append({"view1": getattr(self.w, labelName), "attribute1": "centerY", "view2": getattr(self.w, fieldName), "attribute2": "centerY"})
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[tokenText]-gap-[token(>=150)]-gap-[helpToken]-gap-[otClassNameText]-gap-[otClassName(>=110)]-gap-[otClassNameUpdate]-inset-|",
+				"H:|-inset-[minDistanceText]-gap-[minDistance(>=40)]-gap-[maxDistanceText]-gap-[maxDistance]-gap-[bboxBubbleExtensionText]-gap-[bboxBubbleExtension]-gap-[thresholdKerningText]-gap-[thresholdKerning]-(>=inset)-|",
+				"H:|-inset-[roundByText]-gap-[roundBy]-gap-[thresholdWidthText]-gap-[thresholdWidth]-(>=inset)-|",
+				"H:|-inset-[otherGlyphsText]-gap-[otherGlyphs]-inset-|",
+				"H:|-inset-[otherGlyphsText]-gap-[otherGlyphsOnLeftSide]-(>=inset)-|",
+				"H:|-inset-[otherGlyphsText]-gap-[otherGlyphsOnRightSide]-(>=inset)-|",
+				"H:|-inset-[otherGlyphsText]-gap-[allowKerningExceptions]-(>=inset)-|",
+				"H:|-inset-[otherGlyphsText]-gap-[removeRegularKerning]-(>=inset)-|",
+				"H:|-inset-[scopeText]-gap-[scope(>=250)]-(>=inset)-|",
+				"H:|-inset-[bar]-inset-|",
+				"H:|-inset-[status]-(>=gap)-[openFeaturesButton(>=70)]-gap-[runButton(>=70)]-inset-|",
+				"V:|-inset-[descriptionText]-headlineGap-[token]-row-[minDistance]-row-[roundBy]-sectionGap-[otherGlyphs]-sectionRow-[otherGlyphsOnLeftSide]-checkRow-[otherGlyphsOnRightSide]-checkRow-[allowKerningExceptions]-checkRow-[removeRegularKerning]-sectionGap-[scope]-row-[bar(16)]-inset-[runButton]-inset-|",
+			] + centerRules + widthRules,
+			metrics={"inset": inset, "gap": 8, "row": 6, "headlineGap": 12, "sectionGap": 14, "sectionRow": 8, "checkRow": 5},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -353,7 +446,7 @@ class BBoxBumperKerning(mekkaObject):
 			# update settings to the latest user input:
 			self.SavePreferences()
 			self.w.bar.set(0)
-			self.w.status.set("Processing…")
+			self.w.status.set("🛠️ Processing…")
 
 			otClassName = self.pref("otClassName")
 			token = self.pref("token")
@@ -367,10 +460,11 @@ class BBoxBumperKerning(mekkaObject):
 			maxDistance = self.prefFloat("maxDistance")
 			thresholdKerning = self.prefFloat("thresholdKerning")
 			thresholdWidth = self.prefFloat("thresholdWidth")
-			# roundBy = self.prefFloat("roundBy")
+			roundBy = self.prefInt("roundBy") or 1
 			scope = self.pref("scope")
 
 			if Glyphs.font is None:
+				self.w.status.set("❌ No font open.")
 				Message(title="No Font Open", message="The script requires at least one font. Open a font and run the script again.", OKButton=None)
 			else:
 				if scope == 2:
@@ -387,6 +481,7 @@ class BBoxBumperKerning(mekkaObject):
 					otherGlyphs = stringToListOfGlyphsForFont(otherGlyphsString, thisFont, report=False)
 					if not otherGlyphs:
 						print("❌ None of the other glyphs in font and exporting.\nSkipping font.\n")
+						continue
 					print("✅ %i other glyph%s found exporting in the font." % (
 						len(otherGlyphs),
 						"" if len(otherGlyphs) == 1 else "s",
@@ -452,7 +547,7 @@ class BBoxBumperKerning(mekkaObject):
 						for otherGlyph in otherGlyphs:
 							processedSteps += 1
 							self.w.bar.set(100 * processedSteps // totalSteps)
-							self.w.status.set("Measuring %s…" % otherGlyph.name)
+							self.w.status.set("🔠 %s" % otherGlyph.name)
 							otherLayerStraightened = straightenedLayer(otherGlyph.layers[thisMaster.id])
 							if otherGlyphsOnLeftSide:
 								otherKey = None
@@ -488,10 +583,10 @@ class BBoxBumperKerning(mekkaObject):
 					for leftKey in distanceDict.keys():
 						for rightKey in distanceDict[leftKey].keys():
 							dist = round(distanceDict[leftKey][rightKey])
-							if dist < minDistance and abs(roundedBy(minDistance - dist, 5)) >= thresholdKerning:
-								kernValue = roundedBy(minDistance - dist, 5)
-							elif dist > maxDistance and abs(roundedBy(maxDistance - dist, 5)) >= thresholdKerning:
-								kernValue = roundedBy(max(maxNegativeKern, maxDistance - dist), 5)  # prevent overkern
+							if dist < minDistance and abs(roundedBy(minDistance - dist, roundBy)) >= thresholdKerning:
+								kernValue = roundedBy(minDistance - dist, roundBy)
+							elif dist > maxDistance and abs(roundedBy(maxDistance - dist, roundBy)) >= thresholdKerning:
+								kernValue = roundedBy(max(maxNegativeKern, maxDistance - dist), roundBy)  # prevent overkern
 							else:
 								continue
 							otCode += "pos %s %s %i;\n" % (leftKey, rightKey, kernValue)
@@ -518,22 +613,23 @@ class BBoxBumperKerning(mekkaObject):
 					print("🫱🏾‍🫲🏻 Recompiling features...")
 					thisFont.compileFeatures()
 
-			self.w.bar.set(100)
-			self.w.status.set("Done.")
+			if Glyphs.font is not None:
+				self.w.bar.set(100)
+				self.w.status.set("✅ Bumped %i font%s." % (len(theseFonts), "" if len(theseFonts) == 1 else "s"))
 
-			# Final report:
-			Glyphs.showNotification(
-				"BBox Bumper: done",
-				"Bumped %s in %i font%s. Details in Macro Window" % (
-					otClassName,
-					len(theseFonts),
-					"" if len(theseFonts) == 1 else "s",
-				),
-			)
-			print("\nDone.")
+				# Final report:
+				Glyphs.showNotification(
+					"BBox Bumper: done",
+					"Bumped %s in %i font%s. Details in Macro Window" % (
+						otClassName,
+						len(theseFonts),
+						"" if len(theseFonts) == 1 else "s",
+					),
+				)
+				print("\nDone.")
 
 		except Exception as e:
-			self.w.status.set("Error.")
+			self.w.status.set("❌ Error. Details in Macro Window.")
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print("BBox Bumper Kerning as Feature Code Error: %s" % e)

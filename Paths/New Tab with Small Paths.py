@@ -1,12 +1,19 @@
 # MenuTitle: New Tab with Small Paths
-from __future__ import print_function, unicode_literals
 __doc__ = """
 Finds small paths (smaller tahn a user-definable threshold) in glyphs and open a new tab with affected glyphs.
 """
 
+import objc
 import vanilla
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
+from Foundation import NSNumberFormatter
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 def glyphShouldBeIgnored(glyphname):
@@ -29,44 +36,60 @@ class FindSmallPaths(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 316
-		windowHeight = 240
+		windowWidth = 330
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"New Tab with Small Paths",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		inset = 15
 
-		self.w.text_1 = vanilla.TextBox((inset, linePos, -inset, 30), "Open new tab with glyphs that contain paths with an area smaller than:", sizeStyle='small')
-		linePos += lineHeight * 1.7
+		self.w.text_1 = vanilla.TextBox("auto", "Open new tab with glyphs that contain paths with an area smaller than:", sizeStyle='small')
+		self.w.text_1.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
-		self.w.minArea = vanilla.TextBox((inset, linePos, -inset, 15 + 3), "1000 square units", sizeStyle='small', alignment="center")
-		linePos += lineHeight
+		self.w.minArea = vanilla.TextBox("auto", "1000 square units", sizeStyle='small', alignment="center")
 
-		self.w.sliderMin = vanilla.EditText((inset, linePos, 50, 19), "10", sizeStyle='small', callback=self.SliderUpdate)
-		self.w.sliderMax = vanilla.EditText((-inset - 50, linePos, -inset, 19), "1000", sizeStyle='small', callback=self.SliderUpdate)
-		self.w.areaSlider = vanilla.Slider((inset + 50 + 10, linePos, -inset - 50 - 10, 19), value=0.1, minValue=0.0, maxValue=1.0, sizeStyle='small', callback=self.SliderUpdate)
-		linePos += lineHeight
+		formatter = NSNumberFormatter.alloc().init()
+		formatter.setAllowsFloats_(False)  # integers only
+		formatter.setMinimum_(1)
+		self.w.sliderMin = SteppingEditText("auto", "10", sizeStyle='small', callback=self.SliderUpdate, formatter=formatter)
+		self.w.sliderMax = SteppingEditText("auto", "1000", sizeStyle='small', callback=self.SliderUpdate, formatter=formatter)
+		self.w.areaSlider = vanilla.Slider("auto", value=0.1, minValue=0.0, maxValue=1.0, sizeStyle='small', callback=self.SliderUpdate)
 
-		self.w.deleteThemRightAway = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Delete Small Paths Right Away", value=False, callback=self.CheckBoxUpdate, sizeStyle='small')
-		linePos += lineHeight
+		self.w.deleteThemRightAway = vanilla.CheckBox("auto", "Delete Small Paths Right Away", value=False, callback=self.CheckBoxUpdate, sizeStyle='small')
+		self.w.afterOverlapRemoval = vanilla.CheckBox("auto", "After Decomposition and Overlap Removal (slower)", value=True, callback=self.CheckBoxUpdate, sizeStyle='small')
+		self.w.allFonts = vanilla.CheckBox("auto", "Apply to all open fonts", value=False, callback=self.SavePreferences, sizeStyle='small')
 
-		self.w.afterOverlapRemoval = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "After Decomposition and Overlap Removal (slower)", value=True, callback=self.CheckBoxUpdate, sizeStyle='small')
-		linePos += lineHeight
-
-		self.w.allFonts = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Apply to all open fonts", value=False, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
-
-		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
+		self.w.progress = vanilla.ProgressBar("auto")
 		self.w.progress.set(0)  # set progress indicator to zero
-		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120, -20 - inset, -inset, -inset), u"Open Tab", callback=self.FindSmallPathsMain)
+		self.w.runButton = vanilla.Button("auto", "Open Tab", callback=self.FindSmallPathsMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[text_1]-inset-|",
+				"H:|-inset-[minArea]-inset-|",
+				"H:|-inset-[sliderMin(55)]-gap-[areaSlider]-gap-[sliderMax(55)]-inset-|",
+				"H:|-inset-[deleteThemRightAway]-(>=inset)-|",
+				"H:|-inset-[afterOverlapRemoval]-(>=inset)-|",
+				"H:|-inset-[allFonts]-(>=inset)-|",
+				"H:|-inset-[progress]-inset-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-inset-[text_1(30)]-row-[minArea]-row-[sliderMin]-row-[deleteThemRightAway]-checkRow-[afterOverlapRemoval]-checkRow-[allFonts]-row-[progress(16)]-inset-[runButton]-inset-|",
+				{"view1": self.w.areaSlider, "attribute1": "centerY", "view2": self.w.sliderMin, "attribute2": "centerY"},
+				{"view1": self.w.sliderMax, "attribute1": "centerY", "view2": self.w.sliderMin, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 8, "checkRow": 5},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -195,7 +218,7 @@ class FindSmallPaths(mekkaObject):
 				for ii, thisFont in enumerate(fontsToLookAt):
 					print("\n🔤")
 					print("Font: %s" % thisFont.familyName)
-					print("Path: %s" % thisFont.filepath)
+					print("Path: %s" % (thisFont.filepath or f"{thisFont.familyName} (unsaved)"))
 
 					numOfGlyphs = len(thisFont.glyphs)
 					layersWithSmallPaths = []

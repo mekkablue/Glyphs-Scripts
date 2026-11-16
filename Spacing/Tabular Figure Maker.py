@@ -4,6 +4,7 @@ Takes existing .tf figures and spaces them tabularly, or creates them from exist
 """
 
 import vanilla
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
 from GlyphsApp import Glyphs, GSComponent, Message
 from mekkablue import mekkaObject, newGlyphWithName, UpdateButton, reportFontName
 
@@ -18,35 +19,64 @@ class TabularFigureSpacer(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 270
-		windowHeight = 138
+		windowWidth = 300
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Tabular Figure Spacer",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 10, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos+2, -inset, 14), "Fit default figures in tabular spaces", sizeStyle="small", selectable=True)
-		linePos += lineHeight
+		inset = 15
+		self.w.descriptionText = vanilla.TextBox("auto", "Fit default figures in tabular spaces", sizeStyle="small", selectable=True)
 
-		self.w.targetText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Reference glyph", sizeStyle="small", selectable=True)
-		self.w.target = vanilla.ComboBox((inset + 93, linePos - 1, -inset - 22, 19), [], sizeStyle="small", callback=self.SavePreferences)
-		self.w.updateButton = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
-		linePos += lineHeight
+		self.w.targetText = vanilla.TextBox("auto", "Reference glyph", sizeStyle="small", selectable=True)
+		self.w.target = vanilla.ComboBox("auto", [], sizeStyle="small", callback=self.SavePreferences)
+		self.w.updateButton = UpdateButton("auto", callback=self.update)
 
-		self.w.suffixText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Tabular suffix", sizeStyle="small", selectable=True)
-		self.w.suffix = vanilla.EditText((inset + 93, linePos, -inset, 19), ".tf", callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
+		self.w.suffixText = vanilla.TextBox("auto", "Tabular suffix", sizeStyle="small", selectable=True)
+		self.w.suffix = vanilla.EditText("auto", ".tf", callback=self.SavePreferences, sizeStyle="small")
 
-		self.w.createFromDefaultFigs = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Create glyphs if they are missing", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.createFromDefaultFigs = vanilla.CheckBox("auto", "Create glyphs if they are missing", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.createFromDefaultFigs.setToolTip("Creates glyphs for tab figures with default figures as components. Otherwise will just reset existing tab figures.")
-		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Tab", callback=self.TabularFigureSpacerMain)
+		self.w.runButton = vanilla.Button("auto", "Tab", callback=self.TabularFigureSpacerMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging,
+		# the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# labels: right-aligned, one shared width
+		labelNames = ("targetText", "suffixText")
+		widestLabel = "targetText"
+		for labelName in labelNames:
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+		widthRules = [
+			{"view1": getattr(self.w, labelName), "attribute1": "width", "view2": getattr(self.w, widestLabel), "attribute2": "width"}
+			for labelName in labelNames if labelName != widestLabel
+		]
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[targetText]-gap-[target]-gap-[updateButton]-inset-|",
+				"H:|-inset-[suffixText]-gap-[suffix]-inset-|",
+				"H:|-inset-[createFromDefaultFigs]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[descriptionText]-headlineGap-[target]-row-[suffix]-headlineGap-[createFromDefaultFigs]-inset-[runButton]-inset-|",
+				{"view1": self.w.targetText, "attribute1": "centerY", "view2": self.w.target, "attribute2": "centerY"},
+				{"view1": self.w.updateButton, "attribute1": "centerY", "view2": self.w.target, "attribute2": "centerY"},
+				{"view1": self.w.suffixText, "attribute1": "centerY", "view2": self.w.suffix, "attribute2": "centerY"},
+			] + widthRules,
+			metrics={"inset": inset, "gap": 8, "row": 6, "headlineGap": 10},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -56,9 +86,9 @@ class TabularFigureSpacer(mekkaObject):
 		self.w.open()
 		self.w.makeKey()
 
-
 	def update(self, sender=None):
-		self.w.target.setItems([g.name for g in Glyphs.font.glyphs if ".tf" in g.name or ".tosf" in g.name])
+		if Glyphs.font:
+			self.w.target.setItems([g.name for g in Glyphs.font.glyphs if ".tf" in g.name or ".tosf" in g.name])
 
 
 	def TabularFigureSpacerMain(self, sender=None):
@@ -103,10 +133,12 @@ class TabularFigureSpacer(mekkaObject):
 								continue
 
 							widthDiff = targetLayer.width - layer.width
-							leftPercentage = layer.LSB / (layer.LSB + layer.RSB)
+							sidebearings = layer.LSB + layer.RSB
+							leftPercentage = layer.LSB / sidebearings if sidebearings else 0.5
 							layer.LSB += round(widthDiff * leftPercentage)
 							layer.width = targetLayer.width
-						thisGlyph.widthMetricsKey = f"={self.pref('target')}"
+						if thisGlyph != targetGlyph:  # a glyph must not refer to itself
+							thisGlyph.widthMetricsKey = f"={self.pref('target')}"
 
 				names = [g.name for g in tabFigs]
 				font.newTab("/" + "/".join(names))

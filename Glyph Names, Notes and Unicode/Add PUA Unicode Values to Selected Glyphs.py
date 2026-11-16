@@ -4,6 +4,7 @@ Adds custom Unicode values to selected glyphs.
 """
 
 import vanilla
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, UpdateButton
 
@@ -17,39 +18,61 @@ class CustomUnicode(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 312
-		windowHeight = 125
+		windowWidth = 340
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Add Unicode Values to Selected Glyphs",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 14, 15, 24
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 1, 210, 18), "Assign Unicode values starting at", selectable=True)
-		self.w.unicode = vanilla.EditText((inset + 210, linePos - 1, -inset - 20, 21), "E700", callback=self.sanitizeEntry)
-		self.w.unicode.setToolTip("The first selected glyph will receive this Unicode value. Subsequent glyphs will get the next respective Unicode value, until all selected glyphs have received one.")
-		self.w.updateButton = UpdateButton((-inset - 16, linePos - 1, -inset, 18), callback=self.update)
+		tooltipText = "The first selected glyph will receive this Unicode value. Subsequent glyphs will get the next respective Unicode value, until all selected glyphs have received one."
+		self.w.descriptionText = vanilla.TextBox("auto", "Assign Unicode values starting at", selectable=True)
+		self.w.descriptionText.setToolTip(tooltipText)
+		self.w.unicode = vanilla.EditText("auto", "E700", callback=self.sanitizeEntry)
+		self.w.unicode.setToolTip(tooltipText)
+		self.w.updateButton = UpdateButton("auto", callback=self.update)
 		self.w.updateButton.setToolTip("Resets the starting Unicode to the first BMP PUA available in the font. Useful if you do not wish to overwrite existing PUA codes.")
-		linePos += lineHeight
 
-		self.w.keepExistingUnicodes = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Keep existing Unicode values", value=False, callback=self.SavePreferences)
+		self.w.keepExistingUnicodes = vanilla.CheckBox("auto", "Keep existing Unicode values", value=False, callback=self.SavePreferences)
 		self.w.keepExistingUnicodes.setToolTip("Two things: it keeps (does not overwrite) the Unicode value of a selected glyph, and it skips Unicode values that are already in use elsewhere in the font. Allows you to select all glyphs and run the script, and thus, assign PUA codes to all unencoded glyphs.")
-		linePos += lineHeight
 
-		self.w.includeNonExportingGlyphs = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Include non-exporting glyphs", value=False, callback=self.SavePreferences)
+		self.w.includeNonExportingGlyphs = vanilla.CheckBox("auto", "Include non-exporting glyphs", value=False, callback=self.SavePreferences)
 		self.w.includeNonExportingGlyphs.setToolTip("If disabled, will skip all glyphs that are set to not export. If enabled, will treat all selected glyphs, including non-exporting glyphs.")
-		linePos += lineHeight
 
 		# Status Message:
-		self.w.status = vanilla.TextBox((inset, -16 - inset, -inset, -inset), u"", selectable=True)
-		linePos += lineHeight
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", selectable=True)
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Assign", callback=self.CustomUnicodeMain)
+		self.w.runButton = vanilla.Button("auto", "Assign", callback=self.CustomUnicodeMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# the label hugs its text, so the field takes the leftover width:
+		nsLabel = self.w.descriptionText.getNSTextField()
+		nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-gap-[unicode(>=60)]-gap-[updateButton]-inset-|",
+				"H:|-inset-[keepExistingUnicodes]-(>=inset)-|",
+				"H:|-inset-[includeNonExportingGlyphs]-(>=inset)-|",
+				"H:|-inset-[status]-gap-[runButton(>=70)]-inset-|",
+				"V:|-inset-[unicode]-row-[keepExistingUnicodes]-checkRow-[includeNonExportingGlyphs]-inset-[runButton]-inset-|",
+				{"view1": self.w.descriptionText, "attribute1": "centerY", "view2": self.w.unicode, "attribute2": "centerY"},
+				{"view1": self.w.updateButton, "attribute1": "centerY", "view2": self.w.unicode, "attribute2": "centerY"},
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 10, "checkRow": 5},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -67,7 +90,7 @@ class CustomUnicode(mekkaObject):
 		self.SavePreferences(sender)
 
 	def updateUI(self, sender=None):
-		self.w.status.set("")
+		self.w.status.set("🤖 Ready.")
 
 	def update(self, sender=None):
 		self.setPref("unicode", self.lastPUAofCurrentFont())
@@ -75,6 +98,8 @@ class CustomUnicode(mekkaObject):
 
 	def lastPUAofCurrentFont(self):
 		thisFont = Glyphs.font
+		if not thisFont:
+			return self.pref("unicode")
 		lastPUA = sorted(["DFFF"] + [g.unicode for g in thisFont.glyphs if g.unicode and g.unicode >= "E000" and g.unicode <= "E8FF"])[-1]
 		return "%04X" % (int(lastPUA, 16) + 1)
 
@@ -85,17 +110,18 @@ class CustomUnicode(mekkaObject):
 			return False
 
 		# after sanitization, this will probably never be accessed anymore:
+		allDigitsValid = True
 		for digit in unicodeValue:
-			allDigitsValid = True
 			if digit not in "0123456789ABCDEF":
 				print("ERROR: Found '%s' in entry. Not a valid hex digit." % digit)
 				allDigitsValid = False
 
 		return allDigitsValid
 
-	def statusMsg(self, msg):
+	def statusMsg(self, msg, statusText=None):
 		print("  %s" % msg)
-		self.w.status.set(msg)
+		self.w.status.set(statusText or msg)
+		self.w.status.getNSTextField().display()  # redraw right away, so it shows while the script is busy
 
 	def CustomUnicodeMain(self, sender):
 		try:
@@ -128,16 +154,16 @@ class CustomUnicode(mekkaObject):
 								self.statusMsg("%s: skipping (already in %s)" % (
 									unicodeValue,
 									thisFont.glyphForUnicode_(unicodeValue).name,
-								))
+								), statusText=f"🔠 {thisGlyph.name}")
 								PUAcode += 1
 								unicodeValue = "%04X" % PUAcode
 						thisGlyph.setUnicode_(unicodeValue)
-						self.statusMsg("%s: %s" % (unicodeValue, thisGlyph.name))
+						self.statusMsg("%s: %s" % (unicodeValue, thisGlyph.name), statusText=f"🔠 {thisGlyph.name}")
 						PUAcode += 1
 					else:
-						self.statusMsg("Skipping %s (not exporting)" % thisGlyph.name)
+						self.statusMsg("Skipping %s (not exporting)" % thisGlyph.name, statusText=f"🔠 {thisGlyph.name}")
 
-				self.statusMsg("Done.")
+				self.statusMsg("Done.", statusText="✅ Done.")
 				# self.w.close()  # closes window
 			else:
 				Message(

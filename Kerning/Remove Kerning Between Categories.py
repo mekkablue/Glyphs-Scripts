@@ -4,7 +4,8 @@ Removes kerning between glyphs, categories, subcategories, scripts.
 """
 
 import vanilla
-from GlyphsApp import Glyphs
+from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
+from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject
 
 
@@ -24,46 +25,25 @@ class RemoveKerning(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 610
-		windowHeight = 260
-		windowWidthResize = 0  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 620
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Remove Kerning",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), u"Removes group and singleton kerning between the following glyphs:", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		inset = 15
+		self.w.descriptionText = vanilla.TextBox("auto", "Removes group and singleton kerning between the following glyphs:", sizeStyle='small', selectable=True)
 
-		self.w.leftCategoryText = vanilla.TextBox((inset, linePos + 2, 100, 14), u"L Category:", sizeStyle='small', selectable=True)
-		self.w.leftCategory = vanilla.PopUpButton((inset + 100, linePos, 180, 17), (), sizeStyle='small', callback=self.buttonEnable)
-		self.w.rightCategoryText = vanilla.TextBox((300 + inset, linePos + 2, 100, 14), u"R Category:", sizeStyle='small', selectable=True)
-		self.w.rightCategory = vanilla.PopUpButton((300 + inset + 100, linePos, 180, 17), (), sizeStyle='small', callback=self.buttonEnable)
-		linePos += lineHeight
-
-		self.w.leftSubCategoryText = vanilla.TextBox((inset, linePos + 2, 100, 14), u"L Subcategory:", sizeStyle='small', selectable=True)
-		self.w.leftSubCategory = vanilla.PopUpButton((inset + 100, linePos, 180, 17), (), sizeStyle='small', callback=self.buttonEnable)
-		self.w.rightSubCategoryText = vanilla.TextBox((300 + inset, linePos + 2, 100, 14), u"R Subcategory:", sizeStyle='small', selectable=True)
-		self.w.rightSubCategory = vanilla.PopUpButton((300 + inset + 100, linePos, 180, 17), (), sizeStyle='small', callback=self.buttonEnable)
-		linePos += lineHeight
-
-		self.w.leftScriptText = vanilla.TextBox((inset, linePos + 2, 100, 14), u"L Script:", sizeStyle='small', selectable=True)
-		self.w.leftScript = vanilla.PopUpButton((inset + 100, linePos, 180, 17), (), sizeStyle='small', callback=self.buttonEnable)
-		self.w.rightScriptText = vanilla.TextBox((300 + inset, linePos + 2, 100, 14), u"R Script:", sizeStyle='small', selectable=True)
-		self.w.rightScript = vanilla.PopUpButton((300 + inset + 100, linePos, 180, 17), (), sizeStyle='small', callback=self.buttonEnable)
-		linePos += lineHeight
-
-		self.w.leftCaseText = vanilla.TextBox((inset, linePos + 2, 100, 14), u"L Case:", sizeStyle='small', selectable=True)
-		self.w.leftCase = vanilla.PopUpButton((inset + 100, linePos, 180, 17), (), sizeStyle='small', callback=self.buttonEnable)
-		self.w.rightCaseText = vanilla.TextBox((300 + inset, linePos + 2, 100, 14), u"R Case:", sizeStyle='small', selectable=True)
-		self.w.rightCase = vanilla.PopUpButton((300 + inset + 100, linePos, 180, 17), (), sizeStyle='small', callback=self.buttonEnable)
-		linePos += lineHeight
+		rowNames = ("Category", "SubCategory", "Script", "Case")
+		rowTitles = ("Category", "Subcategory", "Script", "Case")
+		for rowName, rowTitle in zip(rowNames, rowTitles):
+			setattr(self.w, f"left{rowName}Text", vanilla.TextBox("auto", f"L {rowTitle}:", sizeStyle='small', selectable=True))
+			setattr(self.w, f"left{rowName}", vanilla.PopUpButton("auto", (), sizeStyle='small', callback=self.buttonEnable))
+			setattr(self.w, f"right{rowName}Text", vanilla.TextBox("auto", f"R {rowTitle}:", sizeStyle='small', selectable=True))
+			setattr(self.w, f"right{rowName}", vanilla.PopUpButton("auto", (), sizeStyle='small', callback=self.buttonEnable))
 
 		if Glyphs.versionNumber < 3:
 			self.w.leftCase.enable(False)
@@ -71,27 +51,64 @@ class RemoveKerning(mekkaObject):
 
 		self.ReloadCategories()
 
-		self.w.includeDirtyCategories = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Delete group kerning even if groups are ‘dirty’ (e.g., group with uppercase and lowercase letters mixed)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.includeDirtyCategories = vanilla.CheckBox("auto", "Delete group kerning even if groups are ‘dirty’ (e.g., group with uppercase and lowercase letters mixed)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reportInMacroWindow = vanilla.CheckBox("auto", "Detailed report in macro window", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.processAllMasters = vanilla.CheckBox("auto", "Process all masters (otherwise current master only)", value=False, callback=self.SavePreferences, sizeStyle='small')
 
-		self.w.reportInMacroWindow = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Detailed report in macro window", value=False, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
-
-		self.w.processAllMasters = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Process all masters (otherwise current master only)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
-
-		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
+		self.w.progress = vanilla.ProgressBar("auto")
 		self.w.progress.set(0)  # set progress indicator to zero
-		linePos += lineHeight
 
-		self.w.statusText = vanilla.TextBox((inset, -20 - inset, -220 - inset, 14), u"", sizeStyle='small', selectable=True)
+		self.w.statusText = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle='small', selectable=True)
+		self.w.statusText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Remove", callback=self.RemoveKerningMain)
+		self.w.runButton = vanilla.Button("auto", "Remove", callback=self.RemoveKerningMain)
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Reload Button:
-		self.w.reloadButton = vanilla.Button((-220 - inset, -20 - inset, -130 - inset, -inset), "Reload", callback=self.ReloadCategories)
+		self.w.reloadButton = vanilla.Button("auto", "Reload", callback=self.ReloadCategories)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# labels are right-aligned, hug their text and share one width:
+		labelNames = [f"{side}{rowName}Text" for rowName in rowNames for side in ("left", "right")]
+		for labelName in labelNames:
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		def equal(attribute, viewName, referenceName):
+			return {"view1": getattr(self.w, viewName), "attribute1": attribute, "view2": getattr(self.w, referenceName), "attribute2": attribute}
+
+		rules = ["H:|-inset-[descriptionText]-inset-|"]
+		for rowName in rowNames:
+			rules.append(f"H:|-inset-[left{rowName}Text]-gap-[left{rowName}(>=150)]-columnGap-[right{rowName}Text]-gap-[right{rowName}(>=150)]-inset-|")
+			for viewName in (f"left{rowName}Text", f"right{rowName}Text", f"right{rowName}"):
+				rules.append({"view1": getattr(self.w, viewName), "attribute1": "centerY", "view2": getattr(self.w, f"left{rowName}"), "attribute2": "centerY"})
+			# all labels share one width, and so do all popups:
+			if rowName != "Category":
+				rules.append(equal("width", f"left{rowName}Text", "leftCategoryText"))
+				rules.append(equal("width", f"left{rowName}", "leftCategory"))
+			rules.append(equal("width", f"right{rowName}Text", "leftCategoryText"))
+			rules.append(equal("width", f"right{rowName}", "leftCategory"))
+		rules += [
+			"H:|-inset-[includeDirtyCategories]-(>=inset)-|",
+			"H:|-inset-[reportInMacroWindow]-(>=inset)-|",
+			"H:|-inset-[processAllMasters]-(>=inset)-|",
+			"H:|-inset-[progress]-inset-|",
+			"H:|-inset-[statusText]-(>=gap)-[reloadButton(>=70)]-gap-[runButton(>=70)]-inset-|",
+			"V:|-inset-[descriptionText]-headlineGap-[leftCategory]-row-[leftSubCategory]-row-[leftScript]-row-[leftCase]-sectionGap-[includeDirtyCategories]-checkRow-[reportInMacroWindow]-checkRow-[processAllMasters]-sectionGap-[progress(16)]-inset-[runButton]-inset-|",
+			"V:[reloadButton]-inset-|",
+			equal("centerY", "statusText", "runButton"),
+		]
+		self.w.addAutoPosSizeRules(
+			rules,
+			metrics={"inset": inset, "gap": 8, "columnGap": 20, "row": 6, "headlineGap": 12, "sectionGap": 14, "checkRow": 5},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -193,6 +210,10 @@ class RemoveKerning(mekkaObject):
 			self.SavePreferences()
 
 			thisFont = Glyphs.font  # frontmost font
+			if thisFont is None:
+				self.status("❌ No font open.")
+				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+				return
 			includeDirtyCategories = self.pref("includeDirtyCategories")
 			reportInMacroWindow = self.pref("reportInMacroWindow")
 
@@ -208,24 +229,24 @@ class RemoveKerning(mekkaObject):
 			leftCategory = self.w.leftCategory.getItems()[self.w.leftCategory.get()]
 			leftSubCategory = self.w.leftSubCategory.getItems()[self.w.leftSubCategory.get()]
 			leftScript = self.w.leftScript.getItems()[self.w.leftScript.get()]
-			# leftCase = self.caseAsNumberOrAny(self.w.leftCase.getItems()[self.w.leftCase.get()])
+			leftCase = self.caseAsNumberOrAny(self.w.leftCase.getItems()[self.w.leftCase.get()])
 
 			rightCategory = self.w.rightCategory.getItems()[self.w.rightCategory.get()]
 			rightSubCategory = self.w.rightSubCategory.getItems()[self.w.rightSubCategory.get()]
 			rightScript = self.w.rightScript.getItems()[self.w.rightScript.get()]
-			# rightCase = self.caseAsNumberOrAny(self.w.rightCase.getItems()[self.w.rightCase.get()])
+			rightCase = self.caseAsNumberOrAny(self.w.rightCase.getItems()[self.w.rightCase.get()])
 
 			leftGlyphNames, rightGlyphNames = [], []
 			leftGroups, rightGroups = [], []
 
 			for thisGlyph in thisFont.glyphs:
-				self.status("Scanning %s..." % thisGlyph.name, reportInMacroWindow)
+				self.status("🔠 %s" % thisGlyph.name, reportInMacroWindow)
 
 				leftCategoryOK = leftCategory == "Any" or thisGlyph.category == leftCategory
 				leftSubCategoryOK = leftSubCategory == "Any" or thisGlyph.subCategory == leftSubCategory
 				leftScriptOK = leftScript == "Any" or thisGlyph.script == leftScript
-				# leftCaseOK = leftScript == "Any" or thisGlyph.case == leftCase
-				isAMatchingLeftGlyph = leftCategoryOK and leftSubCategoryOK and leftScriptOK
+				leftCaseOK = leftCase == "Any" or thisGlyph.case == leftCase
+				isAMatchingLeftGlyph = leftCategoryOK and leftSubCategoryOK and leftScriptOK and leftCaseOK
 				if isAMatchingLeftGlyph:
 					leftGlyphNames.append(thisGlyph.name)
 					if thisGlyph.rightKerningGroup and thisGlyph.rightKerningGroup not in leftGroups:
@@ -234,15 +255,15 @@ class RemoveKerning(mekkaObject):
 				rightCategoryOK = rightCategory == "Any" or thisGlyph.category == rightCategory
 				rightSubCategoryOK = rightSubCategory == "Any" or thisGlyph.subCategory == rightSubCategory
 				rightScriptOK = rightScript == "Any" or thisGlyph.script == rightScript
-				# rightCaseOK = rightScript == "Any" or thisGlyph.case == rightCase
-				isAMatchingRightGlyph = rightCategoryOK and rightSubCategoryOK and rightScriptOK
+				rightCaseOK = rightCase == "Any" or thisGlyph.case == rightCase
+				isAMatchingRightGlyph = rightCategoryOK and rightSubCategoryOK and rightScriptOK and rightCaseOK
 				if isAMatchingRightGlyph:
 					rightGlyphNames.append(thisGlyph.name)
 					if thisGlyph.leftKerningGroup and thisGlyph.leftKerningGroup not in rightGroups:
 						rightGroups.append(thisGlyph.leftKerningGroup)
 
 			if not includeDirtyCategories:
-				self.status("Sorting out dirty groups...", reportInMacroWindow)
+				self.status("🛠️ Sorting out dirty groups…", reportInMacroWindow)
 				if leftGroups or rightGroups:
 					for thisGlyph in thisFont.glyphs:
 						if thisGlyph.rightKerningGroup in leftGroups and thisGlyph.name not in leftGlyphNames:
@@ -262,13 +283,13 @@ class RemoveKerning(mekkaObject):
 			leftNames = leftGlyphNames + ["@MMK_L_%s" % groupname for groupname in leftGroups]
 			rightNames = rightGlyphNames + ["@MMK_R_%s" % groupname for groupname in rightGroups]
 
-			fullLength = len(masterIDs) * len(leftNames) * len(rightNames)
+			fullLength = max(1, len(masterIDs) * len(leftNames) * len(rightNames))
 			counter = 0
 			removalCount = 0
 
 			for masterID in masterIDs:
 				masterName = thisFont.fontMasterForId_(masterID).name
-				self.status("Processing master '%s'..." % masterName, reportInMacroWindow)
+				self.status("🛠️ Processing master '%s'…" % masterName, reportInMacroWindow)
 				if masterID in thisFont.kerning.keys():
 					for leftName in leftNames:
 						try:
@@ -276,15 +297,15 @@ class RemoveKerning(mekkaObject):
 						except:
 							# tried to find a glyph named like a group
 							leftID = leftName
-						for rightName in rightNames:
-							if leftID in thisFont.kerning[masterID].keys():
+						if leftID in thisFont.kerning[masterID].keys():
+							for rightName in rightNames:
 								try:
 									rightID = thisFont.glyphs[rightName].id
 								except:
 									# tried to find a glyph named like a group
 									rightID = rightName
 								if rightID in thisFont.kerning[masterID][leftID].keys():
-									self.status("Master %s: removing %s:%s" % (masterName, leftName, rightName), True)
+									self.status("🛠️ Master %s: removing %s:%s" % (masterName, leftName, rightName), True)
 									thisFont.removeKerningForPair(masterID, leftName, rightName)
 									removalCount += 1
 								counter += 1
@@ -298,7 +319,7 @@ class RemoveKerning(mekkaObject):
 
 			self.w.progress.set(100)
 			self.status(
-				"Ready. Removed %i pair%s." % (
+				"✅ Removed %i pair%s." % (
 					removalCount,
 					"" if removalCount == 1 else "s",
 				),

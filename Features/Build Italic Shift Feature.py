@@ -4,9 +4,11 @@ Creates and inserts GPOS feature code for shifting glyphs, e.g., parentheses and
 """
 
 import vanilla
-from GlyphsApp import Glyphs, GSFeature
+from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
+from Foundation import NSPoint
+from GlyphsApp import Glyphs, GSFeature, Message
+from mekkablue import mekkaObject, setClipboard
 from mekkablue.geometry import italicize
-from mekkablue import mekkaObject
 
 
 def updatedCode(oldCode, beginSig, endSig, newCode):
@@ -74,43 +76,57 @@ class ItalicShiftFeature(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 440
-		windowHeight = 160
-		windowWidthResize = 600  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 520
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Italic Shift Feature",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
 		inset = 15
-		lineStep = 22
-		lineheight = 12
-		self.w.text_1 = vanilla.TextBox((inset - 1, lineheight + 2, -inset, 14), "Insert GPOS lookup for shifting punctuation in italic angle of 1st master:", sizeStyle='small')
+		self.w.text_1 = vanilla.TextBox("auto", "Insert GPOS lookup for shifting punctuation in italic angle of 1st master:", sizeStyle='small')
 
-		lineheight += lineStep
-		self.w.edit_1a = vanilla.EditText((inset, lineheight, 70, 19), "case", sizeStyle='small', placeholder="smcp,c2sc", callback=self.SavePreferences)
-		self.w.edit_1b = vanilla.EditText((75 + inset, lineheight, 55, 19), "100", sizeStyle='small', placeholder="80", callback=self.SavePreferences)
-		self.w.edit_1c = vanilla.EditText((75 + 75, lineheight, -inset, 19), "exclamdown questiondown", sizeStyle='small', placeholder="parenleft parenright bracketleft bracketright", callback=self.SavePreferences)
+		self.w.edit_1a = vanilla.EditText("auto", "case", sizeStyle='small', placeholder="smcp,c2sc", callback=self.SavePreferences)
+		self.w.edit_1b = vanilla.EditText("auto", "100", sizeStyle='small', placeholder="80", callback=self.SavePreferences)
+		self.w.edit_1c = vanilla.EditText("auto", "exclamdown questiondown", sizeStyle='small', placeholder="parenleft parenright bracketleft bracketright", callback=self.SavePreferences)
 
-		lineheight += lineStep
-		self.w.edit_2a = vanilla.EditText((inset, lineheight, 70, 19), "case", sizeStyle='small', placeholder="smcp,c2sc", callback=self.SavePreferences)
-		self.w.edit_2b = vanilla.EditText((75 + inset, lineheight, 55, 19), "50", sizeStyle='small', placeholder="80", callback=self.SavePreferences)
-		self.w.edit_2c = vanilla.EditText((75 + 75, lineheight, -inset, 19), "parenleft parenright braceleft braceright bracketleft bracketright", sizeStyle='small', placeholder="parenleft parenright bracketleft bracketright", callback=self.SavePreferences)
+		self.w.edit_2a = vanilla.EditText("auto", "case", sizeStyle='small', placeholder="smcp,c2sc", callback=self.SavePreferences)
+		self.w.edit_2b = vanilla.EditText("auto", "50", sizeStyle='small', placeholder="80", callback=self.SavePreferences)
+		self.w.edit_2c = vanilla.EditText("auto", "parenleft parenright braceleft braceright bracketleft bracketright", sizeStyle='small', placeholder="parenleft parenright bracketleft bracketright", callback=self.SavePreferences)
 
-		lineheight += lineStep
-		self.w.edit_3a = vanilla.EditText((inset, lineheight, 70, 19), "", sizeStyle='small', placeholder="smcp,c2sc", callback=self.SavePreferences)
-		self.w.edit_3b = vanilla.EditText((75 + inset, lineheight, 55, 19), "", sizeStyle='small', placeholder="80", callback=self.SavePreferences)
-		self.w.edit_3c = vanilla.EditText((75 + 75, lineheight, -inset, 19), "", sizeStyle='small', placeholder="parenleft parenright bracketleft bracketright", callback=self.SavePreferences)
+		self.w.edit_3a = vanilla.EditText("auto", "", sizeStyle='small', placeholder="smcp,c2sc", callback=self.SavePreferences)
+		self.w.edit_3b = vanilla.EditText("auto", "", sizeStyle='small', placeholder="80", callback=self.SavePreferences)
+		self.w.edit_3c = vanilla.EditText("auto", "", sizeStyle='small', placeholder="parenleft parenright bracketleft bracketright", callback=self.SavePreferences)
 
 		# Run Button:
-		self.w.copyButton = vanilla.Button((-180 - inset, -20 - inset, -inset - 90, -inset), "Copy Code", callback=self.ItalicShiftFeatureMain)
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Insert", callback=self.ItalicShiftFeatureMain)
+		self.w.copyButton = vanilla.Button("auto", "Copy Code", callback=self.ItalicShiftFeatureMain)
+		self.w.runButton = vanilla.Button("auto", "Insert", callback=self.ItalicShiftFeatureMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# keep everything at its natural height, so the window is exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[text_1]-inset-|",
+				"H:|-inset-[edit_1a(70)]-gap-[edit_1b(55)]-gap-[edit_1c]-inset-|",
+				"H:|-inset-[edit_2a(70)]-gap-[edit_2b(55)]-gap-[edit_2c]-inset-|",
+				"H:|-inset-[edit_3a(70)]-gap-[edit_3b(55)]-gap-[edit_3c]-inset-|",
+				"H:|-(>=inset)-[copyButton(>=70)]-gap-[runButton(>=70)]-inset-|",
+				"V:|-inset-[text_1]-row-[edit_1a]-row-[edit_2a]-row-[edit_3a]-inset-[runButton]-inset-|",
+				"V:[copyButton]-inset-|",
+				{"view1": self.w.edit_1b, "attribute1": "centerY", "view2": self.w.edit_1a, "attribute2": "centerY"},
+				{"view1": self.w.edit_1c, "attribute1": "centerY", "view2": self.w.edit_1a, "attribute2": "centerY"},
+				{"view1": self.w.edit_2b, "attribute1": "centerY", "view2": self.w.edit_2a, "attribute2": "centerY"},
+				{"view1": self.w.edit_2c, "attribute1": "centerY", "view2": self.w.edit_2a, "attribute2": "centerY"},
+				{"view1": self.w.edit_3b, "attribute1": "centerY", "view2": self.w.edit_3a, "attribute2": "centerY"},
+				{"view1": self.w.edit_3c, "attribute1": "centerY", "view2": self.w.edit_3a, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -121,7 +137,13 @@ class ItalicShiftFeature(mekkaObject):
 
 	def ItalicShiftFeatureMain(self, sender):
 		try:
+			self.SavePreferences()
+
 			thisFont = Glyphs.font  # frontmost font
+			if thisFont is None:
+				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+				return
+
 			firstMaster = thisFont.masters[0]
 			italicAngle = firstMaster.italicAngle
 			features = {}
@@ -135,28 +157,35 @@ class ItalicShiftFeature(mekkaObject):
 					if verticalShift:
 						verticalShift = int(verticalShift)
 						if verticalShift != 0:
-							otCode = "\tpos [%s] <%i %i 0 0>;\n" % (glyphNames, italicize(pivotalY=verticalShift, italicAngle=italicAngle), verticalShift)
+							horizontalShift = int(round(italicize(NSPoint(0, verticalShift), italicAngle=italicAngle, pivotalY=0).x))
+							otCode = "\tpos [%s] <%i %i 0 0>;\n" % (glyphNames, horizontalShift, verticalShift)
 
 							if otFeature in features:
 								features[otFeature] += otCode
 							else:
 								features[otFeature] = otCode
 
+			lookupCodes = {}
 			for otFeature in features.keys():
 				lookupName = "italicShift_%s" % otFeature
 				otCode = "lookup %s {\n" % lookupName
 				otCode += features[otFeature]
 				otCode += "} %s;" % lookupName
-				createOTFeature(
-					featureName=otFeature,
-					codeSig="ITALIC-SHIFT-%s" % otFeature.upper(),
-					targetFont=thisFont,
-					featureCode=otCode,
-				)
+				lookupCodes[otFeature] = otCode
 
-			self.SavePreferences()
-
-			self.w.close()  # delete if you want window to stay open
+			if sender == self.w.copyButton:
+				# Copy Code: do not touch the font
+				setClipboard("\n\n".join("feature %s {\n%s\n} %s;" % (otFeature, otCode, otFeature) for otFeature, otCode in lookupCodes.items()))
+				Glyphs.showNotification("Italic Shift Feature", "Feature code copied to the clipboard.")
+			else:
+				for otFeature, otCode in lookupCodes.items():
+					createOTFeature(
+						featureName=otFeature,
+						codeSig="ITALIC-SHIFT-%s" % otFeature.upper(),
+						targetFont=thisFont,
+						featureCode=otCode,
+					)
+				self.w.close()  # delete if you want window to stay open
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()

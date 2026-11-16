@@ -3,11 +3,18 @@ __doc__ = """
 Goes through all vertical and horizontal line segments, and finds pairs that are close, but do not align completely.
 """
 
+import objc
 import vanilla
-from Foundation import NSPoint
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
+from Foundation import NSPoint, NSNumberFormatter
 from GlyphsApp import Glyphs, GSGuide, Message
 from mekkablue import mekkaObject, reportFontName
 from mekkablue.geometry import angle
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 class FindCloseEncounters(mekkaObject):
@@ -25,47 +32,62 @@ class FindCloseEncounters(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 370
-		windowHeight = 220
-		windowWidthResize = 500  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 440
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Find Close Encounters of Orthogonal Line Segments",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Find orthogonal line segments that are close but not aligning:", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		self.w.descriptionText = vanilla.TextBox("auto", "Find orthogonal line segments that are close but not aligning:", sizeStyle='small', selectable=True)
 
-		self.w.thresholdText = vanilla.TextBox((inset, linePos + 2, 120, 14), "Max distance in units:", sizeStyle='small', selectable=True)
-		self.w.threshold = vanilla.EditText((inset + 120, linePos - 1, 50, 19), self.prefDict["threshold"], callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		formatter = NSNumberFormatter.alloc().init()
+		formatter.setMinimum_(0)
+		self.w.thresholdText = vanilla.TextBox("auto", "Max distance in units:", sizeStyle='small', selectable=True)
+		self.w.threshold = SteppingEditText("auto", self.prefDict["threshold"], callback=self.SavePreferences, sizeStyle='small', formatter=formatter)
 
-		self.w.includeComposites = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include composites (otherwise only glyphs with paths)", value=self.prefDict["includeComposites"], callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.includeComposites = vanilla.CheckBox("auto", "Include composites (otherwise only glyphs with paths)", value=self.prefDict["includeComposites"], callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeNonExporting = vanilla.CheckBox("auto", "Include non-exporting glyphs", value=self.prefDict["includeNonExporting"], callback=self.SavePreferences, sizeStyle='small')
 
-		self.w.includeNonExporting = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include non-exporting glyphs", value=self.prefDict["includeNonExporting"], callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.excludeGlyphs = vanilla.CheckBox("auto", "Exclude glyphs containing:", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.excludeGlyphsContaining = vanilla.EditText("auto", self.prefDict["excludeGlyphsContaining"], callback=self.SavePreferences, sizeStyle='small')
 
-		self.w.excludeGlyphs = vanilla.CheckBox((inset + 2, linePos - 1, 160, 20), "Exclude glyphs containing:", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.excludeGlyphsContaining = vanilla.EditText((inset + 160, linePos - 1, -inset, 19), self.prefDict["excludeGlyphsContaining"], callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
-
-		self.w.allFonts = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include ⚠️ ALL fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
-
-		self.w.reuseTab = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Reuse current tab for report", value=False, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.allFonts = vanilla.CheckBox("auto", "Include ⚠️ ALL fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.reuseTab = vanilla.CheckBox("auto", "Reuse current tab for report", value=False, callback=self.SavePreferences, sizeStyle='small')
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Find", callback=self.FindCloseEncountersMain)
+		self.w.runButton = vanilla.Button("auto", "Find", callback=self.FindCloseEncountersMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# the checkbox hugs its title, the field behind it takes the leftover width:
+		self.w.excludeGlyphs.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.excludeGlyphsContaining.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[thresholdText]-gap-[threshold(50)]-(>=inset)-|",
+				"H:|-inset-[includeComposites]-(>=inset)-|",
+				"H:|-inset-[includeNonExporting]-(>=inset)-|",
+				"H:|-inset-[excludeGlyphs]-gap-[excludeGlyphsContaining]-inset-|",
+				"H:|-inset-[allFonts]-(>=inset)-|",
+				"H:|-inset-[reuseTab]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-inset-[descriptionText]-row-[threshold]-row-[includeComposites]-stackRow-[includeNonExporting]-stackRow-[excludeGlyphsContaining]-stackRow-[allFonts]-stackRow-[reuseTab]-inset-[runButton]-inset-|",
+				{"view1": self.w.thresholdText, "attribute1": "centerY", "view2": self.w.threshold, "attribute2": "centerY"},
+				{"view1": self.w.excludeGlyphs, "attribute1": "centerY", "view2": self.w.excludeGlyphsContaining, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 8, "stackRow": 8},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -91,7 +113,7 @@ class FindCloseEncounters(mekkaObject):
 			includeComposites = self.pref("includeComposites")
 			includeNonExporting = self.pref("includeNonExporting")
 			excludeGlyphs = self.pref("excludeGlyphs")
-			excludeGlyphsContaining = [particle.strip() for particle in self.pref("excludeGlyphsContaining").split(",")]
+			excludeGlyphsContaining = [particle.strip() for particle in self.pref("excludeGlyphsContaining").split(",") if particle.strip()]
 			reuseTab = self.pref("reuseTab")
 			allFonts = self.pref("allFonts")
 

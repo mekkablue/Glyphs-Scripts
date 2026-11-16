@@ -5,113 +5,123 @@ Always checks on-curve points only, never removes overlap, always includes non-e
 never includes composites. Uses each layer's individual metrics (supports per-layer overrides).
 """
 
+import objc
 import vanilla
-from GlyphsApp import Glyphs, GSAnnotation, TEXT, GSOFFCURVE, Message
+from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
+from Foundation import NSNumberFormatter
+from GlyphsApp import Glyphs, GSAnnotation, TEXT, GSOFFCURVE, GSUppercase, GSLowercase, GSMetricsTypexHeight, GSMetricsTypeCapHeight, Message
 from mekkablue import mekkaObject
 
-try:
-	from GlyphsApp import GSUppercase, GSLowercase
-except ImportError:
-	GSUppercase, GSLowercase = 1, 2
 
-try:
-	from GlyphsApp import GSMetricsTypexHeight, GSMetricsTypeCapHeight
-except ImportError:
-	GSMetricsTypexHeight, GSMetricsTypeCapHeight = 3, 6
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 class FindNearVerticalMisses(mekkaObject):
 	marker = "❌"
 
 	prefDict = {
-		"deviance": "1",
+		"deviance": 1,
 		"tolerateIfNextNodeIsOn": True,
 		"tolerateIfExtremum": True,
 		"markNodes": False,
 		"limitToLetters": False,
-		"exclude": "",
+		"exclude": ".ornm, .notdef, comb",
 		"openTab": True,
 		"reuseTab": True,
 	}
 
 	def __init__(self):
-		windowWidth = 320
-		windowHeight = 282
-		windowWidthResize = 300
-		windowHeightResize = 0
+		windowWidth = 370
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Find Near Vertical Misses",
-			minSize=(windowWidth, windowHeight),
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),
-			autosaveName=self.domain("mainwindow"),
+			autosaveName=self.domain("mainwindow"),  # stores last window position
 		)
 
-		linePos, inset, lineHeight = 12, 15, 22
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Search for on-curve nodes not exactly on metrics:", sizeStyle="small", selectable=True)
+		self.w.descriptionText = vanilla.TextBox("auto", "Search for on-curve nodes not exactly on metrics:", sizeStyle="small", selectable=True)
 		self.w.descriptionText.setToolTip("Searches for on-curve nodes that are close but not exactly on any vertical metric of their layer. Automatically skips xHeight for uppercase glyphs, and capHeight for lowercase glyphs, to avoid false positives.")
-		linePos += lineHeight
 
-		self.w.devianceText = vanilla.TextBox((inset, linePos + 3, 130, 14), "Find nodes off by up to", sizeStyle="small", selectable=True)
-		self.w.devianceText.setToolTip("Finds nodes that are not equal to any metric value, but off by up to this many units. Minimum: 1 unit.")
-		self.w.deviance = vanilla.EditText((inset + 130, linePos, 35, 19), "1", callback=self.SavePreferences, sizeStyle="small")
-		self.w.deviance.getNSTextField().setAlignment_(2)  # NSTextAlignmentRight
-		self.w.deviance.setToolTip("Finds nodes that are not equal to any metric value, but off by up to this many units. Minimum: 1 unit.")
-		self.w.devianceUnitsText = vanilla.TextBox((inset + 170, linePos + 3, 50, 14), "units", sizeStyle="small", selectable=True)
-		self.w.devianceUnitsText.setToolTip("Finds nodes that are not equal to any metric value, but off by up to this many units. Minimum: 1 unit.")
-		linePos += lineHeight
+		tooltipText = "Finds nodes that are not equal to any metric value, but off by up to this many units. Minimum: 1 unit."
+		formatter = NSNumberFormatter.alloc().init()
+		formatter.setMinimum_(1)
+		self.w.devianceText = vanilla.TextBox("auto", "Find nodes off by up to", sizeStyle="small", selectable=True)
+		self.w.devianceText.setToolTip(tooltipText)
+		self.w.deviance = SteppingEditText("auto", "1", callback=self.SavePreferences, sizeStyle="small", formatter=formatter)
+		self.w.deviance.getNSTextField().setAlignment_(NSTextAlignmentRight)
+		self.w.deviance.setToolTip(tooltipText)
+		self.w.devianceUnitsText = vanilla.TextBox("auto", "units", sizeStyle="small", selectable=True)
+		self.w.devianceUnitsText.setToolTip(tooltipText)
 
-		linePos += int(lineHeight * 0.5)
-
-		self.w.tolerateIfNextNodeIsOn = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Tolerate near miss if next node is on", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.tolerateIfNextNodeIsOn = vanilla.CheckBox("auto", "Tolerate near miss if next node is on", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.tolerateIfNextNodeIsOn.setToolTip("Skips a near-miss node if the nearest on-curve neighbor (in either direction along the path) sits exactly on the same metric line. Useful for very thin serifs or short segments near metric lines.")
-		linePos += lineHeight
 
-		self.w.tolerateIfExtremum = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Tolerate near miss for left/right curve extremum", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.tolerateIfExtremum = vanilla.CheckBox("auto", "Tolerate near miss for left/right curve extremum", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.tolerateIfExtremum.setToolTip("Skips a near-miss node when both its neighbor nodes are vertical off-curves (i.e. the node is a left or right curve extremum). Strongly recommended to avoid false positives on rounded shapes.")
-		linePos += lineHeight
 
-		self.w.markNodes = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), f"Mark affected nodes with {self.marker}", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.markNodes = vanilla.CheckBox("auto", f"Mark affected nodes with {self.marker}", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.markNodes.setToolTip(f"Assigns the name '{self.marker}' to each offending node so it appears as a node label. Enable View > Show Node Names to see the markers in the canvas.")
-		linePos += lineHeight
 
-		self.w.limitToLetters = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Limit to letters", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.limitToLetters = vanilla.CheckBox("auto", "Limit to letters", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.limitToLetters.setToolTip("Restricts the search to glyphs with category 'Letter'. All other categories (figures, punctuation, symbols, etc.) are skipped.")
-		linePos += lineHeight
 
-		self.w.excludeText = vanilla.TextBox((inset, linePos + 3, 150, 14), "Exclude glyphs containing:", sizeStyle="small", selectable=True)
-		self.w.excludeText.setToolTip("Comma-separated list of substrings. Any glyph whose name contains at least one of these substrings is skipped entirely.")
-		self.w.exclude = vanilla.EditText((inset + 150, linePos, -inset, 19), ".ornm, .notdef, comb", callback=self.SavePreferences, sizeStyle="small")
-		self.w.exclude.setToolTip("Comma-separated list of substrings. Any glyph whose name contains at least one of these substrings is skipped entirely.")
-		linePos += lineHeight
-		linePos += 2  # extra breathing room before tab options
+		tooltipText = "Comma-separated list of substrings. Any glyph whose name contains at least one of these substrings is skipped entirely."
+		self.w.excludeText = vanilla.TextBox("auto", "Exclude glyphs containing:", sizeStyle="small", selectable=True)
+		self.w.excludeText.setToolTip(tooltipText)
+		self.w.exclude = vanilla.EditText("auto", ".ornm, .notdef, comb", callback=self.SavePreferences, sizeStyle="small")
+		self.w.exclude.setToolTip(tooltipText)
 
-		self.w.openTab = vanilla.CheckBox((inset + 2, linePos - 1, 80, 20), "Open tab", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.openTab = vanilla.CheckBox("auto", "Open tab", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.openTab.setToolTip("Opens an edit tab showing all layers that contain at least one near-miss node.")
-		self.w.reuseTab = vanilla.CheckBox((inset + 2 + 80 + 4, linePos - 1, -inset, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.reuseTab = vanilla.CheckBox("auto", "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.reuseTab.setToolTip("Replaces the contents of the currently active tab instead of opening a new one.")
-		linePos += lineHeight
 
-		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
+		self.w.progress = vanilla.ProgressBar("auto")
 		self.w.progress.set(0)
 
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Find", callback=self.FindNearVerticalMissesMain)
+		self.w.runButton = vanilla.Button("auto", "Find", callback=self.FindNearVerticalMissesMain)
 		self.w.setDefaultButton(self.w.runButton)
 
-		self.w.status = vanilla.TextBox((inset, -18 - inset, -80 - inset, 14), "🤖 Ready.", sizeStyle="small", selectable=True)
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small", selectable=True)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# the label hugs its text, the field behind it takes the leftover width:
+		nsLabel = self.w.excludeText.getNSTextField()
+		nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[devianceText]-gap-[deviance(40)]-gap-[devianceUnitsText]-(>=inset)-|",
+				"H:|-inset-[tolerateIfNextNodeIsOn]-(>=inset)-|",
+				"H:|-inset-[tolerateIfExtremum]-(>=inset)-|",
+				"H:|-inset-[markNodes]-(>=inset)-|",
+				"H:|-inset-[limitToLetters]-(>=inset)-|",
+				"H:|-inset-[excludeText]-gap-[exclude]-inset-|",
+				"H:|-inset-[openTab]-gap-[reuseTab]-(>=inset)-|",
+				"H:|-inset-[progress]-inset-|",
+				"H:|-inset-[status]-(>=gap)-[runButton(>=70)]-inset-|",
+				"V:|-inset-[descriptionText]-row-[deviance]-section-[tolerateIfNextNodeIsOn]-stackRow-[tolerateIfExtremum]-stackRow-[markNodes]-stackRow-[limitToLetters]-stackRow-[exclude]-section-[openTab]-section-[progress(16)]-inset-[runButton]-inset-|",
+				{"view1": self.w.devianceText, "attribute1": "centerY", "view2": self.w.deviance, "attribute2": "centerY"},
+				{"view1": self.w.devianceUnitsText, "attribute1": "centerY", "view2": self.w.deviance, "attribute2": "centerY"},
+				{"view1": self.w.excludeText, "attribute1": "centerY", "view2": self.w.exclude, "attribute2": "centerY"},
+				{"view1": self.w.reuseTab, "attribute1": "centerY", "view2": self.w.openTab, "attribute2": "centerY"},
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 8, "stackRow": 8, "section": 12},
+		)
 
 		self.LoadPreferences()
 		self.w.open()
-		currentWidth, currentHeight = self.w.getPosSize()[2:]
-		currentHeight += 19
-		
-		windowWithinConstraints = (
-			windowWidth <= currentWidth <= windowWidth + windowWidthResize
-			and windowHeight <= currentHeight <= windowHeight + windowHeightResize
-			)
-		if not windowWithinConstraints:
-			self.w.resize(windowWidth, windowHeight-19)
 		self.w.makeKey()
 
 	def updateUI(self, sender=None):
@@ -333,7 +343,7 @@ class FindNearVerticalMisses(mekkaObject):
 			else:
 				Message(
 					title="No Deviant Nodes",
-					message=f"Congratulations! No nodes found missing any metric and off by up to {self.pref('deviance')} u.",
+					message=f"Congratulations! No nodes found missing any metric and off by up to {deviance:g} u.",
 					OKButton="🥂Cheers!"
 				)
 

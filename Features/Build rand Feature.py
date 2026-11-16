@@ -4,6 +4,7 @@ Build rand (random) feature from .cvXX or another (numbered) suffix.
 """
 
 import vanilla
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, GSFeature, Message
 from mekkablue import mekkaObject, UpdateButton
 
@@ -27,46 +28,66 @@ class BuildRandFeature(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 320
-		windowHeight = 170
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 360
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Build rand Feature",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), u"Build a Randomize feature with the following suffix:", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		self.w.descriptionText = vanilla.TextBox("auto", "Build a Randomize feature with the following suffix:", sizeStyle='small', selectable=True)
 
-		self.w.suffixText = vanilla.TextBox((inset, linePos + 3, 45, 14), u"Suffix:", sizeStyle='small', selectable=True)
-		self.w.suffix = vanilla.ComboBox((inset + 45, linePos, -inset - 22, 17), self.fillSuffixes(), sizeStyle='small', callback=self.SavePreferences)
-		self.w.suffix.setToolTip(u"Find all (exporting) glyphs that have this suffix and in OT feature ‘rand’, build a one-from-many substitution with them. Hint: keep the dot, but avoid the figures, e.g. for all stylistic sets, type ‘.ss’.")
-		self.w.suffixReset = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.updateSuffixs)
-		linePos += lineHeight
+		self.w.suffixText = vanilla.TextBox("auto", "Suffix:", sizeStyle='small', selectable=True)
+		self.w.suffix = vanilla.ComboBox("auto", self.fillSuffixes(), sizeStyle='small', callback=self.SavePreferences)
+		self.w.suffix.setToolTip("Find all (exporting) glyphs that have this suffix and in OT feature ‘rand’, build a one-from-many substitution with them. Hint: keep the dot, but avoid the figures, e.g. for all stylistic sets, type ‘.ss’.")
+		self.w.suffixReset = UpdateButton("auto", callback=self.updateSuffixs)
 
-		self.w.exclude = vanilla.CheckBox((inset + 2, linePos, 160, 20), "Exclude glyphs containing:", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.excludeList = vanilla.EditText((inset + 160, linePos, -inset, 19), ".build, .ss12", callback=self.SavePreferences, sizeStyle='small')
+		self.w.exclude = vanilla.CheckBox("auto", "Exclude glyphs containing:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.excludeList = vanilla.EditText("auto", ".build, .ss12", callback=self.SavePreferences, sizeStyle='small')
 		self.w.excludeList.setToolTip("Comma-separated list of glyph name particles. Glyphs containing these particles in their names will be excluded from the rand feature generation.")
-		linePos += lineHeight
 
-		self.w.includeDefault = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include unsuffixed default in randomisation", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeDefault = vanilla.CheckBox("auto", "Include unsuffixed default in randomisation", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeDefault.setToolTip("If enabled, will substitute A from [A A.cv01 A.cv02]. If disabled, will substitute only from [A.cv01 A.cv02]. Usually, you will want to keep this on.")
-		linePos += lineHeight
 
-		self.w.overwrite = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Overwrite existing rand feature", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.overwrite = vanilla.CheckBox("auto", "Overwrite existing rand feature", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.overwrite.setToolTip("If enabled, will recreate the existing randomisation feature from scratch. If disabled, will append the new code instead. Usually, you will want to keep this on.")
-		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Add Feature", callback=self.BuildRandFeatureMain)
+		self.w.runButton = vanilla.Button("auto", "Add Feature", callback=self.BuildRandFeatureMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# the label hugs its text, so the combo box takes the leftover width:
+		nsLabel = self.w.suffixText.getNSTextField()
+		nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		# the checkbox hugs its title, the field behind it takes the rest:
+		self.w.exclude.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.excludeList.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[suffixText]-gap-[suffix(>=100)]-gap-[suffixReset]-inset-|",
+				"H:|-inset-[exclude]-gap-[excludeList(>=60)]-inset-|",
+				"H:|-inset-[includeDefault]-(>=inset)-|",
+				"H:|-inset-[overwrite]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-inset-[descriptionText]-row-[suffix]-row-[exclude]-stackRow-[includeDefault]-stackRow-[overwrite]-inset-[runButton]-inset-|",
+				{"view1": self.w.suffixText, "attribute1": "centerY", "view2": self.w.suffix, "attribute2": "centerY"},
+				{"view1": self.w.suffixReset, "attribute1": "centerY", "view2": self.w.suffix, "attribute2": "centerY"},
+				{"view1": self.w.excludeList, "attribute1": "centerY", "view2": self.w.exclude, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 8, "stackRow": 8},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -96,7 +117,6 @@ class BuildRandFeature(mekkaObject):
 							for letter in part:
 								if letter not in "1234567890":
 									cleanedPart += letter
-							print("%s -> %s" % (part, cleanedPart))
 							if cleanedPart:
 								suffixes.append(".%s" % cleanedPart)
 			if suffixes:
@@ -119,10 +139,8 @@ class BuildRandFeature(mekkaObject):
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
 				print("Build rand Feature Report for %s" % thisFont.familyName)
-				if thisFont.filepath:
-					print(thisFont.filepath)
-				else:
-					print("⚠️ The font file has not been saved yet.")
+				fileName = thisFont.filepath.lastPathComponent() if thisFont.filepath else f"{thisFont.familyName} (unsaved)"
+				print(f"📄 {fileName}")
 				print()
 
 				overwrite = self.pref("overwrite")
@@ -130,7 +148,7 @@ class BuildRandFeature(mekkaObject):
 				includeDefault = self.pref("includeDefault")
 				exclude = self.pref("exclude")
 				if exclude:
-					excludeList = [particle.strip() for particle in self.pref("excludeList").split(",")]
+					excludeList = [particle.strip() for particle in self.pref("excludeList").split(",") if particle.strip()]
 				else:
 					excludeList = ()
 
@@ -199,12 +217,12 @@ class BuildRandFeature(mekkaObject):
 
 						print("Added %i lines of code." % len(otFeatureLines))
 
-			# Final report:
-			Glyphs.showNotification(
-				u"%s: Done" % (thisFont.familyName),
-				u"New rand feature with %i lines available in Font Info → Features. Details in Macro Window" % len(otFeatureLines),
-			)
-			print("\nDone.")
+						# Final report:
+						Glyphs.showNotification(
+							"%s: Done" % (thisFont.familyName),
+							"New rand feature with %i lines available in Font Info → Features. Details in Macro Window" % len(otFeatureLines),
+						)
+						print("\n✅ Done.")
 
 		except Exception as e:
 			# brings macro window to front and reports error:

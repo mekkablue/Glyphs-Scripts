@@ -36,6 +36,8 @@ def closestPointOnLine(P, A, B):
 	AP = NSPoint(P.x - A.x, P.y - A.y)
 	dotProduct = AB.x * AP.x + AB.y * AP.y
 	ABsquared = AB.x**2 + AB.y**2
+	if ABsquared == 0.0:
+		return NSPoint(P.x, P.y)  # A and B coincide: no line to project onto
 	t = dotProduct / ABsquared
 	return NSPoint(A.x + t * AB.x, A.y + t * AB.y)
 
@@ -412,31 +414,29 @@ class BezierFixer(mekkaObject):
 		self.snapshots = {}
 		self.isApplyingPreview = False
 
-		self.windowWidth = 126
-		self.collapsedWindowHeight = 146
-		self.expandedWindowHeight = 184
+		self.windowWidth = 136
+		self.collapsedWindowHeight = 158
+		self.expandedWindowHeight = 196
 		self.settingsExpanded = False
 
+		# The window height is not derived from the content here: the collapsible Settings section
+		# switches between two fixed heights (see clamp()). The bottom button stays pinned to the window bottom.
 		windowWidth = self.windowWidth
-		windowHeight = 170
 		self.w = vanilla.FloatingWindow(
-			(windowWidth, windowHeight),
+			(windowWidth, self.collapsedWindowHeight),
 			"Bézier Fixer",
-			minSize=(windowWidth, windowHeight),
-			maxSize=(windowWidth, windowHeight),
-			autosaveName=self.domain("mainwindow"),
+			autosaveName=self.domain("mainwindow"),  # stores last window position
 		)
 		self.clamp(newHeight=self.collapsedWindowHeight)
 
-		linePos, inset, lineHeight = 9, 13, 18
+		inset = 13
 
-		self.w.tunnify = vanilla.CheckBox((inset, linePos, -50, 18), "Tunnify", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.tunnify = vanilla.CheckBox("auto", "Tunnify", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.tunnify.setToolTip("Evens out the Bézier handle ratio of each curve segment to balance handles (Tunnify 2 algorithm). Keeps the point at t=0.5 on the segment.")
-		self.w.tunnifyStrengthLabel = vanilla.TextBox((-55, linePos + 2, -(inset-5), 14), "100%", sizeStyle="small", alignment="right")
-		linePos += lineHeight - 5
+		self.w.tunnifyStrengthLabel = vanilla.TextBox("auto", "100%", sizeStyle="small", alignment="right")
 
 		self.w.tunnifyStrength = vanilla.Slider(
-			(inset + 14, linePos, -(inset-5), 18),
+			"auto",
 			minValue=50,
 			maxValue=100,
 			value=100,
@@ -446,45 +446,53 @@ class BezierFixer(mekkaObject):
 			sizeStyle="small",
 		)
 		self.w.tunnifyStrength.setToolTip("How much of the full Tunnify to apply. E.g., 60% = 60% of a full Tunnify, 40% of the original handle distribution.")
-		linePos += lineHeight
 
-		self.w.realign = vanilla.CheckBox((inset, linePos, -inset, 18), "Realign BCPs", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.realign = vanilla.CheckBox("auto", "Realign BCPs", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.realign.setToolTip("Realigns out-of-sync BCPs (handles) of smooth nodes, e.g. after nudging, interpolating, or changing the grid.")
-		linePos += lineHeight
 
-		self.w.harmonize = vanilla.CheckBox((inset, linePos, -inset, 18), "Harmonize", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.harmonize = vanilla.CheckBox("auto", "Harmonize", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.harmonize.setToolTip("Establishes G2 continuity at smooth nodes by moving the node, not the handles (see the Green Harmony plug-in).")
-		linePos += lineHeight
 
-		# self.w.divider = vanilla.HorizontalLine((inset, linePos + 3, -inset, 1))
-		# linePos += lineHeight - 8
-
-		self.w.allMasters = vanilla.CheckBox((inset, linePos, -inset, 18), "All Masters", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allMasters = vanilla.CheckBox("auto", "All Masters", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.allMasters.setToolTip("Applies the fixes to all masters and special layers of each selected glyph, not just the currently active layer.")
-		linePos += lineHeight
 
 		# collapsible settings section:
-		self.w.settingsButton = vanilla.Button((inset-1, linePos, -inset, 14), "▶︎ Settings", callback=self.toggleSettings, sizeStyle="mini")
+		self.w.settingsButton = vanilla.Button("auto", "▶︎ Settings", callback=self.toggleSettings, sizeStyle="mini")
 		settingsNSButton = self.w.settingsButton.getNSButton()
 		settingsNSButton.setBordered_(False)
 		settingsNSButton.setAlignment_(NSTextAlignmentLeft)
 		self.w.settingsButton.setToolTip("Preview and backup options.")
-		linePos += lineHeight - 2
 
-		self.w.preview = vanilla.CheckBox((inset + 12, linePos, -inset, 18), "Preview", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.preview = vanilla.CheckBox("auto", "Preview", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.preview.setToolTip("Live-previews the current settings in the active layer without committing anything. Turning Preview off (or closing the panel without clicking Fix) reverts the preview.")
-		linePos += lineHeight
 
-		self.w.backup = vanilla.CheckBox((inset + 12, linePos, -inset, 18), "Backup", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.backup = vanilla.CheckBox("auto", "Backup", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.backup.setToolTip("When you click Fix, first backs up the original state of each fixed layer into its background.")
-		linePos += lineHeight
 
 		self.w.preview.show(False)
 		self.w.backup.show(False)
 
-		self.w.runButton = vanilla.Button((inset, -20 - inset, -inset, -inset), "Fix", callback=self.BezierFixerMain)
+		self.w.runButton = vanilla.Button("auto", "Fix", callback=self.BezierFixerMain)
 		self.w.runButton.setToolTip("Commits the fixes and, if All Masters is on, propagates them to the other masters/special layers too. With Preview on, changes already preview live in the active layer beforehand; closing the panel without clicking Fix reverts the preview.")
 		self.w.setDefaultButton(self.w.runButton)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[tunnify]-(>=gap)-[tunnifyStrengthLabel]-inset-|",
+				"H:|-sliderInset-[tunnifyStrength]-inset-|",
+				"H:|-inset-[realign]-(>=inset)-|",
+				"H:|-inset-[harmonize]-(>=inset)-|",
+				"H:|-inset-[allMasters]-(>=inset)-|",
+				"H:|-inset-[settingsButton]-(>=inset)-|",
+				"H:|-indent-[preview]-(>=inset)-|",
+				"H:|-indent-[backup]-(>=inset)-|",
+				"H:|-inset-[runButton]-inset-|",
+				"V:|-top-[tunnify]-tight-[tunnifyStrength]-checkRow-[realign]-checkRow-[harmonize]-checkRow-[allMasters]-checkRow-[settingsButton]-checkRow-[preview]-checkRow-[backup]",
+				"V:[runButton]-inset-|",
+				{"view1": self.w.tunnifyStrengthLabel, "attribute1": "centerY", "view2": self.w.tunnify, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "sliderInset": inset + 14, "indent": inset + 12, "gap": 4, "top": 9, "tight": 0, "checkRow": 4},
+		)
 
 		# Preview and Backup always start OFF, regardless of the last session:
 		self.setPref("preview", False)

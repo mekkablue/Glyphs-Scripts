@@ -1,15 +1,15 @@
 # MenuTitle: Zero Kerner
-
-
 __doc__ = """
 Add group kernings with value zero for pairs that are missing in one master but present in others. Helps preserve interpolatable kerning in OTVar exports.
 """
 
 from vanilla import FloatingWindow, Button, TextBox, CheckBox, ProgressBar  # type: ignore
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 from Foundation import NSNotFound  # type: ignore
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject
 from typing import Any
+
 
 class ZeroKerner(mekkaObject):
 	prefDict = {
@@ -19,44 +19,59 @@ class ZeroKerner(mekkaObject):
 
 	def __init__(self) -> None:
 		# Window 'self.w':
-		windowWidth = 320
-		windowHeight = 190
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 340
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Zero Kerner",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		inset = 15
 
-		self.w.descriptionText = TextBox((inset, linePos + 2, -inset, 44), u"Add zero-value group-to-group kernings for pairs that are missing in one master but present in others. Helps preserve interpolatable kerning in OTVars.", sizeStyle='small', selectable=True)
-		linePos += lineHeight * 2.5
+		self.w.descriptionText = TextBox("auto", "Add zero-value group-to-group kernings for pairs that are missing in one master but present in others. Helps preserve interpolatable kerning in OTVars.", sizeStyle='small', selectable=True)
+		# the text wraps: it takes the width it is given, and has a fixed height in the rules
+		self.w.descriptionText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
-		self.w.limitToCurrentMaster = CheckBox((inset + 2, linePos - 1, -inset, 20), u"Limit to current master only (otherwise, all masters)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.limitToCurrentMaster = CheckBox("auto", "Limit to current master only (otherwise, all masters)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.limitToCurrentMaster.setToolTip("Will apply zero kernings only to the currently selected master. Uncheck if all masters should be zero-kerned.")
-		linePos += lineHeight
 
-		self.w.reportInMacroWindow = CheckBox((inset + 2, linePos - 1, -inset, 20), u"Detailed report in Macro Window", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reportInMacroWindow = CheckBox("auto", "Detailed report in Macro Window", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reportInMacroWindow.setToolTip("If checked, will write a progress report in the Macro Window (Cmd-Opt-M).")
-		linePos += lineHeight
 
-		self.w.progress = ProgressBar((inset, linePos, -inset, 16))
+		self.w.progress = ProgressBar("auto")
 		self.w.progress.set(0)  # set progress indicator to zero
-		linePos += lineHeight
 
-		self.w.status = TextBox((inset, -20 - inset, -120 - inset, 14), u"", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		self.w.status = TextBox("auto", "🤖 Ready.", sizeStyle='small', selectable=True)
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# Run Button:
-		self.w.removeButton = Button((-160 - inset, -20 - inset, -80 - inset, -inset), "Remove", callback=self.ZeroKernerMain)
+		self.w.removeButton = Button("auto", "Remove", callback=self.ZeroKernerMain)
+		self.w.removeButton.setToolTip("Removes group-to-group kerning pairs with value zero.")
 
-		self.w.addButton = Button((-70 - inset, -20 - inset, -inset, -inset), "Add", callback=self.ZeroKernerMain)
+		self.w.addButton = Button("auto", "Add", callback=self.ZeroKernerMain)
+		self.w.addButton.setToolTip("Adds zero-value group-to-group kerning pairs where they are missing in a master.")
 		self.w.setDefaultButton(self.w.addButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[limitToCurrentMaster]-(>=inset)-|",
+				"H:|-inset-[reportInMacroWindow]-(>=inset)-|",
+				"H:|-inset-[progress]-inset-|",
+				"H:|-inset-[status]-(>=gap)-[removeButton(>=70)]-gap-[addButton(>=70)]-inset-|",
+				"V:|-inset-[descriptionText(42)]-row-[limitToCurrentMaster]-checkRow-[reportInMacroWindow]-sectionGap-[progress(16)]-inset-[addButton]-inset-|",
+				"V:[removeButton]-inset-|",
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.addButton, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 8, "checkRow": 5, "sectionGap": 14},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -71,7 +86,7 @@ class ZeroKerner(mekkaObject):
 			print("  %s" % statusMessage)
 			if emptyLine:
 				print()
-		self.w.status.set(statusMessage.strip())
+		self.w.status.set("🛠️ " + statusMessage)
 
 	def ZeroKernerMain(self, sender: Any = None) -> None:
 		try:
@@ -79,6 +94,10 @@ class ZeroKerner(mekkaObject):
 			self.SavePreferences()
 
 			thisFont = Glyphs.font  # frontmost font
+			if thisFont is None:
+				self.w.status.set("❌ No font open.")
+				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+				return
 			limitToCurrentMaster = self.pref("limitToCurrentMaster")
 			reportInMacroWindow = self.pref("reportInMacroWindow")
 			self.w.progress.set(0)  # set progress indicator to zero
@@ -145,6 +164,8 @@ class ZeroKerner(mekkaObject):
 						self.w.progress.set(masterCount)
 
 						theseMasters = [m for m in masters if m is not otherMaster]
+						if otherMaster.id not in thisFont.kerning.keys():
+							continue
 						otherMasterKerning = thisFont.kerning[otherMaster.id]
 						kerningLength = len(otherMasterKerning)
 
@@ -156,7 +177,7 @@ class ZeroKerner(mekkaObject):
 								for rightGroup in list(otherMasterKerning[leftGroup].keys()):
 									if rightGroup.startswith("@"):
 										if otherMasterKerning[leftGroup][rightGroup] != 0:
-											for j, thisMaster in enumerate(theseMasters):
+											for thisMaster in theseMasters:
 
 												self.report(
 													"Verifying @%s-@%s" % (leftGroup[7:], rightGroup[7:]),
@@ -172,7 +193,7 @@ class ZeroKerner(mekkaObject):
 													)
 
 				self.w.progress.set(100.0)
-				self.w.status.set("Done.")
+				self.w.status.set("✅ Done.")
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()

@@ -4,7 +4,8 @@ Adds tweaks to OT feature code. Reports in Macro window.
 """
 
 import vanilla
-from GlyphsApp import Glyphs, GSFeature, GSClass, GSFeaturePrefix
+from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
+from GlyphsApp import Glyphs, GSFeature, GSClass, GSFeaturePrefix, Message
 from mekkablue import mekkaObject
 
 
@@ -96,7 +97,7 @@ def createManyToOneFromDict(codeDict, thisFont):
 			allParts = codeDict[ligName]
 			allPartsPresent = True
 			for thisPart in allParts:
-				partGlyph = thisFont.glyphs[ligName]
+				partGlyph = thisFont.glyphs[thisPart]
 				if not (partGlyph and partGlyph.export):
 					allPartsPresent = False
 
@@ -109,7 +110,7 @@ def createManyToOneFromDict(codeDict, thisFont):
 				# frequent autocorrect replacements:
 				autocorrectDict = {
 					"hyphen hyphen": ("endash", "emdash"),
-					"period period period": ("ellipsis"),
+					"period period period": ("ellipsis", ),
 				}
 				for autocorrectString in autocorrectDict:
 					possibleReplacements = autocorrectDict[autocorrectString]
@@ -238,88 +239,94 @@ class FeatureCodeTweaks(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 360
-		windowHeight = 370
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 410
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Feature Code Tweaks",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		inset, lineHeight, currentHeight = 15, 20, 10
+		inset = 15
 
-		self.w.text = vanilla.TextBox((inset - 1, currentHeight + 2, -inset, lineHeight), __doc__[1:], sizeStyle='small')
-		currentHeight += lineHeight
+		self.w.text = vanilla.TextBox("auto", __doc__.strip(), sizeStyle='small')
 
-		self.w.scFeatureFix = vanilla.CheckBox((inset + 2, currentHeight, -inset, lineHeight), "Fix smallcap features (smcp/c2sc)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.scFeatureFix = vanilla.CheckBox("auto", "Fix smallcap features (smcp/c2sc)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.scFeatureFix.setToolTip("Adds missing smallcap substitutions for glyphs like idotless, jdotless, kgreenlandic and longs.")
-		currentHeight += lineHeight
 
-		self.w.addArrowLigs = vanilla.CheckBox((inset + 2, currentHeight, -inset, lineHeight), "Add arrow ligatures (dlig)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.addArrowLigs = vanilla.CheckBox("auto", "Add arrow ligatures (dlig)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.addArrowLigs.setToolTip("Adds ligatures of hyphens with greater and less for left and right arrows, and double hyphen ligatures for arrows with .long suffix.")
-		currentHeight += lineHeight
 
-		self.w.germanLocalization = vanilla.CheckBox((inset + 2, currentHeight, -inset, lineHeight), "Add German cap sharp S code (locl, calt)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.germanLocalization = vanilla.CheckBox("auto", "Add German cap sharp S code (locl, calt)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.germanLocalization.setToolTip("Automatically substitutes lowercase sharp s for uppercase sharp S between other uppercase letters. Adds a lookup in locl and calls the lookup in calt.")
-		currentHeight += lineHeight
 
-		self.w.dutchLocalization = vanilla.CheckBox((inset + 2, currentHeight, -inset, lineHeight), "Add proper Dutch localization (locl)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.dutchLocalization = vanilla.CheckBox("auto", "Add proper Dutch localization (locl)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.dutchLocalization.setToolTip("Adds a different Dutch localization than the default. Will not substitute uppercase /J for /Jacute if a combining accent follows (as would be the case if the user follows the proper Unicode text entry).")
-		currentHeight += lineHeight
 
-		# DECOMPOSE PRESENTATION FORMS:
-
-		self.w.decomposePresentationForms = vanilla.CheckBox((inset + 2, currentHeight, -inset, lineHeight), "Decompose Latin presentation forms like fi and fl (ccmp)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.decomposePresentationForms = vanilla.CheckBox("auto", "Decompose Latin presentation forms like fi and fl (ccmp)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.decomposePresentationForms.setToolTip("Adds precomposed but ligature characters like /fi and /fl (which are not supposed to be used in texts) to ccmp, and decomposes them into their character equivalents, f+i, f+l, etc. Strongly recommended because it preserves tracking and smallcap compatibility.")
-		currentHeight += lineHeight
 
-		self.w.includeLdot = vanilla.CheckBox((inset * 3, currentHeight, -inset, lineHeight), "Include Ldot, ldot, napostrophe (if present)", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeLdot = vanilla.CheckBox("auto", "Include Ldot, ldot, napostrophe (if present)", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeLdot.setToolTip("Includes deprecated Ldot/ldot in ccmp decomposition.")
-		currentHeight += lineHeight
 
-		self.w.includeBalkan = vanilla.CheckBox((inset * 3, currentHeight, -inset, lineHeight), "Include Balkan digraphs ǳ, ǆ, ǉ, ǌ (if present)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeBalkan = vanilla.CheckBox("auto", "Include Balkan digraphs ǳ, ǆ, ǉ, ǌ (if present)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeBalkan.setToolTip("Includes deprecated Slavic/Balkan digraphs in ccmp decomposition.")
-		currentHeight += lineHeight
 
-		self.w.includeIJ = vanilla.CheckBox((inset * 3, currentHeight, -inset, lineHeight), "Include IJ, ij (if present)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeIJ = vanilla.CheckBox("auto", "Include IJ, ij (if present)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeIJ.setToolTip("Includes unused Durch and deprecated Afrikaans digraphs in ccmp decomposition.")
-		currentHeight += lineHeight
 
-		self.w.disableLiga = vanilla.CheckBox((inset * 3, currentHeight, -inset, lineHeight), "Disable affected ligature lines in liga, dlig (if present)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.disableLiga = vanilla.CheckBox("auto", "Disable affected ligature lines in liga, dlig (if present)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.disableLiga.setToolTip("Also disables ligatures in liga. Only recommended if your fi, fl, etc. look exactly like separate f+i, f+l, etc., i.e., if they are not really ligated.")
-		currentHeight += lineHeight
 
-		self.w.repeatDecompositionInSC = vanilla.CheckBox((inset * 3, currentHeight, -inset, lineHeight), "Repeat decomposition in smcp and c2sc", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.repeatDecompositionInSC = vanilla.CheckBox("auto", "Repeat decomposition in smcp and c2sc", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.repeatDecompositionInSC.setToolTip("Calls the ccmp lookup at the beginning of smcp and c2sc. This makes decompositions (and hence, the small caps) work in the Adobe (Latin) Composers, which ignore ccmp.")
-		currentHeight += lineHeight
 
-		self.w.repeatDecompositionInOtherAffectedFeatures = vanilla.CheckBox((inset * 3, currentHeight, -inset, lineHeight), "Repeat decomposition in affected (non-SC) features", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.repeatDecompositionInOtherAffectedFeatures = vanilla.CheckBox("auto", "Repeat decomposition in affected (non-SC) features", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.repeatDecompositionInOtherAffectedFeatures.setToolTip("Calls the ccmp lookup at the beginnings of all features that substitute affected glyphs, e.g., in ss01. This option ignores smcp and c2sc. ATTENTION: cannot parse nested lookups yet, so the result may be incomplete.")
-		currentHeight += lineHeight
 
-		self.w.fShortSubstitution = vanilla.CheckBox((inset + 2, currentHeight, -inset, lineHeight), "Add f.short contextual substitutions (calt)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.fShortSubstitution = vanilla.CheckBox("auto", "Add f.short contextual substitutions (calt)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.fShortSubstitution.setToolTip("Not implemented yet.")
-		currentHeight += lineHeight
 
-		self.w.magistra = vanilla.CheckBox((inset + 2, currentHeight, -inset, lineHeight), "Add Mag.a substitution (calt) and 90% kerning", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.magistra = vanilla.CheckBox("auto", "Add Mag.a substitution (calt) and 90% kerning", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.magistra.setToolTip("Automatic feature code substitution for Austrian academic title Mag.a (Magistra). Recommended for fonts for the Austrian market or an Austrian client.")
-		currentHeight += lineHeight
 
-		self.w.ssXX2salt = vanilla.CheckBox((inset + 2, currentHeight, -inset, lineHeight), "Overwrite salt feature with ssXX lookups", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.ssXX2salt = vanilla.CheckBox("auto", "Overwrite salt feature with ssXX lookups", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.ssXX2salt.setToolTip("Creates a universal salt feature including all ssXX substitutions. Careful: does not update, but overwrite the feature code. Will park the old feature code in the feature notes, though.")
-		currentHeight += lineHeight
 
 		# self.w.scFeatureFix.enable(False)
 		self.w.fShortSubstitution.enable(False)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Tweak", callback=self.FeatureCodeTweaksMain)
+		self.w.runButton = vanilla.Button("auto", "Tweak", callback=self.FeatureCodeTweaksMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[text]-inset-|",
+				"H:|-inset-[scFeatureFix]-(>=inset)-|",
+				"H:|-inset-[addArrowLigs]-(>=inset)-|",
+				"H:|-inset-[germanLocalization]-(>=inset)-|",
+				"H:|-inset-[dutchLocalization]-(>=inset)-|",
+				"H:|-inset-[decomposePresentationForms]-(>=inset)-|",
+				"H:|-subInset-[includeLdot]-(>=inset)-|",
+				"H:|-subInset-[includeBalkan]-(>=inset)-|",
+				"H:|-subInset-[includeIJ]-(>=inset)-|",
+				"H:|-subInset-[disableLiga]-(>=inset)-|",
+				"H:|-subInset-[repeatDecompositionInSC]-(>=inset)-|",
+				"H:|-subInset-[repeatDecompositionInOtherAffectedFeatures]-(>=inset)-|",
+				"H:|-inset-[fShortSubstitution]-(>=inset)-|",
+				"H:|-inset-[magistra]-(>=inset)-|",
+				"H:|-inset-[ssXX2salt]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-inset-[text]-row-[scFeatureFix]-stackRow-[addArrowLigs]-stackRow-[germanLocalization]-stackRow-[dutchLocalization]-stackRow-[decomposePresentationForms]-stackRow-[includeLdot]-stackRow-[includeBalkan]-stackRow-[includeIJ]-stackRow-[disableLiga]-stackRow-[repeatDecompositionInSC]-stackRow-[repeatDecompositionInOtherAffectedFeatures]-stackRow-[fShortSubstitution]-stackRow-[magistra]-stackRow-[ssXX2salt]-inset-[runButton]-inset-|",
+			],
+			metrics={"inset": inset, "subInset": inset + 24, "row": 8, "stackRow": 5},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -489,7 +496,7 @@ class FeatureCodeTweaks(mekkaObject):
 				lookupCall = f"lookup {lookupName};"
 				for featureTag in affectedFeatures:
 					affectedFeature = thisFont.features[featureTag]
-					if not feature:
+					if not affectedFeature:
 						print(f"🤷🏻‍♀️ No {featureTag} feature found, could not repeat decomposition lookup.")
 					else:
 						createOTFeature(
@@ -735,7 +742,7 @@ class FeatureCodeTweaks(mekkaObject):
 				prefix = GSFeaturePrefix()
 				prefix.name = prefixName
 				prefix.automatic = True
-				thisFont.featurePrefixes.insert(prefix, 0)
+				thisFont.featurePrefixes.insert(0, prefix)
 				print("✅ Added 'Languagesystems' to feature code prefixes.")
 
 			if not prefix.automatic:
@@ -800,7 +807,7 @@ class FeatureCodeTweaks(mekkaObject):
 				print(f"⛔️ Missing glyph '{glyphName}' required for the feature code.")
 				canBuildCode = False
 			elif not glyph.export:
-				print("⛔️ Glyph '{glyphName}' required for feature code exists, but is not exporting.")
+				print(f"⛔️ Glyph '{glyphName}' required for feature code exists, but is not exporting.")
 				canBuildCode = False
 
 		if not canBuildCode:
@@ -1038,8 +1045,13 @@ class FeatureCodeTweaks(mekkaObject):
 			Glyphs.clearLog()
 
 			thisFont = Glyphs.font  # frontmost font
+			if thisFont is None:
+				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+				return
+
 			print(f"Feature Code Tweaks for {thisFont.familyName}")
-			print(thisFont.filepath)
+			fileName = thisFont.filepath.lastPathComponent() if thisFont.filepath else f"{thisFont.familyName} (unsaved)"
+			print(f"📄 {fileName}")
 
 			# ccmp fi, fl, etc.
 			if self.pref("scFeatureFix"):

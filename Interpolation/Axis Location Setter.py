@@ -3,8 +3,9 @@ __doc__ = """
 Batch-set axis locations for all instances with a certain name particle. E.g., set an axis location for all Condensed instances.
 """
 
-from Foundation import NSDictionary
 import vanilla
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
+from Foundation import NSDictionary
 from GlyphsApp import Glyphs, GSFontMaster, Message
 from mekkablue import mekkaObject, UpdateButton
 
@@ -18,57 +19,85 @@ class AxisLocationSetter(mekkaObject):
 		"particle": "Bold",
 		"axisName": "Weight",
 		"internalAxisValue": "",
-		"externalAxisValue": 0,
+		"externalAxisValue": "0",
 		"includeInstances": False,
 		"includeMasters": False,
 	}
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 270
-		windowHeight = 160
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 310
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Axis Location Setter",  # window title
-			minSize=(windowWidth, windowHeight + 19),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize + 19),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 10, 15, 23
-		self.w.descriptionText1 = vanilla.TextBox((inset, linePos + 2, -inset, 14), "In all masters/instances with name particle", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		inset = 15
 
-		self.w.particle = vanilla.ComboBox((inset, linePos - 1, -inset - 22, 19), self.particlesOfCurrentFont(), sizeStyle='small', callback=self.SavePreferences)
-		self.w.particleUpdateButton = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
-		linePos += lineHeight
+		self.w.descriptionText1 = vanilla.TextBox("auto", "In all masters/instances with name particle", sizeStyle='small', selectable=True)
 
-		self.w.descriptionText2 = vanilla.TextBox((inset, linePos + 2, 50, 14), "For axis", sizeStyle='small', selectable=True)
-		self.w.axisName = vanilla.ComboBox((inset + 48, linePos, -100 - inset, 17), self.axesOfCurrentFont(), sizeStyle='small', callback=self.SavePreferences)
-		self.w.descriptionText21 = vanilla.TextBox((-100 - inset, linePos + 2, -inset, 14), ", set coordinates", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		self.w.particle = vanilla.ComboBox("auto", self.particlesOfCurrentFont(), sizeStyle='small', callback=self.SavePreferences)
+		self.w.particleUpdateButton = UpdateButton("auto", callback=self.update)
 
-		self.w.descriptionText3 = vanilla.TextBox((inset, linePos + 2, 50, 14), "Internal", sizeStyle='small', selectable=True)
-		self.w.internalAxisValue = vanilla.EditText((inset + 48, linePos - 1, 45, 19), "0", callback=self.SavePreferences, sizeStyle='small')
+		self.w.descriptionText2 = vanilla.TextBox("auto", "For axis", sizeStyle='small', selectable=True)
+		self.w.axisName = vanilla.ComboBox("auto", self.axesOfCurrentFont(), sizeStyle='small', callback=self.SavePreferences)
+		self.w.descriptionText21 = vanilla.TextBox("auto", ", set coordinates", sizeStyle='small', selectable=True)
+
+		self.w.descriptionText3 = vanilla.TextBox("auto", "Internal", sizeStyle='small', selectable=True)
+		self.w.internalAxisValue = vanilla.EditText("auto", "0", callback=self.SavePreferences, sizeStyle='small')
 		self.w.internalAxisValue.getNSTextField().setPlaceholderString_("no change")
-		self.w.descriptionText31 = vanilla.TextBox((inset + 50 + 45, linePos + 2, 95, 14), "→ External", sizeStyle='small', selectable=True)
-		self.w.externalAxisValue = vanilla.EditText((-45 - inset, linePos - 1, -inset, 19), "0", callback=self.SavePreferences, sizeStyle='small')
+		self.w.descriptionText31 = vanilla.TextBox("auto", "→ External", sizeStyle='small', selectable=True)
+		self.w.externalAxisValue = vanilla.EditText("auto", "0", callback=self.SavePreferences, sizeStyle='small')
 		self.w.externalAxisValue.getNSTextField().setPlaceholderString_("no change")
-		# record for resize:
-		self.coordLinePos = linePos
-		self.coordInset = inset
-		linePos += lineHeight
 
-		self.w.includeInstances = vanilla.CheckBox((inset + 2, linePos, 120, 20), "Apply to instances", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeMasters = vanilla.CheckBox((inset + 130, linePos, -inset, 20), "Apply to masters", value=False, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.includeInstances = vanilla.CheckBox("auto", "Apply to instances", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeMasters = vanilla.CheckBox("auto", "Apply to masters", value=False, callback=self.SavePreferences, sizeStyle='small')
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Set", callback=self.AxisLocationSetterMain)
+		self.w.runButton = vanilla.Button("auto", "Set", callback=self.AxisLocationSetterMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# labels in front of fields are right-aligned and share one width, so the fields line up;
+		# the labels between two fields hug their text:
+		labelNames = ("descriptionText2", "descriptionText3")
+		for labelName in labelNames + ("descriptionText21", "descriptionText31"):
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			if labelName in labelNames:
+				nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText1]-inset-|",
+				"H:|-inset-[particle]-gap-[particleUpdateButton]-inset-|",
+				"H:|-inset-[descriptionText2]-gap-[axisName(>=100)]-gap-[descriptionText21]-inset-|",
+				"H:|-inset-[descriptionText3]-gap-[internalAxisValue(>=50)]-gap-[descriptionText31]-gap-[externalAxisValue(>=50)]-inset-|",
+				"H:|-inset-[includeInstances]-gap-[includeMasters]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-inset-[descriptionText1]-headlineGap-[particle]-row-[axisName]-row-[internalAxisValue]-row-[includeInstances]-inset-[runButton]-inset-|",
+				# one baseline per row:
+				{"view1": self.w.particleUpdateButton, "attribute1": "centerY", "view2": self.w.particle, "attribute2": "centerY"},
+				{"view1": self.w.descriptionText2, "attribute1": "centerY", "view2": self.w.axisName, "attribute2": "centerY"},
+				{"view1": self.w.descriptionText21, "attribute1": "centerY", "view2": self.w.axisName, "attribute2": "centerY"},
+				{"view1": self.w.descriptionText3, "attribute1": "centerY", "view2": self.w.internalAxisValue, "attribute2": "centerY"},
+				{"view1": self.w.descriptionText31, "attribute1": "centerY", "view2": self.w.internalAxisValue, "attribute2": "centerY"},
+				{"view1": self.w.externalAxisValue, "attribute1": "centerY", "view2": self.w.internalAxisValue, "attribute2": "centerY"},
+				{"view1": self.w.includeMasters, "attribute1": "centerY", "view2": self.w.includeInstances, "attribute2": "centerY"},
+				# equal widths:
+				{"view1": self.w.descriptionText2, "attribute1": "width", "view2": self.w.descriptionText3, "attribute2": "width"},
+				{"view1": self.w.externalAxisValue, "attribute1": "width", "view2": self.w.internalAxisValue, "attribute2": "width"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6, "headlineGap": 8},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -76,22 +105,8 @@ class AxisLocationSetter(mekkaObject):
 		self.updateUI()
 
 		# Open window and focus on it:
-		self.windowResize()
-		self.w.bind("resize", self.windowResize)
 		self.w.open()
 		self.w.makeKey()
-
-	def windowResize(self, sender=None):
-		linePos = self.coordLinePos
-		inset = self.coordInset
-		left, top, width, height = self.w.getPosSize()
-		textWidth = 60
-		disposableWidth = width - 2 * inset - textWidth - 50 - 10
-		fieldWidth = int(0.5 * disposableWidth)
-
-		self.w.internalAxisValue.setPosSize((inset + 50, linePos - 1, fieldWidth, 19))
-		self.w.descriptionText31.setPosSize((inset + 50 + fieldWidth + 5, linePos + 2, -fieldWidth - inset, 14))
-		self.w.externalAxisValue.setPosSize((-fieldWidth - inset, linePos - 1, -inset, 19))
 
 	def update(self, sender=None):
 		self.w.particle.setItems(self.particlesOfCurrentFont())
@@ -144,7 +159,7 @@ class AxisLocationSetter(mekkaObject):
 			value = None
 			if thisAxis.name == thisAxisName:
 				# set the requested axis value:
-				value = newAxisValue
+				value = float(newAxisValue)
 			elif existingParameter:
 				# preserve existing axis value:
 				for entry in existingParameter:
@@ -184,7 +199,7 @@ class AxisLocationSetter(mekkaObject):
 		modifiedParticle = delim.join(particle.split())
 
 		# particle in the MIDDLE of the name:
-		searchTerm = f"{modifiedParticle}{delim}{delim}"
+		searchTerm = f"{delim}{modifiedParticle}{delim}"
 		if searchTerm in modifiedInstanceName:
 			return True
 
@@ -194,7 +209,7 @@ class AxisLocationSetter(mekkaObject):
 			return True
 
 		# particle at the BEGINNING of the name:
-		searchTerm = f"{delim}{modifiedParticle}"
+		searchTerm = f"{modifiedParticle}{delim}"
 		if modifiedInstanceName.startswith(searchTerm):
 			return True
 
@@ -212,11 +227,8 @@ class AxisLocationSetter(mekkaObject):
 			if thisFont is None:
 				Message(title="No Font Open", message="Axis Location Setter requires a font. Open a font and run the script again.", OKButton=None)
 			else:
-				print("Axis Location Setter Report for %s" % thisFont.familyName)
-				if thisFont.filepath:
-					print(thisFont.filepath)
-				else:
-					print("⚠️ The font file has not been saved yet.")
+				fileName = thisFont.filepath.lastPathComponent() if thisFont.filepath else f"{thisFont.familyName} (unsaved)"
+				print(f"Axis Location Setter Report for {fileName}")
 				print()
 
 				particle = self.pref("particle")

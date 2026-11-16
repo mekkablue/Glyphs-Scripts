@@ -4,6 +4,7 @@ Finds glyphs that change the number of visible shapes and countershapes while in
 """
 
 import vanilla
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, GSInstance, Message
 from mekkablue import mekkaObject
 
@@ -58,64 +59,88 @@ class FindShapeshiftingGlyphs(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 310
-		windowHeight = 292
-		windowWidthResize = 300  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 380
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Find Shapeshifting Glyphs",  # window title
-			minSize=(windowWidth, windowHeight),
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 28), "Reports glyphs that change number of cw/ccw paths (‘shapeshift’) in interpolation.", sizeStyle='small', selectable=True)
-		linePos += int(lineHeight * 1.7)
+		self.w.descriptionText = vanilla.TextBox("auto", "Reports glyphs that change number of cw/ccw paths (‘shapeshift’) in interpolation.", sizeStyle='small', selectable=True)
 
-		self.w.text_1 = vanilla.TextBox((inset, linePos + 2, 85, 14), "Count paths in", sizeStyle='small')
-		self.w.checkInstances = vanilla.PopUpButton((inset + 85, linePos, -inset, 17), ("constructed instances midway between masters", "all active instances in font", "all active and inactive instances in font"), callback=self.SavePreferences, sizeStyle='small')
-		self.w.checkInstances.setToolTip("Where to count paths (for comparison of path counts). Shapeshifting is most visible in midway interpolations (50%% between masters), so pick that option if you have two masters only, or all masters on a single axis.")
-		linePos += lineHeight
+		self.w.text_1 = vanilla.TextBox("auto", "Count paths in", sizeStyle='small')
+		self.w.checkInstances = vanilla.PopUpButton("auto", ("constructed instances midway between masters", "all active instances in font", "all active and inactive instances in font"), callback=self.SavePreferences, sizeStyle='small')
+		tooltip = "Where to count paths (for comparison of path counts). Shapeshifting is most visible in midway interpolations (50% between masters), so pick that option if you have two masters only, or all masters on a single axis."
+		self.w.text_1.setToolTip(tooltip)
+		self.w.checkInstances.setToolTip(tooltip)
 
-		self.w.onlyCheckSelection = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Limit to selected glyphs (otherwise all glyphs)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.onlyCheckSelection = vanilla.CheckBox("auto", "Limit to selected glyphs (otherwise all glyphs)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.onlyCheckSelection.setToolTip("If enabled, only glyphs selected in the current font tab are checked. Otherwise all glyphs in the font are examined.")
-		linePos += lineHeight
 
-		self.w.limitToCompatibleGlyphs = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Limit to master-compatible glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.limitToCompatibleGlyphs = vanilla.CheckBox("auto", "Limit to master-compatible glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.limitToCompatibleGlyphs.setToolTip("If enabled, only glyphs that are master-compatible (same number of paths and nodes in all masters) are checked. Useful for finding subtle shapeshifting within otherwise compatible glyphs, such as path direction changes.")
-		linePos += lineHeight
 
-		self.w.ignoreGlyphsWithoutPaths = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Ignore glyphs without paths", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.ignoreGlyphsWithoutPaths = vanilla.CheckBox("auto", "Ignore glyphs without paths", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.ignoreGlyphsWithoutPaths.setToolTip("If enabled, glyphs that have no paths in the first master (e.g. pure component glyphs or empty glyphs) are skipped.")
-		linePos += lineHeight
 
-		self.w.ignoreNonexportingGlyphs = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Ignore glyphs that do not export", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.ignoreNonexportingGlyphs = vanilla.CheckBox("auto", "Ignore glyphs that do not export", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.ignoreNonexportingGlyphs.setToolTip("If enabled, glyphs marked as non-exporting are skipped.")
-		linePos += lineHeight
 
-		self.w.openTab = vanilla.CheckBox((inset + 2, linePos - 1, 170, 20), "Open tab with shapeshifters", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.openTab = vanilla.CheckBox("auto", "Open tab with shapeshifters", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.openTab.setToolTip("If enabled, opens a new glyph tab (or reuses the current one) listing all detected shapeshifting glyphs.")
-		self.w.reuseTab = vanilla.CheckBox((inset + 170, linePos - 1, -inset, 20), "Reuse current tab", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reuseTab = vanilla.CheckBox("auto", "Reuse current tab", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reuseTab.setToolTip("If enabled, the shapeshifting glyphs are placed in the already-open tab instead of opening a new one.")
-		linePos += lineHeight
 
-		self.w.allFonts = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "⚠️ Process ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allFonts = vanilla.CheckBox("auto", "⚠️ Process ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.allFonts.setToolTip("If enabled, will process all fonts currently opened. Careful, may take a while.")
-		linePos += lineHeight
 
-		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
+		self.w.progress = vanilla.ProgressBar("auto")
 		self.w.progress.set(0)  # set progress indicator to zero
-		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Find", callback=self.FindShapeshiftingGlyphsMain)
+		self.w.runButton = vanilla.Button("auto", "Find", callback=self.FindShapeshiftingGlyphsMain)
 		self.w.setDefaultButton(self.w.runButton)
 
-		self.w.status = vanilla.TextBox((inset, -17 - inset, -90 - inset, 14), "", sizeStyle='small', selectable=False)
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle='small', selectable=False)
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# the description wraps, so it must not demand one long line:
+		self.w.descriptionText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
+		# the label hugs its text, so the popup takes the leftover width:
+		nsLabel = self.w.text_1.getNSTextField()
+		nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[text_1]-gap-[checkInstances]-inset-|",
+				"H:|-inset-[onlyCheckSelection]-(>=inset)-|",
+				"H:|-inset-[limitToCompatibleGlyphs]-(>=inset)-|",
+				"H:|-inset-[ignoreGlyphsWithoutPaths]-(>=inset)-|",
+				"H:|-inset-[ignoreNonexportingGlyphs]-(>=inset)-|",
+				"H:|-inset-[openTab]-gap-[reuseTab]-(>=inset)-|",
+				"H:|-inset-[allFonts]-(>=inset)-|",
+				"H:|-inset-[progress]-inset-|",
+				"H:|-inset-[status]-(>=gap)-[runButton(>=70)]-inset-|",
+				"V:|-inset-[descriptionText(28)]-headlineGap-[checkInstances]-row-[onlyCheckSelection]-checkRow-[limitToCompatibleGlyphs]-checkRow-[ignoreGlyphsWithoutPaths]-checkRow-[ignoreNonexportingGlyphs]-checkRow-[openTab]-checkRow-[allFonts]-barGap-[progress(16)]-inset-[runButton]-inset-|",
+				# one baseline per row:
+				{"view1": self.w.text_1, "attribute1": "centerY", "view2": self.w.checkInstances, "attribute2": "centerY"},
+				{"view1": self.w.reuseTab, "attribute1": "centerY", "view2": self.w.openTab, "attribute2": "centerY"},
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 8, "checkRow": 5, "headlineGap": 10, "barGap": 12},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -187,7 +212,12 @@ class FindShapeshiftingGlyphs(mekkaObject):
 			if not openTab:
 				# brings macro window to front:
 				Glyphs.showMacroWindow()
-			self.w.status.set("")
+			self.w.status.set("🛠️ Working…")
+
+			if not Glyphs.font:
+				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+				self.w.status.set("🤖 Ready.")
+				return
 
 			if allFonts:
 				theseFonts = Glyphs.fonts
@@ -204,9 +234,9 @@ class FindShapeshiftingGlyphs(mekkaObject):
 				try:
 					fileName = thisFont.filepath.lastPathComponent()
 				except:
-					fileName = "⚠️ %s (unsaved)" % thisFont.familyName
+					fileName = "%s (unsaved)" % thisFont.familyName
 				print("📄 %s" % fileName)
-				self.w.status.set("Examining %s..." % fileName)
+				self.w.status.set("🛠️ Examining %s…" % fileName)
 
 				# determine glyphs to be checked:
 				if onlyCheckSelection:
@@ -319,12 +349,15 @@ class FindShapeshiftingGlyphs(mekkaObject):
 				)
 
 			print("%s\nDone." % message)
+			self.w.progress.set(100)
+			self.w.status.set("✅ Found %i shapeshifting glyph%s." % (totalAffectedGlyphCount, "" if totalAffectedGlyphCount == 1 else "s"))
 
 			self.SavePreferences()
 
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
+			self.w.status.set("❌ Error. Details in Macro Window.")
 			print("Find Shapeshifting Glyphs Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())

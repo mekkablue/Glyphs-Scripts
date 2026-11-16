@@ -10,7 +10,8 @@ The ‘other’ handle used for the G2 ratio comes from the medial reference gly
 
 from math import sqrt
 import vanilla
-from AppKit import NSFont, NSPoint
+from AppKit import NSFont, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
+from Foundation import NSPoint
 from GlyphsApp import Glyphs, OFFCURVE, Message
 from mekkablue import mekkaObject, UpdateButton
 
@@ -332,36 +333,51 @@ class PositionalHarmonize(mekkaObject):
 	}
 
 	def __init__(self):
-		windowWidth = 340
-		windowHeight = 120
-		windowWidthResize = 500
-		windowHeightResize = 0
+		windowWidth = 360
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Positional Harmonize",
-			minSize=(windowWidth, windowHeight),
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),
-			autosaveName=self.domain("mainwindow"),
+			autosaveName=self.domain("mainwindow"),  # stores last window position
 		)
 
-		linePos, inset, lineHeight = 12, 15, 22
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Harmonize selected positionals with medial glyph", sizeStyle="small")
-		linePos += lineHeight
+		self.w.descriptionText = vanilla.TextBox("auto", "Harmonize selected positionals with medial glyph", sizeStyle="small")
 
 		tooltip = "Reference glyph. Pick a medial glyph with paths for clicking. We recommend behDotless-ar.medi."
-		indent = 95
-		self.w.referenceText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Reference glyph:", sizeStyle="small")
+		self.w.referenceText = vanilla.TextBox("auto", "Reference glyph:", sizeStyle="small")
 		self.w.referenceText.setToolTip(tooltip)
-		self.w.referenceGlyphName = vanilla.ComboBox((inset + indent, linePos - 2, -inset - 22, 19), self.getAllMediGlyphNames(), sizeStyle="small", callback=self.SavePreferences)
+		self.w.referenceGlyphName = vanilla.ComboBox("auto", self.getAllMediGlyphNames(), sizeStyle="small", callback=self.SavePreferences)
 		self.w.referenceGlyphName.getNSComboBox().setFont_(NSFont.userFixedPitchFontOfSize_(10))
 		self.w.referenceGlyphName.setToolTip(tooltip)
-		self.w.updateButton = UpdateButton((-inset - 18, linePos - 3, -inset, 18), callback=self.updateReferenceGlyphs)
+		self.w.updateButton = UpdateButton("auto", callback=self.updateReferenceGlyphs)
 		self.w.updateButton.setToolTip("Update the list with all .medi glyphs in the frontmost font.")
-		linePos += lineHeight
 
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Harmonize", callback=self.PositionalHarmonizeMain)
+		self.w.runButton = vanilla.Button("auto", "Harmonize", callback=self.PositionalHarmonizeMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes and square buttons stretch vertically by default; with everything
+		# hugging, the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# the label hugs its text, so the combo box takes the leftover width:
+		nsLabel = self.w.referenceText.getNSTextField()
+		nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[referenceText]-gap-[referenceGlyphName(>=140)]-gap-[updateButton]-inset-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-inset-[descriptionText]-row-[referenceGlyphName]-inset-[runButton]-inset-|",
+				{"view1": self.w.referenceText, "attribute1": "centerY", "view2": self.w.referenceGlyphName, "attribute2": "centerY"},
+				{"view1": self.w.updateButton, "attribute1": "centerY", "view2": self.w.referenceGlyphName, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 10},
+		)
 
 		self.LoadPreferences()
 		self.w.open()
@@ -400,7 +416,8 @@ class PositionalHarmonize(mekkaObject):
 			referenceGlyphName = self.pref("referenceGlyphName")
 
 			print("Positional Harmonize")
-			print(f"📄 {thisFont.filepath or thisFont.familyName}\n")
+			fileName = thisFont.filepath.lastPathComponent() if thisFont.filepath else f"{thisFont.familyName} (unsaved)"
+			print(f"📄 {fileName}\n")
 
 			thisFont.disableUpdateInterface()
 			try:

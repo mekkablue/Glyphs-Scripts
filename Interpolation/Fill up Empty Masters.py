@@ -5,6 +5,7 @@ Looks for empty master layers and adds shapes of a preferred master.
 
 import vanilla
 from copy import copy as copy
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message, CORNER, SEGMENT, CAP
 from mekkablue import mekkaObject, UpdateButton, reportFontName
 
@@ -40,46 +41,74 @@ class FillUpEmptyMasters(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 320
-		windowHeight = 203
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Fill Up Empty Masters",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 16, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Populate empty layers of selected glyphs:", sizeStyle="small", selectable=True)
-		linePos += lineHeight
+		inset = 16
 
-		self.w.masterChoiceText = vanilla.TextBox((inset, linePos + 2, 95, 14), "Use shapes from", sizeStyle="small", selectable=True)
-		self.w.masterChoice = vanilla.PopUpButton((inset + 95, linePos, -inset - 22, 17), (), sizeStyle="small", callback=self.SavePreferences)
-		self.w.masterChoiceUpdate = UpdateButton((-inset - 18, linePos - 2, -inset - 1, 17), callback=self.masterChoiceUpdateAction)
-		linePos += lineHeight
+		self.w.descriptionText = vanilla.TextBox("auto", "Populate empty layers of selected glyphs:", sizeStyle="small", selectable=True)
 
-		self.w.firstOneWithShapes = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "If empty, use first master with shapes", value=False, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
+		self.w.masterChoiceText = vanilla.TextBox("auto", "Use shapes from", sizeStyle="small", selectable=True)
+		self.w.masterChoice = vanilla.PopUpButton("auto", (), sizeStyle="small", callback=self.SavePreferences)
+		self.w.masterChoiceUpdate = UpdateButton("auto", callback=self.masterChoiceUpdateAction)
 
-		self.w.addMissingAnchors = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Add missing default anchors", value=False, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
+		self.w.firstOneWithShapes = vanilla.CheckBox("auto", "If empty, use first master with shapes", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.addMissingAnchors = vanilla.CheckBox("auto", "Add missing default anchors", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.copySidebearings = vanilla.CheckBox("auto", "Also copy sidebearings", value=False, callback=self.SavePreferences, sizeStyle="small")
 
-		self.w.copySidebearings = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Also copy sidebearings", value=False, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
+		self.w.markWithColor = vanilla.CheckBox("auto", "Color-mark filled-up layers", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.layerColor = vanilla.PopUpButton("auto", labelColors, sizeStyle="small", callback=self.SavePreferences)
 
-		self.w.markWithColor = vanilla.CheckBox((inset + 2, linePos, 165, 20), "Color-mark filled-up layers", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.layerColor = vanilla.PopUpButton((inset + 161, linePos + 1, 105, 17), labelColors, sizeStyle="small", callback=self.SavePreferences)
-		linePos += lineHeight
-
-		self.w.overwriteExisting = vanilla.CheckBox((inset + 2, linePos, 165, 20), "Overwrite Existing Outlines❗️", value=False, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
+		self.w.overwriteExisting = vanilla.CheckBox("auto", "Overwrite Existing Outlines❗️", value=False, callback=self.SavePreferences, sizeStyle="small")
 
 		# Status:
-		self.w.status = vanilla.TextBox((inset - 5, linePos + 7, -75 - inset, 15), "", sizeStyle="small", selectable=True)
-		linePos += lineHeight
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small", selectable=True)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Fill Up", callback=self.FillUpEmptyMastersMain)
+		self.w.runButton = vanilla.Button("auto", "Fill Up", callback=self.FillUpEmptyMastersMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# the label hugs its text, so the popup takes the leftover width:
+		nsLabel = self.w.masterChoiceText.getNSTextField()
+		nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		# the checkbox hugs its text, the color popup behind it stretches:
+		self.w.markWithColor.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.layerColor.getNSPopUpButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
+		# the status text gives way to the button:
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[masterChoiceText]-gap-[masterChoice]-gap-[masterChoiceUpdate]-inset-|",
+				"H:|-inset-[firstOneWithShapes]-(>=inset)-|",
+				"H:|-inset-[addMissingAnchors]-(>=inset)-|",
+				"H:|-inset-[copySidebearings]-(>=inset)-|",
+				"H:|-inset-[markWithColor]-gap-[layerColor]-inset-|",
+				"H:|-inset-[overwriteExisting]-(>=inset)-|",
+				"H:|-inset-[status]-(>=gap)-[runButton(>=70)]-inset-|",
+				"V:|-inset-[descriptionText]-headlineGap-[masterChoice]-row-[firstOneWithShapes]-stackRow-[addMissingAnchors]-stackRow-[copySidebearings]-stackRow-[markWithColor]-stackRow-[overwriteExisting]-inset-[runButton]-inset-|",
+				# one baseline per row:
+				{"view1": self.w.masterChoiceText, "attribute1": "centerY", "view2": self.w.masterChoice, "attribute2": "centerY"},
+				{"view1": self.w.masterChoiceUpdate, "attribute1": "centerY", "view2": self.w.masterChoice, "attribute2": "centerY"},
+				{"view1": self.w.layerColor, "attribute1": "centerY", "view2": self.w.markWithColor, "attribute2": "centerY"},
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 8, "stackRow": 8, "headlineGap": 10},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -125,7 +154,7 @@ class FillUpEmptyMasters(mekkaObject):
 				selectedGlyphs = set([layer.parent for layer in thisFont.selectedLayers])
 				layerCount = 0
 				for thisGlyph in selectedGlyphs:
-					self.w.status.set(f"🔤 Filling up {thisGlyph.name}...")
+					self.w.status.set(f"🔠 {thisGlyph.name}")
 					sourceLayer = thisGlyph.layers[sourceID]
 					if not sourceLayer.shapes and self.pref("firstOneWithShapes"):
 						sourceLayer = None

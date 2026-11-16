@@ -4,6 +4,7 @@ Transfers RTL kerning from one master to another.
 """
 
 import vanilla
+from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject
 
@@ -25,31 +26,51 @@ class TransferRTLkerning(mekkaObject):
 		self.updateListOfMasters()
 
 		# Window 'self.w':
-		windowWidth = 350
-		windowHeight = 110
-		windowWidthResize = 300  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 400
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Transfer RTL kerning",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		inset = 15
 
-		self.w.from_text = vanilla.TextBox((inset, linePos + 2, 130, 17), "Take RTL kerning from:", sizeStyle='small')
-		self.w.from_master = vanilla.PopUpButton((inset + 130, linePos, -inset, 17), self.listOfMasterNames(), sizeStyle='small', callback=self.buttonCheck)
+		self.w.from_text = vanilla.TextBox("auto", "Take RTL kerning from:", sizeStyle='small')
+		self.w.from_master = vanilla.PopUpButton("auto", self.listOfMasterNames(), sizeStyle='small', callback=self.SavePreferences)
 
-		linePos += lineHeight
-		self.w.to_text = vanilla.TextBox((inset, linePos + 2, 130, 17), "… and put it into:", sizeStyle='small')
-		self.w.to_master = vanilla.PopUpButton((inset + 130, linePos, -inset, 17), self.listOfMasterNames()[::-1], sizeStyle='small', callback=self.buttonCheck)
+		self.w.to_text = vanilla.TextBox("auto", "… and put it into:", sizeStyle='small')
+		self.w.to_master = vanilla.PopUpButton("auto", self.listOfMasterNames()[::-1], sizeStyle='small', callback=self.SavePreferences)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Transfer", callback=self.TransferRTLkerningMain)
+		self.w.runButton = vanilla.Button("auto", "Transfer", callback=self.TransferRTLkerningMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# labels are right-aligned, hug their text and share one width:
+		for labelName in ("from_text", "to_text"):
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[from_text]-gap-[from_master]-inset-|",
+				"H:|-inset-[to_text]-gap-[to_master]-inset-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-inset-[from_master]-row-[to_master]-inset-[runButton]-inset-|",
+				{"view1": self.w.from_text, "attribute1": "centerY", "view2": self.w.from_master, "attribute2": "centerY"},
+				{"view1": self.w.to_text, "attribute1": "centerY", "view2": self.w.to_master, "attribute2": "centerY"},
+				{"view1": self.w.to_text, "attribute1": "width", "view2": self.w.from_text, "attribute2": "width"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -80,22 +101,16 @@ class TransferRTLkerning(mekkaObject):
 			import traceback
 			print(traceback.format_exc())
 
-	def buttonCheck(self, sender):
-		try:
-			# check if both font selection point to the same font
-			# and disable action button if they do:
-			fromFont = self.w.from_master.getItems()[self.w.from_master.get()]
-			toFont = self.w.to_master.getItems()[self.w.to_master.get()]
-
-			if fromFont == toFont:
-				self.w.runButton.enable(onOff=False)
-			else:
-				self.w.runButton.enable(onOff=True)
-
-			self.SavePreferences()
-		except:
-			import traceback
-			print(traceback.format_exc())
+	def updateUI(self, sender=None):
+		# disable the action button if both popups point to the same master (or there are no masters):
+		fromIndex = self.w.from_master.get()
+		toIndex = self.w.to_master.get()
+		if fromIndex < 0 or toIndex < 0:
+			self.w.runButton.enable(onOff=False)
+			return
+		fromMaster = self.w.from_master.getItems()[fromIndex]
+		toMaster = self.w.to_master.getItems()[toIndex]
+		self.w.runButton.enable(onOff=fromMaster != toMaster)
 
 	def outputError(self, errMsg):
 		print("Transfer RTL Kerning Warning:", errMsg)
@@ -111,6 +126,7 @@ class TransferRTLkerning(mekkaObject):
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+				return
 			else:
 				print("Transfer RTL kerning Report for %s" % thisFont.familyName)
 				if thisFont.filepath:
@@ -135,7 +151,10 @@ class TransferRTLkerning(mekkaObject):
 				The values are the actual kerning values.
 				"""
 
-				sourceMasterKerning = sourceFont.kerningRTL[sourceMaster.id]
+				if sourceMasterID not in sourceFont.kerningRTL.keys():
+					print("⚠️ No RTL kerning in master ‘%s’ of %s." % (sourceMaster.name, sourceFont.familyName))
+					return
+				sourceMasterKerning = sourceFont.kerningRTL[sourceMasterID]
 				for firstPart in sourceMasterKerning.keys():
 					if not firstPart.startswith("@"):
 						firstGlyph = sourceFont.glyphForId_(firstPart)

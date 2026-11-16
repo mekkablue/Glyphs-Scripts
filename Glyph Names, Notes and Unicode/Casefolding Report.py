@@ -1,11 +1,10 @@
 # MenuTitle: Casefolding Report
-
-
 __doc__ = """
 Checks if uppercase and lowercase are matching. Opens a new Edit tab containing all glyphs without consistent casefolding. Writes a detailed report in Macro Window.
 """
 
 import vanilla
+from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, macroDividerPosition, setMacroDivider
 
@@ -21,36 +20,43 @@ class CasefoldingReport(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 300
-		windowHeight = 160
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 320
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Casefolding Report",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "Report all casefolding issues:", sizeStyle="small", selectable=True)
-		linePos += lineHeight
+		inset = 15
+		self.w.descriptionText = vanilla.TextBox("auto", "Report all casefolding issues:", sizeStyle="small", selectable=True)
 
-		self.w.excludeMathSymbols = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Exclude math symbols (∆∏∑µ)", value=False, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
-
-		self.w.allFonts = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Check all open fonts (otherwise frontmost only)", value=True, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
-
-		self.w.reuseTab = vanilla.CheckBox((inset + 2, linePos - 1, 120, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.showMacroWindow = vanilla.CheckBox((inset + 120, linePos - 1, -inset, 20), "Open Macro Window", value=False, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
+		self.w.excludeMathSymbols = vanilla.CheckBox("auto", "Exclude math symbols (∆∏∑µ)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allFonts = vanilla.CheckBox("auto", "Check all open fonts (otherwise frontmost only)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.reuseTab = vanilla.CheckBox("auto", "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.showMacroWindow = vanilla.CheckBox("auto", "Open Macro Window", value=False, callback=self.SavePreferences, sizeStyle="small")
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Report", sizeStyle="regular", callback=self.CasefoldingReportMain)
+		self.w.runButton = vanilla.Button("auto", "Report", callback=self.CasefoldingReportMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[excludeMathSymbols]-(>=inset)-|",
+				"H:|-inset-[allFonts]-(>=inset)-|",
+				"H:|-inset-[reuseTab]-gap-[showMacroWindow]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-inset-[descriptionText]-row-[excludeMathSymbols]-checkRow-[allFonts]-checkRow-[reuseTab]-inset-[runButton]-inset-|",
+				{"view1": self.w.showMacroWindow, "attribute1": "centerY", "view2": self.w.reuseTab, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 8, "checkRow": 5},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()

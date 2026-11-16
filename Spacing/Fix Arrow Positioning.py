@@ -4,6 +4,7 @@ Fixes the placement and metrics keys of arrows, dependent on a specified default
 """
 
 import vanilla
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject
@@ -44,48 +45,76 @@ class FixArrowPositioning(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 280
-		windowHeight = 226
+		windowWidth = 330
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Fix Arrow Positioning",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		inset = 15
 
-		self.w.explanation = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Fixes position and spacing of arrows.", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		self.w.explanation = vanilla.TextBox("auto", "Fixes position and spacing of arrows.", sizeStyle='small', selectable=True)
 
-		self.w.referenceForHorizontalArrowsText = vanilla.TextBox((inset, linePos + 2, 130, 14), "Reference for H arrows", sizeStyle='small')
-		self.w.referenceForHorizontalArrows = vanilla.PopUpButton((inset + 127, linePos, -inset, 17), self.hArrows, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.referenceForHorizontalArrowsText = vanilla.TextBox("auto", "Reference for H arrows", sizeStyle='small')
+		self.w.referenceForHorizontalArrows = vanilla.PopUpButton("auto", self.hArrows, callback=self.SavePreferences, sizeStyle='small')
 
-		self.w.referenceForVerticalArrowsText = vanilla.TextBox((inset, linePos + 2, 130, 14), "Reference for V arrows", sizeStyle='small')
-		self.w.referenceForVerticalArrows = vanilla.PopUpButton((inset + 127, linePos, -inset, 17), self.vArrows, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.referenceForVerticalArrowsText = vanilla.TextBox("auto", "Reference for V arrows", sizeStyle='small')
+		self.w.referenceForVerticalArrows = vanilla.PopUpButton("auto", self.vArrows, callback=self.SavePreferences, sizeStyle='small')
 
-		self.w.referenceForDiagonalArrowsText = vanilla.TextBox((inset, linePos + 2, 130, 14), "Reference for D arrows", sizeStyle='small')
-		self.w.referenceForDiagonalArrows = vanilla.PopUpButton((inset + 127, linePos, -inset, 17), self.dArrows, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.referenceForDiagonalArrowsText = vanilla.TextBox("auto", "Reference for D arrows", sizeStyle='small')
+		self.w.referenceForDiagonalArrows = vanilla.PopUpButton("auto", self.dArrows, callback=self.SavePreferences, sizeStyle='small')
 
-		self.w.suffixText = vanilla.TextBox((inset, linePos + 2, 70, 14), "Dot suffix", sizeStyle='small', selectable=False)
-		self.w.suffix = vanilla.EditText((inset + 58, linePos, -inset, 19), "", sizeStyle='small')
-		linePos += lineHeight
+		self.w.suffixText = vanilla.TextBox("auto", "Dot suffix", sizeStyle='small', selectable=False)
+		self.w.suffix = vanilla.EditText("auto", "", callback=self.SavePreferences, sizeStyle='small')
 
-		self.w.verticalPosOfHorizontalArrows = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Fix vertical positioning of horizontal arrows", value=True, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
-
-		self.w.verticalPosOfDiagonalArrows = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Fix vertical positioning of diagonal arrows", value=True, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
-
-		self.w.addAndUpdateMetricsKeys = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Add and update metrics keys", value=True, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.verticalPosOfHorizontalArrows = vanilla.CheckBox("auto", "Fix vertical positioning of horizontal arrows", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.verticalPosOfDiagonalArrows = vanilla.CheckBox("auto", "Fix vertical positioning of diagonal arrows", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.addAndUpdateMetricsKeys = vanilla.CheckBox("auto", "Add and update metrics keys", value=True, callback=self.SavePreferences, sizeStyle='small')
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Fix", callback=self.FixArrowPositioningMain)
+		self.w.runButton = vanilla.Button("auto", "Fix", callback=self.FixArrowPositioningMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging,
+		# the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# labels: right-aligned, one shared width
+		labelNames = ("referenceForHorizontalArrowsText", "referenceForVerticalArrowsText", "referenceForDiagonalArrowsText", "suffixText")
+		widestLabel = "referenceForHorizontalArrowsText"
+		for labelName in labelNames:
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+		widthRules = [
+			{"view1": getattr(self.w, labelName), "attribute1": "width", "view2": getattr(self.w, widestLabel), "attribute2": "width"}
+			for labelName in labelNames if labelName != widestLabel
+		]
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[explanation]-inset-|",
+				"H:|-inset-[referenceForHorizontalArrowsText]-gap-[referenceForHorizontalArrows]-inset-|",
+				"H:|-inset-[referenceForVerticalArrowsText]-gap-[referenceForVerticalArrows]-inset-|",
+				"H:|-inset-[referenceForDiagonalArrowsText]-gap-[referenceForDiagonalArrows]-inset-|",
+				"H:|-inset-[suffixText]-gap-[suffix]-inset-|",
+				"H:|-inset-[verticalPosOfHorizontalArrows]-(>=inset)-|",
+				"H:|-inset-[verticalPosOfDiagonalArrows]-(>=inset)-|",
+				"H:|-inset-[addAndUpdateMetricsKeys]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[explanation]-headlineGap-[referenceForHorizontalArrows]-row-[referenceForVerticalArrows]-row-[referenceForDiagonalArrows]-row-[suffix]-headlineGap-[verticalPosOfHorizontalArrows]-checkRow-[verticalPosOfDiagonalArrows]-checkRow-[addAndUpdateMetricsKeys]-inset-[runButton]-inset-|",
+				{"view1": self.w.referenceForHorizontalArrowsText, "attribute1": "centerY", "view2": self.w.referenceForHorizontalArrows, "attribute2": "centerY"},
+				{"view1": self.w.referenceForVerticalArrowsText, "attribute1": "centerY", "view2": self.w.referenceForVerticalArrows, "attribute2": "centerY"},
+				{"view1": self.w.referenceForDiagonalArrowsText, "attribute1": "centerY", "view2": self.w.referenceForDiagonalArrows, "attribute2": "centerY"},
+				{"view1": self.w.suffixText, "attribute1": "centerY", "view2": self.w.suffix, "attribute2": "centerY"},
+			] + widthRules,
+			metrics={"inset": inset, "gap": 8, "row": 6, "headlineGap": 10, "checkRow": 5},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -106,7 +135,7 @@ class FixArrowPositioning(mekkaObject):
 
 	def measureBottomOfCenterStroke(self, layer):
 		extra = 5
-		hCenter = (layer.bounds.origin.x + layer.bounds.size.width) * 0.5
+		hCenter = layer.bounds.origin.x + layer.bounds.size.width * 0.5
 		startY = layer.bounds.origin.y - extra
 		endY = startY + layer.bounds.size.height + 2 * extra
 		startPoint = NSPoint(hCenter, startY)
@@ -129,6 +158,9 @@ class FixArrowPositioning(mekkaObject):
 
 	def FixArrowPositioningMain(self, sender):
 		try:
+			# update settings to the latest user input (the suffix field is read below):
+			self.SavePreferences()
+
 			# query and update reference and other names:
 			hArrowName = self.hArrows[self.pref("referenceForHorizontalArrows")]
 			vArrowName = self.vArrows[self.pref("referenceForVerticalArrows")]
@@ -208,7 +240,6 @@ class FixArrowPositioning(mekkaObject):
 						print("\nFIXING VERTICAL POSITIONS OF DIAGONAL ARROWS:")
 
 						# step through arrow glyphs
-						warnAboutLayers = []
 						for thisMaster in thisFont.masters:
 							referenceLayer = dReferenceGlyph.layers[thisMaster.id]
 							referenceHeight = referenceLayer.bounds.origin.y + referenceLayer.bounds.size.height * 0.5

@@ -4,6 +4,7 @@ Deletes a user-specified set of TT instructions throughout the current font, the
 """
 
 import vanilla
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, TTSTEM, TTANCHOR, TTALIGN, TTINTERPOLATE, TTDIAGONAL, TTDELTA, Message
 from mekkablue import mekkaObject
 
@@ -36,63 +37,87 @@ class RemoveTTHints(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 350
-		windowHeight = 270
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Remove TT Hints",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		column = 160
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, 160, 14), u"Remove the following hints in", sizeStyle='small', selectable=True)
-		self.w.where = vanilla.PopUpButton((inset + 160, linePos, -inset, 17), self.wheres, sizeStyle='small', callback=self.SavePreferences)
-		linePos += lineHeight
+		self.w.descriptionText = vanilla.TextBox("auto", u"Remove the following hints in", sizeStyle='small', selectable=True)
+		self.w.where = vanilla.PopUpButton("auto", self.wheres, sizeStyle='small', callback=self.SavePreferences)
 
-		self.w.hStems = vanilla.CheckBox((inset + 2, linePos, column, 20), u"⬍ H Stem", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.vStems = vanilla.CheckBox((inset + column, linePos, -inset, 20), u"⬌ V Stem", value=False, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.hStems = vanilla.CheckBox("auto", u"⬍ H Stem", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.vStems = vanilla.CheckBox("auto", u"⬌ V Stem", value=False, callback=self.SavePreferences, sizeStyle='small')
 
-		self.w.hAnchors = vanilla.CheckBox((inset + 2, linePos, column, 20), u"⬍ H Snap (Anchor)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.vAnchors = vanilla.CheckBox((inset + column, linePos, -inset, 20), u"⬌ V Snap (Anchor)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.hAnchors = vanilla.CheckBox("auto", u"⬍ H Snap (Anchor)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.vAnchors = vanilla.CheckBox("auto", u"⬌ V Snap (Anchor)", value=False, callback=self.SavePreferences, sizeStyle='small')
 
-		self.w.hAlign = vanilla.CheckBox((inset + 2, linePos, column, 20), u"⬍ H Shift (Align)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.vAlign = vanilla.CheckBox((inset + column, linePos, -inset, 20), u"⬌ V Shift (Align)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.hAlign = vanilla.CheckBox("auto", u"⬍ H Shift (Align)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.vAlign = vanilla.CheckBox("auto", u"⬌ V Shift (Align)", value=False, callback=self.SavePreferences, sizeStyle='small')
 
-		self.w.hInterpolate = vanilla.CheckBox((inset + 2, linePos, column, 20), u"⬍ H Interpolate", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.vInterpolate = vanilla.CheckBox((inset + column, linePos, -inset, 20), u"⬌ V Interpolate", value=False, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.hInterpolate = vanilla.CheckBox("auto", u"⬍ H Interpolate", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.vInterpolate = vanilla.CheckBox("auto", u"⬌ V Interpolate", value=False, callback=self.SavePreferences, sizeStyle='small')
 
-		self.w.hDiagonal = vanilla.CheckBox((inset + 2, linePos, column, 20), u"⬍ H Diagonal", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.vDiagonal = vanilla.CheckBox((inset + column, linePos, -inset, 20), u"⬌ V Diagonal", value=False, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.hDiagonal = vanilla.CheckBox("auto", u"⬍ H Diagonal", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.vDiagonal = vanilla.CheckBox("auto", u"⬌ V Diagonal", value=False, callback=self.SavePreferences, sizeStyle='small')
 
-		self.w.hDelta = vanilla.CheckBox((inset + 2, linePos, column, 20), u"⬍ H Delta", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.vDelta = vanilla.CheckBox((inset + column, linePos, -inset, 20), u"⬌ V Delta", value=False, callback=self.SavePreferences, sizeStyle='small')
-		linePos += int(lineHeight * 1.2)
+		self.w.hDelta = vanilla.CheckBox("auto", u"⬍ H Delta", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.vDelta = vanilla.CheckBox("auto", u"⬌ V Delta", value=False, callback=self.SavePreferences, sizeStyle='small')
 
-		self.w.hON = vanilla.SquareButton((inset, linePos, 40, 18), u"H on", sizeStyle='small', callback=self.update)
-		self.w.hOFF = vanilla.SquareButton((inset + 40, linePos, 40, 18), u"H off", sizeStyle='small', callback=self.update)
+		self.w.hON = vanilla.SquareButton("auto", u"H on", sizeStyle='small', callback=self.update)
+		self.w.hOFF = vanilla.SquareButton("auto", u"H off", sizeStyle='small', callback=self.update)
 
-		self.w.vON = vanilla.SquareButton((inset + column, linePos, 40, 18), u"V on", sizeStyle='small', callback=self.update)
-		self.w.vOFF = vanilla.SquareButton((inset + column + 40, linePos, 40, 18), u"V off", sizeStyle='small', callback=self.update)
-		linePos += int(lineHeight * 1.2)
+		self.w.vON = vanilla.SquareButton("auto", u"V on", sizeStyle='small', callback=self.update)
+		self.w.vOFF = vanilla.SquareButton("auto", u"V off", sizeStyle='small', callback=self.update)
 
-		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
+		self.w.progress = vanilla.ProgressBar("auto")
 		self.w.progress.set(0)  # set progress indicator to zero
-		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Remove", callback=self.RemoveTTHintsMain)
+		self.w.runButton = vanilla.Button("auto", "Remove", callback=self.RemoveTTHintsMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes and square buttons stretch vertically by default; with everything hugging,
+		# the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.descriptionText.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+
+		# two columns of checkboxes, one shared width:
+		rowNames = ("Stems", "Anchors", "Align", "Interpolate", "Diagonal", "Delta")
+		hNames = [f"h{name}" for name in rowNames]
+		vNames = [f"v{name}" for name in rowNames]
+		columnRules = [
+			{"view1": getattr(self.w, name), "attribute1": "width", "view2": self.w.hStems, "attribute2": "width"}
+			for name in hNames[1:] + vNames
+		]
+		rowRules = [
+			{"view1": getattr(self.w, vName), "attribute1": "centerY", "view2": getattr(self.w, hName), "attribute2": "centerY"}
+			for hName, vName in zip(hNames, vNames)
+		]
+		rules = ["H:|-inset-[descriptionText]-gap-[where]-inset-|"]
+		rules += [f"H:|-inset-[{hName}]-gap-[{vName}]-(>=inset)-|" for hName, vName in zip(hNames, vNames)]
+		rules += [
+			"H:|-inset-[hON(>=40)]-4-[hOFF(>=40)]-(>=gap)-[vON(>=40)]-4-[vOFF(>=40)]-(>=inset)-|",
+			"H:|-inset-[progress]-inset-|",
+			"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+			"V:|-gap-[where]-headlineGap-" + "-stackRow-".join(f"[{hName}]" for hName in hNames) + "-headlineGap-[hON]-headlineGap-[progress(16)]-inset-[runButton]-inset-|",
+			{"view1": self.w.descriptionText, "attribute1": "centerY", "view2": self.w.where, "attribute2": "centerY"},
+			{"view1": self.w.hOFF, "attribute1": "centerY", "view2": self.w.hON, "attribute2": "centerY"},
+			{"view1": self.w.vON, "attribute1": "centerY", "view2": self.w.hON, "attribute2": "centerY"},
+			{"view1": self.w.vOFF, "attribute1": "centerY", "view2": self.w.hON, "attribute2": "centerY"},
+			# the V buttons start in the column of the V checkboxes:
+			{"view1": self.w.vON, "attribute1": "left", "view2": self.w.vStems, "attribute2": "left"},
+		]
+		self.w.addAutoPosSizeRules(
+			rules + columnRules + rowRules,
+			metrics={"inset": inset, "gap": 8, "headlineGap": 10, "stackRow": 8},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()

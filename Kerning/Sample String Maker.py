@@ -5,6 +5,7 @@ Creates kern strings for all kerning groups in user-defined categories and adds 
 
 import vanilla
 import sampleText
+from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, UpdateButton
 
@@ -54,71 +55,108 @@ class SampleStringMaker(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 340
-		windowHeight = 265
-		windowWidthResize = 1000  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 400
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Sample String Maker",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Builds group kern strings, adds them to the Sample Texts.", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		self.w.descriptionText = vanilla.TextBox("auto", "Builds group kern strings, adds them to the Sample Texts.", sizeStyle='small', selectable=True)
 
-		self.w.scriptText = vanilla.TextBox((inset, linePos + 2, 45, 14), "Script:", sizeStyle='small', selectable=True)
-		self.w.scriptPopup = vanilla.PopUpButton((inset + 45, linePos, -inset-23, 17), self.scripts, sizeStyle='small', callback=self.SavePreferences)
+		self.w.scriptText = vanilla.TextBox("auto", "Script:", sizeStyle='small', selectable=True)
+		self.w.scriptPopup = vanilla.PopUpButton("auto", self.scripts, sizeStyle='small', callback=self.SavePreferences)
 		self.w.scriptPopup.setToolTip("Script for letters, will be ignored for all other categories (e.g., numbers).")
-		self.w.scriptUpdate = UpdateButton((-inset-20, linePos-2, -inset, 18), callback=self.updateScripts)
-		linePos += lineHeight
+		self.w.scriptUpdate = UpdateButton("auto", callback=self.updateScripts)
 
-		self.w.leftCategoryText = vanilla.TextBox((inset, linePos + 2, 90, 14), "Left Category:", sizeStyle='small', selectable=True)
-		self.w.leftCategoryPopup = vanilla.PopUpButton((inset + 90, linePos, -inset, 17), self.categoryList, sizeStyle='small', callback=self.SavePreferences)
+		self.w.leftCategoryText = vanilla.TextBox("auto", "Left Category:", sizeStyle='small', selectable=True)
+		self.w.leftCategoryPopup = vanilla.PopUpButton("auto", self.categoryList, sizeStyle='small', callback=self.SavePreferences)
 		self.w.leftCategoryPopup.setToolTip("Category:Subcategory for left side of kern pair.")
-		linePos += lineHeight
 
-		self.w.rightCategoryText = vanilla.TextBox((inset, linePos + 2, 90, 14), "Right Category:", sizeStyle='small', selectable=True)
-		self.w.rightCategoryPopup = vanilla.PopUpButton((inset + 90, linePos, -inset, 17), self.categoryList, sizeStyle='small', callback=self.SavePreferences)
+		self.w.rightCategoryText = vanilla.TextBox("auto", "Right Category:", sizeStyle='small', selectable=True)
+		self.w.rightCategoryPopup = vanilla.PopUpButton("auto", self.categoryList, sizeStyle='small', callback=self.SavePreferences)
 		self.w.rightCategoryPopup.setToolTip("Category:Subcategory for right side of kern pair.")
-		linePos += lineHeight
 
-		self.w.includeNonExporting = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Also include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeNonExporting = vanilla.CheckBox("auto", "Also include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeNonExporting.setToolTip("Also add glyphs of these categories if they are set to not export.")
-		linePos += lineHeight
 
-		self.w.excludeText = vanilla.TextBox((inset, linePos + 2, 150, 14), "Exclude glyphs containing:", sizeStyle='small', selectable=True)
-		self.w.excludedGlyphNameParts = vanilla.EditText((inset + 150, linePos, -inset, 19), ".tf, .tosf, ord, Ldot, ldot, .loclCAT", callback=self.SavePreferences, sizeStyle='small')
-		self.w.excludedGlyphNameParts.setToolTip("If the glyph name includes any of these comma-separated fragments, the glyph will be ignored. Always excluded: Ldot, ldot, ldot.sc, Fhook and florin.")
-		linePos += lineHeight
+		self.w.excludeText = vanilla.TextBox("auto", "Exclude glyphs containing:", sizeStyle='small', selectable=True)
+		self.w.excludedGlyphNameParts = vanilla.EditText("auto", ".tf, .tosf, ord, Ldot, ldot, .loclCAT", callback=self.SavePreferences, sizeStyle='small')
+		tooltipText = "If the glyph name includes any of these comma-separated fragments, the glyph will be ignored. Always excluded: Ldot, ldot, ldot.sc, Fhook and florin."
+		self.w.excludeText.setToolTip(tooltipText)
+		self.w.excludedGlyphNameParts.setToolTip(tooltipText)
 
-		self.w.overrideContext = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Override context glyphs:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.overrideContext = vanilla.CheckBox("auto", "Override context glyphs:", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.overrideContext.setToolTip("If checked, the surrounding glyphs will be replaced with those given in the text box. Use a comma to differentiate the left-side context from the right-side context: ‘HOOH,noon’ will put HOOH on the left side, ‘noon’ on the right side.")
-		self.w.contextGlyphs = vanilla.EditText((inset + 150, linePos, -inset, 19), "HOOH,noon", callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.contextGlyphs = vanilla.EditText("auto", "HOOH,noon", callback=self.SavePreferences, sizeStyle='small')
+		self.w.contextGlyphs.setToolTip("Context glyphs, separated by a comma: left side, right side. E.g., ‘HOOH,noon’.")
 
-		self.w.mirrorPair = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Mirror kerning pair (AV→AVA)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.mirrorPair = vanilla.CheckBox("auto", "Mirror kerning pair (AV→AVA)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.mirrorPair.setToolTip("If checked, will create a mirrored version of the kerning string. E.g., instead of just AV, it will show AVA between the context glyphs.")
-		linePos += lineHeight
 
-		self.w.openTab = vanilla.CheckBox((inset + 2, linePos - 1, 170, 20), "Open tab at first kern string", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.openTab = vanilla.CheckBox("auto", "Open tab at first kern string", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.openTab.setToolTip("If checked, a new tab will be opened with the first found kern string, and the cursor positioned accordingly, ready for group kerning and switching to the next sample string.")
-		self.w.lockKerning = vanilla.CheckBox((inset + 170, linePos - 1, -inset, 20), "in kerning mode", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.lockKerning = vanilla.CheckBox("auto", "in kerning mode", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.lockKerning.setToolTip("Will set the kerning lock in the tab, prevents you from spacing accidentally.")
-		linePos += lineHeight
 
 		# Open Tab Button:
-		self.w.openTabButton = vanilla.Button((-80 - inset - 100, -20 - inset, -80 - inset - 10, -inset), "Open Tab", callback=self.OpenTab)
+		self.w.openTabButton = vanilla.Button("auto", "Open Tab", callback=self.OpenTab)
 		self.w.openTabButton.setToolTip("Opens all kern strings as lines in a single Edit tab (does not add them to the Sample Texts).")
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Add", callback=self.SampleStringMakerMain)
+		self.w.runButton = vanilla.Button("auto", "Add", callback=self.SampleStringMakerMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# labels are right-aligned and hug their text; they share one width with the checkbox in front of a field:
+		labelNames = ("scriptText", "leftCategoryText", "rightCategoryText", "excludeText")
+		for labelName in labelNames:
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+		self.w.overrideContext.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.overrideContext.getNSButton().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		widthRules = [{
+			"view1": getattr(self.w, viewName),
+			"attribute1": "width",
+			"view2": self.w.excludeText,
+			"attribute2": "width",
+		} for viewName in ("scriptText", "leftCategoryText", "rightCategoryText", "overrideContext")]
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[scriptText]-gap-[scriptPopup]-gap-[scriptUpdate]-inset-|",
+				"H:|-inset-[leftCategoryText]-gap-[leftCategoryPopup]-inset-|",
+				"H:|-inset-[rightCategoryText]-gap-[rightCategoryPopup]-inset-|",
+				"H:|-inset-[includeNonExporting]-(>=inset)-|",
+				"H:|-inset-[excludeText]-gap-[excludedGlyphNameParts]-inset-|",
+				"H:|-inset-[overrideContext]-gap-[contextGlyphs]-inset-|",
+				"H:|-inset-[mirrorPair]-(>=inset)-|",
+				"H:|-inset-[openTab]-gap-[lockKerning]-(>=inset)-|",
+				"H:|-(>=inset)-[openTabButton(>=70)]-gap-[runButton(>=70)]-inset-|",
+				"V:|-inset-[descriptionText]-headlineGap-[scriptPopup]-row-[leftCategoryPopup]-row-[rightCategoryPopup]-row-[includeNonExporting]-stackRow-[excludedGlyphNameParts]-stackRow-[overrideContext]-stackRow-[mirrorPair]-stackRow-[openTab]-inset-[runButton]-inset-|",
+				"V:[openTabButton]-inset-|",
+				{"view1": self.w.scriptText, "attribute1": "centerY", "view2": self.w.scriptPopup, "attribute2": "centerY"},
+				{"view1": self.w.scriptUpdate, "attribute1": "centerY", "view2": self.w.scriptPopup, "attribute2": "centerY"},
+				{"view1": self.w.leftCategoryText, "attribute1": "centerY", "view2": self.w.leftCategoryPopup, "attribute2": "centerY"},
+				{"view1": self.w.rightCategoryText, "attribute1": "centerY", "view2": self.w.rightCategoryPopup, "attribute2": "centerY"},
+				{"view1": self.w.excludeText, "attribute1": "centerY", "view2": self.w.excludedGlyphNameParts, "attribute2": "centerY"},
+				{"view1": self.w.contextGlyphs, "attribute1": "centerY", "view2": self.w.overrideContext, "attribute2": "centerY"},
+				{"view1": self.w.lockKerning, "attribute1": "centerY", "view2": self.w.openTab, "attribute2": "centerY"},
+			] + widthRules,
+			metrics={"inset": inset, "gap": 8, "row": 6, "headlineGap": 12, "stackRow": 8},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -126,7 +164,7 @@ class SampleStringMaker(mekkaObject):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-	
+
 	def updateScripts(self, sender=None):
 		font = Glyphs.font
 		if font:
@@ -140,7 +178,8 @@ class SampleStringMaker(mekkaObject):
 				self.w.scriptPopup.set(0)
 
 	def glyphNameIsExcluded(self, glyphName):
-		forbiddenParts = [n.strip() for n in self.pref("excludedGlyphNameParts").split(",")]
+		# empty fragments are ignored, otherwise an empty field would exclude every glyph:
+		forbiddenParts = [n.strip() for n in self.pref("excludedGlyphNameParts").split(",") if n.strip()]
 		for forbiddenPart in forbiddenParts:
 			if forbiddenPart in glyphName:
 				return True
@@ -161,13 +200,16 @@ class SampleStringMaker(mekkaObject):
 		self.SavePreferences()
 
 		thisFont = Glyphs.font  # frontmost font
+		if thisFont is None:
+			Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+			return None
 		print("Sample String Maker Report for %s" % thisFont.familyName)
 		print(thisFont.filepath)
 		print()
 
 		leftChoice = self.categoryList[self.pref("leftCategoryPopup")]
 		rightChoice = self.categoryList[self.pref("rightCategoryPopup")]
-		chosenScript = self.scripts[self.pref("scriptPopup")]
+		chosenScript = self.scripts[min(self.prefInt("scriptPopup"), len(self.scripts) - 1)]
 		leftCategory = leftChoice.split(":")[0]
 		rightCategory = rightChoice.split(":")[0]
 

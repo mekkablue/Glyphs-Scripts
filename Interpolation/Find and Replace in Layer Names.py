@@ -4,6 +4,7 @@ Replaces strings in layer names of all selected glyphs. Useful for adjusting lay
 """
 
 import vanilla
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject
 
@@ -17,26 +18,51 @@ class replaceInLayerNames(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 200
-		windowHeight = 130
-		windowWidthResize = 300  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 280
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Find and Replace in Layer Names",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
-		self.w.textSearch = vanilla.TextBox((15, 15, 67, 14), "Search for:", sizeStyle='small')
-		self.w.searchFor = vanilla.EditText((15 + 67, 12, -15, 19), "[130]", sizeStyle='small', callback=self.SavePreferences)
+		# UI elements:
+		inset = 15
 
-		self.w.textReplace = vanilla.TextBox((15, 15 + 22, 67, 14), "Replace by:", sizeStyle='small')
-		self.w.replaceBy = vanilla.EditText((15 + 67, 12 + 22, -15, 19), "[150]", sizeStyle='small', callback=self.SavePreferences)
+		self.w.textSearch = vanilla.TextBox("auto", "Search for:", sizeStyle='small')
+		self.w.searchFor = vanilla.EditText("auto", "[130]", sizeStyle='small', callback=self.SavePreferences)
 
-		self.w.allGlyphs = vanilla.CheckBox((15, 15 + 44, -15, 20), "Include all glyphs in font", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.replaceButton = vanilla.Button((-80, -40, -15, -5), "Replace", sizeStyle='small', callback=self.buttonCallback)
+		self.w.textReplace = vanilla.TextBox("auto", "Replace by:", sizeStyle='small')
+		self.w.replaceBy = vanilla.EditText("auto", "[150]", sizeStyle='small', callback=self.SavePreferences)
+
+		self.w.allGlyphs = vanilla.CheckBox("auto", "Include all glyphs in font", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.replaceButton = vanilla.Button("auto", "Replace", sizeStyle='small', callback=self.buttonCallback)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# labels are right-aligned and share one width, so the fields line up:
+		for labelName in ("textSearch", "textReplace"):
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[textSearch]-gap-[searchFor]-inset-|",
+				"H:|-inset-[textReplace]-gap-[replaceBy]-inset-|",
+				"H:|-inset-[allGlyphs]-(>=inset)-|",
+				"H:|-(>=inset)-[replaceButton(>=70)]-inset-|",
+				"V:|-inset-[searchFor]-row-[replaceBy]-row-[allGlyphs]-inset-[replaceButton]-inset-|",
+				{"view1": self.w.textSearch, "attribute1": "centerY", "view2": self.w.searchFor, "attribute2": "centerY"},
+				{"view1": self.w.textReplace, "attribute1": "centerY", "view2": self.w.replaceBy, "attribute2": "centerY"},
+				{"view1": self.w.textSearch, "attribute1": "width", "view2": self.w.textReplace, "attribute2": "width"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6},
+		)
 
 		self.LoadPreferences()
 
@@ -46,6 +72,10 @@ class replaceInLayerNames(mekkaObject):
 
 	def buttonCallback(self, sender):
 		thisFont = Glyphs.font
+		if thisFont is None:
+			Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+			return
+
 		if self.pref("allGlyphs"):
 			glyphsToProcess = thisFont.glyphs
 		else:
@@ -54,6 +84,10 @@ class replaceInLayerNames(mekkaObject):
 
 		searchFor = self.pref("searchFor")
 		replaceBy = self.pref("replaceBy")
+		if not searchFor:
+			# an empty search string would match everywhere and insert the replacement between all characters:
+			Message(title="Nothing to search for", message="Please enter a search string.", OKButton=None)
+			return
 
 		replaceCount = 0
 

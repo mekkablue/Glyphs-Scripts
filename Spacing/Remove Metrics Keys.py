@@ -4,6 +4,7 @@ Remove glyph-wide (=) and/or layer-specific (==) metrics keys. Optionally filter
 """
 
 import vanilla
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, match
 
@@ -25,29 +26,20 @@ class RemoveMetricsKeys(mekkaObject):
 	}
 
 	def __init__(self):
-		windowWidth = 380
-		windowHeight = 142
-		windowWidthResize = 600
-		windowHeightResize = 0
+		windowWidth = 460
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Remove Metrics Keys",
-			minSize=(windowWidth, windowHeight),
-			maxSize=(windowWidth + windowWidthResize, windowHeight),
-			autosaveName=self.domain("mainwindow"),
+			autosaveName=self.domain("mainwindow"),  # stores last window position
 		)
 
-		linePos, inset, lineHeight = 12, 15, 22
+		inset = 15
 
 		# Row 1: label + two checkboxes on one line
-		col1 = inset + 72  # checkboxes start here
-		self.w.removeAllLabel = vanilla.TextBox(
-			(inset, linePos + 3, 62, 14),
-			"Remove all",
-			sizeStyle="small",
-		)
+		self.w.removeAllLabel = vanilla.TextBox("auto", "Remove all", sizeStyle="small")
 		self.w.glyphWideKeys = vanilla.CheckBox(
-			(col1, linePos, 135, 20),
+			"auto",
 			"glyph-wide keys (=)",
 			value=True,
 			callback=self.SavePreferences,
@@ -58,7 +50,7 @@ class RemoveMetricsKeys(mekkaObject):
 			"These apply across all masters by default."
 		)
 		self.w.layerSpecificKeys = vanilla.CheckBox(
-			(col1 + 135, linePos, -inset, 20),
+			"auto",
 			"layer-specific keys (==)",
 			value=True,
 			callback=self.SavePreferences,
@@ -68,45 +60,34 @@ class RemoveMetricsKeys(mekkaObject):
 			"Remove metrics keys set on individual layers (e.g. ==H, ==|H). "
 			"These override the glyph-wide key for a specific master."
 		)
-		linePos += lineHeight
 
 		# Row 2: label + text field on one line
-		filterLabelWidth = 122
-		self.w.glyphNameFilterLabel = vanilla.TextBox(
-			(inset, linePos + 3, filterLabelWidth, 14),
-			"Only keys referencing:",
-			sizeStyle="small",
-		)
+		self.w.glyphNameFilterLabel = vanilla.TextBox("auto", "Only keys referencing:", sizeStyle="small")
 		self.w.glyphNameFilter = vanilla.EditText(
-			(inset + filterLabelWidth, linePos, -inset, 19),
+			"auto",
 			"",
 			callback=self.SavePreferences,
 			sizeStyle="small",
 			placeholder="any glyph (see tooltip)",
 		)
-		self.w.glyphNameFilter.setToolTip(
+		filterTooltip = (
 			"Comma-separated glyph names or wildcard patterns (e.g. H, n, a*). "
 			"Only metrics keys that reference one of these glyph names will be removed. "
 			"Wildcards: * matches any string, ? matches one character. "
 			"Leave empty to remove all keys regardless of what they reference."
 		)
-		linePos += lineHeight
+		self.w.glyphNameFilterLabel.setToolTip(filterTooltip)
+		self.w.glyphNameFilter.setToolTip(filterTooltip)
 
-		# Row 3: scope label + fixed-width popup (does not grow with window)
-		scopeLabelWidth = 64
-		popupWidth = int((windowWidth - inset - (inset + scopeLabelWidth)) * 0.8)
-		self.w.scopeLabel = vanilla.TextBox(
-			(inset, linePos + 3, scopeLabelWidth, 14),
-			"Remove in:",
-			sizeStyle="small",
-		)
+		# Row 3: scope label + popup
+		self.w.scopeLabel = vanilla.TextBox("auto", "Remove in:", sizeStyle="small")
 		self.w.scope = vanilla.PopUpButton(
-			(inset + scopeLabelWidth, linePos, popupWidth, 18),
+			"auto",
 			scopeOptions,
 			callback=self.SavePreferences,
 			sizeStyle="small",
 		)
-		self.w.scope.setToolTip(
+		scopeTooltip = (
 			"Determines which glyphs and layers are affected:\n"
 			"• Selected glyphs – current master layer of each selected glyph.\n"
 			"• All masters of selected glyphs – all layers of each selected glyph.\n"
@@ -114,19 +95,48 @@ class RemoveMetricsKeys(mekkaObject):
 			"• ⚠️ Complete font – all glyphs in the font, all masters.\n"
 			"• ⚠️ All open fonts – all glyphs in every open font, all masters."
 		)
+		self.w.scopeLabel.setToolTip(scopeTooltip)
+		self.w.scope.setToolTip(scopeTooltip)
 
-		# Status + regular-size button, side by side at the bottom
-		self.w.status = vanilla.TextBox(
-			(inset, -inset - 18, -inset - 90, 14),
-			"",
-			sizeStyle="small",
-		)
-		self.w.runButton = vanilla.Button(
-			(-80 - inset, -22 - inset, -inset, -inset),
-			"Remove",
-			callback=self.run,
-		)
+		# Status + button, side by side at the bottom
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton = vanilla.Button("auto", "Remove", callback=self.run)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging,
+		# the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# labels: right-aligned, one shared width
+		labelNames = ("removeAllLabel", "glyphNameFilterLabel", "scopeLabel")
+		widestLabel = "glyphNameFilterLabel"
+		for labelName in labelNames:
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+		widthRules = [
+			{"view1": getattr(self.w, labelName), "attribute1": "width", "view2": getattr(self.w, widestLabel), "attribute2": "width"}
+			for labelName in labelNames if labelName != widestLabel
+		]
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[removeAllLabel]-gap-[glyphWideKeys]-gap-[layerSpecificKeys]-(>=inset)-|",
+				"H:|-inset-[glyphNameFilterLabel]-gap-[glyphNameFilter]-inset-|",
+				"H:|-inset-[scopeLabel]-gap-[scope]-inset-|",
+				"H:|-inset-[status]-(>=gap)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[glyphWideKeys]-row-[glyphNameFilter]-row-[scope]-inset-[runButton]-inset-|",
+				{"view1": self.w.removeAllLabel, "attribute1": "centerY", "view2": self.w.glyphWideKeys, "attribute2": "centerY"},
+				{"view1": self.w.layerSpecificKeys, "attribute1": "centerY", "view2": self.w.glyphWideKeys, "attribute2": "centerY"},
+				{"view1": self.w.glyphNameFilterLabel, "attribute1": "centerY", "view2": self.w.glyphNameFilter, "attribute2": "centerY"},
+				{"view1": self.w.scopeLabel, "attribute1": "centerY", "view2": self.w.scope, "attribute2": "centerY"},
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
+			] + widthRules,
+			metrics={"inset": inset, "gap": 8, "row": 6},
+		)
 
 		self.LoadPreferences()
 		self.w.open()
@@ -267,8 +277,8 @@ class RemoveMetricsKeys(mekkaObject):
 			totalGlyphs,
 			"" if totalGlyphs == 1 else "s",
 		)
-		print("\n🔠 %s Done." % msg)
-		self.w.status.set(msg)
+		print("\n✅ %s Done." % msg)
+		self.w.status.set("✅ " + msg)
 		Glyphs.showNotification("Remove Metrics Keys", msg)
 
 

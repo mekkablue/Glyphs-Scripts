@@ -4,6 +4,7 @@ Finds, selects and marks duplicate coordinates. Two nodes on the same position t
 """
 
 import vanilla
+from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 from Foundation import NSPoint, NSIntersectsRect
 from GlyphsApp import Glyphs, GSAnnotation, GSOFFCURVE, CIRCLE, Message, distance
 from mekkablue import mekkaObject
@@ -47,68 +48,78 @@ class RewireFire(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 360
-		windowHeight = 260
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 400
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			f"{self.duplicateMarker} Rewire Fire {self.onSegmentMarker}",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Finds candidates for rewiring with Reconnect Nodes.", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		inset = 15
 
-		self.w.setFireToNode = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), f"Mark duplicate nodes with fire emoji {self.duplicateMarker}", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.descriptionText = vanilla.TextBox("auto", "Finds candidates for rewiring with Reconnect Nodes.", sizeStyle='small', selectable=True)
+
+		self.w.setFireToNode = vanilla.CheckBox("auto", f"Mark duplicate nodes with fire emoji {self.duplicateMarker}", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.setFireToNode.setToolTip("Finds different on-curve nodes that share the same coordinates. Emoji will be added as a node name. Node names may disappear after reconnection and path cleanup.")
-		linePos += lineHeight
 
-		self.w.tolerateZeroSegments = vanilla.CheckBox((inset * 2, linePos - 1, -inset * 2, 20), "Tolerate duplicate if it is neighboring node (OTVar)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.tolerateZeroSegments = vanilla.CheckBox("auto", "Tolerate duplicate if it is neighboring node (OTVar)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.tolerateZeroSegments.setToolTip("If node coordinates within the same segment share the same coordinates, they will not be marked with a fire emoji. Makes sense in variable fonts, where segments need to disappear in a point in one master.")
-		linePos += lineHeight
 
 		# DISABLED
-		# self.w.markWithCircle = vanilla.CheckBox((inset + 2, linePos-1, -inset, 20), "Circle duplicate coordinates with annotation ⭕️", value=False, callback=self.SavePreferences, sizeStyle='small')
+		# self.w.markWithCircle = vanilla.CheckBox("auto", "Circle duplicate coordinates with annotation ⭕️", value=False, callback=self.SavePreferences, sizeStyle='small')
 		# self.w.markWithCircle.setToolTip("Circle annotations remain after reconnecting the nodes.")
-		# linePos += lineHeight
 
-		self.w.dynamiteForOnSegment = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), f"Mark nodes on top of line segments with dynamite emoji {self.onSegmentMarker}", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.dynamiteForOnSegment = vanilla.CheckBox("auto", f"Mark nodes on top of line segments with dynamite emoji {self.onSegmentMarker}", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.dynamiteForOnSegment.setToolTip("Finds on-curve nodes that are located on line segments between (other) two on-curve nodes. Emoji will be added as a node name. Node names may disappear after reconnection and path cleanup.")
-		linePos += lineHeight
 
-		self.w.shouldSelect = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Select nodes for rewiring on affected glyph layers", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.shouldSelect = vanilla.CheckBox("auto", "Select nodes for rewiring on affected glyph layers", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.shouldSelect.setToolTip("If nodes are found, will reset the layer selection and select only the affected nodes. In the best case, you should be able to right-click, hold down the Opt (Alt) key, and choose Reconnect Nodes on All Masters from the context menu.")
-		linePos += lineHeight
 
-		self.w.includeNonExporting = vanilla.CheckBox((inset + 2, linePos - 1, 200, 20), "Include non-exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeNonExporting = vanilla.CheckBox("auto", "Include non-exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeNonExporting.setToolTip("Also check in glyphs that are not set to export. Recommended if you have modular components in the font.")
-		self.w.reuseTab = vanilla.CheckBox((inset + 200, linePos - 1, -inset, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reuseTab = vanilla.CheckBox("auto", "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reuseTab.setToolTip("If enabled, will only open a new tab if there is none open yet. Otherwise will always open a new tab.")
-		linePos += lineHeight
 
-		self.w.verbose = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Verbose reporting in Macro Window (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.verbose = vanilla.CheckBox("auto", "Verbose reporting in Macro Window (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.verbose.setToolTip("If enabled, will report extensively in Window > Macro Panel. Useful for debugging.")
-		linePos += lineHeight
 
-		self.w.allFonts = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "⚠️ Work through ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allFonts = vanilla.CheckBox("auto", "⚠️ Work through ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.allFonts.setToolTip("If enabled, will look in all currently opened fonts.")
-		linePos += lineHeight
 
-		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
+		self.w.progress = vanilla.ProgressBar("auto")
 		self.w.progress.set(0)  # set progress indicator to zero
-		linePos += lineHeight
 
-		self.w.statusText = vanilla.TextBox((inset, -20 - inset, -80 - inset, -inset), "🤖 Ready.", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		self.w.statusText = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle='small', selectable=True)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Fire", callback=self.RewireFireMain)
+		self.w.runButton = vanilla.Button("auto", "Fire", callback=self.RewireFireMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[setFireToNode]-(>=inset)-|",
+				"H:|-indent-[tolerateZeroSegments]-(>=inset)-|",
+				"H:|-inset-[dynamiteForOnSegment]-(>=inset)-|",
+				"H:|-inset-[shouldSelect]-(>=inset)-|",
+				"H:|-inset-[includeNonExporting]-gap-[reuseTab]-(>=inset)-|",
+				"H:|-inset-[verbose]-(>=inset)-|",
+				"H:|-inset-[allFonts]-(>=inset)-|",
+				"H:|-inset-[progress]-inset-|",
+				"H:|-inset-[statusText]-(>=gap)-[runButton(>=70)]-inset-|",
+				"V:|-inset-[descriptionText]-row-[setFireToNode]-checkRow-[tolerateZeroSegments]-checkRow-[dynamiteForOnSegment]-checkRow-[shouldSelect]-checkRow-[includeNonExporting]-checkRow-[verbose]-checkRow-[allFonts]-barGap-[progress(16)]-inset-[runButton]-inset-|",
+				{"view1": self.w.reuseTab, "attribute1": "centerY", "view2": self.w.includeNonExporting, "attribute2": "centerY"},
+				{"view1": self.w.statusText, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "indent": inset + 16, "gap": 8, "row": 8, "checkRow": 5, "barGap": 12},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()

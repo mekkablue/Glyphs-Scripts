@@ -3,9 +3,11 @@ __doc__ = """
 Copy sidebearings, widths and/or metric keys (both on layer and glyph) from one font master to another.
 """
 
-import vanilla
 import traceback
-from GlyphsApp import Glyphs
+
+import vanilla
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
+from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject
 from mekkablue.geometry import transform
 
@@ -24,64 +26,101 @@ class MetricsCopy(mekkaObject):
 	}
 
 	def __init__(self):
+		if not Glyphs.fonts:
+			Message(title="No Font Open", message="The script requires two open fonts (or two masters). Open them and run the script again.", OKButton=None)
+			return
+
 		self.listOfMasters = []
 		self.updateListOfMasters()
 
 		# Window 'self.w':
 		windowWidth = 400
-		windowHeight = 230
-		windowWidthResize = 500  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Steal Metrics",  # window title
-			minSize=(windowWidth, windowHeight + 19),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize + 19),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), u"Open two fonts and select glyphs in the target font.", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		self.w.descriptionText = vanilla.TextBox("auto", u"Open two fonts and select glyphs in the target font.", sizeStyle='small', selectable=True)
 
-		self.w.text_anchor = vanilla.TextBox((inset, linePos + 2, 130, 17), "Transfer metrics from:", sizeStyle='small')
-		self.w.from_font = vanilla.PopUpButton((inset + 130, linePos, -inset, 17), self.listOfMasterNames(), sizeStyle='small', callback=self.buttonCheck)
+		self.w.text_anchor = vanilla.TextBox("auto", "Transfer metrics from:", sizeStyle='small')
+		self.w.from_font = vanilla.PopUpButton("auto", self.listOfMasterNames(), sizeStyle='small', callback=self.buttonCheck)
 
-		linePos += lineHeight
-		self.w.text_value = vanilla.TextBox((inset, linePos + 2, 130, 17), "To selected glyphs in:", sizeStyle='small')
-		self.w.to_font = vanilla.PopUpButton((inset + 130, linePos, -inset, 17), self.listOfMasterNames()[::-1], sizeStyle='small', callback=self.buttonCheck)
+		self.w.text_value = vanilla.TextBox("auto", "To selected glyphs in:", sizeStyle='small')
+		self.w.to_font = vanilla.PopUpButton("auto", self.listOfMasterNames()[::-1], sizeStyle='small', callback=self.buttonCheck)
 
-		linePos += lineHeight
-		self.w.lsb = vanilla.CheckBox((inset + 2, linePos, 80, 20), "LSB", value=True, callback=self.buttonCheck, sizeStyle='small')
-		self.w.rsb = vanilla.CheckBox((inset + 50, linePos, 80, 20), "RSB", value=True, callback=self.buttonCheck, sizeStyle='small')
-		self.w.width = vanilla.CheckBox((inset + 50 * 2, linePos, 80, 20), "Width", value=False, callback=self.buttonCheck, sizeStyle='small')
+		self.w.lsb = vanilla.CheckBox("auto", "LSB", value=True, callback=self.buttonCheck, sizeStyle='small')
+		self.w.rsb = vanilla.CheckBox("auto", "RSB", value=True, callback=self.buttonCheck, sizeStyle='small')
+		self.w.width = vanilla.CheckBox("auto", "Width", value=False, callback=self.buttonCheck, sizeStyle='small')
 		self.w.lsb.setToolTip("If enabled, will transfer values for left sidebearings.")
 		self.w.rsb.setToolTip("If enabled, will transfer values for right sidebearings.")
 		self.w.width.setToolTip("If enabled, will transfer values for advance widths.")
 
-		linePos += lineHeight
-		self.w.updateMetrics = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Update Metrics in Source Font", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.updateMetrics = vanilla.CheckBox("auto", "Update Metrics in Source Font", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.updateMetrics.setToolTip("Updates metrics in the source layer before transfering the values to the target font. Recommended. (Also circumvents an issue in Glyphs 3 where metrics would not get transfered.)")
 
-		linePos += lineHeight
-		self.w.preferMetricKeys = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Prefer (glyph and layer) metrics keys whenever available", value=False, sizeStyle='small', callback=self.buttonCheck)
+		self.w.preferMetricKeys = vanilla.CheckBox("auto", "Prefer (glyph and layer) metrics keys whenever available", value=False, sizeStyle='small', callback=self.buttonCheck)
 		self.w.preferMetricKeys.setToolTip("If enabled, will transfer the metrics key rather than the metric value, if a metrics key is persent in the source font.")
 
-		linePos += lineHeight
-		self.w.onlyMetricsKeys = vanilla.CheckBox(((inset + 2) * 2, linePos, -inset, 20), u"Only transfer metrics keys (ignore LSB, RSB, Width)", value=False, callback=self.buttonCheck, sizeStyle='small')
+		self.w.onlyMetricsKeys = vanilla.CheckBox("auto", u"Only transfer metrics keys (ignore LSB, RSB, Width)", value=False, callback=self.buttonCheck, sizeStyle='small')
 		self.w.onlyMetricsKeys.enable(False)
 		self.w.onlyMetricsKeys.setToolTip("If enabled, will only transfer metrics keys and not change any metric values. The checkboxes for LSB, RSB and Width will be disabled.")
 
-		linePos += lineHeight
-		self.w.ignoreSuffixes = vanilla.CheckBox((inset + 2, linePos, 190, 20), "Ignore dotsuffix in source glyph:", value=False, sizeStyle='small', callback=self.buttonCheck)
-		self.w.suffixToBeIgnored = vanilla.EditText((inset + 190, linePos, -inset, 20), ".alt", sizeStyle='small')
-		self.w.suffixToBeIgnored.getNSTextField(
-		).setToolTip_(u"Will copy metrics from source glyph ‘eacute’ to target glyph ‘eacute.xxx’. Useful for transfering metrics to dotsuffixed glyph variants.")
+		suffixTooltip = u"Will copy metrics from source glyph ‘eacute’ to target glyph ‘eacute.xxx’. Useful for transfering metrics to dotsuffixed glyph variants."
+		self.w.ignoreSuffixes = vanilla.CheckBox("auto", "Ignore dotsuffix in source glyph:", value=False, sizeStyle='small', callback=self.buttonCheck)
+		self.w.ignoreSuffixes.setToolTip(suffixTooltip)
+		self.w.suffixToBeIgnored = vanilla.EditText("auto", ".alt", sizeStyle='small', callback=self.SavePreferences)
+		self.w.suffixToBeIgnored.setToolTip(suffixTooltip)
 
-		self.w.copybutton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Transfer", callback=self.copyMetrics)
+		self.w.copybutton = vanilla.Button("auto", "Transfer", callback=self.copyMetrics)
 		self.w.setDefaultButton(self.w.copybutton)
+
+		# checkboxes stretch vertically by default; with everything hugging,
+		# the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# labels: right-aligned, one shared width
+		labelNames = ("text_anchor", "text_value")
+		widestLabel = "text_anchor"
+		for labelName in labelNames:
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+		widthRules = [
+			{"view1": getattr(self.w, labelName), "attribute1": "width", "view2": getattr(self.w, widestLabel), "attribute2": "width"}
+			for labelName in labelNames if labelName != widestLabel
+		]
+
+		# the checkbox in front of the suffix field hugs its title, the field takes the rest:
+		self.w.ignoreSuffixes.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.suffixToBeIgnored.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[text_anchor]-gap-[from_font]-inset-|",
+				"H:|-inset-[text_value]-gap-[to_font]-inset-|",
+				"H:|-inset-[lsb]-gap-[rsb]-gap-[width]-(>=inset)-|",
+				"H:|-inset-[updateMetrics]-(>=inset)-|",
+				"H:|-inset-[preferMetricKeys]-(>=inset)-|",
+				"H:|-indent-[onlyMetricsKeys]-(>=inset)-|",
+				"H:|-inset-[ignoreSuffixes]-gap-[suffixToBeIgnored(>=50)]-inset-|",
+				"H:|-(>=inset)-[copybutton(>=70)]-inset-|",
+				"V:|-gap-[descriptionText]-headlineGap-[from_font]-row-[to_font]-headlineGap-[lsb]-stackRow-[updateMetrics]-stackRow-[preferMetricKeys]-stackRow-[onlyMetricsKeys]-stackRow-[ignoreSuffixes]-inset-[copybutton]-inset-|",
+				{"view1": self.w.text_anchor, "attribute1": "centerY", "view2": self.w.from_font, "attribute2": "centerY"},
+				{"view1": self.w.text_value, "attribute1": "centerY", "view2": self.w.to_font, "attribute2": "centerY"},
+				{"view1": self.w.rsb, "attribute1": "centerY", "view2": self.w.lsb, "attribute2": "centerY"},
+				{"view1": self.w.width, "attribute1": "centerY", "view2": self.w.lsb, "attribute2": "centerY"},
+				{"view1": self.w.suffixToBeIgnored, "attribute1": "centerY", "view2": self.w.ignoreSuffixes, "attribute2": "centerY"},
+			] + widthRules,
+			metrics={"inset": inset, "indent": inset + 18, "gap": 8, "row": 6, "headlineGap": 10, "stackRow": 8},
+		)
 
 		self.LoadPreferences()
 

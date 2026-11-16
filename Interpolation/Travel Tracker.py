@@ -4,9 +4,17 @@ Finds interpolations in which points travel more than they should, i.e., can fin
 """
 
 import vanilla
+import objc
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
+from Foundation import NSNumberFormatter
 from GlyphsApp import Glyphs, GSOFFCURVE, Message, distance
 from mekkablue import mekkaObject, previewPanel
 from mekkablue.geometry import angle
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 def setCurrentTabToShowAllInstances(font):
@@ -49,88 +57,125 @@ class TravelTracker(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 290
-		windowHeight = 340
-		windowWidthResize = 80  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 330
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Travel Tracker",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 14, 22
+		inset = 14
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, lineHeight * 3), "Finds master-compatible glyphs with nodes that travel more than they should because they interpolate with a wrong node in another master.", sizeStyle='small', selectable=True)
-		linePos += int(lineHeight * 2.2)
+		self.w.descriptionText = vanilla.TextBox("auto", "Finds master-compatible glyphs with nodes that travel more than they should because they interpolate with a wrong node in another master.", sizeStyle='small', selectable=True)
 
-		tab, backTab = 100, 110
-		self.w.travelPercentageText = vanilla.TextBox((inset, linePos + 3, tab, 14), "Acceptable travel:", sizeStyle='small', selectable=True)
-		self.w.travelPercentage = vanilla.EditText((inset + tab, linePos, -inset - backTab, 19), "50", callback=self.SavePreferences, sizeStyle='small')
-		self.w.travelPercentageText2 = vanilla.TextBox((-inset - backTab, linePos + 3, -inset, 14), "% of bbox diagonal", sizeStyle="small", selectable=True)
-		self.w.travelPercentage.setToolTip("Anything above ~50% is suspicious in a weight interpolation, and above 70% in a width interpolation. (100% is the diagonal of the bounding box of the path (or glyph) the node belongs to.)")
-		linePos += lineHeight
+		percentFormatter = NSNumberFormatter.alloc().init()
+		percentFormatter.setMinimum_(0)
+		self.w.travelPercentageText = vanilla.TextBox("auto", "Acceptable travel:", sizeStyle='small', selectable=True)
+		self.w.travelPercentage = SteppingEditText("auto", "50", callback=self.SavePreferences, sizeStyle='small', formatter=percentFormatter)
+		self.w.travelPercentageText2 = vanilla.TextBox("auto", "% of bbox diagonal", sizeStyle="small", selectable=True)
+		tooltip = "Anything above ~50% is suspicious in a weight interpolation, and above 70% in a width interpolation. (100% is the diagonal of the bounding box of the path (or glyph) the node belongs to.)"
+		self.w.travelPercentageText.setToolTip(tooltip)
+		self.w.travelPercentage.setToolTip(tooltip)
+		self.w.travelPercentageText2.setToolTip(tooltip)
 
-		self.w.normalizeShape = vanilla.CheckBox((inset + 2, linePos - 1, 140, 20), "Normalize per shape", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.normalizeGlyph = vanilla.CheckBox((inset + 140, linePos - 1, -inset, 20), "Normalize per glyph", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.normalizeShape = vanilla.CheckBox("auto", "Normalize per shape", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.normalizeGlyph = vanilla.CheckBox("auto", "Normalize per glyph", value=True, callback=self.SavePreferences, sizeStyle='small')
 		tooltip = "Choose what counts as 100%: the diagonal of the shape (path) the node belongs to, or the diagonal of the complete glyph, or both."
 		self.w.normalizeShape.setToolTip(tooltip)
 		self.w.normalizeGlyph.setToolTip(tooltip)
-		linePos += int(lineHeight * 1.2)
 
-		self.w.separator1 = vanilla.HorizontalLine((inset, linePos, -inset, 1))
-		linePos += int(lineHeight * 0.5)
+		self.w.separator1 = vanilla.HorizontalLine("auto")
 
-		self.w.segmentRotationDescription = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Find big angle changes of consecutive nodes:", sizeStyle="small", selectable=True)
-		linePos += lineHeight
+		self.w.segmentRotationDescription = vanilla.TextBox("auto", "Find big angle changes of consecutive nodes:", sizeStyle="small", selectable=True)
 
-		tab, backTab = 165, 60
-		self.w.segmentRotation = vanilla.CheckBox((inset + 2, linePos, tab, 20), "Node pairs may rotate up to", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.thresholdAngle = vanilla.EditText((inset + tab, linePos, -inset - backTab, 19), "40", callback=self.SavePreferences, sizeStyle="small")
-		self.w.segmentRotationText = vanilla.TextBox((-inset - backTab, linePos + 3, -inset, 14), "degrees", sizeStyle="small", selectable=True)
+		angleFormatter = NSNumberFormatter.alloc().init()
+		angleFormatter.setMinimum_(0)
+		angleFormatter.setMaximum_(180)
+		self.w.segmentRotation = vanilla.CheckBox("auto", "Node pairs may rotate up to", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.thresholdAngle = SteppingEditText("auto", "40", callback=self.SavePreferences, sizeStyle="small", formatter=angleFormatter)
+		self.w.segmentRotationText = vanilla.TextBox("auto", "degrees", sizeStyle="small", selectable=True)
 		tooltip = "Follows the rotation of consecutive node pairs across the interpolation. A high change in degrees may indicate a wrong start point or an unintentionally different path structure."
 		self.w.segmentRotation.setToolTip(tooltip)
 		self.w.thresholdAngle.setToolTip(tooltip)
 		self.w.segmentRotationText.setToolTip(tooltip)
-		linePos += lineHeight
 
-		self.w.orthogonalToNonOrthogonal = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Report all segments going non-orthogonal", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.orthogonalToNonOrthogonal = vanilla.CheckBox("auto", "Report all segments going non-orthogonal", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.orthogonalToNonOrthogonal.setToolTip("Will list any glyph where a segment (of minimum length, see below) changes from orthogonal (vertical or horizontal) to any other angle. Usually unintended unless you interpolate from upright to oblique.")
-		linePos += lineHeight
 
-		tab, backTab = 165, 60
-		self.w.ignoreShortSegments = vanilla.CheckBox((inset + 2, linePos, tab, 20), "Ignore short segments up to", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.ignoreShortSegmentsThreshold = vanilla.EditText((inset + tab, linePos, -inset - backTab, 19), "10", callback=self.SavePreferences, sizeStyle="small")
-		self.w.ignoreShortSegmentsText = vanilla.TextBox((-inset - backTab, linePos + 3, -inset, 14), "units long", sizeStyle="small", selectable=True)
+		lengthFormatter = NSNumberFormatter.alloc().init()
+		lengthFormatter.setMinimum_(0)
+		self.w.ignoreShortSegments = vanilla.CheckBox("auto", "Ignore short segments up to", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.ignoreShortSegmentsThreshold = SteppingEditText("auto", "10", callback=self.SavePreferences, sizeStyle="small", formatter=lengthFormatter)
+		self.w.ignoreShortSegmentsText = vanilla.TextBox("auto", "units long", sizeStyle="small", selectable=True)
 		tooltip = "Avoid too many false positives by ignoring the shortest segments, like open corners or the end of serifs."
 		self.w.ignoreShortSegments.setToolTip(tooltip)
 		self.w.ignoreShortSegmentsText.setToolTip(tooltip)
 		self.w.ignoreShortSegmentsThreshold.setToolTip(tooltip)
-		linePos += int(lineHeight * 1.2)
 
-		self.w.separator2 = vanilla.HorizontalLine((inset, linePos, -inset, 1))
-		linePos += int(lineHeight * 0.5)
+		self.w.separator2 = vanilla.HorizontalLine("auto")
 
-		self.w.includeNonExporting = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include non-exporting glyphs (recommended)", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeNonExporting = vanilla.CheckBox("auto", "Include non-exporting glyphs (recommended)", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeNonExporting.setToolTip("Important if you are using non-exporting glyphs as components inside others, e.g., the slashlongcomb in the oslash.")
-		linePos += lineHeight
 
-		self.w.allFonts = vanilla.CheckBox((inset + 2, linePos - 1, 140, 20), "⚠️ Apply to ALL fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allFonts = vanilla.CheckBox("auto", "⚠️ Apply to ALL fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.allFonts.setToolTip("If checked, will go through all currently opened fonts. May take a while.")
-		self.w.verbose = vanilla.CheckBox((inset + 140, linePos - 1, -inset, 20), "Verbose reporting", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.verbose = vanilla.CheckBox("auto", "Verbose reporting", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.verbose.setToolTip("Reports all glyphs in Macro Window, otherwise only a sorted list of affected glyphs.")
-		linePos += lineHeight
 
-		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
+		self.w.progress = vanilla.ProgressBar("auto")
 		self.w.progress.set(0)  # set progress indicator to zero
-		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Find", callback=self.TravelTrackerMain)
+		self.w.runButton = vanilla.Button("auto", "Find", callback=self.TravelTrackerMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# the description wraps, so it must not demand one long line:
+		self.w.descriptionText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
+		# the label is right-aligned and as wide as the checkboxes with a field behind them, so the fields line up:
+		nsLabel = self.w.travelPercentageText.getNSTextField()
+		nsLabel.setAlignment_(NSTextAlignmentRight)
+		nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[travelPercentageText]-gap-[travelPercentage(60)]-gap-[travelPercentageText2]-(>=inset)-|",
+				"H:|-inset-[normalizeShape]-gap-[normalizeGlyph]-(>=inset)-|",
+				"H:|-inset-[separator1]-inset-|",
+				"H:|-inset-[segmentRotationDescription]-(>=inset)-|",
+				"H:|-inset-[segmentRotation]-gap-[thresholdAngle(60)]-gap-[segmentRotationText]-(>=inset)-|",
+				"H:|-inset-[orthogonalToNonOrthogonal]-(>=inset)-|",
+				"H:|-inset-[ignoreShortSegments]-gap-[ignoreShortSegmentsThreshold(60)]-gap-[ignoreShortSegmentsText]-(>=inset)-|",
+				"H:|-inset-[separator2]-inset-|",
+				"H:|-inset-[includeNonExporting]-(>=inset)-|",
+				"H:|-inset-[allFonts]-gap-[verbose]-(>=inset)-|",
+				"H:|-inset-[progress]-inset-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-inset-[descriptionText(42)]-headlineGap-[travelPercentage]-stackRow-[normalizeShape]-sectionGap-[separator1(1)]-sectionGap-[segmentRotationDescription]-row-[segmentRotation]-stackRow-[orthogonalToNonOrthogonal]-stackRow-[ignoreShortSegments]-sectionGap-[separator2(1)]-sectionGap-[includeNonExporting]-stackRow-[allFonts]-barGap-[progress(16)]-inset-[runButton]-inset-|",
+				# one baseline per row:
+				{"view1": self.w.travelPercentageText, "attribute1": "centerY", "view2": self.w.travelPercentage, "attribute2": "centerY"},
+				{"view1": self.w.travelPercentageText2, "attribute1": "centerY", "view2": self.w.travelPercentage, "attribute2": "centerY"},
+				{"view1": self.w.normalizeGlyph, "attribute1": "centerY", "view2": self.w.normalizeShape, "attribute2": "centerY"},
+				{"view1": self.w.thresholdAngle, "attribute1": "centerY", "view2": self.w.segmentRotation, "attribute2": "centerY"},
+				{"view1": self.w.segmentRotationText, "attribute1": "centerY", "view2": self.w.segmentRotation, "attribute2": "centerY"},
+				{"view1": self.w.ignoreShortSegmentsThreshold, "attribute1": "centerY", "view2": self.w.ignoreShortSegments, "attribute2": "centerY"},
+				{"view1": self.w.ignoreShortSegmentsText, "attribute1": "centerY", "view2": self.w.ignoreShortSegments, "attribute2": "centerY"},
+				{"view1": self.w.verbose, "attribute1": "centerY", "view2": self.w.allFonts, "attribute2": "centerY"},
+				# the fields line up with the one in the first row:
+				{"view1": self.w.travelPercentageText, "attribute1": "width", "view2": self.w.ignoreShortSegments, "attribute2": "width"},
+				{"view1": self.w.segmentRotation, "attribute1": "width", "view2": self.w.ignoreShortSegments, "attribute2": "width"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6, "stackRow": 8, "headlineGap": 10, "sectionGap": 10, "barGap": 12},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -147,6 +192,7 @@ class TravelTracker(mekkaObject):
 			self.w.orthogonalToNonOrthogonal.get(),
 		)))
 		self.w.thresholdAngle.enable(self.w.segmentRotation.get())
+		self.w.ignoreShortSegmentsThreshold.enable(self.w.ignoreShortSegments.get())
 
 	def maxSegmentRotationForLayers(self, layer, otherLayer):
 		maxSegmentRotation = 0.0
@@ -171,7 +217,7 @@ class TravelTracker(mekkaObject):
 				angle2 = angle(n2, n2.nextNode) % 360
 				rotation = abs(angle1 - angle2)
 				if rotation > 180:
-					rotation = 180 - rotation
+					rotation = 360 - rotation
 
 				# update max rotation:
 				if maxSegmentRotation < rotation < 360 - maxSegmentRotation:
@@ -321,8 +367,7 @@ class TravelTracker(mekkaObject):
 					print(f"ℹ️ Travel Tracker Report for {thisFont.filepath.lastPathComponent()}")
 					print(f"  💾 {thisFont.filepath}")
 				else:
-					print(f"ℹ️ Travel Tracker Report for {thisFont.familyName}")
-					print("  ⚠️ File not saved yet")
+					print(f"ℹ️ Travel Tracker Report for {thisFont.familyName} (unsaved)")
 
 
 				tabText = ""
@@ -354,18 +399,20 @@ class TravelTracker(mekkaObject):
 					# ROTATION AND DEORTH
 					if shouldCheckRotation or shouldCheckOrthogonals:
 						maxRotationInThisGlyph, maxDeorthogonalization = self.maxSegmentRotationForGlyph(relevantGlyph)
-						if maxRotationInThisGlyph > acceptableRotation:
-							affectedGlyphInfosRotation.append((relevantGlyph.name, maxRotationInThisGlyph))
-							if verbose:
-								print(f"  🚫📐 Max rotation {maxRotationInThisGlyph:.1f}° in: {relevantGlyph.name}")
-						elif verbose:
-							print(f"  ✅📐 Max rotation {maxRotationInThisGlyph:.1f}° in: {relevantGlyph.name}")
-						if maxDeorthogonalization != 0:
-							affectedGlyphInfosDeorthogonalization.append((relevantGlyph.name, maxDeorthogonalization))
-							if verbose:
-								print(f"  🚫☦️ Node pairs going from orthogonal to non-orthogonal in: {relevantGlyph.name}")
-						elif verbose:
-							print(f"  ✅☦️ No node pairs going from orthogonal to non-orthogonal in: {relevantGlyph.name}")
+						if shouldCheckRotation:
+							if maxRotationInThisGlyph > acceptableRotation:
+								affectedGlyphInfosRotation.append((relevantGlyph.name, maxRotationInThisGlyph))
+								if verbose:
+									print(f"  🚫📐 Max rotation {maxRotationInThisGlyph:.1f}° in: {relevantGlyph.name}")
+							elif verbose:
+								print(f"  ✅📐 Max rotation {maxRotationInThisGlyph:.1f}° in: {relevantGlyph.name}")
+						if shouldCheckOrthogonals:
+							if maxDeorthogonalization != 0:
+								affectedGlyphInfosDeorthogonalization.append((relevantGlyph.name, maxDeorthogonalization))
+								if verbose:
+									print(f"  🚫☦️ Node pairs going from orthogonal to non-orthogonal in: {relevantGlyph.name}")
+							elif verbose:
+								print(f"  ✅☦️ No node pairs going from orthogonal to non-orthogonal in: {relevantGlyph.name}")
 
 				# REPORT IN MACRO WINDOW
 				# AND COLLECT SORTED GLYPHS FOR TAB

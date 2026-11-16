@@ -3,14 +3,20 @@ __doc__ = """
 Define an angle above which a node will be set to blue, below which it will be set to green.
 """
 
-import vanilla
 import objc
-from Foundation import NSPoint
+import vanilla
+from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
+from Foundation import NSPoint, NSNumberFormatter
 from GlyphsApp import Glyphs, GSControlLayer, GSOFFCURVE, GSSMOOTH, GSSHARP, Message
 from mekkablue import mekkaObject, reportFontName
 from mekkablue.geometry import angle
 
 GlyphsPathPlugin = objc.lookUpClass("GlyphsPathPlugin")
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 class GreenBlueManager(mekkaObject):
@@ -33,70 +39,103 @@ class GreenBlueManager(mekkaObject):
 		self.Tool = GlyphsPathPlugin.new()
 
 		# Window 'self.w':
-		windowWidth = 300
-		windowHeight = 291
-		windowWidthResize = 500  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 355
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Green Blue Manager",  # window title
-			minSize=(windowWidth, windowHeight + 19),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize + 19),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 5, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, lineHeight * 2), "Validates the connection state of nodes, green vs. blue, according to the angle between them. Optionally corrects green/blue state and handles.", sizeStyle='small', selectable=True)
-		linePos += lineHeight * 2.5
+		inset = 15
+		self.w.descriptionText = vanilla.TextBox("auto", "Validates the connection state of nodes, green vs. blue, according to the angle between them. Optionally corrects green/blue state and handles.", sizeStyle='small', selectable=True)
+		self.w.descriptionText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
-		self.w.thresholdAngleText = vanilla.TextBox((inset, linePos, 94, 14), "Threshold Angle", sizeStyle='small', selectable=True)
-		self.w.thresholdAngle = vanilla.EditText((inset + 93, linePos - 3, 55, 19), "11", callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		formatter = NSNumberFormatter.alloc().init()
+		formatter.setMinimum_(0)
+		formatter.setMaximum_(180)
+		self.w.thresholdAngleText = vanilla.TextBox("auto", "Threshold Angle", sizeStyle='small', selectable=True)
+		self.w.thresholdAngle = SteppingEditText("auto", self.prefDict["thresholdAngle"], callback=self.SavePreferences, sizeStyle='small', formatter=formatter)
 
-		self.w.fixGreenBlue = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Fix green vs. blue connection for on-curves", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.fixGreenBlue = vanilla.CheckBox("auto", "Fix green vs. blue connection for on-curves", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.fixGreenBlue.setToolTip("Sets the green/blue state of an on-curve node according to the connection angle. Any connection below the threshold angle will be green, otherwise blue. Deselect both Fix and Realign options for a new tab with all glyphs that have nodes with wrong connections according to the threshold angle.")
-		linePos += lineHeight
 
-		self.w.realignHandles = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Realign handles attached to green nodes", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.realignHandles = vanilla.CheckBox("auto", "Realign handles attached to green nodes", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.realignHandles.setToolTip("If a BCP (grey handle) follows a green node, it will be aligned to the previous two points. Deselect both Fix and Realign options for a new tab with all glyphs that have nodes with wrong connections according to the threshold angle.")
-		linePos += lineHeight
 
-		self.w.allMasters = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Process ⚠️ ALL masters of selected glyphs", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allMasters = vanilla.CheckBox("auto", "Process ⚠️ ALL masters of selected glyphs", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.allMasters.setToolTip("If checked, will go through all master layers and special layers of selected glyphs. If unchecked, will only process the currently visible layer.")
-		linePos += lineHeight
 
-		self.w.completeFont = vanilla.CheckBox((inset + 2, linePos - 1, 155, 20), "Process ⚠️ ALL glyphs in", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.completeFont = vanilla.CheckBox("auto", "Process ⚠️ ALL glyphs in", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.completeFont.setToolTip("If checked, will go through all active (i.e., master, brace and bracket) layers of all glyphs. If unchecked, will only go through selected layers. Careful: can take a minute.")
-		self.w.scope = vanilla.PopUpButton((inset + 155, linePos, -inset, 17), ("frontmost font", "⚠️ ALL open fonts"), sizeStyle="small", callback=self.SavePreferences)
-		linePos += lineHeight
+		self.w.scope = vanilla.PopUpButton("auto", ("frontmost font", "⚠️ ALL open fonts"), sizeStyle="small", callback=self.SavePreferences)
 
-		self.w.excludeText = vanilla.TextBox((inset, linePos, 115, 14), "Exclude glyphs with:", sizeStyle="small", selectable=True)
-		self.w.exclude = vanilla.EditText((inset + 115, linePos - 3, -inset, 19), ".ornm, BlackIndex, Heart, apple", callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
+		self.w.excludeText = vanilla.TextBox("auto", "Exclude glyphs with:", sizeStyle="small", selectable=True)
+		self.w.exclude = vanilla.EditText("auto", ".ornm, BlackIndex, Heart, apple", callback=self.SavePreferences, sizeStyle="small")
 
-		self.w.reportInMacroWindow = vanilla.CheckBox((inset + 2, linePos - 1, 160, 20), "Report in Macro window", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reportInMacroWindowVerbose = vanilla.CheckBox((inset + 160, linePos - 1, -inset, 20), "Verbose", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reportInMacroWindow = vanilla.CheckBox("auto", "Report in Macro window", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reportInMacroWindowVerbose = vanilla.CheckBox("auto", "Verbose", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reportInMacroWindow.setToolTip("If enabled, will output a report in Window > Macro Panel.")
 		self.w.reportInMacroWindowVerbose.setToolTip("If enabled, will output a verbose (detailed) report in Window > Macro Panel.")
-		linePos += lineHeight
 
-		self.w.shouldMark = vanilla.CheckBox((inset + 2, linePos - 1, 160, 20), "Mark affected nodes", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.shouldMark = vanilla.CheckBox("auto", "Mark affected nodes", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.shouldMark.setToolTip("If enabled, will mark (intended) node type changes as follows: 💚=SMOOTH 🔷=CORNER.")
-		self.w.reuseTab = vanilla.CheckBox((inset + 160, linePos - 1, -inset, 20), "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reuseTab = vanilla.CheckBox("auto", "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reuseTab.setToolTip("If enabled, will use the current tab for output, and only open a new tab if there is none open.")
-		linePos += lineHeight
 
-		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
+		self.w.progress = vanilla.ProgressBar("auto")
 		self.w.progress.set(0)  # set progress indicator to zero
-		linePos += lineHeight
 
-		self.w.processingText = vanilla.TextBox((inset, linePos + 2, -120 - inset, 14), "", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		self.w.processingText = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle='small', selectable=True)
+		self.w.processingText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Treat Points", callback=self.GreenBlueManagerMain)
+		self.w.runButton = vanilla.Button("auto", "Treat Points", callback=self.GreenBlueManagerMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# labels are right-aligned and share the width of the widest one:
+		labelNames = ("thresholdAngleText", "excludeText")
+		for labelName in labelNames:
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		# the checkbox hugs its title, the popup behind it takes the leftover width:
+		self.w.completeFont.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.scope.getNSPopUpButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[thresholdAngleText]-gap-[thresholdAngle(55)]-(>=inset)-|",
+				"H:|-inset-[fixGreenBlue]-(>=inset)-|",
+				"H:|-inset-[realignHandles]-(>=inset)-|",
+				"H:|-inset-[allMasters]-(>=inset)-|",
+				"H:|-inset-[completeFont]-gap-[scope]-inset-|",
+				"H:|-inset-[excludeText]-gap-[exclude]-inset-|",
+				"H:|-inset-[reportInMacroWindow]-gap-[reportInMacroWindowVerbose]-(>=inset)-|",
+				"H:|-inset-[shouldMark]-gap-[reuseTab]-(>=inset)-|",
+				"H:|-inset-[progress]-inset-|",
+				"H:|-inset-[processingText]-(>=gap)-[runButton(>=100)]-inset-|",
+				"V:|-inset-[descriptionText(42)]-row-[thresholdAngle]-row-[fixGreenBlue]-stackRow-[realignHandles]-stackRow-[allMasters]-stackRow-[completeFont]-stackRow-[exclude]-stackRow-[reportInMacroWindow]-stackRow-[shouldMark]-barGap-[progress(16)]-inset-[runButton]-inset-|",
+				{"view1": self.w.thresholdAngleText, "attribute1": "centerY", "view2": self.w.thresholdAngle, "attribute2": "centerY"},
+				{"view1": self.w.scope, "attribute1": "centerY", "view2": self.w.completeFont, "attribute2": "centerY"},
+				{"view1": self.w.excludeText, "attribute1": "centerY", "view2": self.w.exclude, "attribute2": "centerY"},
+				{"view1": self.w.reportInMacroWindowVerbose, "attribute1": "centerY", "view2": self.w.reportInMacroWindow, "attribute2": "centerY"},
+				{"view1": self.w.reuseTab, "attribute1": "centerY", "view2": self.w.shouldMark, "attribute2": "centerY"},
+				{"view1": self.w.reportInMacroWindow, "attribute1": "width", "view2": self.w.shouldMark, "attribute2": "width"},
+				{"view1": self.w.thresholdAngleText, "attribute1": "width", "view2": self.w.excludeText, "attribute2": "width"},
+				{"view1": self.w.processingText, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 8, "stackRow": 8, "barGap": 12},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -125,6 +164,8 @@ class GreenBlueManager(mekkaObject):
 			# dot product of AB and AP
 			dotProduct = AB.x * AP.x + AB.y * AP.y
 			ABsquared = AB.x**2 + AB.y**2
+			if ABsquared == 0.0:
+				return NSPoint(P.x, P.y)  # A and B coincide: no line to project onto
 			t = dotProduct / ABsquared
 			x = A.x + t * AB.x
 			y = A.y + t * AB.y
@@ -271,7 +312,7 @@ class GreenBlueManager(mekkaObject):
 				shouldVerbose = self.pref("reportInMacroWindowVerbose")
 				shouldFix = self.pref("fixGreenBlue")
 				reuseTab = self.pref("reuseTab")
-				exclude = [x.strip() for x in self.pref("exclude").split(",")]
+				exclude = [x.strip() for x in self.pref("exclude").split(",") if x.strip()]
 
 				# determine which layers to process:
 				layersToBeProcessed, glyphsToBeProcessed = [], []
@@ -314,13 +355,13 @@ class GreenBlueManager(mekkaObject):
 							continue
 
 						thisGlyph = thisLayer.parent
-						statusMessage = f"Processing: {thisGlyph.name}"
+						statusMessage = f"🔠 {thisGlyph.name}"
 						if shouldReport and shouldVerbose:
 							print(statusMessage)
 						self.w.processingText.set(statusMessage)
 						self.w.progress.set(100.0 / numberOfLayers * i)
 
-						numberOfFixes = self.fixConnectionsOnLayer(thisLayer, shouldFix=shouldFix)
+						numberOfFixes = self.fixConnectionsOnLayer(thisLayer, shouldFix=shouldFix, shouldReport=shouldReport, shouldVerbose=shouldVerbose)
 						if numberOfFixes:
 							affectedLayersFixedConnections.append(thisLayer)
 
@@ -329,7 +370,7 @@ class GreenBlueManager(mekkaObject):
 							affectedLayersRealignedHandles.append(thisLayer)
 
 					self.w.progress.set(100)
-					statusMessage = "Processed %i layer%s." % (
+					statusMessage = "✅ Processed %i layer%s." % (
 						numberOfLayers,
 						"" if numberOfLayers == 1 else "s",
 					)

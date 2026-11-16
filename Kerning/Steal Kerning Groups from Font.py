@@ -4,6 +4,7 @@ Copies kerning groups from one font to another.
 """
 
 import vanilla
+from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, reportFontName, UpdateButton
 
@@ -30,62 +31,84 @@ class StealKerningGroupsfromFont(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 350
-		windowHeight = 230
-		windowWidthResize = 300  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 400
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Steal Kerning Groups",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Copy kerning groups from Source Font to Target Font:", sizeStyle="small", selectable=True)
-		linePos += lineHeight
+		inset = 15
 
-		indent = 75
-		self.w.sourceFontText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Source font:", sizeStyle="small", selectable=True)
-		self.w.sourceFont = vanilla.PopUpButton((inset + indent, linePos, -inset - 20, 17), (), sizeStyle="small", callback=self.SavePreferences)
-		self.w.updateButton = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.updateUI)
+		self.w.descriptionText = vanilla.TextBox("auto", "Copy kerning groups from Source Font to Target Font:", sizeStyle="small", selectable=True)
+
+		self.w.sourceFontText = vanilla.TextBox("auto", "Source font:", sizeStyle="small", selectable=True)
+		self.w.sourceFont = vanilla.PopUpButton("auto", (), sizeStyle="small", callback=self.SavePreferences)
+		self.w.updateButton = UpdateButton("auto", callback=self.updateUI)
 		self.w.updateButton.setToolTip("Will update all the menus and buttons of this window. Click here if you opened or closed a font since you invoked the script, or after you changed the source font.")
 		tooltip = "The font from which the kerning groups are taken."
 		self.w.sourceFont.setToolTip(tooltip)
 		self.w.sourceFontText.setToolTip(tooltip)
-		linePos += lineHeight
 
-		self.w.targetFontText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Target font:", sizeStyle="small", selectable=True)
-		self.w.targetFont = vanilla.PopUpButton((inset + indent, linePos, -inset, 17), (), sizeStyle="small", callback=self.SavePreferences)
+		self.w.targetFontText = vanilla.TextBox("auto", "Target font:", sizeStyle="small", selectable=True)
+		self.w.targetFont = vanilla.PopUpButton("auto", (), sizeStyle="small", callback=self.SavePreferences)
 		tooltip = "The font that receives the kerning groups."
 		self.w.targetFont.setToolTip(tooltip)
 		self.w.targetFontText.setToolTip(tooltip)
-		linePos += lineHeight
 
-		self.w.allGroups = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Copy ⚠️ ALL groups (i.e., ignore selection in source font)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allGroups = vanilla.CheckBox("auto", "Copy ⚠️ ALL groups (i.e., ignore selection in source font)", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.allGroups.setToolTip("If unchecked, will only transfer groups of glyphs selected in source font.")
-		linePos += lineHeight
 
-		self.w.overwriteExisting = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Overwrite existing groups in target font", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.overwriteExisting = vanilla.CheckBox("auto", "Overwrite existing groups in target font", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.overwriteExisting.setToolTip("If unchecked, will keep existing groups in the target font, and only set groups when the glyph does not have any yet.")
-		linePos += lineHeight
 
-		self.w.resetGroupsInTarget = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "⚠️ Reset groups in target font before copying", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.resetGroupsInTarget = vanilla.CheckBox("auto", "⚠️ Reset groups in target font before copying", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.resetGroupsInTarget.setToolTip("Will delete ALL kerning groups in target font prior to transfering the source font’s groups.")
-		linePos += lineHeight
 
-		self.w.verbose = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Verbose reporting in Macro window (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.verbose = vanilla.CheckBox("auto", "Verbose reporting in Macro window (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.verbose.setToolTip("Will report progress per glyph in Window > Macro Panel. Useful for debugging.")
-		linePos += lineHeight
 
-		self.w.status = vanilla.TextBox((inset, -18 - inset, -150 - inset, 14), "", sizeStyle="small", selectable=True)
-		linePos += lineHeight
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small", selectable=True)
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-70 - inset, -20 - inset, -inset, -inset), "Steal", callback=self.StealKerningGroupsfromFontMain)
+		self.w.runButton = vanilla.Button("auto", "Steal", callback=self.StealKerningGroupsfromFontMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# labels are right-aligned, hug their text and share one width:
+		labelNames = ("sourceFontText", "targetFontText")
+		for labelName in labelNames:
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[sourceFontText]-gap-[sourceFont]-gap-[updateButton]-inset-|",
+				"H:|-inset-[targetFontText]-gap-[targetFont]-inset-|",
+				"H:|-inset-[allGroups]-(>=inset)-|",
+				"H:|-inset-[overwriteExisting]-(>=inset)-|",
+				"H:|-inset-[resetGroupsInTarget]-(>=inset)-|",
+				"H:|-inset-[verbose]-(>=inset)-|",
+				"H:|-inset-[status]-(>=gap)-[runButton(>=70)]-inset-|",
+				"V:|-inset-[descriptionText]-headlineGap-[sourceFont]-row-[targetFont]-row-[allGroups]-checkRow-[overwriteExisting]-checkRow-[resetGroupsInTarget]-checkRow-[verbose]-inset-[runButton]-inset-|",
+				{"view1": self.w.sourceFontText, "attribute1": "centerY", "view2": self.w.sourceFont, "attribute2": "centerY"},
+				{"view1": self.w.updateButton, "attribute1": "centerY", "view2": self.w.sourceFont, "attribute2": "centerY"},
+				{"view1": self.w.targetFontText, "attribute1": "centerY", "view2": self.w.targetFont, "attribute2": "centerY"},
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
+				{"view1": self.w.sourceFontText, "attribute1": "width", "view2": self.w.targetFontText, "attribute2": "width"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6, "headlineGap": 10, "checkRow": 5},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -102,7 +125,6 @@ class StealKerningGroupsfromFont(mekkaObject):
 			self.w.sourceFont.set(self.pref("sourceFont"))
 			self.w.targetFont.setItems(menu)
 			self.w.targetFont.set(self.pref("targetFont"))
-		sourceFont = self.currentFonts[self.w.sourceFont.get()]
 		self.w.runButton.enable(self.pref("sourceFont") != self.pref("targetFont"))
 
 	def StealKerningGroupsfromFontMain(self, sender=None):
@@ -129,7 +151,7 @@ class StealKerningGroupsfromFont(mekkaObject):
 			if self.pref("resetGroupsInTarget"):
 				print("Deleting kerning groups in target font...")
 				for glyph in targetFont.glyphs:
-					self.w.status.set(f"🧟 {glyph.name}")
+					self.w.status.set(f"🔠 {glyph.name}")
 					if glyph.leftKerningGroup:
 						glyph.leftKerningGroup = None
 					if glyph.rightKerningGroup:
@@ -154,7 +176,7 @@ class StealKerningGroupsfromFont(mekkaObject):
 					if verbose:
 						print(f"  🚫 Skipping {glyphName}, not in target font.")
 					continue
-				self.w.status.set(f"🔤 {glyphName}")
+				self.w.status.set(f"🔠 {glyphName}")
 				if sourceGlyph.leftKerningGroup and overwriteExisting or not targetGlyph.leftKerningGroup:
 					targetGlyph.leftKerningGroup = sourceGlyph.leftKerningGroup
 				if sourceGlyph.rightKerningGroup and overwriteExisting or not targetGlyph.rightKerningGroup:

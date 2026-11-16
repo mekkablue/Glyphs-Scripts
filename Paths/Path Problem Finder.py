@@ -3,15 +3,23 @@ __doc__ = """
 Finds all kinds of potential problems in outlines, and opens a new tab with affected layers.
 """
 
-import vanilla
 import math
 from timeit import default_timer as timer
-from AppKit import NSPoint
+
+import objc
+import vanilla
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
+from Foundation import NSPoint, NSNumberFormatter
 from GlyphsApp import Glyphs, GSPath, GSShapeTypePath, GSLINE, GSCURVE, CURVE, GSOFFCURVE, QCURVE, Message, distance
 import importlib
 import mekkablue
 importlib.reload(mekkablue)
 from mekkablue import mekkaObject, newLineControlLayer, reportTimeInNaturalLanguage
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 canHaveOpenOutlines = (
@@ -41,13 +49,15 @@ def hasDecimalCoordinates(thisLayer):
 def hasQuadraticCurves(thisLayer):
 	for p in thisLayer.paths:
 		for n in p.nodes:
-			if n.type is QCURVE:
+			if n.type == QCURVE:
 				return True
 	return False
 
 
 def hasOffcurveAsStartPoint(Layer):
 	for p in Layer.paths:
+		if len(p.nodes) < 2:
+			continue
 		scenario1 = p.nodes[0].type == GSOFFCURVE and p.nodes[1].type != GSOFFCURVE
 		scenario2 = p.nodes[0].type == CURVE and p.nodes[-1].type == GSOFFCURVE
 		if scenario1 or scenario2:
@@ -79,7 +89,7 @@ def hasShallowCurveSegment(thisLayer, minSize):
 def hasZeroHandles(thisLayer):
 	for thisPath in thisLayer.paths:
 		numberOfNodes = len(thisPath.nodes)
-		for i in range(numberOfNodes - 1):
+		for i in range(numberOfNodes):
 			thisNode = thisPath.nodes[i]
 			if thisNode.type == GSOFFCURVE:
 				prevNodeIndex = (i - 1) % numberOfNodes
@@ -159,8 +169,8 @@ def hasShallowCurve(thisLayer, threshold=5.0):
 				pointB = thisPath.nodes[(i - 1) % len(thisPath.nodes)].position
 				pointC = thisPath.nodes[(i - 2) % len(thisPath.nodes)].position
 				pointD = thisPath.nodes[(i - 3) % len(thisPath.nodes)].position
-				for handle in (pointC, pointD):
-					dist, vect = distanceAndRelativePosition(pointA, pointB, handle)
+				for handle in (pointB, pointC):
+					dist, vect = distanceAndRelativePosition(pointA, pointD, handle)
 					if 0.0 < vect < 1.0 and dist < threshold:
 						return True
 	return False
@@ -510,178 +520,254 @@ class PathProblemFinder(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 285
-		windowHeight = 548
-		windowWidthResize = 400  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 370
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			self.title,  # window title
-			minSize=(windowWidth, windowHeight + 19),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize + 19),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight, secondColumn = 12, 15, 22, 135
-		indent, rightIndent = 155, 50
-		self.w.descriptionText = vanilla.TextBox((inset, linePos, -inset, 14), "New tab with layers containing path problems", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		inset = 15
 
-		self.w.zeroHandles = vanilla.CheckBox((inset + 2, linePos, secondColumn, 20), "Zero handles", value=True, callback=self.SavePreferences, sizeStyle='small')
+		def numberFormatter(maximum=None):
+			formatter = NSNumberFormatter.alloc().init()
+			formatter.setMinimum_(0)
+			if maximum is not None:
+				formatter.setMaximum_(maximum)
+			return formatter
+
+		self.w.descriptionText = vanilla.TextBox("auto", "New tab with layers containing path problems", sizeStyle='small', selectable=True)
+
+		self.w.zeroHandles = vanilla.CheckBox("auto", "Zero handles", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.zeroHandles.setToolTip("Zero handles (a.k.a. half-dead curves) can cause problems with screen rendering, hinting and interpolation. Indicated with purple disks in the Show Angled Handles plug-in.")
-		self.w.outwardHandles = vanilla.CheckBox((secondColumn, linePos, -inset, 20), "Outward-bent handles", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.outwardHandles = vanilla.CheckBox("auto", "Outward-bent handles", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.outwardHandles.setToolTip("Will find handles that point outside the stretch of their enclosing on-curves. Usually unwanted.")
-		linePos += lineHeight
 
-		self.w.largeHandles = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Overshooting handles (larger than 100%)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.largeHandles = vanilla.CheckBox("auto", "Overshooting handles (larger than 100%)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.largeHandles.setToolTip("Handles that are longer than 100%, i.e. going beyond the intersection with the opposing handle. Indicated with laser beams in the Show Angled Handles plug-in.")
-		linePos += lineHeight
 
-		self.w.offcurveAsStartPoint = vanilla.CheckBox((inset + 2, linePos, indent, 20), "BCP as startpoint", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.offcurveAsStartPoint = vanilla.CheckBox("auto", "BCP as startpoint", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.offcurveAsStartPoint.setToolTip("Finds paths where the first point happens to be a handle (off-curve point, BCP). Not really an issue, but you’ll like it if you are going full OCD on your font.")
-		self.w.cuspingHandles = vanilla.CheckBox((secondColumn, linePos, -inset, 20), "Cusping handles", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.cuspingHandles = vanilla.CheckBox("auto", "Cusping handles", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.cuspingHandles.setToolTip("Will find situations where, on a curve segment, the second handle comes before the first handle, i.e., is closer to the first on-curve. Usually unintended.")
-		linePos += lineHeight
 
-		self.w.shortHandles = vanilla.CheckBox((inset + 2, linePos, indent, 20), "Handles shorter than", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.shortHandlesThreshold = vanilla.EditText((inset + indent, linePos, -inset - rightIndent - 5, 19), "12", callback=self.SavePreferences, sizeStyle='small')
-		self.w.shortHandlesText = vanilla.TextBox((-inset - rightIndent, linePos + 3, -inset, 14), "units", sizeStyle='small', selectable=True)
+		self.w.shortHandles = vanilla.CheckBox("auto", "Handles shorter than", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.shortHandlesThreshold = SteppingEditText("auto", self.prefDict["shortHandlesThreshold"], callback=self.SavePreferences, sizeStyle='small', formatter=numberFormatter())
+		self.w.shortHandlesText = vanilla.TextBox("auto", "units", sizeStyle='small', selectable=True)
 		tooltipText = "Will find handles shorter than the specified amount in units. Short handles may cause kinks when rounded to the grid."
 		self.w.shortHandlesThreshold.setToolTip(tooltipText)
 		self.w.shortHandles.setToolTip(tooltipText)
-		linePos += lineHeight
 
-		self.w.angledHandles = vanilla.CheckBox((inset + 2, linePos, indent, 20), "Angled handles up to", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.angledHandlesAngle = vanilla.EditText((inset + indent, linePos, -inset - rightIndent - 5, 19), "8", callback=self.SavePreferences, sizeStyle='small')
-		self.w.angledHandlesText = vanilla.TextBox((-inset - rightIndent, linePos + 3, -inset, 14), "degrees", sizeStyle='small', selectable=True)
+		self.w.angledHandles = vanilla.CheckBox("auto", "Angled handles up to", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.angledHandlesAngle = SteppingEditText("auto", self.prefDict["angledHandlesAngle"], callback=self.SavePreferences, sizeStyle='small', formatter=numberFormatter(45))
+		self.w.angledHandlesText = vanilla.TextBox("auto", "degrees", sizeStyle='small', selectable=True)
 		tooltipText = "Finds handles that deviate from horizontal or vertical by less than the given angle. Often unintentional; indicated with orange circles in the Show Angled Handles plug-in."
 		self.w.angledHandles.setToolTip(tooltipText)
 		self.w.angledHandlesAngle.setToolTip(tooltipText)
-		linePos += lineHeight
 
-		self.w.shallowCurveBBox = vanilla.CheckBox((inset + 2, linePos, indent, 20), "Curve bbox smaller than", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.shallowCurveBBoxThreshold = vanilla.EditText((inset + indent, linePos, -inset - rightIndent - 5, 19), "10", sizeStyle='small')
-		self.w.shallowCurveBBoxText = vanilla.TextBox((-inset - rightIndent, linePos + 3, -inset, 14), "units", sizeStyle='small', selectable=True)
+		self.w.shallowCurveBBox = vanilla.CheckBox("auto", "Curve bbox smaller than", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.shallowCurveBBoxThreshold = SteppingEditText("auto", self.prefDict["shallowCurveBBoxThreshold"], callback=self.SavePreferences, sizeStyle='small', formatter=numberFormatter())
+		self.w.shallowCurveBBoxText = vanilla.TextBox("auto", "units", sizeStyle='small', selectable=True)
 		tooltipText = "Will find very flat curve segments. Flat curves leave little manœuvring space for handles (BCPs), or cause very short handles, which in turn causes grid rounding problems. Can usually be fixed by removing an extremum point or adding an overlap."
 		self.w.shallowCurveBBoxThreshold.setToolTip(tooltipText)
 		self.w.shallowCurveBBox.setToolTip(tooltipText)
-		linePos += lineHeight
 
-		self.w.shallowCurve = vanilla.CheckBox((inset + 2, linePos, indent, 20), "Curves shallower than", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.shallowCurveThreshold = vanilla.EditText((inset + indent, linePos, -inset - rightIndent - 5, 19), "5", sizeStyle='small')
-		self.w.shallowCurveText = vanilla.TextBox((-inset - rightIndent, linePos + 3, -inset, 14), "units", sizeStyle='small', selectable=True)
+		self.w.shallowCurve = vanilla.CheckBox("auto", "Curves shallower than", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.shallowCurveThreshold = SteppingEditText("auto", self.prefDict["shallowCurveThreshold"], callback=self.SavePreferences, sizeStyle='small', formatter=numberFormatter())
+		self.w.shallowCurveText = vanilla.TextBox("auto", "units", sizeStyle='small', selectable=True)
 		tooltipText = "Finds curve segments where the handles deviate less than the specified threshold from the enclosing on-curves."
 		self.w.shallowCurveThreshold.setToolTip(tooltipText)
 		self.w.shallowCurve.setToolTip(tooltipText)
-		linePos += lineHeight
 
-		self.w.shortSegment = vanilla.CheckBox((inset + 2, linePos, indent, 20), "Segments shorter than", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.shortSegmentThreshold = vanilla.EditText((inset + indent, linePos, -inset - rightIndent - 5, 19), "8", sizeStyle='small')
-		self.w.shortSegmentText = vanilla.TextBox((-inset - rightIndent, linePos + 3, -inset, 14), "units", sizeStyle='small', selectable=True)
+		self.w.shortSegment = vanilla.CheckBox("auto", "Segments shorter than", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.shortSegmentThreshold = SteppingEditText("auto", self.prefDict["shortSegmentThreshold"], callback=self.SavePreferences, sizeStyle='small', formatter=numberFormatter())
+		self.w.shortSegmentText = vanilla.TextBox("auto", "units", sizeStyle='small', selectable=True)
 		tooltipText = "Finds line segments (two consecutive on-curve nodes) shorter than the specified threshold length. Very short line segments may be deleted because they are barely visible. Also, if not orthogonal, may pose grid rounding problems."
 		self.w.shortSegmentThreshold.setToolTip(tooltipText)
 		self.w.shortSegment.setToolTip(tooltipText)
-		linePos += lineHeight
 
-		self.w.greenDiscontinuity = vanilla.CheckBox((inset + 2, linePos, indent, 20), "Green disharmony above", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.greenDiscontinuityTolerance = vanilla.EditText((inset + indent, linePos, -inset - rightIndent - 5, 19), "11", callback=self.SavePreferences, sizeStyle='small')
-		self.w.greenDiscontinuityToleranceText = vanilla.TextBox((-inset - rightIndent, linePos + 3, -inset, 14), "%", sizeStyle='small', selectable=True)
+		self.w.greenDiscontinuity = vanilla.CheckBox("auto", "Green disharmony above", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.greenDiscontinuityTolerance = SteppingEditText("auto", self.prefDict["greenDiscontinuityTolerance"], callback=self.SavePreferences, sizeStyle='small', formatter=numberFormatter(100))
+		self.w.greenDiscontinuityToleranceText = vanilla.TextBox("auto", "%", sizeStyle='small', selectable=True)
 		tooltipText = "Finds G2 discontinuities (curvature jumps) at smooth green nodes where two curve segments meet. Same curvature measure used by the Green Harmony, SpeedPunk, and SuperTool plug-ins. 11% is the recommended default; 5% is strict; 15% is relaxed."
 		self.w.greenDiscontinuity.setToolTip(tooltipText)
 		self.w.greenDiscontinuityTolerance.setToolTip(tooltipText)
-		linePos += lineHeight
 
-		self.w.almostOrthogonalLines = vanilla.CheckBox((inset + 2, linePos, indent, 20), "Non-orthogonal lines", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.almostOrthogonalLinesThreshold = vanilla.EditText((inset + indent, linePos, -inset - rightIndent - 5, 19), "3", callback=self.SavePreferences, sizeStyle='small')
-		self.w.almostOrthogonalLinesText = vanilla.TextBox((-inset - rightIndent, linePos + 3, -inset, 14), "units off", sizeStyle='small', selectable=True)
+		self.w.almostOrthogonalLines = vanilla.CheckBox("auto", "Non-orthogonal lines", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.almostOrthogonalLinesThreshold = SteppingEditText("auto", self.prefDict["almostOrthogonalLinesThreshold"], callback=self.SavePreferences, sizeStyle='small', formatter=numberFormatter())
+		self.w.almostOrthogonalLinesText = vanilla.TextBox("auto", "units off", sizeStyle='small', selectable=True)
 		tooltipText = "Will find line segments that are close to, but not completely horizontal or vertical. Will look for segments where the x or y distance between the two nodes is less than the specified threshold. Often unintentional."
 		self.w.almostOrthogonalLinesThreshold.setToolTip(tooltipText)
 		self.w.almostOrthogonalLines.setToolTip(tooltipText)
-		linePos += lineHeight
 
-		self.w.almostOrthogonalLinesMinLengthCheck = vanilla.CheckBox((inset * 2, linePos - 1, indent, 20), "min segment length", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.almostOrthogonalLinesMinLength = vanilla.EditText((inset + indent, linePos - 1, -inset - rightIndent - 5, 19), "50", callback=self.SavePreferences, sizeStyle="small")
-		self.w.almostOrthogonalLinesMinLengthText = vanilla.TextBox((-inset - rightIndent, linePos + 2, -inset, 14), "units", sizeStyle="small", selectable=True)
+		self.w.almostOrthogonalLinesMinLengthCheck = vanilla.CheckBox("auto", "min segment length", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.almostOrthogonalLinesMinLength = SteppingEditText("auto", self.prefDict["almostOrthogonalLinesMinLength"], callback=self.SavePreferences, sizeStyle="small", formatter=numberFormatter())
+		self.w.almostOrthogonalLinesMinLengthText = vanilla.TextBox("auto", "units", sizeStyle="small", selectable=True)
 		tooltipText = "If enabled, skips line segments shorter than this length. Useful to avoid false positives on short connecting strokes."
 		self.w.almostOrthogonalLinesMinLengthCheck.setToolTip(tooltipText)
 		self.w.almostOrthogonalLinesMinLength.setToolTip(tooltipText)
-		linePos += lineHeight
 
-		self.w.badOutlineOrder = vanilla.CheckBox((inset + 2, linePos, secondColumn, 20), "Bad outline order", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.badOutlineOrder = vanilla.CheckBox("auto", "Bad outline order", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.badOutlineOrder.setToolTip("If the first path is clockwise, paths are most likely in the wrong order.")
-
-		self.w.badPathDirections = vanilla.CheckBox((secondColumn, linePos, -inset, 20), "Bad path directions", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.badPathDirections = vanilla.CheckBox("auto", "Bad path directions", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.badPathDirections.setToolTip("Tries to find paths that have wrong orientations (clockwise vs. counterclockwise).\n⚠️ In complex setups, false positives are likely.")
-		linePos += lineHeight
 
-		self.w.openPaths = vanilla.CheckBox((inset + 2, linePos, secondColumn, 20), "Open paths", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.openPaths = vanilla.CheckBox("auto", "Open paths", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.openPaths.setToolTip("Finds unclosed paths. Special glyphs that are supposed to have open paths, like corner and cap components, are ignored.")
-
-		self.w.emptyPaths = vanilla.CheckBox((secondColumn, linePos, -inset, 20), "Empty paths", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.emptyPaths = vanilla.CheckBox("auto", "Empty paths", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.emptyPaths.setToolTip("Tries to find paths that have no nodes at all. Should not happen but can be the result of an automated processing. Used to be a bug in Magic Remover. Can be fixed with Path > Tidy Up Paths, or with the mekkablue script Paths > Remove Stray Points and Empty Paths.")
-		linePos += lineHeight
 
-		self.w.strayPoints = vanilla.CheckBox((inset + 2, linePos, secondColumn, 20), "Stray points", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.strayPoints = vanilla.CheckBox("auto", "Stray points", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.strayPoints.setToolTip("In Glyphs 1, paths with only one node (‘single-node paths’ or ‘stray points’) used to be a method for disabling auto-alignment of components. But they are probably a mistake. Can be fixed wth mekkablue script Paths > Remove Stray Points and Empty Paths.")
-
-		self.w.twoPointOutlines = vanilla.CheckBox((secondColumn, linePos, -inset, 20), "Two-node paths", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.twoPointOutlines = vanilla.CheckBox("auto", "Two-node paths", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.twoPointOutlines.setToolTip("Paths with only two on-curve nodes are most likely leftover debris from a previous operation.")
-		linePos += lineHeight
 
-		self.w.quadraticCurves = vanilla.CheckBox((inset + 2, linePos - 1, secondColumn, 20), "Quadratic curves", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.quadraticCurves = vanilla.CheckBox("auto", "Quadratic curves", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.quadraticCurves.setToolTip("Finds quadratic (TrueType) curves. Useful if quadratic curves were not intended.")
-		# linePos += lineHeight
-
-		self.w.decimalCoordinates = vanilla.CheckBox((secondColumn, linePos - 1, -inset, 20), "Decimal coordinates", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.decimalCoordinates = vanilla.CheckBox("auto", "Decimal coordinates", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.decimalCoordinates.setToolTip("Nodes and handles with decimal coordinates, i.e., points not exactly on the unit grid.")
-		linePos += lineHeight + 5
 
-		self.w.checkCheckBoxes = vanilla.TextBox((inset, linePos + 2, 50, 14), "Select", sizeStyle="small", selectable=True)
-		self.w.checkALL = vanilla.SquareButton((70, linePos, 50, 18), "ALL", sizeStyle="small", callback=self.updateUI)
+		self.w.checkCheckBoxes = vanilla.TextBox("auto", "Select", sizeStyle="small", selectable=True)
+		self.w.checkALL = vanilla.SquareButton("auto", "ALL", sizeStyle="small", callback=self.updateUI)
 		self.w.checkALL.setToolTip("Enable all checks.")
-		self.w.checkNONE = vanilla.SquareButton((70 + 60 * 1, linePos, 50, 18), "NONE", sizeStyle="small", callback=self.updateUI)
+		self.w.checkNONE = vanilla.SquareButton("auto", "NONE", sizeStyle="small", callback=self.updateUI)
 		self.w.checkNONE.setToolTip("Disable all checks.")
-		self.w.checkDEFAULT = vanilla.SquareButton((70 + 60 * 2, linePos, 70, 18), "DEFAULT", sizeStyle="small", callback=self.updateUI)
+		self.w.checkDEFAULT = vanilla.SquareButton("auto", "DEFAULT", sizeStyle="small", callback=self.updateUI)
 		self.w.checkDEFAULT.setToolTip("Reset all checks to their default values.")
-		linePos += lineHeight
 
 		# Line Separator:
-		self.w.line = vanilla.HorizontalLine((inset, linePos + 3, -inset, 1))
-		linePos += int(lineHeight / 2)
+		self.w.line = vanilla.HorizontalLine("auto")
 
 		# Script Options:
-		self.w.includeAllGlyphs = vanilla.CheckBox((inset + 2, linePos, secondColumn, 20), "Check ALL glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeAllGlyphs = vanilla.CheckBox("auto", "Check ALL glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeAllGlyphs.setToolTip("If enabled, will ignore your current (glyph) selection, and simply go through the complete font. Recommended. May still ignore non-exporting glyphs or explicitly excluded glyph names, see following options.")
-		self.w.includeAllFonts = vanilla.CheckBox((secondColumn, linePos, -inset, 20), "⚠️ in ALL fonts", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeAllFonts = vanilla.CheckBox("auto", "⚠️ in ALL fonts", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeAllFonts.setToolTip("If enabled, will go through ALL open fonts. Attention: can take quite some time.")
-		linePos += lineHeight
 
-		self.w.includeNonExporting = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Include non-exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeNonExporting = vanilla.CheckBox("auto", "Include non-exporting glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeNonExporting.setToolTip("If disabled, will ignore glyphs that are set to not export.")
-		linePos += lineHeight
 
-		self.w.excludeText = vanilla.TextBox((inset, linePos + 2, 90, 14), "Exclude glyphs", sizeStyle="small", selectable=True)
-		self.w.exclude = vanilla.EditText((inset + 86, linePos - 1, -inset, 19), "notdef, apple, .ornm", callback=self.SavePreferences, sizeStyle="small")
-		self.w.exclude.setToolTip("Glyphs containing any of these (comma-separated) name particles will be skipped.")
-		linePos += lineHeight
+		tooltipText = "Glyphs containing any of these (comma-separated) name particles will be skipped."
+		self.w.excludeText = vanilla.TextBox("auto", "Exclude glyphs", sizeStyle="small", selectable=True)
+		self.w.excludeText.setToolTip(tooltipText)
+		self.w.exclude = vanilla.EditText("auto", "notdef, apple, .ornm", callback=self.SavePreferences, sizeStyle="small")
+		self.w.exclude.setToolTip(tooltipText)
 
-		self.w.reuseTab = vanilla.CheckBox((inset + 2, linePos, secondColumn, 20), "Reuse existing tab", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reuseTab = vanilla.CheckBox("auto", "Reuse existing tab", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reuseTab.setToolTip("If enabled, will only open a new tab if none is open. Recommended.")
-		self.w.verbose = vanilla.CheckBox((secondColumn, linePos, -inset, 20), "Verbose (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.verbose = vanilla.CheckBox("auto", "Verbose (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.verbose.setToolTip("If checked will document all findings in the Macro window. Use this only for debugging.")
-		linePos += lineHeight
 
 		# Progress Bar and Status text:
-		self.w.progress = vanilla.ProgressBar((inset, linePos, -inset, 16))
+		self.w.progress = vanilla.ProgressBar("auto")
 		self.w.progress.set(0)  # set progress indicator to zero
-		self.w.status = vanilla.TextBox((inset, -18 - inset, -inset - 80, 14), "🤖 Ready.", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle='small', selectable=True)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Report", callback=self.PathProblemFinderMain)
+		self.w.runButton = vanilla.Button("auto", "Report", callback=self.PathProblemFinderMain)
 		self.w.runButton.setToolTip("Run the selected checks and open a new tab with all affected layers.")
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes and square buttons stretch vertically by default; with everything hugging,
+		# the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# checkboxes hug their titles, the label behind exclude hugs its text:
+		firstColumnNames = (
+			"zeroHandles", "offcurveAsStartPoint", "shortHandles", "angledHandles", "shallowCurveBBox", "shallowCurve", "shortSegment", "greenDiscontinuity",
+			"almostOrthogonalLines", "badOutlineOrder", "openPaths", "strayPoints", "quadraticCurves", "includeAllGlyphs", "reuseTab"
+		)
+		secondColumnNames = (
+			"outwardHandles", "cuspingHandles", "badPathDirections", "emptyPaths", "twoPointOutlines", "decimalCoordinates", "includeAllFonts", "verbose"
+		)
+		for checkBoxName in firstColumnNames + secondColumnNames + ("largeHandles", "includeNonExporting"):
+			nsButton = getattr(self.w, checkBoxName).getNSButton()
+			nsButton.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsButton.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+		nsLabel = self.w.excludeText.getNSTextField()
+		nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		# all checkboxes of the first column share one width, so the second column and the fields line up:
+		columnRules = [
+			{"view1": getattr(self.w, checkBoxName), "attribute1": "width", "view2": self.w.zeroHandles, "attribute2": "width"}
+			for checkBoxName in firstColumnNames[1:]
+		]
+		# followers of the first column, tied to their checkbox:
+		followerRules = []
+		for checkBoxName, followerName, textName in (
+			("shortHandles", "shortHandlesThreshold", "shortHandlesText"),
+			("angledHandles", "angledHandlesAngle", "angledHandlesText"),
+			("shallowCurveBBox", "shallowCurveBBoxThreshold", "shallowCurveBBoxText"),
+			("shallowCurve", "shallowCurveThreshold", "shallowCurveText"),
+			("shortSegment", "shortSegmentThreshold", "shortSegmentText"),
+			("greenDiscontinuity", "greenDiscontinuityTolerance", "greenDiscontinuityToleranceText"),
+			("almostOrthogonalLines", "almostOrthogonalLinesThreshold", "almostOrthogonalLinesText"),
+			("almostOrthogonalLinesMinLengthCheck", "almostOrthogonalLinesMinLength", "almostOrthogonalLinesMinLengthText"),
+		):
+			followerRules.append({"view1": getattr(self.w, checkBoxName), "attribute1": "centerY", "view2": getattr(self.w, followerName), "attribute2": "centerY"})
+			followerRules.append({"view1": getattr(self.w, textName), "attribute1": "centerY", "view2": getattr(self.w, followerName), "attribute2": "centerY"})
+		# the indented min-length field starts where the other fields start:
+		followerRules.append({"view1": self.w.almostOrthogonalLinesMinLength, "attribute1": "leading", "view2": self.w.almostOrthogonalLinesThreshold, "attribute2": "leading"})
+
+		# partners in the second column share the baseline of their first-column neighbor:
+		partnerRules = [
+			{"view1": getattr(self.w, secondName), "attribute1": "centerY", "view2": getattr(self.w, firstName), "attribute2": "centerY"} for firstName, secondName in (
+				("zeroHandles", "outwardHandles"),
+				("offcurveAsStartPoint", "cuspingHandles"),
+				("badOutlineOrder", "badPathDirections"),
+				("openPaths", "emptyPaths"),
+				("strayPoints", "twoPointOutlines"),
+				("quadraticCurves", "decimalCoordinates"),
+				("includeAllGlyphs", "includeAllFonts"),
+				("reuseTab", "verbose"),
+			)
+		]
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[zeroHandles]-gap-[outwardHandles]-(>=inset)-|",
+				"H:|-inset-[largeHandles]-(>=inset)-|",
+				"H:|-inset-[offcurveAsStartPoint]-gap-[cuspingHandles]-(>=inset)-|",
+				"H:|-inset-[shortHandles]-gap-[shortHandlesThreshold(60)]-gap-[shortHandlesText]-(>=inset)-|",
+				"H:|-inset-[angledHandles]-gap-[angledHandlesAngle(60)]-gap-[angledHandlesText]-(>=inset)-|",
+				"H:|-inset-[shallowCurveBBox]-gap-[shallowCurveBBoxThreshold(60)]-gap-[shallowCurveBBoxText]-(>=inset)-|",
+				"H:|-inset-[shallowCurve]-gap-[shallowCurveThreshold(60)]-gap-[shallowCurveText]-(>=inset)-|",
+				"H:|-inset-[shortSegment]-gap-[shortSegmentThreshold(60)]-gap-[shortSegmentText]-(>=inset)-|",
+				"H:|-inset-[greenDiscontinuity]-gap-[greenDiscontinuityTolerance(60)]-gap-[greenDiscontinuityToleranceText]-(>=inset)-|",
+				"H:|-inset-[almostOrthogonalLines]-gap-[almostOrthogonalLinesThreshold(60)]-gap-[almostOrthogonalLinesText]-(>=inset)-|",
+				"H:|-indent-[almostOrthogonalLinesMinLengthCheck]-(>=gap)-[almostOrthogonalLinesMinLength(60)]-gap-[almostOrthogonalLinesMinLengthText]-(>=inset)-|",
+				"H:|-inset-[badOutlineOrder]-gap-[badPathDirections]-(>=inset)-|",
+				"H:|-inset-[openPaths]-gap-[emptyPaths]-(>=inset)-|",
+				"H:|-inset-[strayPoints]-gap-[twoPointOutlines]-(>=inset)-|",
+				"H:|-inset-[quadraticCurves]-gap-[decimalCoordinates]-(>=inset)-|",
+				"H:|-inset-[checkCheckBoxes]-gap-[checkALL(>=50)]-gap-[checkNONE(>=50)]-gap-[checkDEFAULT(>=70)]-(>=inset)-|",
+				"H:|-inset-[line]-inset-|",
+				"H:|-inset-[includeAllGlyphs]-gap-[includeAllFonts]-(>=inset)-|",
+				"H:|-inset-[includeNonExporting]-(>=inset)-|",
+				"H:|-inset-[excludeText]-gap-[exclude]-inset-|",
+				"H:|-inset-[reuseTab]-gap-[verbose]-(>=inset)-|",
+				"H:|-inset-[progress]-inset-|",
+				"H:|-inset-[status]-(>=gap)-[runButton(>=70)]-inset-|",
+				(
+					"V:|-inset-[descriptionText]-row-[zeroHandles]-stackRow-[largeHandles]-stackRow-[offcurveAsStartPoint]-stackRow-[shortHandles]-stackRow-[angledHandles]"
+					"-stackRow-[shallowCurveBBox]-stackRow-[shallowCurve]-stackRow-[shortSegment]-stackRow-[greenDiscontinuity]-stackRow-[almostOrthogonalLines]"
+					"-stackRow-[almostOrthogonalLinesMinLengthCheck]-stackRow-[badOutlineOrder]-stackRow-[openPaths]-stackRow-[strayPoints]-stackRow-[quadraticCurves]"
+					"-section-[checkALL]-section-[line(1)]-section-[includeAllGlyphs]-stackRow-[includeNonExporting]-stackRow-[exclude]-stackRow-[reuseTab]"
+					"-barGap-[progress(16)]-inset-[runButton]-inset-|"
+				),
+				{"view1": self.w.checkCheckBoxes, "attribute1": "centerY", "view2": self.w.checkALL, "attribute2": "centerY"},
+				{"view1": self.w.checkNONE, "attribute1": "centerY", "view2": self.w.checkALL, "attribute2": "centerY"},
+				{"view1": self.w.checkDEFAULT, "attribute1": "centerY", "view2": self.w.checkALL, "attribute2": "centerY"},
+				{"view1": self.w.excludeText, "attribute1": "centerY", "view2": self.w.exclude, "attribute2": "centerY"},
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
+			] + columnRules + followerRules + partnerRules,
+			metrics={"inset": inset, "indent": inset + 16, "gap": 8, "row": 8, "stackRow": 8, "section": 12, "barGap": 12},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -692,7 +778,7 @@ class PathProblemFinder(mekkaObject):
 
 	def updateUI(self, sender=None):
 		if sender in (self.w.checkALL, self.w.checkNONE, self.w.checkDEFAULT):
-			excludedCheckSettings = ("includeAllGlyphs", "includeNonExporting", "reuseTab", "exclude")
+			excludedCheckSettings = ("includeAllGlyphs", "includeAllFonts", "includeNonExporting", "reuseTab", "verbose", "exclude")
 			checkSettings = [
 				k for k in self.prefDict.keys() if k not in excludedCheckSettings and (
 					not k.endswith("Threshold") and not k.endswith("Angle") and not k.endswith("Tolerance") and not k.endswith("MinLength")
@@ -900,7 +986,7 @@ class PathProblemFinder(mekkaObject):
 						self.w.progress.set(firstStepPerFont + stepsPerFont * (i / glyphCount))
 						progressCounter = 0
 					progressCounter += 1
-					self.w.status.set(f"{fontIndex}. {thisGlyph.name}...")
+					self.w.status.set(f"📄 {fontIndex + 1} 🔠 {thisGlyph.name}")
 					# print(f"{i + 1}. {thisGlyph.name}")
 
 					# step through layers

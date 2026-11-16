@@ -3,10 +3,11 @@ __doc__ = """
 Converts old expert 8-bit encodings into Glyphs nice names.
 """
 
-import vanilla
 import codecs
-from GlyphsApp import Glyphs, GSGlyph, GSComponent, Message, GetSaveFile, GetOpenFile
-from mekkablue import mekkaObject, getLegibleFont
+import vanilla
+from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
+from GlyphsApp import Glyphs, GSComponent, Message, GetSaveFile, GetOpenFile
+from mekkablue import mekkaObject, getLegibleFont, newGlyphWithName
 
 AXtDefault = """
 Syntax:
@@ -368,25 +369,22 @@ class EncodingConverter(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
+		# This window stays resizable: the user needs to enlarge the text editor.
 		windowWidth = 550
-		windowHeight = 260
-		windowWidthResize = 1000  # user can resize width by this value
-		windowHeightResize = 1000  # user can resize height by this value
+		windowHeight = 330
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Encoding Converter",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 8, 15, 22
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Enter conversion text (see tooltips):", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		self.w.descriptionText = vanilla.TextBox("auto", "Enter conversion text (see tooltips):", sizeStyle='small', selectable=True)
 
-		self.w.recipe = vanilla.TextEditor((1, linePos, -1, -inset * 3), text="", callback=self.SavePreferences, checksSpelling=False)
+		self.w.recipe = vanilla.TextEditor("auto", text="", callback=self.SavePreferences, checksSpelling=False)
 		self.w.recipe.setToolTip("- Freely write comments and empty lines\n- Rename: Lines containing a dash (-) followed by a greater sign (>) will trigger glyph renaming, with or without spaces between names\n- Recipe: Lines containing glyph recipes with plus (+) and equals (=) will be treated like in Glyph > Add Glyphs... as long as the do not contain any space\n- Recipes will overwrite existing glyphs. Renamings will create a number-suffixed glyph if a glyph with the same name already exists.")
 		self.w.recipe.getNSScrollView().setHasVerticalScroller_(1)
 		self.w.recipe.getNSScrollView().setHasHorizontalScroller_(1)
@@ -408,12 +406,30 @@ class EncodingConverter(mekkaObject):
 		# textView.textContainer().setWidthTracksTextView_(0)
 		# textView.textContainer().setContainerSize_(textSize)
 
-		# Run Button:
-		self.w.openButton = vanilla.Button((inset, -20 - inset, 110, -inset), "Open Text…", callback=self.importEncoding)
-		self.w.saveButton = vanilla.Button((inset + 120, -20 - inset, 110, -inset), "Save Text…", callback=self.exportEncoding)
-		self.w.resetButton = vanilla.Button((inset + 260, -20 - inset, 100, -inset), "Reset Text", callback=self.resetEncoding)
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Convert Font", callback=self.EncodingConverterMain)
+		# Buttons:
+		self.w.openButton = vanilla.Button("auto", "Open Text…", callback=self.importEncoding)
+		self.w.saveButton = vanilla.Button("auto", "Save Text…", callback=self.exportEncoding)
+		self.w.resetButton = vanilla.Button("auto", "Reset Text", callback=self.resetEncoding)
+		self.w.runButton = vanilla.Button("auto", "Convert Font", callback=self.EncodingConverterMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# everything hugs vertically, except the text editor, which takes the height the user gives the window:
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+		self.w.recipe.getNSScrollView().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[recipe]-inset-|",
+				"H:|-inset-[openButton(>=70)]-gap-[saveButton(>=70)]-gap-[resetButton(>=70)]-(>=gap)-[runButton(>=70)]-inset-|",
+				"V:|-inset-[descriptionText]-row-[recipe(>=150)]-inset-[runButton]-inset-|",
+				"V:[openButton]-inset-|",
+				"V:[saveButton]-inset-|",
+				"V:[resetButton]-inset-|",
+			],
+			metrics={"inset": inset, "gap": 8, "row": 8},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -424,13 +440,14 @@ class EncodingConverter(mekkaObject):
 
 	def exportEncoding(self, sender=None):
 		self.SavePreferences()
-		filePath = GetSaveFile(message="Save Renaming Scheme", ProposedFileName="glyph name conversion.txt", filetypes=("txt"))
+		# positional arguments: the second one is called ProposedFileName in Glyphs 3, proposedFileName in Glyphs 4
+		filePath = GetSaveFile("Save Renaming Scheme", "glyph name conversion.txt", ["txt"])
 		if filePath:
 			fileContent = self.pref("recipe")
 			saveFileInLocation(content=fileContent, filePath=filePath)
 
 	def importEncoding(self, sender=None):
-		filePath = GetOpenFile(message="Open Renaming Scheme", allowsMultipleSelection=False, filetypes=("txt"))
+		filePath = GetOpenFile(message="Open Renaming Scheme", allowsMultipleSelection=False, filetypes=["txt"])
 		if filePath:
 			fileContent = readFileFromLocation(filePath=filePath)
 			if fileContent:
@@ -451,14 +468,13 @@ class EncodingConverter(mekkaObject):
 		"""
 
 		if glyphName in glyphNameList:
-			try:
+			if len(glyphName) > 4 and glyphName[-4] == "." and glyphName[-3:].isdigit():
 				# increase the .000 extension
-				increasedGlyphName = glyphName[:-3] + ("%.3d" % int(glyphName[-3:]) + 1)
-				return self.freeGlyphName(increasedGlyphName, glyphNameList)
-			except:
+				increasedGlyphName = glyphName[:-3] + "%.3d" % (int(glyphName[-3:]) + 1)
+			else:
 				# has no .000 extension yet:
 				increasedGlyphName = glyphName + ".001"
-				return self.freeGlyphName(increasedGlyphName, glyphNameList)
+			return self.freeGlyphName(increasedGlyphName, glyphNameList)
 		return glyphName
 
 	def glyphRename(self, source, target, font):
@@ -521,8 +537,7 @@ class EncodingConverter(mekkaObject):
 				if glyph:
 					print("🔠 overwritten: %s" % targetGlyph)
 				else:
-					glyph = GSGlyph()
-					glyph.name = targetGlyph
+					glyph = newGlyphWithName(targetGlyph)
 					thisFont.glyphs.append(glyph)
 					print("🔠 created: %s" % targetGlyph)
 				for layer in glyph.layers:
@@ -547,10 +562,8 @@ class EncodingConverter(mekkaObject):
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
 				print("Encoding Converter Report for %s" % thisFont.familyName)
-				if thisFont.filepath:
-					print(thisFont.filepath)
-				else:
-					print("⚠️ The font file has not been saved yet.")
+				fileName = thisFont.filepath.lastPathComponent() if thisFont.filepath else f"{thisFont.familyName} (unsaved)"
+				print(f"📄 {fileName}")
 				print()
 
 				thisFont.disableUpdateInterface()
@@ -572,17 +585,17 @@ class EncodingConverter(mekkaObject):
 
 				self.w.close()  # delete if you want window to stay open
 
-			# Final report:
-			Glyphs.showNotification(
-				"%s: Done" % (thisFont.familyName),
-				"Renamed %i glyph%s, built %i glyph recipe%s. Details in Macro Window" % (
-					countRenames,
-					"" if countRenames == 1 else "s",
-					countRecipes,
-					"" if countRecipes == 1 else "s",
-				),
-			)
-			print("\nDone.")
+				# Final report:
+				Glyphs.showNotification(
+					"%s: Done" % (thisFont.familyName),
+					"Renamed %i glyph%s, built %i glyph recipe%s. Details in Macro Window" % (
+						countRenames,
+						"" if countRenames == 1 else "s",
+						countRecipes,
+						"" if countRecipes == 1 else "s",
+					),
+				)
+				print("\n✅ Done.")
 
 		except Exception as e:
 			# brings macro window to front and reports error:

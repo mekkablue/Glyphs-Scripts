@@ -4,6 +4,7 @@ Create or update OpenType feature code for positional forms (isolated, initial, 
 """
 
 import vanilla
+from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, GSFeature, GSClass, Message
 from mekkablue import mekkaObject, UpdateButton
 
@@ -112,71 +113,102 @@ class BuildPositionalFeature(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 365
-		windowHeight = 225
-		windowWidthResize = 500  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 440
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			self.title,  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		tabIndent = 140
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Build or update code for initial, medial, final and isolated forms", sizeStyle='small', selectable=True)
-		linePos += lineHeight + 2
+		self.w.descriptionText = vanilla.TextBox("auto", "Build or update code for initial, medial, final and isolated forms", sizeStyle='small', selectable=True)
 
-		self.w.targetFeatureText = vanilla.TextBox((inset, linePos + 3, tabIndent, 14), "Target feature (tag):", sizeStyle='small', selectable=True)
-		self.w.targetFeature = vanilla.EditText((inset + tabIndent, linePos, -inset - 22, 19), "calt", callback=self.SavePreferences, sizeStyle='small')
+		self.w.targetFeatureText = vanilla.TextBox("auto", "Target feature (tag):", sizeStyle='small', selectable=True)
+		self.w.targetFeature = vanilla.EditText("auto", "calt", callback=self.SavePreferences, sizeStyle='small')
 		tooltip = "Feature tag for the OpenType feature that is supposed to receive the positional code."
 		self.w.targetFeature.setToolTip(tooltip)
 		self.w.targetFeatureText.setToolTip(tooltip)
-		self.w.targetFeatureUpdate = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
+		self.w.targetFeatureUpdate = UpdateButton("auto", callback=self.update)
 		self.w.targetFeatureUpdate.setToolTip("Reset to defaults: ‘calt’")
-		linePos += lineHeight
 
-		self.w.suffixesText = vanilla.TextBox((inset, linePos + 3, tabIndent, 14), "Suffixes (in,me,fi,is):", sizeStyle='small', selectable=True)
-		self.w.suffixes = vanilla.EditText((inset + tabIndent, linePos, -inset - 22, 19), "init, medi, fina, isol", callback=self.SavePreferences, sizeStyle='small')
+		self.w.suffixesText = vanilla.TextBox("auto", "Suffixes (in,me,fi,is):", sizeStyle='small', selectable=True)
+		self.w.suffixes = vanilla.EditText("auto", "init, medi, fina, isol", callback=self.SavePreferences, sizeStyle='small')
 		tooltip = "Glyph suffixes in the font, for the four positions, in this order:\n1. initial\n2. medial\n3. final\n4. isolated"
 		self.w.suffixes.setToolTip(tooltip)
 		self.w.suffixesText.setToolTip(tooltip)
-		self.w.suffixesUpdate = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
+		self.w.suffixesUpdate = UpdateButton("auto", callback=self.update)
 		self.w.suffixesUpdate.setToolTip("Reset to defaults: ‘init, medi, fina, isol’")
-		linePos += lineHeight
 
-		self.w.sourceSuffixText = vanilla.TextBox((inset, linePos + 3, tabIndent, 14), "Suffix for source classes:", sizeStyle='small', selectable=True)
-		self.w.sourceSuffix = vanilla.EditText((inset + tabIndent, linePos, -inset - 22, 19), "Def", callback=self.SavePreferences, sizeStyle='small')
 		tooltip = "Newly generated OT classes will be named after the positional tag (init, medi, fina, isol) plus a suffix for the source class (for the unsuffixed glyphs) or the target class (for the respectively suffixed glyphs). One of the suffixes can be left empty, but not both."
+		self.w.sourceSuffixText = vanilla.TextBox("auto", "Suffix for source classes:", sizeStyle='small', selectable=True)
+		self.w.sourceSuffix = vanilla.EditText("auto", "Def", callback=self.SavePreferences, sizeStyle='small')
 		self.w.sourceSuffix.setToolTip(tooltip)
 		self.w.sourceSuffixText.setToolTip(tooltip)
-		self.w.sourceSuffixUpdate = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
+		self.w.sourceSuffixUpdate = UpdateButton("auto", callback=self.update)
 		self.w.sourceSuffixUpdate.setToolTip("Reset to defaults: ‘Def’")
-		linePos += lineHeight
 
-		self.w.targetSuffixText = vanilla.TextBox((inset, linePos + 3, tabIndent, 14), "Suffix for target classes:", sizeStyle='small', selectable=True)
-		self.w.targetSuffix = vanilla.EditText((inset + tabIndent, linePos, -inset - 22, 19), "Sub", callback=self.SavePreferences, sizeStyle='small')
+		self.w.targetSuffixText = vanilla.TextBox("auto", "Suffix for target classes:", sizeStyle='small', selectable=True)
+		self.w.targetSuffix = vanilla.EditText("auto", "Sub", callback=self.SavePreferences, sizeStyle='small')
 		self.w.targetSuffix.setToolTip(tooltip)
 		self.w.targetSuffixText.setToolTip(tooltip)
-		self.w.targetSuffixUpdate = UpdateButton((-inset - 18, linePos - 1, -inset, 18), callback=self.update)
+		self.w.targetSuffixUpdate = UpdateButton("auto", callback=self.update)
 		self.w.targetSuffixUpdate.setToolTip("Reset to defaults: ‘Sub’")
-		linePos += lineHeight
 
-		self.w.automateAllLetters = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Automate ‘AllLetters’ feature class", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.automateAllLetters = vanilla.CheckBox("auto", "Automate ‘AllLetters’ feature class", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.automateAllLetters.setToolTip("The @AllLetters OpenType class can be automated (and thus, automatically kept up to date) by Glyphs. Enabling this option will add this class with the ‘Generate automatically’ option ON. Strongly recommended.")
-		linePos += lineHeight
 
-		self.w.separateFeatureEntry = vanilla.CheckBox((inset + 2, linePos, -inset, 20), "Separate feature entry (i.e. do not reuse existing feature)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.separateFeatureEntry = vanilla.CheckBox("auto", "Separate feature entry (i.e. do not reuse existing feature)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.separateFeatureEntry.setToolTip("If this option is enabled and the target feature already exists in Font Info → Features, will create a new entry with the same feature tag, rather than append the code to an existing feature entry.")
-		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Build", callback=self.BuildPositionalFeatureMain)
+		self.w.runButton = vanilla.Button("auto", "Build", callback=self.BuildPositionalFeatureMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# labels are right-aligned, hug their text, and share the width of the widest one, so the fields line up:
+		labelNames = ("targetFeatureText", "suffixesText", "sourceSuffixText", "targetSuffixText")
+		widestLabel = "sourceSuffixText"
+		for labelName in labelNames:
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+		widthRules = [
+			{"view1": getattr(self.w, labelName), "attribute1": "width", "view2": getattr(self.w, widestLabel), "attribute2": "width"}
+			for labelName in labelNames if labelName != widestLabel
+		]
+
+		# one baseline per row:
+		rowRules = []
+		for labelName, fieldName, buttonName in (
+			("targetFeatureText", "targetFeature", "targetFeatureUpdate"),
+			("suffixesText", "suffixes", "suffixesUpdate"),
+			("sourceSuffixText", "sourceSuffix", "sourceSuffixUpdate"),
+			("targetSuffixText", "targetSuffix", "targetSuffixUpdate"),
+		):
+			rowRules.append({"view1": getattr(self.w, labelName), "attribute1": "centerY", "view2": getattr(self.w, fieldName), "attribute2": "centerY"})
+			rowRules.append({"view1": getattr(self.w, buttonName), "attribute1": "centerY", "view2": getattr(self.w, fieldName), "attribute2": "centerY"})
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[targetFeatureText]-gap-[targetFeature]-gap-[targetFeatureUpdate]-inset-|",
+				"H:|-inset-[suffixesText]-gap-[suffixes]-gap-[suffixesUpdate]-inset-|",
+				"H:|-inset-[sourceSuffixText]-gap-[sourceSuffix]-gap-[sourceSuffixUpdate]-inset-|",
+				"H:|-inset-[targetSuffixText]-gap-[targetSuffix]-gap-[targetSuffixUpdate]-inset-|",
+				"H:|-inset-[automateAllLetters]-(>=inset)-|",
+				"H:|-inset-[separateFeatureEntry]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-inset-[descriptionText]-headlineGap-[targetFeature]-row-[suffixes]-row-[sourceSuffix]-row-[targetSuffix]-row-[automateAllLetters]-checkRow-[separateFeatureEntry]-inset-[runButton]-inset-|",
+			] + rowRules + widthRules,
+			metrics={"inset": inset, "gap": 8, "row": 6, "headlineGap": 10, "checkRow": 5},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -213,11 +245,9 @@ class BuildPositionalFeature(mekkaObject):
 					OKButton=None
 				)
 			else:
-				print("‘{self.title}’ Report for {thisFont.familyName}")
-				if thisFont.filepath:
-					print(thisFont.filepath)
-				else:
-					print("⚠️ The font file has not been saved yet.")
+				print(f"‘{self.title}’ Report for {thisFont.familyName}")
+				fileName = thisFont.filepath.lastPathComponent() if thisFont.filepath else f"{thisFont.familyName} (unsaved)"
+				print(f"📄 {fileName}")
 				print()
 
 				# read user settings and supply fallback values if necessary:
@@ -244,10 +274,8 @@ class BuildPositionalFeature(mekkaObject):
 					suffixDict[suffix] = suffix
 
 				userSuppliedSuffixes = [suffix.strip() for suffix in self.pref("suffixes").split(",")]
-				for i in range(len(userSuppliedSuffixes)):
-					userSuppliedSuffix = userSuppliedSuffixes[i]
+				for suffixKey, userSuppliedSuffix in zip(suffixKeys, userSuppliedSuffixes):
 					if userSuppliedSuffix:
-						suffixKey = suffixKeys[i]
 						suffixDict[suffixKey] = userSuppliedSuffix
 
 				# create or update AllLetters class
@@ -274,7 +302,6 @@ class BuildPositionalFeature(mekkaObject):
 				for suffixKey in suffixKeys:
 					thisSuffix = suffixDict[suffixKey]
 					dotSuffix = "." + thisSuffix.strip(".")
-					dotSuffixLength = len(dotSuffix)
 					theseSuffixedGlyphNames = [
 						g.name for g in thisFont.glyphs if dotSuffix in g.name  # glyph has suffix
 						and g.export  # suffixed glyph exports
@@ -331,16 +358,16 @@ class BuildPositionalFeature(mekkaObject):
 				# thisFont.updateFeatures()
 				thisFont.compileFeatures()
 
-			# Final report:
-			Glyphs.showNotification(
-				f"{thisFont.familyName}: positional features built",
-				"%i lines of code generated in %s, %i classes added or updated. Details in Macro Window," % (
-					len(positionalFeatureCode.splitlines()),
-					positionalFeature,
-					classCount,
-				),
-			)
-			print("\nDone.")
+				# Final report:
+				Glyphs.showNotification(
+					f"{thisFont.familyName}: positional features built",
+					"%i lines of code generated in %s, %i classes added or updated. Details in Macro Window." % (
+						len(positionalFeatureCode.splitlines()),
+						positionalFeature,
+						classCount,
+					),
+				)
+				print("\n✅ Done.")
 
 		except Exception as e:
 			# brings macro window to front and reports error:

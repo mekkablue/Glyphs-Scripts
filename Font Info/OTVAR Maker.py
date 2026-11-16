@@ -4,6 +4,7 @@ Creates a variable font setting in Font Info > Exports.
 """
 
 import vanilla
+from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from string import ascii_letters, digits
 from GlyphsApp import Glyphs, GSInstance, INSTANCETYPESINGLE, INSTANCETYPEVARIABLE, Message
 
@@ -99,53 +100,71 @@ class OTVARMaker(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 290
-		windowHeight = 200
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 360
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"OTVAR Maker",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Add Variable Font Setting in Font Info > Exports:", sizeStyle="small", selectable=True)
-		linePos += lineHeight
+		inset = 15
+		self.w.descriptionText = vanilla.TextBox("auto", "Add Variable Font Setting in Font Info > Exports:", sizeStyle="small", selectable=True)
 
-		indent = 130
-		self.w.suffixText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Family name suffix", sizeStyle="small", selectable=True)
-		self.w.suffix = vanilla.ComboBox((inset + indent, linePos - 2, -inset, 20), self.suffixSuggestions, sizeStyle="small", callback=self.SavePreferences)
+		self.w.suffixText = vanilla.TextBox("auto", "Family name suffix", sizeStyle="small", selectable=True)
+		self.w.suffix = vanilla.ComboBox("auto", self.suffixSuggestions, sizeStyle="small", callback=self.SavePreferences)
 		tooltip = "This is the extension that will be added to your OTVAR family name in order to differentiate it from the static family name."
 		self.w.suffixText.setToolTip(tooltip)
 		self.w.suffix.setToolTip(tooltip)
-		linePos += lineHeight
 
-		self.w.psSuffixText = vanilla.TextBox((inset, linePos + 2, indent, 14), "Non-italic PS extension", sizeStyle="small", selectable=True)
-		self.w.psSuffix = vanilla.ComboBox((inset + indent, linePos - 2, -inset, 20), self.psSuffixSuggestions, sizeStyle="small", callback=self.SavePreferences)
+		self.w.psSuffixText = vanilla.TextBox("auto", "Non-italic PS extension", sizeStyle="small", selectable=True)
+		self.w.psSuffix = vanilla.ComboBox("auto", self.psSuffixSuggestions, sizeStyle="small", callback=self.SavePreferences)
 		tooltip = "Only applies to fonts that are entirely non-italic. The Variations PostScript Name Prefix (nameID 25) should have an extension like Roman or Regular to differentiate it clearly from a pure Italic. Important for setups where uprights and italics are in different files. Also has an effect on the file name if you use that option (see below)."
 		self.w.psSuffixText.setToolTip(tooltip)
 		self.w.psSuffix.setToolTip(tooltip)
-		linePos += lineHeight
 
-		self.w.addFileName = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Add fileName parameter", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.addFileName = vanilla.CheckBox("auto", "Add fileName parameter", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.addFileName.setToolTip("Adds a custom parameter for overriding the default file name of the font file.")
-		linePos += lineHeight
 
-		self.w.deletePrevious = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "⚠️ Remove previous variable font settings", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.deletePrevious = vanilla.CheckBox("auto", "⚠️ Remove previous variable font settings", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.deletePrevious.setToolTip("Deletes all variable font settings that you may already have in your file(s).")
-		linePos += lineHeight
 
-		self.w.allFonts = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Apply to ⚠️ ALL open fonts", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allFonts = vanilla.CheckBox("auto", "Apply to ⚠️ ALL open fonts", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.allFonts.setToolTip("Adds Variable Font Settings to all fonts currently open in Glyphs.")
-		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Add", callback=self.OTVARMakerMain)
+		self.w.runButton = vanilla.Button("auto", "Add", callback=self.OTVARMakerMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# labels are right-aligned, hug their text and share one width:
+		for labelName in ("suffixText", "psSuffixText"):
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[suffixText]-gap-[suffix]-inset-|",
+				"H:|-inset-[psSuffixText]-gap-[psSuffix]-inset-|",
+				"H:|-inset-[addFileName]-(>=inset)-|",
+				"H:|-inset-[deletePrevious]-(>=inset)-|",
+				"H:|-inset-[allFonts]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-inset-[descriptionText]-headlineGap-[suffix]-row-[psSuffix]-sectionGap-[addFileName]-checkRow-[deletePrevious]-checkRow-[allFonts]-inset-[runButton]-inset-|",
+				{"view1": self.w.suffixText, "attribute1": "centerY", "view2": self.w.suffix, "attribute2": "centerY"},
+				{"view1": self.w.psSuffixText, "attribute1": "centerY", "view2": self.w.psSuffix, "attribute2": "centerY"},
+				{"view1": self.w.psSuffixText, "attribute1": "width", "view2": self.w.suffixText, "attribute2": "width"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6, "headlineGap": 10, "sectionGap": 12, "checkRow": 5},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -208,7 +227,9 @@ class OTVARMaker(mekkaObject):
 
 				# Regular vs. Italic
 				allMastersHaveAnAngle = all([m.italicAngle != 0.0 for m in thisFont.masters])
-				allInstancesAreCalledItalic = all(["Italic" in i.name for i in thisFont.instances if i.type == INSTANCETYPESINGLE])
+				singleInstanceNames = [i.name for i in thisFont.instances if i.type == INSTANCETYPESINGLE]
+				# all() of an empty list is True, so a font without instances must not count as italic:
+				allInstancesAreCalledItalic = bool(singleInstanceNames) and all(["Italic" in name for name in singleInstanceNames])
 				isItalic = allMastersHaveAnAngle or allInstancesAreCalledItalic
 				if isItalic:
 					otvarInstance.name = "Italic"

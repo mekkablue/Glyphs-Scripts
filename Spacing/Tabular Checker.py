@@ -4,6 +4,7 @@ Goes through tabular glyphs and checks if they are monospaced. Reports exception
 """
 
 import vanilla
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs
 from mekkablue import mekkaObject
 
@@ -19,41 +20,60 @@ class TabularChecker(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 440
-		windowHeight = 140
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Tabular Checker",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
+		inset = 15
 
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Goes through all glyphs with specified suffixes, and compares their widths", sizeStyle='small')
-		linePos += lineHeight
+		self.w.descriptionText = vanilla.TextBox("auto", "Goes through all glyphs with specified suffixes, and compares their widths", sizeStyle='small')
 
-		self.w.suffixesText = vanilla.TextBox((inset, linePos + 2, 95, 14), "Tabular suffixes", sizeStyle='small')
-		self.w.suffixesEntry = vanilla.EditText((inset + 90, linePos - 1, -inset, 19), "tf, tosf", callback=self.SavePreferences, sizeStyle='small')
-		self.w.suffixesEntry.setToolTip("Comma-separated list of suffixes, with or without dots. Usually, you want ‘.tf, .tosf’.")
-		linePos += lineHeight
+		suffixesTooltip = "Comma-separated list of suffixes, with or without dots. Usually, you want ‘.tf, .tosf’."
+		self.w.suffixesText = vanilla.TextBox("auto", "Tabular suffixes", sizeStyle='small')
+		self.w.suffixesText.setToolTip(suffixesTooltip)
+		self.w.suffixesEntry = vanilla.EditText("auto", "tf, tosf", callback=self.SavePreferences, sizeStyle='small')
+		self.w.suffixesEntry.setToolTip(suffixesTooltip)
 
-		self.w.allowDifferingWidthsPerSuffix = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Allow different widths in different suffixes", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allowDifferingWidthsPerSuffix = vanilla.CheckBox("auto", u"Allow different widths in different suffixes", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.allowDifferingWidthsPerSuffix.setToolTip("If checked, e.g., .tf and .tosf can have different widths in the same master. Otherwise .tf and .tosf must be same width.")
-		linePos += lineHeight
 
-		self.w.includeNonExporting = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Also include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeNonExporting = vanilla.CheckBox("auto", "Also include non-exporting glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeNonExporting.setToolTip("If not set, non-exporting glyphs will be ignored.")
-		linePos += lineHeight
 
-		self.w.allFonts = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Search in ⚠️ ALL fonts", value=True, callback=self.SavePreferences, sizeStyle="small")
-		linePos += lineHeight
+		self.w.allFonts = vanilla.CheckBox("auto", "Search in ⚠️ ALL fonts", value=True, callback=self.SavePreferences, sizeStyle="small")
 
-		self.w.status = vanilla.TextBox((inset, linePos + 2, -inset, 14), "", sizeStyle='small')
-		linePos += lineHeight
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle='small')
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Report", callback=self.TabularCheckerMain)
+		self.w.runButton = vanilla.Button("auto", "Report", callback=self.TabularCheckerMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging,
+		# the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.suffixesText.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[suffixesText]-gap-[suffixesEntry]-inset-|",
+				"H:|-inset-[allowDifferingWidthsPerSuffix]-(>=inset)-|",
+				"H:|-inset-[includeNonExporting]-(>=inset)-|",
+				"H:|-inset-[allFonts]-(>=inset)-|",
+				"H:|-inset-[status]-(>=gap)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[descriptionText]-headlineGap-[suffixesEntry]-headlineGap-[allowDifferingWidthsPerSuffix]-checkRow-[includeNonExporting]-checkRow-[allFonts]-inset-[runButton]-inset-|",
+				{"view1": self.w.suffixesText, "attribute1": "centerY", "view2": self.w.suffixesEntry, "attribute2": "centerY"},
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "headlineGap": 10, "checkRow": 5},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -107,11 +127,11 @@ class TabularChecker(mekkaObject):
 			if self.pref("allFonts"):
 				fonts = Glyphs.fonts
 			else:
-				fonts = (Glyphs.font, )
+				fonts = (Glyphs.font, ) if Glyphs.font else ()
 
 			for Font in fonts:
 				print(u"Tabular Checker Report for %s" % Font.familyName)
-				print(Font.filepath)
+				print(Font.filepath if Font.filepath else f"{Font.familyName} (unsaved)")
 				print()
 				for m in Font.masters:
 					lengths = []
@@ -124,7 +144,7 @@ class TabularChecker(mekkaObject):
 							glyphnames = []
 
 						# update status:
-						reportString = "Testing '%s' in %s..." % (suffix, m.name)
+						reportString = "🛠️ Testing '%s' in %s..." % (suffix, m.name)
 						self.reportStatus(reportString)
 
 						for g in Font.glyphs:
@@ -140,9 +160,8 @@ class TabularChecker(mekkaObject):
 					if not allowDifferingWidthsPerSuffix:
 						self.widthReport(numOfDifferentWidths, suffix, suffixes, m, lengths, glyphnames, allowDifferingWidthsPerSuffix)
 
-			reportString = "Done."
-			self.reportStatus(reportString)
-			print(reportString)
+			self.reportStatus("✅ Done.")
+			print("Done.")
 
 		except Exception as e:
 			# brings macro window to front and reports error:

@@ -4,6 +4,7 @@ Interpolates each layer x times with its background and creates glyph variations
 """
 
 import vanilla
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, setMacroDivider
@@ -138,21 +139,20 @@ class VariationInterpolator(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 240
-		windowHeight = 120
+		windowWidth = 320
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Variation Interpolator",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 10, 14, 24
+		inset = 14
 
-		self.w.text_1 = vanilla.TextBox((inset, linePos + 2, 40, 14), "Create", sizeStyle='small')
-		self.w.numberOfInterpolations = vanilla.ComboBox((inset + 42, linePos - 1, -inset - 135, 19), [x * 5 for x in range(1, 7)], sizeStyle='small', callback=self.SavePreferences)
-		self.w.text_2 = vanilla.TextBox((-inset - 130, linePos + 2, -inset, 14), "interpolations between", sizeStyle='small')
-		linePos += lineHeight
+		self.w.text_1 = vanilla.TextBox("auto", "Create", sizeStyle='small')
+		self.w.numberOfInterpolations = vanilla.ComboBox("auto", [x * 5 for x in range(1, 7)], sizeStyle='small', callback=self.SavePreferences)
+		self.w.text_2 = vanilla.TextBox("auto", "interpolations between", sizeStyle='small')
 
 		options = (
 			"background to foreground",
@@ -160,27 +160,63 @@ class VariationInterpolator(mekkaObject):
 			"first two selected glyphs",
 			"first two selected glyphs (reversed)",
 		)
-		self.w.choice = vanilla.PopUpButton((inset, linePos, -inset - 40, 17), options, sizeStyle='small', callback=self.SavePreferences)
-		self.w.text_21 = vanilla.TextBox((-inset - 35, linePos + 2, -inset, 14), "with", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		self.w.choice = vanilla.PopUpButton("auto", options, sizeStyle='small', callback=self.SavePreferences)
+		self.w.text_21 = vanilla.TextBox("auto", "with", sizeStyle='small', selectable=True)
 
-		self.w.suffixText = vanilla.TextBox((inset, linePos + 2, 35, 14), "suffix", sizeStyle='small')
-		self.w.suffix = vanilla.EditText((inset + 35, linePos - 1, -130, 20), "", callback=self.SavePreferences, sizeStyle='small')
-		self.w.postSuffixText = vanilla.TextBox((-125, linePos + 2, -15, 14), "for selected glyphs.", sizeStyle='small')
+		# the suffix row and the glyph name row take the same place, updateUI() shows one of them:
+		self.w.suffixText = vanilla.TextBox("auto", "suffix", sizeStyle='small')
+		self.w.suffix = vanilla.EditText("auto", "", callback=self.SavePreferences, sizeStyle='small')
+		self.w.postSuffixText = vanilla.TextBox("auto", "for selected glyphs.", sizeStyle='small')
 		tooltip = "Select any number of glyphs and the script will create interpolations between foreground and background of each individual glyph. They will be named after their glyph, plus the suffix you provide, plus a continuous number. LEAVE EMPTY FOR MATRA VARIATIONS (because the pres feature generation requires pure figure suffixes)."
 		self.w.suffixText.setToolTip(tooltip)
 		self.w.suffix.setToolTip(tooltip)
 		self.w.postSuffixText.setToolTip(tooltip)
 
-		self.w.glyphNameText = vanilla.TextBox((inset, linePos + 2, 70, 14), "glyph name:", sizeStyle='small', selectable=True)
-		self.w.glyphName = vanilla.EditText((inset + 70, linePos - 1, -inset, 19), "interpolation.", callback=self.SavePreferences, sizeStyle='small')
+		self.w.glyphNameText = vanilla.TextBox("auto", "glyph name:", sizeStyle='small', selectable=True)
+		self.w.glyphName = vanilla.EditText("auto", "interpolation.", callback=self.SavePreferences, sizeStyle='small')
 		tooltip = "Select exactly two glyphs to interpolate, and the script creates interpolations with this name and a continuous number suffix."
 		self.w.glyphName.setToolTip(tooltip)
 		self.w.glyphNameText.setToolTip(tooltip)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100 - 15, -20 - 15, -15, -15), "Interpolate", callback=self.VariationInterpolatorMain)
+		self.w.runButton = vanilla.Button("auto", "Interpolate", callback=self.VariationInterpolatorMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes and square buttons stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# labels are right-aligned and share one width, so the fields line up:
+		labelNames = ("text_1", "suffixText", "glyphNameText")
+		for labelName in labelNames:
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		widthRules = [{"view1": getattr(self.w, labelName), "attribute1": "width", "view2": self.w.glyphNameText, "attribute2": "width"} for labelName in labelNames if labelName != "glyphNameText"]
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[text_1]-gap-[numberOfInterpolations(70)]-gap-[text_2]-(>=inset)-|",
+				"H:|-inset-[choice]-gap-[text_21]-inset-|",
+				"H:|-inset-[suffixText]-gap-[suffix]-gap-[postSuffixText]-inset-|",
+				"H:|-inset-[glyphNameText]-gap-[glyphName]-inset-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-inset-[numberOfInterpolations]-row-[choice]-row-[suffix]-inset-[runButton]-inset-|",
+				# one baseline per row:
+				{"view1": self.w.text_1, "attribute1": "centerY", "view2": self.w.numberOfInterpolations, "attribute2": "centerY"},
+				{"view1": self.w.text_2, "attribute1": "centerY", "view2": self.w.numberOfInterpolations, "attribute2": "centerY"},
+				{"view1": self.w.text_21, "attribute1": "centerY", "view2": self.w.choice, "attribute2": "centerY"},
+				{"view1": self.w.suffixText, "attribute1": "centerY", "view2": self.w.suffix, "attribute2": "centerY"},
+				{"view1": self.w.postSuffixText, "attribute1": "centerY", "view2": self.w.suffix, "attribute2": "centerY"},
+				# the glyph name row sits exactly where the suffix row is:
+				{"view1": self.w.glyphNameText, "attribute1": "centerY", "view2": self.w.suffix, "attribute2": "centerY"},
+				{"view1": self.w.glyphName, "attribute1": "centerY", "view2": self.w.suffix, "attribute2": "centerY"},
+			] + widthRules,
+			metrics={"inset": inset, "gap": 8, "row": 8},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -197,14 +233,14 @@ class VariationInterpolator(mekkaObject):
 			self.w.postSuffixText.show(False)
 			self.w.glyphNameText.show(True)
 			self.w.glyphName.show(True)
-			self.w.runButton.enable(bool(self.w.glyphName.get().strip()) and Glyphs.font and len(Glyphs.font.selectedLayers) == 2)
+			self.w.runButton.enable(bool(self.w.glyphName.get().strip() and Glyphs.font and len(Glyphs.font.selectedLayers) == 2))
 		else:
 			self.w.suffixText.show(True)
 			self.w.suffix.show(True)
 			self.w.postSuffixText.show(True)
 			self.w.glyphNameText.show(False)
 			self.w.glyphName.show(False)
-			self.w.runButton.enable(Glyphs.font and Glyphs.font.selectedLayers)
+			self.w.runButton.enable(bool(Glyphs.font and Glyphs.font.selectedLayers))
 
 	def createGlyphCopy(self, thisGlyph, newSuffix=None, newName=None):
 		thisFont = thisGlyph.parent
