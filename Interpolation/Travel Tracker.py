@@ -145,6 +145,10 @@ class TravelTracker(mekkaObject):
 		nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
 		nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 
+		# the checkboxes that set the column width must not be squeezed by the longer rows:
+		for checkBox in (self.w.segmentRotation, self.w.ignoreShortSegments):
+			checkBox.getNSButton().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
 		self.w.addAutoPosSizeRules(
 			[
 				"H:|-inset-[descriptionText]-inset-|",

@@ -18,7 +18,7 @@ def menuForFonts(fonts):
 	if menu:
 		return menu
 	else:
-		return ("⚠️ No saved font files. Save fonts and press Update.", )
+		return ("⚠️ Save the fonts, then press Update.", )
 
 
 def masterNameParticlesForFont(font, separators=".,-:/"):
@@ -70,7 +70,7 @@ class BatchImportMasters(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 480
+		windowWidth = 520
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
