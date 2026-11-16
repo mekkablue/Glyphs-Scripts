@@ -959,8 +959,12 @@ class BuildSymbols(mekkaObject):
 			columnTail = columnTails[columnIndex] if columnIndex < len(columnTails) else ""
 			columnRules.append("V:|-row-[descriptionText]-row-" + "-row-".join(f"[{name}]" for name in column) + columnTail)
 
-		# one shared width per grid column, so the checkboxes line up across the rows:
-		widthRules = [{"view1": getattr(self.w, name), "attribute1": "width", "view2": getattr(self.w, symbolNames[0]), "attribute2": "width"} for name in symbolNames[1:]]
+		# each grid column takes the width of its own widest checkbox, so the checkboxes line up across the rows
+		# and the gaps between the columns are the same:
+		widthRules = []
+		for columnIndex in range(columnCount):
+			column = [row[columnIndex] for row in gridRows if columnIndex < len(row)]
+			widthRules += [{"view1": getattr(self.w, name), "attribute1": "width", "view2": getattr(self.w, column[0]), "attribute2": "width"} for name in column[1:]]
 		widthRules.append({"view1": self.w.newTab, "attribute1": "width", "view2": self.w.override, "attribute2": "width"})
 
 		self.w.addAutoPosSizeRules(
