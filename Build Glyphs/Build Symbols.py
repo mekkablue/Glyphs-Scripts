@@ -752,17 +752,20 @@ def radicalPenData(width, height, stem, bar):
 
 
 def arcSegments(center, radius, startDegrees, endDegrees):
-	"""Returns curve segments (three points each) for the arc around the center, in pieces of at most 90°; counterclockwise if end > start."""
-	pieceCount = max(1, math.ceil(abs(endDegrees - startDegrees) / 90.0 - 1e-9))
+	"""Returns curve segments (three points each) for the arc around the center, with on-curve points at the extrema (multiples of 90°)."""
+	step = 1 if endDegrees > startDegrees else -1
+	lowest, highest = sorted((startDegrees, endDegrees))
+	extrema = [angle for angle in range(int(math.ceil(lowest / 90.0)) * 90, int(highest) + 1, 90) if lowest < angle < highest]
+	angles = [startDegrees] + sorted(extrema, reverse=(step < 0)) + [endDegrees]
 	segments = []
-	for index in range(pieceCount):
-		startAngle = math.radians(startDegrees + (endDegrees - startDegrees) * index / pieceCount)
-		endAngle = math.radians(startDegrees + (endDegrees - startDegrees) * (index + 1) / pieceCount)
-		handleLength = 4.0 / 3.0 * math.tan((endAngle - startAngle) / 4.0) * radius
+	for startAngle, endAngle in zip(angles, angles[1:]):
+		startRadians = math.radians(startAngle)
+		endRadians = math.radians(endAngle)
+		handleLength = 4.0 / 3.0 * math.tan((endRadians - startRadians) / 4.0) * radius
 		segments.append((
-			(center[0] + radius * math.cos(startAngle) - handleLength * math.sin(startAngle), center[1] + radius * math.sin(startAngle) + handleLength * math.cos(startAngle)),
-			(center[0] + radius * math.cos(endAngle) + handleLength * math.sin(endAngle), center[1] + radius * math.sin(endAngle) - handleLength * math.cos(endAngle)),
-			(center[0] + radius * math.cos(endAngle), center[1] + radius * math.sin(endAngle)),
+			(center[0] + radius * math.cos(startRadians) - handleLength * math.sin(startRadians), center[1] + radius * math.sin(startRadians) + handleLength * math.cos(startRadians)),
+			(center[0] + radius * math.cos(endRadians) + handleLength * math.sin(endRadians), center[1] + radius * math.sin(endRadians) - handleLength * math.cos(endRadians)),
+			(center[0] + radius * math.cos(endRadians), center[1] + radius * math.sin(endRadians)),
 		))
 	return segments
 
