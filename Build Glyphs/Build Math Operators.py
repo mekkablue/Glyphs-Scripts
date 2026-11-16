@@ -261,37 +261,52 @@ def offsetHandles(span, amplitude, half, side):
 	determinant = s11 * s22 - s12 * s12
 	peakHandle = (t1 * s22 - t2 * s12) / determinant
 	minusTroughHandle = (s11 * t2 - s12 * t1) / determinant
-	return peakHandle, -minusTroughHandle
+	# very steep waves would need handles that run backwards (loops): stop at the extreme
+	return max(peakHandle, 0.0), max(-minusTroughHandle, 0.0)
 
 
 def waveOutline(length, stroke, amplitude):
 	"""
 	One period of a sine-like wave, as a closed outline with vertical ends, centered on (0, 0). The amplitude is the
 	distance between the corner nodes at the ends and the first extremes. A single curve runs from a peak to the next
-	trough, so there are no nodes on the inflection points.
+	trough, so there are no nodes on the inflection points. The stroke is as thick as asked at the extremes and, measured
+	at right angles, along the slope. At the ends the stroke is cut vertically while it runs on a slope, so there the cut is
+	longer than the stroke is thick: it lifts the corner nodes, and the centerline needs more amplitude to make up for it.
 	"""
-	slope = 2.0 * math.pi * amplitude / length  # at the zero crossings
-	# half-compensate the thinning of the stroke on slopes:
-	thickness = stroke / math.cos(math.atan(slope) / 2.0)
-	half = thickness / 2.0
+	half = stroke / 2.0
+	# find the amplitude of the centerline for which the edges rise by exactly the asked amplitude (Newton's method)
+	centerAmplitude = float(amplitude)
+	for _ in range(40):
+		root = math.sqrt(1.0 + (2.0 * math.pi * centerAmplitude / length)**2)
+		error = centerAmplitude - half * (root - 1.0) - amplitude
+		gradient = 1.0 - half * (2.0 * math.pi / length)**2 * centerAmplitude / root
+		if gradient < 1e-3:
+			break  # no solution for such a steep wave, keep what we have
+		step = error / gradient
+		centerAmplitude -= step
+		if abs(step) < 1e-12:
+			break
+	slope = 2.0 * math.pi * centerAmplitude / length  # at the corners
+	cornerHalf = half * math.sqrt(1.0 + slope * slope)  # half of the vertical cut at the ends
 	quarter = length / 4.0
 	xs = [-length / 2.0 + index * quarter for index in range(5)]
-	rise = waveHandleStart * (math.pi / 2.0) * amplitude
+	rise = waveHandleStart * (math.pi / 2.0) * centerAmplitude
 
 	def edge(side):
 		offset = side * half
-		peakHandle, troughHandle = offsetHandles(2.0 * quarter, amplitude, half, side)
+		cornerOffset = side * cornerHalf
+		peakHandle, troughHandle = offsetHandles(2.0 * quarter, centerAmplitude, half, side)
 		return [
-			(xs[0], offset, False),  # corner
-			(xs[0] + waveHandleStart * quarter, rise + offset, True), (xs[1] - waveHandleEnd * quarter, amplitude + offset, True),
-			(xs[1], amplitude + offset, False),  # peak
-			(xs[1] + peakHandle, amplitude + offset, True), (xs[3] - troughHandle, -amplitude + offset, True),
-			(xs[3], -amplitude + offset, False),  # trough
-			(xs[3] + waveHandleEnd * quarter, -amplitude + offset, True), (xs[4] - waveHandleStart * quarter, -rise + offset, True),
-			(xs[4], offset, False),  # corner
+			(xs[0], cornerOffset, False),  # corner
+			(xs[0] + waveHandleStart * quarter, rise + cornerOffset, True), (xs[1] - waveHandleEnd * quarter, centerAmplitude + offset, True),
+			(xs[1], centerAmplitude + offset, False),  # peak
+			(xs[1] + peakHandle, centerAmplitude + offset, True), (xs[3] - troughHandle, -centerAmplitude + offset, True),
+			(xs[3], -centerAmplitude + offset, False),  # trough
+			(xs[3] + waveHandleEnd * quarter, -centerAmplitude + offset, True), (xs[4] - waveHandleStart * quarter, -rise + cornerOffset, True),
+			(xs[4], cornerOffset, False),  # corner
 		]
 
-	return edge(1) + edge(-1)[::-1], thickness
+	return edge(1) + edge(-1)[::-1], stroke
 
 
 class Proportions(object):
