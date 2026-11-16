@@ -38,7 +38,6 @@ minusTabScale = 0.735  # zoom of the tab for editing the minus
 multiplyScale = 0.9  # bounding box of × relative to the length of the bars
 chevronAngle = 30.0  # angle of the arms of < and > against the horizontal axis, in degrees
 caretAngle = 45.0  # angle of the arms of ^ against the vertical axis, in degrees
-slashAngle = 63.0  # angle of the slash in ≠ against the horizontal, in degrees
 waveAmplitude = 0.09  # amplitude of the waves in ≈ and ~, relative to the length of the bars
 waveHandleStart = 0.33  # Bézier handle lengths (fraction of a quarter wave) that approximate a sine wave
 waveHandleEnd = 0.36
@@ -257,6 +256,8 @@ class Proportions(object):
 		self.kneeCap = plan["kneeCap"]  # of the inner apex in < > ≤ ≥
 		self.slashOverhang = plan["slashOverhang"]  # of the slash in ≠
 		self.slashStrokeChange = plan["slashStrokeChange"]  # stroke width of the slash in ≠, relative to the stroke
+		self.slashAngle = plan["slashAngle"]  # of the slash in ≠, clockwise from vertical, in degrees
+		self.slashEnds = plan["slashEnds"]  # cut of the ends of the slash in ≠: 0 horizontal, 100 perpendicular, 200 vertical
 		self.multiplyExtension = plan["multiplyExtension"]  # of the arms of ×
 		self.miter = plan["miter"] / 100.0
 		self.correction = plan["correction"] / 100.0
@@ -317,16 +318,57 @@ def equalShapes(p):
 	]
 
 
+def slashCutAngle(ends, theta):
+	"""
+	Direction of the cut at the ends of the slash, in radians against the horizontal, for a stroke in the direction theta.
+	ends 0 is a horizontal cut, 100 is perpendicular to the stroke, 200 is a vertical cut. The cut turns gradually.
+	"""
+	perpendicular = theta - math.pi / 2.0
+	vertical = -math.pi / 2.0 if perpendicular < 0 else math.pi / 2.0
+	if ends <= 100:
+		cut = perpendicular * ends / 100.0
+	else:
+		cut = perpendicular + (vertical - perpendicular) * (ends - 100) / 100.0
+	# a cut parallel to the stroke has no end, so keep it at least 10° away from it
+	difference = (cut - theta + math.pi / 2.0) % math.pi - math.pi / 2.0
+	if abs(difference) < math.radians(10):
+		cut = theta + math.copysign(math.radians(10), difference if difference else 1.0)
+	return cut
+
+
 def notEqualShapes(p):
 	shapes = equalShapes(p)
 	halfHeight = p.stroke + p.barDistance / 2.0 + p.slashOverhang  # the slash reaches beyond the bars by its overhang
-	slashStroke = p.corrected((math.cos(math.radians(slashAngle)), math.sin(math.radians(slashAngle))), max(p.stroke + p.slashStrokeChange, 1))
-	halfWidth = slashStroke / math.sin(math.radians(slashAngle)) / 2.0  # horizontal half width for the stroke thickness
-	run = halfHeight / math.tan(math.radians(slashAngle))
-	shapes.append(p.slant(polygon((
-		(-run - halfWidth, -halfHeight), (-run + halfWidth, -halfHeight),
-		(run + halfWidth, halfHeight), (run - halfWidth, halfHeight),
-	))))
+	theta = math.radians(90.0 - p.slashAngle)  # direction of the stroke against the horizontal
+	direction = (math.cos(theta), math.sin(theta))
+	normal = (-direction[1], direction[0])
+	stroke = p.corrected(direction, max(p.stroke + p.slashStrokeChange, 1))
+
+	def reachOf(cutAngle):
+		"""How far the corners of a cut are above and below the center of the stroke at its end."""
+		return (stroke / 2.0) * abs(math.sin(cutAngle) / (normal[0] * math.cos(cutAngle) + normal[1] * math.sin(cutAngle)))
+
+	cut = slashCutAngle(p.slashEnds, theta)
+	# A cut that is almost parallel to the stroke (a vertical cutoff of a vertical slash) would let the two ends overlap each
+	# other. So the corners may reach at most 45% of the half height; further than that the cut turns back toward perpendicular.
+	if reachOf(cut) > 0.45 * halfHeight:
+		perpendicular = theta - math.pi / 2.0
+		low, high = 0.0, 1.0
+		for _ in range(40):
+			middle = (low + high) / 2.0
+			if reachOf(perpendicular + middle * (cut - perpendicular)) <= 0.45 * halfHeight:
+				low = middle
+			else:
+				high = middle
+		cut = perpendicular + low * (cut - perpendicular)
+	cutDirection = (math.cos(cut), math.sin(cut))
+	normalPart = normal[0] * cutDirection[0] + normal[1] * cutDirection[1]
+	# the highest corner of the cut is on the outer edge of the overhang
+	reach = reachOf(cut)
+	top = max((halfHeight - reach) / direction[1], 1.0)
+	cornerA, cornerB = [(top * direction[0] + side / normalPart * cutDirection[0], top * direction[1] + side / normalPart * cutDirection[1]) for side in (stroke / 2.0, -stroke / 2.0)]
+	# the bottom end is the top end turned around the center
+	shapes.append(p.slant(polygon((cornerA, cornerB, (-cornerA[0], -cornerA[1]), (-cornerB[0], -cornerB[1])))))
 	return shapes
 
 
@@ -591,6 +633,8 @@ class BuildMathOperators(mekkaObject):
 		"kneeCap": 10,
 		"slashOverhang": 80,
 		"slashStroke": 0,
+		"slashAngle": 27,
+		"slashEnds": 0,
 		"multiplyExtension": 0,
 		"miter": 80,
 		"italic": True,
@@ -605,7 +649,7 @@ class BuildMathOperators(mekkaObject):
 	}
 
 	def __init__(self):
-		windowWidth = 500
+		windowWidth = 520
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
@@ -696,8 +740,10 @@ class BuildMathOperators(mekkaObject):
 		addField("kneeCap", "<>≤≥", 10, "Knee cap of < > ≤ ≥: the inner apex point is drawn this many units toward the cut-off outer apex, to lighten the joint of the arms. The shape itself does not overshoot the bars.", 0)
 		addField("slashOverhang", None, 80, "Overhang of the slash in ≠: how far it reaches beyond the outer edges of the two bars, in units.", 0)
 		addField("slashStroke", None, 0, "Stroke width change of the slash in ≠, in units, added to the stroke (negative: thinner).", -99, 99)
+		addField("slashAngle", None, 27, "Angle of the slash in ≠, clockwise from vertical, in degrees: 0 is a vertical slash, 27 is the usual slant.", -80, 80)
+		addField("slashEnds", None, 0, "Cut at the ends of the slash in ≠: 0 is a horizontal cutoff, 100 is perpendicular to the stroke, 200 is a vertical cutoff. In between, the cut turns gradually. For very upright slashes a vertical cutoff would run along the stroke, so it is limited to what keeps the shape valid.", 0, 200)
 		self.w.slashLabel = vanilla.TextBox("auto", "≠", sizeStyle="small")
-		self.w.slashLabel.setToolTip("The slash in ≠. First field: how far it reaches beyond the bars. Second field: change of its stroke width. Both in units.")
+		self.w.slashLabel.setToolTip("The slash in ≠. First field: how far it reaches beyond the bars, in units. Second field: change of its stroke width, in units. Third field: its angle, clockwise from vertical. Fourth field: the cut at its ends, 0 horizontal, 100 perpendicular, 200 vertical.")
 
 		tooltipText = "Cuts off the pointed apex of < > ≤ ≥ with a vertical line (parallel to the italic angle in slanted masters), so that the blunt end is this percentage of the stroke tall. 0 keeps the sharp point."
 		self.w.miterLabel = vanilla.TextBox("auto", "Miter", sizeStyle="small")
@@ -794,7 +840,7 @@ class BuildMathOperators(mekkaObject):
 			"H:|-inset-[sidebearingLabel]-gap-[sidebearing(60)]-gap-[sidebearingText]-(>=inset)-|",
 			"H:|-inset-[strokeLabel]-gap-[stroke(60)]-gap-[resetStroke]-gap-[strokeText]-(>=inset)-|",
 			"H:|-inset-[distancesLabel]-gap-[dotDistance(fieldWidth)]-tight-[dotDistanceLabel]-pair-[barDistance(fieldWidth)]-tight-[barDistanceLabel]-pair-[shapeDistance(fieldWidth)]-tight-[shapeAdaptation(fieldWidth)]-tight-[shapeDistanceLabel]-(>=inset)-|",
-			"H:|-inset-[correctionsLabel]-gap-[dotOvershoot(fieldWidth)]-tight-[dotOvershootLabel]-pair-[multiplyExtension(fieldWidth)]-tight-[multiplyExtensionLabel]-pair-[kneeCap(fieldWidth)]-tight-[kneeCapLabel]-pair-[slashOverhang(fieldWidth)]-tight-[slashStroke(fieldWidth)]-tight-[slashLabel]-(>=inset)-|",
+			"H:|-inset-[correctionsLabel]-gap-[dotOvershoot(fieldWidth)]-tight-[dotOvershootLabel]-pair-[multiplyExtension(fieldWidth)]-tight-[multiplyExtensionLabel]-pair-[kneeCap(fieldWidth)]-tight-[kneeCapLabel]-pair-[slashOverhang(fieldWidth)]-tight-[slashStroke(fieldWidth)]-tight-[slashAngle(fieldWidth)]-tight-[slashEnds(fieldWidth)]-tight-[slashLabel]-(>=inset)-|",
 			"H:|-inset-[miterLabel]-gap-[miter(60)]-gap-[miterText]-(>=inset)-|",
 			"H:|-inset-[italicLabel]-gap-[italic]-(>=inset)-|",
 			"H:[wiper(60)]-gap-[wiperText]-(>=inset)-|",
@@ -839,7 +885,7 @@ class BuildMathOperators(mekkaObject):
 			("sidebearing", ("sidebearingLabel", "sidebearingText")),
 			("stroke", ("strokeLabel", "resetStroke", "strokeText")),
 			("dotDistance", ("distancesLabel", "dotDistanceLabel", "barDistance", "barDistanceLabel", "shapeDistance", "shapeAdaptation", "shapeDistanceLabel")),
-			("dotOvershoot", ("correctionsLabel", "dotOvershootLabel", "multiplyExtension", "multiplyExtensionLabel", "kneeCap", "kneeCapLabel", "slashOverhang", "slashStroke", "slashLabel")),
+			("dotOvershoot", ("correctionsLabel", "dotOvershootLabel", "multiplyExtension", "multiplyExtensionLabel", "kneeCap", "kneeCapLabel", "slashOverhang", "slashStroke", "slashAngle", "slashEnds", "slashLabel")),
 			("miter", ("miterLabel", "miterText")),
 			("italic", ("italicLabel", )),
 			("wiper", ("wiperText", )),
@@ -972,6 +1018,7 @@ class BuildMathOperators(mekkaObject):
 		font = Glyphs.font
 		if font:
 			font.newTab(self.tabText())
+			font.tool = "TextTool"  # ready for typing
 
 	def editMinus(self, sender):
 		font = Glyphs.font
@@ -1060,6 +1107,8 @@ class BuildMathOperators(mekkaObject):
 				"kneeCap": int(round(float(self.pref("kneeCap")))),
 				"slashOverhang": int(round(float(self.pref("slashOverhang")))),
 				"slashStrokeChange": int(round(float(self.pref("slashStroke")))),
+				"slashAngle": float(self.pref("slashAngle")),
+				"slashEnds": float(self.pref("slashEnds")),
 				"multiplyExtension": int(round(float(self.pref("multiplyExtension")))),
 				"miter": float(self.pref("miter")),
 				"wiper": float(self.pref("wiper")),
@@ -1070,7 +1119,7 @@ class BuildMathOperators(mekkaObject):
 			return None
 		distances = (settings["dotDistance"], settings["shapeDistance"], settings["barDistance"])
 		corrections = (settings["overshoot"], settings["kneeCap"], settings["slashOverhang"])
-		if settings["stroke"] < 1 or settings["plusWidth"] < 1 or settings["sidebearing"] < 0 or min(distances) < 1 or min(corrections) < 0 or settings["miter"] < 0 or not 0 <= settings["wiper"] <= 100 or not 0 <= settings["adaptation"] <= 100 or not -45 <= settings["angleAdjustment"] <= 45:
+		if settings["stroke"] < 1 or settings["plusWidth"] < 1 or settings["sidebearing"] < 0 or min(distances) < 1 or min(corrections) < 0 or settings["miter"] < 0 or not 0 <= settings["wiper"] <= 100 or not 0 <= settings["adaptation"] <= 100 or not -80 <= settings["slashAngle"] <= 80 or not 0 <= settings["slashEnds"] <= 200 or not -45 <= settings["angleAdjustment"] <= 45:
 			return None
 		settings["takeFromMinus"] = self.prefInt("drawMode") == 1 and not forceFromScratch
 		settings["widthMode"] = self.prefInt("widthMode")
@@ -1183,6 +1232,8 @@ class BuildMathOperators(mekkaObject):
 			"kneeCap": settings["kneeCap"],
 			"slashOverhang": settings["slashOverhang"],
 			"slashStrokeChange": settings["slashStrokeChange"],
+			"slashAngle": settings["slashAngle"],
+			"slashEnds": settings["slashEnds"],
 			"multiplyExtension": settings["multiplyExtension"],
 			"miter": settings["miter"],
 			"correction": settings["wiper"],
