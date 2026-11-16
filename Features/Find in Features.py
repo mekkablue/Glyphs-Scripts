@@ -3,9 +3,9 @@ __doc__ = """
 Finds expressions (glyph, lookup or class names) in OT Features, Prefixes and Classes.
 """
 
-import vanilla
 from fnmatch import fnmatchcase
-from AppKit import NSFont, NSFontFeatureSettingsAttribute, NSFontFeatureTypeIdentifierKey, NSFontFeatureSelectorIdentifierKey
+import vanilla
+from AppKit import NSFont, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultLow, NSFontFeatureSettingsAttribute, NSFontFeatureTypeIdentifierKey, NSFontFeatureSelectorIdentifierKey
 from GlyphsApp import Glyphs
 from mekkablue import mekkaObject, UpdateButton, getLegibleFont
 
@@ -16,29 +16,37 @@ class FindInFeatures(mekkaObject):
 		# Window 'self.w':
 		windowWidth = 180
 		windowHeight = 200
-		windowWidthResize = 300  # user can resize width by this value
-		windowHeightResize = 1100  # user can resize height by this value
+		# the result list is the main content, so the window stays resizable (hence minSize):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Find in Features",  # window title
 			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 3, 5, 28
-		self.w.searchFor = vanilla.ComboBox((4, linePos, -22, 22), self.glyphNamesAndClassNames(), callback=self.FindInFeaturesMain)
+		self.w.searchFor = vanilla.ComboBox("auto", self.glyphNamesAndClassNames(), callback=self.FindInFeaturesMain)
 		self.w.searchFor.setToolTip("Type the name of a glyph or (prefixed with @) a class, or choose it from the menu. Supports wildcards: * matches any sequence of characters, ? matches any single character.")
-		self.w.updateButton = UpdateButton((-19, linePos, -2, 18), callback=self.update)
+		self.w.updateButton = UpdateButton("auto", callback=self.update)
 		self.w.updateButton.setToolTip("Update the autocompletion list for the frontmost font.")
-		linePos += lineHeight
 
-		self.w.result = vanilla.TextEditor((inset, linePos, -inset, -inset), "")
+		self.w.result = vanilla.TextEditor("auto", "")
 		self.w.result.getNSTextView().setEditable_(False)
 		self.w.result.getNSTextView().setFont_(self.legibleTabularFont())
 		self.w.result.getNSTextView().setToolTip_("Search results: OT classes, prefixes, and features that contain the searched name.")
-		linePos += lineHeight
+
+		# the result takes all the height the user gives the window:
+		self.w.result.getNSScrollView().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationVertical)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[searchFor(>=100)]-gap-[updateButton]-inset-|",
+				"H:|-inset-[result]-inset-|",
+				"V:|-inset-[searchFor]-gap-[result(>=100)]-inset-|",
+				{"view1": self.w.updateButton, "attribute1": "centerY", "view2": self.w.searchFor, "attribute2": "centerY"},
+			],
+			metrics={"inset": 5, "gap": 5},
+		)
 
 		# Open window and focus on it:
 		self.w.open()
