@@ -1,9 +1,7 @@
 # MenuTitle: Build Symbols
 __doc__ = """
-Creates an estimated glyph and draws an estimated sign in it. Does the same for bar and brokenbar, for which it respects standard stems and italic angle, and for emptyset, dottedCircle, currency, lozenge and .notdef.
+Creates an estimated glyph and draws an estimated sign in it. Does the same for bar and brokenbar, for which it respects standard stems and italic angle, and for emptyset, dottedCircle, currency, lozenge, product, summation, radical and .notdef. Stem widths are measured on the slash, else taken from the master stems, else defaulted, so it also works in an empty font.
 """
-
-# TODO: product, summation, radical
 
 import math
 import traceback
@@ -251,19 +249,43 @@ def drawStrokedSkeleton(font, master, layer, penData, size, maxStemFactor, close
 	layer.syncMetrics()
 
 
+def notdefFrameInLayer(font, master, layer):
+	"""Fallback .notdef without a question mark: a rectangular frame of cap height, with the stem width of the master."""
+	bottom, height = mathBoxOfMaster(master)
+	height = height / 1.1  # cap height
+	width = height * 0.6
+	stem = stemWidthForMaster(font, master, maxWidth=width * 0.2)
+	drawPenDataInLayer(
+		layer,
+		(
+			((0.0, 0.0), (width, 0.0), (width, height), (0.0, height)),  # outer frame, counterclockwise
+			((stem, stem), (stem, height - stem), (width - stem, height - stem), (width - stem, stem)),  # counter, clockwise
+		),
+	)
+	layer.syncMetrics()
+
+
 def buildNotdef(font, override=False, backupLayers=False):
+	# use the boldest question mark, if there is one with outlines:
+	sourceLayer = None
 	questionGlyph = font.glyphs["question"]
-	if not questionGlyph:
-		print("⚠️ Error building .notdef: No question mark is available in your font. Cannot create .notdef.")
-		return
+	if questionGlyph:
+		questionLayers = [layer for layer in questionGlyph.layers if (layer.isMasterLayer or layer.isSpecialLayer) and layer.shapes]
+		if questionLayers:
+			sourceLayer = max(questionLayers, key=areaOfLayer)
+	if sourceLayer is None:
+		print("⚠️ No question mark with outlines in your font. Will build a simple .notdef frame instead.")
 
 	notdefGlyph = createGlyph(font, ".notdef", None, override=override, backupLayers=backupLayers)
 	if not notdefGlyph:
 		return
 
-	# use the boldest question mark:
-	questionLayers = [layer for layer in questionGlyph.layers if layer.isMasterLayer or layer.isSpecialLayer]
-	sourceLayer = max(questionLayers, key=areaOfLayer)
+	if sourceLayer is None:
+		setMetrics(notdefGlyph, leftKey="=40")
+		for master in font.masters:
+			notdefFrameInLayer(font, master, notdefGlyph.layers[master.id])
+			print(f"✅ Created .notdef frame in master ‘{master.name}’")
+		return
 
 	# build .notdef from question mark and circle:
 	questionmarkLayer = sourceLayer.copyDecomposedLayer()
@@ -281,6 +303,7 @@ def buildNotdef(font, override=False, backupLayers=False):
 		for path in questionmarkLayer.paths:
 			notdefLayer.shapes.append(path.copy())
 		notdefLayer.syncMetrics()
+		print(f"✅ Created .notdef in master ‘{master.name}’")
 
 
 def buildLozenge(font, override=False, backupLayers=False):
@@ -529,6 +552,125 @@ def buildBars(font, override=False, backupLayers=False):
 			print(f"✅ Created brokenbar in master ‘{master.name}’")
 
 
+def mathBoxOfMaster(master):
+	"""Returns (bottom, height) of the box for product, summation and radical: 110% cap height, centered on half the cap height."""
+	capHeight = master.capHeight
+	if not capHeight or capHeight <= 0:  # degenerate master metrics
+		capHeight = (master.xHeight * 1.4) if master.xHeight and master.xHeight > 0 else 700.0
+	height = capHeight * 1.1
+	return capHeight * 0.5 - height * 0.5, height
+
+
+def mappedPenData(penData, mapPoint):
+	"""Returns the pen data with every point replaced by mapPoint(point)."""
+	result = []
+	for path in penData:
+		mappedPath = [mapPoint(path[0])]
+		for segment in path[1:]:
+			if len(segment) == 3:  # curve: three points
+				mappedPath.append(tuple(mapPoint(point) for point in segment))
+			else:  # line: one point
+				mappedPath.append(mapPoint(segment))
+		result.append(tuple(mappedPath))
+	return tuple(result)
+
+
+def productPenData(width, height, stem, bar):
+	"""∏ as one polygon: a bar on top, overhanging two legs. Origin bottom left, outer contour counterclockwise."""
+	overhang = bar * 0.6
+	legLeft = overhang
+	legRight = width - overhang
+	barBottom = height - bar
+	return ((
+		(legLeft, 0.0), (legLeft + stem, 0.0), (legLeft + stem, barBottom), (legRight - stem, barBottom), (legRight - stem, 0.0), (legRight, 0.0),
+		(legRight, barBottom), (width, barBottom), (width, height), (0.0, height), (0.0, barBottom), (legLeft, barBottom)
+	), )
+
+
+def summationPenData(width, height, stem, bar):
+	"""∑ as one polygon: two bars with tips, joined by two diagonals meeting at the right. Origin bottom left, outer contour counterclockwise."""
+	diagonal = stem * 1.3  # horizontal thickness of the diagonals
+	tip = bar  # height of the little serifs at the right ends of the bars
+	apex = (width * 0.55, height * 0.5)
+	return ((
+		(0.0, 0.0), (width, 0.0), (width, bar + tip), (width - stem, bar + tip), (width - stem, bar), (diagonal, bar), apex, (diagonal, height - bar),
+		(width - stem, height - bar), (width - stem, height - bar - tip), (width, height - bar - tip), (width, height), (0.0, height),
+		(0.0, height - bar), (apex[0] - diagonal, apex[1]), (0.0, bar)
+	), )
+
+
+def radicalPenData(width, height, stem, bar):
+	"""√ as one polygon: tick, heavy downstroke, light upstroke and the bar on top. Origin bottom left, outer contour counterclockwise."""
+	heavy = stem * 1.3  # horizontal thickness of the downstroke
+	light = stem * 0.7  # horizontal thickness of the upstroke
+	foot = stem * 0.4  # width of the flat bottom
+
+	# tick, from its left end up to the peak of the downstroke:
+	tickLeftBottom = height * 0.38
+	peakX = width * 0.17
+	peakY = tickLeftBottom + bar + height * 0.07
+	footLeftX = width * 0.30
+	footRightX = footLeftX + foot
+
+	# all slanted edges are written as x = x0 + slope * y:
+	downSlope = (peakX - footLeftX) / peakY
+	upSlope = (width * 0.55 - footRightX) / height
+	tickSlope = peakX / (peakY - tickLeftBottom - bar)  # bottom edge of the tick, parallel to its top edge
+
+	# inner vertex: the right edge of the downstroke meets the left edge of the upstroke:
+	vertexY = (footRightX - light - footLeftX - heavy) / (downSlope - upSlope)
+	vertex = (footLeftX + heavy + downSlope * vertexY, vertexY)
+
+	# where the bottom edge of the tick meets the left edge of the downstroke:
+	tickJoinY = (footLeftX + tickSlope * tickLeftBottom) / (tickSlope - downSlope)
+	tickJoin = (footLeftX + downSlope * tickJoinY, tickJoinY)
+
+	def upstrokeRightX(y):
+		return footRightX + upSlope * y
+
+	return ((
+		(footLeftX, 0.0), (footRightX, 0.0), (upstrokeRightX(height - bar), height - bar), (width, height - bar), (width, height),
+		(upstrokeRightX(height) - light, height), vertex, (peakX + heavy, peakY), (peakX, peakY), (0.0, tickLeftBottom + bar), (0.0, tickLeftBottom),
+		tickJoin
+	), )
+
+
+def buildMathSymbol(font, glyphName, unicodeValue, penDataFunction, widthFactor, maxStemFactor, override=False, backupLayers=False):
+	"""Builds a polygon symbol in every master: size from the cap height, stems measured as for the other symbols, but at most maxStemFactor of the height."""
+	glyph = createGlyph(font, glyphName, unicodeValue, override=override, backupLayers=backupLayers)
+	if not glyph:
+		return
+	setMetrics(glyph, kerningGroup=glyphName)
+
+	for master in font.masters:
+		layer = glyph.layers[master.id]
+		bottom, height = mathBoxOfMaster(master)
+		width = height * widthFactor
+		stem = stemWidthForMaster(font, master, maxWidth=height * maxStemFactor)
+		bar = stem * 0.85  # horizontals are lighter than verticals
+
+		def place(point):
+			slanted = italicize(NSPoint(point[0], point[1] + bottom), italicAngle=master.italicAngle, pivotalY=master.xHeight * 0.5)
+			return (slanted.x, slanted.y)
+
+		drawPenDataInLayer(layer, mappedPenData(penDataFunction(width, height, stem, bar), place))
+		layer.correctPathDirection()
+		layer.syncMetrics()
+		print(f"✅ Created {glyphName} in master ‘{master.name}’")
+
+
+def buildProduct(font, override=False, backupLayers=False):
+	buildMathSymbol(font, "product", "220F", productPenData, 0.66, 0.12, override=override, backupLayers=backupLayers)
+
+
+def buildSummation(font, override=False, backupLayers=False):
+	buildMathSymbol(font, "summation", "2211", summationPenData, 0.62, 0.12, override=override, backupLayers=backupLayers)
+
+
+def buildRadical(font, override=False, backupLayers=False):
+	buildMathSymbol(font, "radical", "221A", radicalPenData, 0.70, 0.065, override=override, backupLayers=backupLayers)
+
+
 def tabStringForExistingGlyphs(font, glyphNames):
 	"""Returns '/name' for each glyph name that actually exists in the font, e.g. when the build failed."""
 	return "".join(f"/{glyphName}" for glyphName in glyphNames if font.glyphs[glyphName])
@@ -589,22 +731,22 @@ SYMBOLS = (
 	(
 		"buildProduct",
 		"product ∏",
-		"Will build product. Not yet implemented, sorry.",
-		None,
+		"Will build product ∏: a polygon of 110% cap height, stems measured as for bar (slash, else master stems), horizontals at 85% of the stem. Respects the italic angle.",
+		buildProduct,
 		("product", ),
 	),
 	(
 		"buildSummation",
 		"summation ∑",
-		"Will build summation. Not yet implemented, sorry.",
-		None,
+		"Will build summation ∑: a polygon of 110% cap height, stems measured as for bar (slash, else master stems), horizontals at 85% of the stem. Respects the italic angle.",
+		buildSummation,
 		("summation", ),
 	),
 	(
 		"buildRadical",
 		"radical √",
-		"Will build radical. Not yet implemented, sorry.",
-		None,
+		"Will build radical √: a polygon of 110% cap height, stems measured as for bar (slash, else master stems), horizontals at 85% of the stem. Respects the italic angle.",
+		buildRadical,
 		("radical", ),
 	),
 )
