@@ -628,91 +628,122 @@ def mappedPenData(penData, mapPoint):
 
 
 def crossPenData(width, height, stem, bar, barCenters):
-	"""A vertical stem with one crossbar at each of the heights in barCenters (ascending). Origin bottom left, counterclockwise."""
+	"""A stem and one overlapping crossbar rectangle at each of the heights in barCenters. Origin bottom left, counterclockwise."""
 	stemLeft = (width - stem) * 0.5
 	stemRight = stemLeft + stem
-	rightSide = [(stemRight, 0.0)]
-	leftSide = []
+	rectangles = [((stemLeft, 0.0), (stemRight, 0.0), (stemRight, height), (stemLeft, height))]
 	for center in barCenters:
-		rightSide += [(stemRight, center - bar * 0.5), (width, center - bar * 0.5), (width, center + bar * 0.5), (stemRight, center + bar * 0.5)]
-		leftSide = [(stemLeft, center + bar * 0.5), (0.0, center + bar * 0.5), (0.0, center - bar * 0.5), (stemLeft, center - bar * 0.5)] + leftSide
-	return ((stemLeft, 0.0), *rightSide, (stemRight, height), (stemLeft, height), *leftSide),
+		rectangles.append(((0.0, center - bar * 0.5), (width, center - bar * 0.5), (width, center + bar * 0.5), (0.0, center + bar * 0.5)))
+	return tuple(rectangles)
 
 
 def daggerPenData(width, height, stem, bar):
-	"""† as one polygon: a stem with a crossbar in its upper third."""
+	"""† as two overlapping rectangles: a stem with a crossbar in its upper third."""
 	return crossPenData(width, height, stem, bar, (height * 0.68, ))
 
 
 def daggerdblPenData(width, height, stem, bar):
-	"""‡ as one polygon: a stem with two crossbars."""
+	"""‡ as three overlapping rectangles: a stem with two crossbars."""
 	return crossPenData(width, height, stem, bar, (height * 0.36, height * 0.74))
 
 
 def productPenData(width, height, stem, bar):
-	"""∏ as three overlapping rectangles: a bar on top and two legs reaching up through it. Origin bottom left, counterclockwise."""
+	"""∏ as three overlapping rectangles: a bar on top, and two legs that end in the middle of the bar. Origin bottom left, counterclockwise."""
 	overhang = bar * 0.6
+	legTop = height - bar * 0.5  # halfway through the bar, equidistant to its edges
 	legLeft = overhang
 	legRight = width - overhang - stem
 	return (
 		((0.0, height - bar), (width, height - bar), (width, height), (0.0, height)),
-		((legLeft, 0.0), (legLeft + stem, 0.0), (legLeft + stem, height), (legLeft, height)),
-		((legRight, 0.0), (legRight + stem, 0.0), (legRight + stem, height), (legRight, height)),
+		((legLeft, 0.0), (legLeft + stem, 0.0), (legLeft + stem, legTop), (legLeft, legTop)),
+		((legRight, 0.0), (legRight + stem, 0.0), (legRight + stem, legTop), (legRight, legTop)),
 	)
 
 
 def summationPenData(width, height, stem, bar):
 	"""
-	∑ as two overlapping polygons, each a bar with a diagonal to the knee at two thirds of the width. Where the diagonals meet,
-	each reaches as a small triangle into the other (the kneecap). Origin bottom left, counterclockwise.
+	∑ as one contour: two bars, joined by two diagonals meeting in a knee at two thirds of the width.
+	Where the outlines meet at an inner corner they overshoot and are closed by a short segment (“opened corner”),
+	so each corner holds a small triangle of overlap: at the knee two edges reach `overshoot` beyond their crossing and are joined
+	vertically; at the bar corners the bar underside reaches to the left, and the diagonal into the middle of the bar.
+	Origin bottom left, counterclockwise.
 	"""
 	diagonal = stem * 1.3  # horizontal thickness of the diagonals
 	middle = height * 0.5
-	cornerHeight = bar * 0.8  # the vertical segment at the left end is a bit shorter than the stroke
+	cornerHeight = bar * 0.8  # the vertical segments at the left end are a bit shorter than the stroke
+	overshoot = bar * 0.75
 	kneeX = width * 2.0 / 3.0
-	slope = (kneeX - diagonal) / (middle - cornerHeight)  # horizontal run per unit of height of the diagonal
+	slope = (kneeX - diagonal) / (middle - cornerHeight)  # horizontal run per unit of height of the diagonals
 
-	def leftEdgeX(y):
+	def leftEdgeX(y):  # outer left edge of the upper diagonal (extended beyond its ends)
 		return (height - cornerHeight - y) * slope
 
-	kneecap = (kneeX - diagonal * 0.5, middle - diagonal / (2.0 * slope))  # where the inner edge meets the other diagonal’s outer edge
-	upper = (
+	def rightEdgeX(y):  # right edge of the upper diagonal, parallel to the left edge
+		return leftEdgeX(y) + diagonal
+
+	cornerMiddleX = rightEdgeX(height - bar * 0.5)
+	barReachX = cornerMiddleX - bar * 0.5  # where the underside of the bar ends, at 45° from the point in the middle of the bar
+	kneeCutX = leftEdgeX(middle - overshoot)
+
+	return ((
+		(0.0, height),
 		(0.0, height - cornerHeight),
-		(kneeX - diagonal, middle),
-		kneecap,
+		(kneeCutX, middle - overshoot),
+		(kneeCutX, middle + overshoot),
+		(0.0, cornerHeight),
+		(0.0, 0.0),
+		(width, 0.0),
+		(width, bar),
+		(barReachX, bar),
+		(cornerMiddleX, bar * 0.5),
 		(kneeX, middle),
-		(leftEdgeX(height - bar) + diagonal, height - bar),
+		(cornerMiddleX, height - bar * 0.5),
+		(barReachX, height - bar),
 		(width, height - bar),
 		(width, height),
-		(0.0, height),
-	)
-	lower = tuple((x, height - y) for x, y in reversed(upper))
-	return upper, lower
+	), )
 
 
 def radicalPenData(width, height, stem, bar):
-	"""√ as two overlapping polygons: the downstroke, and the upstroke with the bar on top. Origin bottom left, counterclockwise."""
+	"""
+	√ as one contour: the downstroke, and the upstroke with the bar on top. All strokes have parallel edges.
+	The inner corners are opened as in the summation: the edge of the downstroke and the edge of the upstroke overshoot where they cross
+	and are joined by a short horizontal segment; at the bar, the underside reaches to the left, and the upstroke into the middle of the bar.
+	Origin bottom left, counterclockwise.
+	"""
 	heavy = stem * 1.3  # horizontal thickness of the downstroke
 	light = stem * 0.7  # horizontal thickness of the upstroke
-	foot = stem * 0.4  # width of the flat bottom
+	overshoot = bar * 0.75
+	downTop = height * 0.5  # height of the flat top of the downstroke
 	footLeft = width * 0.26
-	footRight = footLeft + foot
 	upstrokeTopLeft = width * 0.52
-	upstrokeTopRight = upstrokeTopLeft + light
 
-	def upstrokeRightX(y):
-		return footRight + (upstrokeTopRight - footRight) * y / height
+	def upstrokeLeftX(y):
+		return footLeft + (upstrokeTopLeft - footLeft) * y / height
 
-	downstroke = ((footLeft, 0.0), (footRight, 0.0), (heavy, height * 0.5), (0.0, height * 0.5))
-	upstroke = (
+	def downstrokeRightX(y):
+		return footLeft * (1.0 - y / downTop) + heavy
+
+	# height where the right edge of the downstroke crosses the left edge of the upstroke:
+	crossing = heavy / (footLeft / downTop + (upstrokeTopLeft - footLeft) / height)
+	cutHeight = crossing - overshoot
+
+	cornerMiddleX = upstrokeLeftX(height - bar * 0.5) + light
+	barReachX = cornerMiddleX - bar * 0.5
+
+	return ((
 		(footLeft, 0.0),
-		(footRight, 0.0),
-		(upstrokeRightX(height - bar), height - bar),
+		(footLeft + light, 0.0),
+		(cornerMiddleX, height - bar * 0.5),
+		(barReachX, height - bar),
 		(width, height - bar),
 		(width, height),
 		(upstrokeTopLeft, height),
-	)
-	return downstroke, upstroke
+		(upstrokeLeftX(cutHeight), cutHeight),
+		(downstrokeRightX(cutHeight), cutHeight),
+		(heavy, downTop),
+		(0.0, downTop),
+	), )
 
 
 def buildPolygonSymbol(
@@ -813,7 +844,7 @@ SYMBOLS = (
 	(
 		"buildDaggers",
 		"dagger † | daggerdbl ‡",
-		"Will build dagger † and daggerdbl ‡ as simple crosses: 60% of the cap height, butted up against the cap height, with the stem width of your slash or master stems. Respects the italic angle.",
+		"Will build dagger † and daggerdbl ‡ as simple crosses of overlapping rectangles (two and three): 60% of the cap height, butted up against the cap height, with the stem width of your slash or master stems. Respects the italic angle.",
 		buildDaggers,
 		("dagger", "daggerdbl"),
 	),
@@ -827,21 +858,21 @@ SYMBOLS = (
 	(
 		"buildProduct",
 		"product ∏",
-		"Will build product ∏: overlapping contours, 110% cap height, stems measured as for bar (slash, else master stems), horizontals at 85% of the stem. Respects the italic angle.",
+		"Will build product ∏: three overlapping rectangles, 110% cap height, stems measured as for bar (slash, else master stems), horizontals at 85% of the stem. Respects the italic angle.",
 		buildProduct,
 		("product", ),
 	),
 	(
 		"buildSummation",
 		"summation ∑",
-		"Will build summation ∑: overlapping contours, 110% cap height, stems measured as for bar (slash, else master stems), horizontals at 85% of the stem. Respects the italic angle.",
+		"Will build summation ∑: one contour with opened corners (small triangles of overlap), 110% cap height, stems measured as for bar (slash, else master stems), horizontals at 85% of the stem. Respects the italic angle.",
 		buildSummation,
 		("summation", ),
 	),
 	(
 		"buildRadical",
 		"radical √",
-		"Will build radical √: overlapping contours, 110% cap height, stems measured as for bar (slash, else master stems), horizontals at 85% of the stem. Respects the italic angle.",
+		"Will build radical √: one contour with opened corners (small triangles of overlap), 110% cap height, stems measured as for bar (slash, else master stems), horizontals at 85% of the stem. Respects the italic angle.",
 		buildRadical,
 		("radical", ),
 	),
