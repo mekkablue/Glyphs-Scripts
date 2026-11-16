@@ -4,7 +4,7 @@ Moves paths to a separate glyph and insert them as auto-aligned, anchored compon
 """
 
 import vanilla
-from AppKit import NSNotificationCenter, NSPoint
+from AppKit import NSNotificationCenter, NSPoint, NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from copy import copy as copy
 from GlyphsApp import Glyphs, GSGlyph, GSComponent, GSPath, GSAnchor, GSUppercase, Message
 from mekkablue import mekkaObject, UpdateButton
@@ -21,45 +21,70 @@ class MovePathstoComponent(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 350
-		windowHeight = 180
-		windowWidthResize = 100  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 380
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Move Paths to Component",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Turn paths of selected glyph into component on all masters:", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		inset = 15
+		self.w.descriptionText = vanilla.TextBox("auto", "Turn paths of selected glyph into component on all masters:", sizeStyle='small', selectable=True)
 
-		self.w.nameText = vanilla.TextBox((inset, linePos + 2, 100, 14), "Component name:", sizeStyle='small', selectable=True)
-		self.w.name = vanilla.EditText((inset + 100, linePos, -inset - 25, 19), "_bar.dollar", callback=self.SavePreferences, sizeStyle='small')
-		self.w.nameUpdateButton = UpdateButton((-inset - 18, linePos - 2, -inset, 18), callback=self.updateName)
-		linePos += lineHeight
+		self.w.nameText = vanilla.TextBox("auto", "Component name:", sizeStyle='small', selectable=True)
+		self.w.name = vanilla.EditText("auto", "_bar.dollar", callback=self.SavePreferences, sizeStyle='small')
+		self.w.nameUpdateButton = UpdateButton("auto", callback=self.updateName)
+		self.w.nameUpdateButton.setToolTip("Suggests a name for the new component glyph, based on the selected glyph.")
 
-		self.w.anchorText = vanilla.TextBox((inset, linePos + 2, 100, 14), "Attach to anchor:", sizeStyle='small', selectable=True)
-		self.w.anchor = vanilla.ComboBox((inset + 100, linePos - 1, -inset - 25, 19), self.allAnchorNames(), sizeStyle='small', callback=self.SavePreferences)
-		self.w.anchorUpdateButton = UpdateButton((-inset - 18, linePos - 2, -inset, 18), callback=self.updateAnchors)
-		linePos += lineHeight
+		self.w.anchorText = vanilla.TextBox("auto", "Attach to anchor:", sizeStyle='small', selectable=True)
+		self.w.anchor = vanilla.ComboBox("auto", self.allAnchorNames(), sizeStyle='small', callback=self.SavePreferences)
+		self.w.anchorUpdateButton = UpdateButton("auto", callback=self.updateAnchors)
+		self.w.anchorUpdateButton.setToolTip("Updates the anchor names from the selected glyph, and picks the anchor that suits the component name.")
 
-		self.w.includeSpecialLayers = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include special layers (recommended)", value=True, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.includeSpecialLayers = vanilla.CheckBox("auto", "Include special layers (recommended)", value=True, callback=self.SavePreferences, sizeStyle='small')
 
-		self.w.keepBaseComponentPosition = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Keep base component position (with incremental keys)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.keepBaseComponentPosition = vanilla.CheckBox("auto", "Keep base component position (with incremental keys)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.keepBaseComponentPosition.setToolTip("Will add an incremental metrics key (e.g. ==+10) if width deviation is at least 5u.")
-		linePos += lineHeight
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-140 - inset, -20 - inset, -inset, -inset), "Make Composite", callback=self.MovePathsToComponentMain)
+		self.w.runButton = vanilla.Button("auto", "Make Composite", callback=self.MovePathsToComponentMain)
 		self.w.setDefaultButton(self.w.runButton)
 
-		self.w.warningText = vanilla.TextBox((inset, -15 - inset, -140 - inset, 14), "", sizeStyle="small", selectable=True)
+		self.w.warningText = vanilla.TextBox("auto", "", sizeStyle="small", selectable=True)
+		self.w.warningText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# labels are right-aligned, hug their text and share one width:
+		for labelName in ("nameText", "anchorText"):
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[nameText]-gap-[name]-gap-[nameUpdateButton]-inset-|",
+				"H:|-inset-[anchorText]-gap-[anchor]-gap-[anchorUpdateButton]-inset-|",
+				"H:|-inset-[includeSpecialLayers]-(>=inset)-|",
+				"H:|-inset-[keepBaseComponentPosition]-(>=inset)-|",
+				"H:|-inset-[warningText]-(>=gap)-[runButton(>=70)]-inset-|",
+				"V:|-inset-[descriptionText]-headlineGap-[name]-row-[anchor]-sectionGap-[includeSpecialLayers]-checkRow-[keepBaseComponentPosition]-inset-[runButton]-inset-|",
+				{"view1": self.w.nameText, "attribute1": "centerY", "view2": self.w.name, "attribute2": "centerY"},
+				{"view1": self.w.nameUpdateButton, "attribute1": "centerY", "view2": self.w.name, "attribute2": "centerY"},
+				{"view1": self.w.anchorText, "attribute1": "centerY", "view2": self.w.anchor, "attribute2": "centerY"},
+				{"view1": self.w.anchorUpdateButton, "attribute1": "centerY", "view2": self.w.anchor, "attribute2": "centerY"},
+				{"view1": self.w.warningText, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
+				{"view1": self.w.anchorText, "attribute1": "width", "view2": self.w.nameText, "attribute2": "width"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6, "headlineGap": 10, "sectionGap": 12, "checkRow": 5},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -71,6 +96,10 @@ class MovePathstoComponent(mekkaObject):
 	def updateUI(self, sender=None):
 		# check for existing glyph:
 		glyphName = self.w.name.get()
+		if Glyphs.font is None:
+			self.w.runButton.enable(False)
+			self.w.warningText.set("")
+			return True
 		glyphExistsInFont = Glyphs.font.glyphs[glyphName]
 		self.w.runButton.enable(not glyphExistsInFont)
 		if glyphExistsInFont:
@@ -112,7 +141,6 @@ class MovePathstoComponent(mekkaObject):
 							compName = f"{compInfo.name}{'.case' if thisGlyph.case == GSUppercase and Glyphs.glyphInfoForName(compInfo.name).category == 'Mark' else ''}".replace(
 								".case.case", ".case"
 							)
-							print(thisGlyph.name, compName)
 							if compName not in existingComponents:
 								self.w.name.set(compName)
 								foundName = True
@@ -145,8 +173,10 @@ class MovePathstoComponent(mekkaObject):
 
 			thisFont = Glyphs.font  # frontmost font
 			glyphName = None
+			componentNames = []
 			if thisFont is None:
-				Message(title="No thisFont Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+				return
 			else:
 				print(f"‘Move Paths to Component’ Report for {thisFont.familyName}")
 				if thisFont.filepath:

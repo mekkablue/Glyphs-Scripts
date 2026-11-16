@@ -4,8 +4,10 @@ Opens a new tab with all glyphs that do NOT reach into any top or bottom alignme
 """
 
 from collections import OrderedDict
+
 import vanilla
-from GlyphsApp import Glyphs
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
+from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, newLineControlLayer
 
 
@@ -21,42 +23,67 @@ class NewTabsWithGlyphsNotReachingIntoZones(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 350
-		windowHeight = 175
-		windowWidthResize = 300  # user can resize width by this value
-		windowHeightResize = 0  # user can resize height by this value
+		windowWidth = 420
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"New Tabs with Glyphs Not Reaching Into Zones",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 12, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, 14), u"Open tab with glyphs that are not reaching into zones.", sizeStyle='small', selectable=True)
-		linePos += lineHeight
+		inset = 15
+		self.w.descriptionText = vanilla.TextBox("auto", u"Open tab with glyphs that are not reaching into zones.", sizeStyle='small', selectable=True)
 
-		self.w.allMastersInSeparateTabs = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Include All Masters (in Separate Tabs)", value=False, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.allMastersInSeparateTabs = vanilla.CheckBox("auto", u"Include All Masters (in Separate Tabs)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeSpecialLayers = vanilla.CheckBox("auto", u"Include Special Layers", value=True, callback=self.SavePreferences, sizeStyle='small')
 
-		self.w.includeSpecialLayers = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), u"Include Special Layers", value=True, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.ignoreGlyphsText = vanilla.TextBox("auto", u"Ignore glyphs containing:", sizeStyle='small', selectable=True)
+		self.w.ignoreGlyphs = vanilla.EditText("auto", ".sups, .subs, superior, inferior, Arrow", callback=self.SavePreferences, sizeStyle='small')
 
-		self.w.ignoreGlyphsText = vanilla.TextBox((inset, linePos + 2, 140, 14), u"Ignore glyphs containing:", sizeStyle='small', selectable=True)
-		self.w.ignoreGlyphs = vanilla.EditText((inset + 140, linePos - 1, -inset, 19), ".sups, .subs, superior, inferior, Arrow", callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
-
-		self.w.includeText = vanilla.TextBox((inset, linePos + 2, 60, 14), u"Include:", sizeStyle='small', selectable=True)
-		self.w.includeMarks = vanilla.CheckBox((inset + 50, linePos - 1, -inset, 20), u"Marks", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includeSymbols = vanilla.CheckBox((inset + 110, linePos - 1, -inset, 20), u"Symbols", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.includePunctuation = vanilla.CheckBox((inset + 60 * 3, linePos - 1, -inset, 20), u"Punctuation", value=False, callback=self.SavePreferences, sizeStyle='small')
-		linePos += lineHeight
+		self.w.includeText = vanilla.TextBox("auto", u"Include:", sizeStyle='small', selectable=True)
+		self.w.includeMarks = vanilla.CheckBox("auto", u"Marks", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeSymbols = vanilla.CheckBox("auto", u"Symbols", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includePunctuation = vanilla.CheckBox("auto", u"Punctuation", value=False, callback=self.SavePreferences, sizeStyle='small')
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-120 - inset, -20 - inset, -inset, -inset), "Open Tabs", callback=self.NewTabsWithGlyphsNotReachingIntoZonesMain)
+		self.w.runButton = vanilla.Button("auto", "Open Tabs", callback=self.NewTabsWithGlyphsNotReachingIntoZonesMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging,
+		# the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# labels: right-aligned, one shared width
+		labelNames = ("ignoreGlyphsText", "includeText")
+		widestLabel = "ignoreGlyphsText"
+		for labelName in labelNames:
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+		widthRules = [
+			{"view1": getattr(self.w, labelName), "attribute1": "width", "view2": getattr(self.w, widestLabel), "attribute2": "width"}
+			for labelName in labelNames if labelName != widestLabel
+		]
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[allMastersInSeparateTabs]-(>=inset)-|",
+				"H:|-inset-[includeSpecialLayers]-(>=inset)-|",
+				"H:|-inset-[ignoreGlyphsText]-gap-[ignoreGlyphs]-inset-|",
+				"H:|-inset-[includeText]-gap-[includeMarks]-gap-[includeSymbols]-gap-[includePunctuation]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[descriptionText]-headlineGap-[allMastersInSeparateTabs]-checkRow-[includeSpecialLayers]-headlineGap-[ignoreGlyphs]-row-[includeMarks]-inset-[runButton]-inset-|",
+				{"view1": self.w.ignoreGlyphsText, "attribute1": "centerY", "view2": self.w.ignoreGlyphs, "attribute2": "centerY"},
+				{"view1": self.w.includeText, "attribute1": "centerY", "view2": self.w.includeMarks, "attribute2": "centerY"},
+				{"view1": self.w.includeSymbols, "attribute1": "centerY", "view2": self.w.includeMarks, "attribute2": "centerY"},
+				{"view1": self.w.includePunctuation, "attribute1": "centerY", "view2": self.w.includeMarks, "attribute2": "centerY"},
+			] + widthRules,
+			metrics={"inset": inset, "gap": 8, "row": 6, "headlineGap": 10, "checkRow": 5},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -66,6 +93,9 @@ class NewTabsWithGlyphsNotReachingIntoZones(mekkaObject):
 		self.w.makeKey()
 
 	def NewTabsWithGlyphsNotReachingIntoZonesMain(self, sender):
+		if not Glyphs.font:
+			Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+			return
 		if Glyphs.versionNumber >= 3:
 			# Glyphs 3 code
 			self.glyphs3solution()
@@ -81,7 +111,7 @@ class NewTabsWithGlyphsNotReachingIntoZones(mekkaObject):
 
 			thisFont = Glyphs.font  # frontmost font
 			print("New Tabs with Glyphs Not Reaching Into Zones Report for %s" % thisFont.familyName)
-			print(thisFont.filepath)
+			print(thisFont.filepath if thisFont.filepath else f"{thisFont.familyName} (unsaved)")
 			print()
 
 			allMastersInSeparateTabs = self.pref("allMastersInSeparateTabs")
@@ -189,7 +219,7 @@ class NewTabsWithGlyphsNotReachingIntoZones(mekkaObject):
 
 			thisFont = Glyphs.font  # frontmost font
 			print("New Tabs with Glyphs Not Reaching Into Zones Report for %s" % thisFont.familyName)
-			print(thisFont.filepath)
+			print(thisFont.filepath if thisFont.filepath else f"{thisFont.familyName} (unsaved)")
 			print()
 
 			allMastersInSeparateTabs = self.pref("allMastersInSeparateTabs")
@@ -262,21 +292,19 @@ class NewTabsWithGlyphsNotReachingIntoZones(mekkaObject):
 										if doesNotReachZone:
 											zoneData[zoneDescription].append(thisLayer)
 				tabText = "Master: %s" % thisFontMaster.name
-				i = -1
+				mIndex = -1
 				for i, m in enumerate(thisFont.masters):
 					if m is thisFontMaster:
 						mIndex = i
-				# if i >= 0:
-				# 	masterTab.masterIndex = mIndex
 
-				zoneDataList[(tabText, i)] = zoneData
+				zoneDataList[(tabText, mIndex)] = zoneData
 			# putting collected data into tab's text
 			for key, zoneData in zoneDataList.items():
 				tabText, masterIndex = key
 				# opens new Edit tab:
 				masterTab = thisFont.newTab()
 				if masterIndex >= 0:
-					masterTab.masterIndex = mIndex
+					masterTab.masterIndex = masterIndex
 				masterTab.text = tabText
 
 				for key, layers in zoneData.items():

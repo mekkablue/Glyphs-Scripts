@@ -4,9 +4,11 @@ Removes placed images from glyphs. Options: scope (all glyphs in font or selecte
 """
 
 import os
+
 import vanilla
-from mekkablue import mekkaObject, match
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs
+from mekkablue import mekkaObject, match
 
 
 class RemoveImages(mekkaObject):
@@ -18,24 +20,20 @@ class RemoveImages(mekkaObject):
 	}
 
 	def __init__(self):
-		windowWidth = 370
-		windowHeight = 140
-		windowWidthResize = 300
-		windowHeightResize = 0
+		windowWidth = 400
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Remove Images",
-			minSize=(windowWidth, windowHeight),
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),
-			autosaveName=self.domain("mainwindow"),
+			autosaveName=self.domain("mainwindow"),  # stores last window position
 		)
 
-		linePos, inset, lineHeight = 12, 15, 22
+		inset = 15
 
 		# Scope
-		self.w.scopeLabel = vanilla.TextBox((inset, linePos + 2, 120, 14), "Remove images in:", sizeStyle="small")
+		self.w.scopeLabel = vanilla.TextBox("auto", "Remove images in:", sizeStyle="small")
 		self.w.scope = vanilla.PopUpButton(
-			(inset + 112, linePos, 185, 18),
+			"auto",
 			["selected glyphs only", "⚠️ all glyphs in font", "⚠️ all glyphs in all open fonts"],
 			callback=self.SavePreferences,
 			sizeStyle="small",
@@ -43,22 +41,20 @@ class RemoveImages(mekkaObject):
 		scopeTooltip = "Choose the scope: selected glyphs only, all glyphs in the frontmost font, or all glyphs across every open font."
 		self.w.scopeLabel.setToolTip(scopeTooltip)
 		self.w.scope.setToolTip(scopeTooltip)
-		linePos += lineHeight
 
 		# Remove orphaned images only
 		self.w.removeOrphaned = vanilla.CheckBox(
-			(inset, linePos, -inset, 20),
+			"auto",
 			"Only remove orphaned images (source file no longer on disk)",
 			value=True,
 			callback=self.SavePreferences,
 			sizeStyle="small",
 		)
 		self.w.removeOrphaned.setToolTip("If checked, only images whose source file can no longer be found on disk are removed. If unchecked, all placed images in the current scope are removed.")
-		linePos += lineHeight
 
 		# Filter by glyph name
 		self.w.filterByName = vanilla.CheckBox(
-			(inset, linePos, 168, 20),
+			"auto",
 			"Only in glyphs containing:",
 			value=False,
 			callback=self.SavePreferences,
@@ -66,19 +62,43 @@ class RemoveImages(mekkaObject):
 		)
 		self.w.filterByName.setToolTip("If enabled, restricts removal to glyphs whose names match one of the comma-separated particles. Wildcards * and ? are supported.")
 		self.w.nameFilter = vanilla.EditText(
-			(inset + 155, linePos, -inset, 19),
+			"auto",
 			"",
 			placeholder="(see tooltip)",
 			callback=self.SavePreferences,
 			sizeStyle="small",
 		)
 		self.w.nameFilter.setToolTip("Comma-separated glyph name particles. Each particle is matched as a substring unless it contains wildcards. Wildcards * (any string) and ? (any single character) are supported. Example: 'A, *comb, ?.sc'")
-		linePos += lineHeight
 
 		# Status line and Run button
-		self.w.status = vanilla.TextBox((inset, -20 - inset + 3, -80 - inset - 10, 14), "", sizeStyle="small")
-		self.w.runButton = vanilla.Button((-80 - inset, -20 - inset, -inset, -inset), "Remove", callback=self.run)
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton = vanilla.Button("auto", "Remove", callback=self.run)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging,
+		# the window ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		self.w.scopeLabel.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		# the checkbox in front of the name filter hugs its title, the field takes the rest:
+		self.w.filterByName.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.nameFilter.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[scopeLabel]-gap-[scope]-inset-|",
+				"H:|-inset-[removeOrphaned]-(>=inset)-|",
+				"H:|-inset-[filterByName]-gap-[nameFilter]-inset-|",
+				"H:|-inset-[status]-(>=gap)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[scope]-row-[removeOrphaned]-stackRow-[filterByName]-inset-[runButton]-inset-|",
+				{"view1": self.w.scopeLabel, "attribute1": "centerY", "view2": self.w.scope, "attribute2": "centerY"},
+				{"view1": self.w.nameFilter, "attribute1": "centerY", "view2": self.w.filterByName, "attribute2": "centerY"},
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 10, "stackRow": 8},
+		)
 
 		self.LoadPreferences()
 		self.w.open()
@@ -172,8 +192,8 @@ class RemoveImages(mekkaObject):
 										removedInGlyph += 1
 										if isOrphaned:
 											orphanedInGlyph += 1
-							except Exception:
-								pass
+							except Exception as e:
+								print(f"\t⚠️ {glyph.name}, layer '{layer.name}', background: {e}")
 
 						except Exception as e:
 							print(f"\t⚠️ {glyph.name}, layer '{layer.name}': {e}")
@@ -200,7 +220,7 @@ class RemoveImages(mekkaObject):
 			summary = "No images found to remove."
 
 		print(f"\n{summary}")
-		self.w.status.set(summary)
+		self.w.status.set(f"✅ {summary}")
 		Glyphs.showNotification("Remove Images", summary)
 
 

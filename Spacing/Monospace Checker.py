@@ -4,8 +4,16 @@ Checks if all glyph widths in the frontmost font are actually monospaced. Report
 """
 
 import vanilla
+import objc
+from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
+from Foundation import NSNumberFormatter
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, newLineControlLayer
+
+
+class SteppingEditText(vanilla.EditText):
+	"""EditText with arrow-key stepping, as in Glyphs’ own numeric fields."""
+	nsTextFieldClass = objc.lookUpClass("GSSteppingTextField")
 
 
 class MonospaceChecker(mekkaObject):
@@ -19,44 +27,75 @@ class MonospaceChecker(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 270
-		windowHeight = 204
+		windowWidth = 300
+		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Monospace Checker",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
-		linePos, inset, lineHeight = 12, 15, 22
-		self.w.descriptionText = vanilla.TextBox((inset, linePos + 2, -inset, lineHeight * 2), "New tab with glyphs that do not match the width of the default glyph in each master", sizeStyle='small', selectable=True)
-		linePos += lineHeight * 2
+		inset = 15
+		self.w.descriptionText = vanilla.TextBox("auto", "New tab with glyphs that do not match the width of the default glyph in each master", sizeStyle='small', selectable=True)
+		# the text wraps: it takes the width it is given, and has a fixed height in the rules
+		self.w.descriptionText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
-		self.w.defaultGlyphNameText = vanilla.TextBox((inset, linePos, 85, 14), "Default Glyph", sizeStyle='small', selectable=True)
-		self.w.defaultGlyphName = vanilla.EditText((inset + 79, linePos - 3, -inset, 19), "A", callback=self.SavePreferences, sizeStyle='small')
-		self.w.defaultGlyphName.setToolTip("For each master, will measure the width of this glyph, and compare all other widths to it.")
-		linePos += lineHeight
+		self.w.defaultGlyphNameText = vanilla.TextBox("auto", "Default Glyph", sizeStyle='small', selectable=True)
+		self.w.defaultGlyphName = vanilla.EditText("auto", "A", callback=self.SavePreferences, sizeStyle='small')
+		tooltipText = "For each master, will measure the width of this glyph, and compare all other widths to it."
+		self.w.defaultGlyphNameText.setToolTip(tooltipText)
+		self.w.defaultGlyphName.setToolTip(tooltipText)
 
-		self.w.toleranceText = vanilla.TextBox((inset, linePos, 105, 14), "Tolerance in units", sizeStyle='small', selectable=True)
-		self.w.tolerance = vanilla.EditText((inset + 98, linePos - 3, 55, 19), "0.0", callback=self.SavePreferences, sizeStyle='small')
-		self.w.tolerance.setToolTip("Allow deviations up to this value. 1 unit may be acceptable. If you are not sure, keep it at zero.")
-		linePos += lineHeight
+		self.w.toleranceText = vanilla.TextBox("auto", "Tolerance in units", sizeStyle='small', selectable=True)
+		formatter = NSNumberFormatter.alloc().init()  # decimals allowed
+		formatter.setMinimum_(0)
+		self.w.tolerance = SteppingEditText("auto", "0.0", callback=self.SavePreferences, sizeStyle='small', formatter=formatter)
+		tooltipText = "Allow deviations up to this value. 1 unit may be acceptable. If you are not sure, keep it at zero."
+		self.w.toleranceText.setToolTip(tooltipText)
+		self.w.tolerance.setToolTip(tooltipText)
 
-		self.w.reportZeroWidths = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Report Zero Widths in Macro Window", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reportZeroWidths = vanilla.CheckBox("auto", "Report Zero Widths in Macro Window", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reportZeroWidths.setToolTip("In the Macro Window (and only there), will also report glyphs that have zero width. Usually you can ignore those.")
-		linePos += lineHeight
 
-		self.w.includeNonExporting = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Include Non-Exporting Glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeNonExporting = vanilla.CheckBox("auto", "Include Non-Exporting Glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeNonExporting.setToolTip("If disabled, will ignore non-exporting glyphs. If you are unsure, leave it off.")
-		linePos += lineHeight
 
-		self.w.setMonospaceFlag = vanilla.CheckBox((inset + 2, linePos - 1, -inset, 20), "Set ‘isFixedPitch’ flag in Font Info", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.setMonospaceFlag.setToolTip("Will set the isFixedPitch parameter in Font Info > Font. The parameter sets the isFixedPitch flag in the post table. Indicates whether the font is monospaced. Software can use this information to make sure that all glyphs are rendered with the same amount of pixels horizontally at any given PPM size.")
-		linePos += lineHeight
+		self.w.setMonospaceFlag = vanilla.CheckBox("auto", "Set ‘isFixedPitch’ flag in Font Info", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.setMonospaceFlag.setToolTip("Will set the isFixedPitch parameter in Font Info > Font. The parameter sets the isFixedPitch flag in the post table. Indicates whether the font is monospaced. Software can use this information to make sure that all glyphs are rendered with the same amount of pixels horizontally at any given PPM size.")
 
 		# Run Button:
-		self.w.runButton = vanilla.Button((-100 - inset, -20 - inset, -inset, -inset), "Check", callback=self.MonospaceCheckerMain)
+		self.w.runButton = vanilla.Button("auto", "Check", callback=self.MonospaceCheckerMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# checkboxes stretch vertically by default; with everything hugging, the window
+		# ends up exactly as tall as the content
+		for view in self.w.getNSWindow().contentView().subviews():
+			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# labels are right-aligned, hug their text and share one width:
+		for labelName in ("defaultGlyphNameText", "toleranceText"):
+			nsLabel = getattr(self.w, labelName).getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		self.w.addAutoPosSizeRules(
+			[
+				"H:|-inset-[descriptionText]-inset-|",
+				"H:|-inset-[defaultGlyphNameText]-gap-[defaultGlyphName]-inset-|",
+				"H:|-inset-[toleranceText]-gap-[tolerance(55)]-(>=inset)-|",
+				"H:|-inset-[reportZeroWidths]-(>=inset)-|",
+				"H:|-inset-[includeNonExporting]-(>=inset)-|",
+				"H:|-inset-[setMonospaceFlag]-(>=inset)-|",
+				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"V:|-inset-[descriptionText(28)]-headlineGap-[defaultGlyphName]-row-[tolerance]-sectionGap-[reportZeroWidths]-checkRow-[includeNonExporting]-checkRow-[setMonospaceFlag]-inset-[runButton]-inset-|",
+				{"view1": self.w.defaultGlyphNameText, "attribute1": "centerY", "view2": self.w.defaultGlyphName, "attribute2": "centerY"},
+				{"view1": self.w.toleranceText, "attribute1": "centerY", "view2": self.w.tolerance, "attribute2": "centerY"},
+				{"view1": self.w.toleranceText, "attribute1": "width", "view2": self.w.defaultGlyphNameText, "attribute2": "width"},
+			],
+			metrics={"inset": inset, "gap": 8, "row": 6, "headlineGap": 8, "sectionGap": 12, "checkRow": 5},
+		)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -79,10 +118,7 @@ class MonospaceChecker(mekkaObject):
 				return
 			else:
 				print("Monospace Checker Report for %s" % thisFont.familyName)
-				if thisFont.filepath:
-					print(thisFont.filepath)
-				else:
-					print("⚠️ The font file has not been saved yet.")
+				print(thisFont.filepath if thisFont.filepath else f"{thisFont.familyName} (unsaved)")
 				print()
 
 			defaultGlyphName = self.pref("defaultGlyphName").strip()
