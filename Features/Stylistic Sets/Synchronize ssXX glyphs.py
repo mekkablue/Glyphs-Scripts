@@ -9,7 +9,7 @@ E.g. you have a.ss01 b.ss01 c.ss01 a.ss02 c.ss02 --> the script creates b.ss02
 from GlyphsApp import Glyphs
 
 Font = Glyphs.font
-allGlyphs = [x.name for x in list(Font.glyphs)]
+allGlyphs = [x.name for x in list(Font.glyphs)] if Font else []
 
 
 def ssXXsuffix(i):
@@ -27,45 +27,48 @@ def stripsuffix(glyphname):
 	return glyphname[:dotindex]
 
 
-i = 1
-ssXX_exists = True
-
-while ssXX_exists:
-	ssXX = ssXXsuffix(i)
-	ssXXglyphs = [x for x in allGlyphs if x.find(ssXX) is not -1]
-	if len(ssXXglyphs) == 0:
-		i -= 1
-		ssXX = ssXXsuffix(i)
-		ssXXglyphs = [x for x in allGlyphs if x.find(ssXX) is not -1]
-		ssXX_exists = False
-	else:
-		i += 1
-
-if i == 0:
-	print("No ssXX glyphs in the font. Aborting.")
+if not Font:
+	print("Please open a font first.")
 else:
-	print("Highest ssXX:", ssXX)
-	print("Creating:")
-	for XX in range(i):
+	i = 1
+	ssXX_exists = True
 
-		ssXXglyphs = [x for x in allGlyphs if x.find(ssXXsuffix(XX + 1)) is not -1]
-		baseglyphs = [stripsuffix(x) for x in ssXXglyphs]
+	while ssXX_exists:
+		ssXX = ssXXsuffix(i)
+		ssXXglyphs = [x for x in allGlyphs if x.find(ssXX) != -1]
+		if len(ssXXglyphs) == 0:
+			i -= 1
+			ssXX = ssXXsuffix(i)
+			ssXXglyphs = [x for x in allGlyphs if x.find(ssXX) != -1]
+			ssXX_exists = False
+		else:
+			i += 1
 
-		for YY in range(i):
-			if XX != YY:
-				allGlyphs = [x.name for x in list(Font.glyphs)]  # neu holen, Glyphen haben sich u.U. schon geaendert
+	if i == 0:
+		print("No ssXX glyphs in the font. Aborting.")
+	else:
+		print("Highest ssXX:", ssXX)
+		print("Creating:")
+		for XX in range(i):
 
-				for thisglyphname in baseglyphs:
-					targetglyphname = thisglyphname + ssXXsuffix(YY + 1)
+			ssXXglyphs = [x for x in allGlyphs if x.find(ssXXsuffix(XX + 1)) != -1]
+			baseglyphs = [stripsuffix(x) for x in ssXXglyphs]
 
-					if targetglyphname not in allGlyphs:
-						sourceglyphname = thisglyphname + ssXXsuffix(XX + 1)
-						sourceglyph = Font.glyphs[sourceglyphname]
-						targetglyph = sourceglyph.copy()
-						targetglyph.name = targetglyphname
-						targetglyph.unicode = None
-						targetglyph.productionName = Glyphs.productionGlyphName(targetglyphname)
-						Font.glyphs.append(targetglyph)
-						print("- %s" % targetglyphname)
+			for YY in range(i):
+				if XX != YY:
+					allGlyphs = [x.name for x in list(Font.glyphs)]  # neu holen, Glyphen haben sich u.U. schon geaendert
 
-	print()
+					for thisglyphname in baseglyphs:
+						targetglyphname = thisglyphname + ssXXsuffix(YY + 1)
+
+						if targetglyphname not in allGlyphs:
+							sourceglyphname = thisglyphname + ssXXsuffix(XX + 1)
+							sourceglyph = Font.glyphs[sourceglyphname]
+							targetglyph = sourceglyph.copy()
+							targetglyph.name = targetglyphname
+							targetglyph.unicode = None
+							targetglyph.productionName = Glyphs.productionGlyphName(targetglyphname)
+							Font.glyphs.append(targetglyph)
+							print("- %s" % targetglyphname)
+
+		print()

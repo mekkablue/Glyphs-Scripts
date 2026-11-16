@@ -125,6 +125,7 @@ def wdthAdjust(font, gradeMaster, baseMaster, scope=[]):
 			message=f"Advance widths could not be fitted to those of master ‘{baseMaster.name}’ because there is no wdth axis. Remove the graded master ‘{gradeMaster.name}’ and try again.",
 			OKButton=None,
 		)
+		return
 
 	baseWdthValue = baseMaster.axes[wdthAxisIndex]
 	gradeWdthValue = gradeMaster.axes[wdthAxisIndex]
@@ -138,6 +139,7 @@ def wdthAdjust(font, gradeMaster, baseMaster, scope=[]):
 			message=f"Advance widths could not be fitted to those of master ‘{baseMaster.name}’ because there is no interpolation along the wdth axis. Remove the graded master ‘{gradeMaster.name}’ and try again.",
 			OKButton=None,
 		)
+		return
 
 	refWdthValue = wdthValues[0]
 	refInstance = GSInstance()

@@ -44,37 +44,40 @@ def uppercaseGlyphName(thisGlyph):
 
 Glyphs.clearLog()  # clears macro window log
 Font = Glyphs.font
-selectedGlyphs = [layer.parent for layer in Font.selectedLayers]
-countSelectedGlyphs = len(selectedGlyphs)
-convertedCount = 0
-print("Converting %i selected glyphs to uppercase:\n" % countSelectedGlyphs)
+if not Font:
+	print("Please open a font first.")
+else:
+	selectedGlyphs = [layer.parent for layer in Font.selectedLayers]
+	countSelectedGlyphs = len(selectedGlyphs)
+	convertedCount = 0
+	print("Converting %i selected glyphs to uppercase:\n" % countSelectedGlyphs)
 
-Font.disableUpdateInterface()
-try:
-	for thisGlyph in selectedGlyphs:
-		convertedCount += uppercaseGlyphName(thisGlyph)
-except Exception as e:
-	Glyphs.showMacroWindow()
-	print("\n⚠️ Script Error:\n")
-	import traceback
-	print(traceback.format_exc())
-	print()
-	raise e
-finally:
-	Font.enableUpdateInterface()
+	Font.disableUpdateInterface()
+	try:
+		for thisGlyph in selectedGlyphs:
+			convertedCount += uppercaseGlyphName(thisGlyph)
+	except Exception as e:
+		Glyphs.showMacroWindow()
+		print("\n⚠️ Script Error:\n")
+		import traceback
+		print(traceback.format_exc())
+		print()
+		raise e
+	finally:
+		Font.enableUpdateInterface()
 
-# Floating notification:
-Glyphs.showNotification(
-	"%s: UC Conversion Finished" % (Font.familyName),
-	"Of %i selected glyph%s, %i %s converted to uppercase. Details in Macro Window." % (
-		countSelectedGlyphs,
-		"" if countSelectedGlyphs == 1 else "s",
+	# Floating notification:
+	Glyphs.showNotification(
+		"%s: UC Conversion Finished" % (Font.familyName),
+		"Of %i selected glyph%s, %i %s converted to uppercase. Details in Macro Window." % (
+			countSelectedGlyphs,
+			"" if countSelectedGlyphs == 1 else "s",
+			convertedCount,
+			"was" if convertedCount == 1 else "were",
+		),
+	)
+
+	print("\n%i glyph%s converted to uppercase.\nDone." % (
 		convertedCount,
-		"was" if convertedCount == 1 else "were",
-	),
-)
-
-print("\n%i glyph%s converted to uppercase.\nDone." % (
-	convertedCount,
-	"" if convertedCount == 1 else "s",
-))
+		"" if convertedCount == 1 else "s",
+	))

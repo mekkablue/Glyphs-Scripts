@@ -60,12 +60,17 @@ def create_otfeature(featurename="calt", featurecode="# empty feature code", tar
 		return "Created new OT feature '%s'" % featurename
 
 
-def create_otclass(className="@default", classGlyphs=[g.name for g in Glyphs.font.glyphs if "." not in g.name], targetFont=Glyphs.font):
+def create_otclass(className="@default", classGlyphs=None, targetFont=None):
 	"""
 	Creates an OpenType class in the thisFont.
 	Default: class @default with currently selected glyphs in the current thisFont.
 	Returns a status message in form of a string.
 	"""
+
+	if targetFont is None:
+		targetFont = Glyphs.font
+	if classGlyphs is None:
+		classGlyphs = [g.name for g in targetFont.glyphs if "." not in g.name]
 
 	# strip '@' from beginning:
 	if className[0] == "@":
@@ -99,37 +104,40 @@ def highestStylisticSetInNameList(nameList):
 
 
 thisFont = Glyphs.font
-allGlyphs = [x.name for x in list(thisFont.glyphs)]
-highestSetNumber = highestStylisticSetInNameList(allGlyphs)
-ssXX = ssXXsuffix(highestSetNumber)
-
-if not ssXX:
-	print("No ssXX glyphs in the thisFont. Aborting.")
+if not thisFont:
+	print("Please open a font first.")
 else:
-	ssXXglyphs = [x for x in allGlyphs if x.find(ssXX) > -1]
+	allGlyphs = [x.name for x in list(thisFont.glyphs)]
+	highestSetNumber = highestStylisticSetInNameList(allGlyphs)
+	ssXX = ssXXsuffix(highestSetNumber)
 
-	# Build and add OT classes:
-	defaultGlyphs = [x[:-5] for x in ssXXglyphs]
-	for XX in range(highestSetNumber + 1):
-		className = "%s%02i" % (classNamePrefix, XX)
-		classGlyphs = [x + ssXXsuffix(XX) for x in defaultGlyphs] + ["space"]
-		result = create_otclass(className=className, classGlyphs=classGlyphs, targetFont=thisFont)
-		print(result)
-
-	# Build OT feature:
-	featureText = ""
-	if addDefault:
-		zeroOrOne = 0
+	if not ssXX:
+		print("No ssXX glyphs in the thisFont. Aborting.")
 	else:
-		zeroOrOne = 1
+		ssXXglyphs = [x for x in allGlyphs if x.find(ssXX) > -1]
 
-	suffixNumberRange = list(range(zeroOrOne, highestSetNumber + 1)) * (lineLength // highestSetNumber + 2)
+		# Build and add OT classes:
+		defaultGlyphs = [x[:-5] for x in ssXXglyphs]
+		for XX in range(highestSetNumber + 1):
+			className = "%s%02i" % (classNamePrefix, XX)
+			classGlyphs = [x + ssXXsuffix(XX) for x in defaultGlyphs] + ["space"]
+			result = create_otclass(className=className, classGlyphs=classGlyphs, targetFont=thisFont)
+			print(result)
 
-	for j in range(highestSetNumber * (lineLength // highestSetNumber + 1), 0, -1):
-		suffixNumber = suffixNumberRange[j]
-		newLine = "sub @%s00' %s by @%s%02i;\n" % (classNamePrefix, "@%s00 " % classNamePrefix * j, classNamePrefix, suffixNumber)
-		featureText += newLine
+		# Build OT feature:
+		featureText = ""
+		if addDefault:
+			zeroOrOne = 0
+		else:
+			zeroOrOne = 1
 
-	# Add OT feature:
-	result = create_otfeature(featurename=featureName, featurecode=featureText, targetFont=thisFont)
-	print(result)
+		suffixNumberRange = list(range(zeroOrOne, highestSetNumber + 1)) * (lineLength // highestSetNumber + 2)
+
+		for j in range(highestSetNumber * (lineLength // highestSetNumber + 1), 0, -1):
+			suffixNumber = suffixNumberRange[j]
+			newLine = "sub @%s00' %s by @%s%02i;\n" % (classNamePrefix, "@%s00 " % classNamePrefix * j, classNamePrefix, suffixNumber)
+			featureText += newLine
+
+		# Add OT feature:
+		result = create_otfeature(featurename=featureName, featurecode=featureText, targetFont=thisFont)
+		print(result)

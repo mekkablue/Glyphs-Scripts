@@ -856,8 +856,6 @@ DefaultKeys = {
 	"periodcentered": ("anoteleia", "anoteleia"),
 	"cent": ("o", "c"),
 	"perthousand": ("percent", "percent"),
-	"semicolon": ("colon", "colon"),
-	"quotedblbase": ("period", "period"),
 
 	# OVERRIDE FOR SPECIAL CASES
 	"oe.sc": ("o.sc", "e.sc"),

@@ -20,9 +20,9 @@ def process(Layer):
 					if settings:
 						for deltaType in ("deltaH", "deltaV"):
 							if deltaType in settings:
-								for transformType in settings[deltaType]:
+								for transformType in list(settings[deltaType].keys()):
 									deltas = settings[deltaType][transformType]
-									for ppmSize in deltas:
+									for ppmSize in list(deltas.keys()):
 										if deltas[ppmSize] == 0:
 											del deltas[ppmSize]
 											count += 1
@@ -52,6 +52,7 @@ def process(Layer):
 		print(traceback.format_exc())
 		print()
 		print(e)
+		return 0
 
 
 thisFont = Glyphs.font  # frontmost font

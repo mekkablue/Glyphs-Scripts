@@ -8,7 +8,7 @@ from GlyphsApp import Glyphs, Message
 thisFont = Glyphs.font
 
 tabLayers = []
-for g in thisFont.glyphs:
+for g in (thisFont.glyphs if thisFont else ()):
 	if ".tf" in g.name or ".tosf" in g.name or g.subCategory == "Math":
 		continue
 		# skip where acceptable
@@ -21,6 +21,7 @@ for g in thisFont.glyphs:
 					tabLayers.append(layer)
 					print(f"⚠️ {g.name}, {layer.name}: subsequent components aligned ({', '.join([c.name for c in layer.components[1:]])})")
 					continue
+			leftIncrement = rightIncrement = "unchanged"
 			left = int(round(firstComp.x))
 			if left != 0:
 				leftIncrement = f"=={left:+}"
@@ -32,7 +33,9 @@ for g in thisFont.glyphs:
 			firstComp.makeEnableAlignment()
 			print(f"✅ {g.name}, {layer.name}: {leftIncrement} ↔️ {rightIncrement}, width kept at {layer.width}")
 			tabLayers.append(layer)
-if tabLayers:
+if not thisFont:
+	Message("Please open a font first.", title="No Font Open")
+elif tabLayers:
 	newTab = thisFont.newTab()
 	newTab.layers = tabLayers
 else:

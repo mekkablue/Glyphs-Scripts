@@ -8,7 +8,7 @@ import vanilla
 import objc
 from mekkablue import mekkaObject, UpdateButton
 from GlyphsApp import Glyphs, GSInstance, INSTANCETYPESINGLE
-from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSSize, NSTextAlignmentRight, NSWindowStyleMaskResizable
+from AppKit import NSFont, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSSize, NSTextAlignmentRight, NSWindowStyleMaskResizable
 from Foundation import NSDictionary, NSMutableArray, NSMutableDictionary, NSNumberFormatter
 
 if Glyphs.versionNumber >= 4:
@@ -264,9 +264,8 @@ class InstanceMaker(mekkaObject):
 		self.w.keepWindowOpen.setToolTip("If checked, will not close this window after applying the distribution.")
 
 		# the sample takes the leftover height if the user enlarges the window:
-		self.w.sample = vanilla.Box("auto")
-		self.w.sample.text = vanilla.TextBox("auto", "", sizeStyle='small')
-		self.w.sample.addAutoPosSizeRules(["H:|-5-[text]-5-|", "V:|-5-[text]-(>=5)-|"])
+		self.w.sample = vanilla.TextEditor("auto", "", readOnly=True)
+		self.w.sample.getNSTextView().setFont_(NSFont.systemFontOfSize_(NSFont.smallSystemFontSize()))
 
 		# buttons:
 		self.w.createButton = vanilla.Button("auto", "Insert", callback=self.CreateInstances)
@@ -276,12 +275,10 @@ class InstanceMaker(mekkaObject):
 		# ends up exactly as tall as the content, except for the sample box, which may grow:
 		for view in self.w.getNSWindow().contentView().subviews():
 			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
-		self.w.sample.getNSBox().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationVertical)
+		self.w.sample.getNSScrollView().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationVertical)
 
-		# the sample and the explanation wrap, so they must not demand one long line or height:
-		for textBox in (self.w.sample.text, self.w.text_maciej_2):
-			textBox.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
-		self.w.sample.text.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationVertical)
+		# the explanation wraps, so it must not demand one long line:
+		self.w.text_maciej_2.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# labels in front of fields are right-aligned and share one width, so the fields line up:
 		labelNames = ("text_1", "text_3", "text_6")
@@ -494,7 +491,7 @@ class InstanceMaker(mekkaObject):
 					maciejList = [str(round(distribute_maciej(maciejValues[0], maciejValues[1], maciejValues[2], maciejValues[3], w), rounding)) for w in distributedValues]
 					sampleText += "\n\nWill add interpolationWeightY parameters to instances: %s" % (", ".join(maciejList) + ".")
 
-			self.w.sample.text.set(sampleText)
+			self.w.sample.set(sampleText)
 		except Exception as e:
 			print(e)
 

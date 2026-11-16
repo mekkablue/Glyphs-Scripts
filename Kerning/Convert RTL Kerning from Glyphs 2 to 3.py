@@ -190,12 +190,12 @@ try:
 
 		masterKerning = thisFont.kerning.get(master.id, None)
 		if userWantsToConvertFrom3to2:
-			countKernPairs = copyFrom3to2(thisFont, masterKerning, RTLMasterKerning, glyph2scriptMapping)
+			countKernPairs += copyFrom3to2(thisFont, masterKerning, RTLMasterKerning, glyph2scriptMapping)
 		else:
 			if not masterKerning:
 				print("  No kerning found in this master.")
 				continue
-			countKernPairs = copyFrom2to3(masterKerning, RTLMasterKerning, glyph2scriptMapping)
+			countKernPairs += copyFrom2to3(masterKerning, RTLMasterKerning, glyph2scriptMapping)
 			if thisFont.formatVersion != 3:
 				thisFont.formatVersion = 3
 				print("✅ Font Info > Other > File Format: switched to 3")

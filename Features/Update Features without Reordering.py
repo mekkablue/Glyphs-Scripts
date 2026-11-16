@@ -9,9 +9,12 @@ from GlyphsApp import Glyphs
 
 Glyphs.clearLog()
 thisFont = Glyphs.font
+if not thisFont:
+	print("Please open a font first.")
+else:
 
-for thisFeature in thisFont.features:
-	thisFeature.update()
-	print("Feature %s updated." % thisFeature.name)
+	for thisFeature in thisFont.features:
+		thisFeature.update()
+		print("Feature %s updated." % thisFeature.name)
 
-print("Done.")
+	print("Done.")
