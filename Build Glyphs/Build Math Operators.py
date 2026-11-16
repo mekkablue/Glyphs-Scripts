@@ -45,6 +45,7 @@ multiplyScale = 0.9  # bounding box of × relative to the length of the bars
 caretAngle = 45.0  # angle of the arms of ^ against the vertical axis, in degrees
 waveHandleStart = 0.33  # Bézier handle lengths (fraction of a quarter wave) that approximate a sine wave
 waveHandleEnd = 0.36
+waveCutLimit = 1.12  # the vertical cut at the ends of the waves is at most 12% longer than the stroke
 waveSpanHandle = 0.364  # handle length of the curve from a peak to the next trough (fraction of the span), best fit to a sine wave
 logicalNotLeg = 0.4  # length of the hook of ¬ relative to the length of the bars
 kappa = 0.5522847498  # Bézier handle length for circles
@@ -286,8 +287,11 @@ def waveOutline(length, stroke, amplitude):
 		centerAmplitude -= step
 		if abs(step) < 1e-12:
 			break
+	if math.sqrt(1.0 + (2.0 * math.pi * centerAmplitude / length)**2) > waveCutLimit:
+		# the vertical cut at the ends would get too long on a steep wave: limit it, the centerline follows
+		centerAmplitude = amplitude + half * (waveCutLimit - 1.0)
 	slope = 2.0 * math.pi * centerAmplitude / length  # at the corners
-	cornerHalf = half * math.sqrt(1.0 + slope * slope)  # half of the vertical cut at the ends
+	cornerHalf = half * min(math.sqrt(1.0 + slope * slope), waveCutLimit)  # half of the vertical cut at the ends
 	quarter = length / 4.0
 	xs = [-length / 2.0 + index * quarter for index in range(5)]
 	rise = waveHandleStart * (math.pi / 2.0) * centerAmplitude
