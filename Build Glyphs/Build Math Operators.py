@@ -814,7 +814,7 @@ class BuildMathOperators(mekkaObject):
 		self.w.distancesLabel.setToolTip(tooltipText)
 		addField("dotDistance", "÷", 100, "Space between the dots and the bar in ÷, from edge to edge, in units. The overshoot of the dots is subtracted: the distance is the one of a dot that is as wide as the stroke.", 1)
 		addField("barDistance", "=", 100, "Space between the two horizontals in = ≠ ≈, from edge to edge, in units.", 1)
-		addField("waveBend", "≈", 40, "Amount of bending of the waves in ≈ and ~, in units: the distance between the corner nodes at the ends and the first extremes of the curve. 0 makes straight bars.", 0)
+		addField("waveBend", "≈~", 40, "Amount of bending of the waves in ≈ and ~, in units: the distance between the corner nodes at the ends and the first extremes of the curve. 0 makes straight bars.", 0)
 		addField("shapeDistance", "±≤≥", 100, "Space between the plus and the minus in ±, and between the chevron and the bar in ≤ ≥, from edge to edge, in units. The field behind it adapts the height.", 1)
 		addField("shapeAdaptation", None, 100, "Adaptation of the height of ± and ≤ ≥, in percent. 100: ± is as tall as + (its plus gets a shorter vertical stroke) and ≤ ≥ are as tall as < > (their chevron gets flatter). 0: no adaptation, the plus and the chevron stay as they are and ± and ≤ ≥ get taller by the distance and the bar. In between: partly.", 0, 100)
 
