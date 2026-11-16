@@ -643,8 +643,8 @@ def daggerPenData(width, height, stem, bar):
 
 
 def daggerdblPenData(width, height, stem, bar):
-	"""‡ as three overlapping rectangles: a stem with two crossbars."""
-	return crossPenData(width, height, stem, bar, (height * 0.36, height * 0.74))
+	"""‡ as three overlapping rectangles: a stem with two crossbars, the same distance from the top and bottom of the stem."""
+	return crossPenData(width, height, stem, bar, (height * 0.26, height * 0.74))
 
 
 def productPenData(width, height, stem, bar):
