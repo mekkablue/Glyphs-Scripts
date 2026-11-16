@@ -249,7 +249,7 @@ class Proportions(object):
 		self.length = int(round(plan["length"]))
 		self.stroke = int(round(plan["stroke"]))
 		self.tangent = math.tan(math.radians(plan["italicAngle"]))
-		self.adaptPlusMinus = plan["adaptPlusMinus"]
+		self.adaptation = plan["adaptation"] / 100.0  # of the height of ± and ≤ ≥ to the height of + and < >
 		self.dotDistance = int(round(plan["dotDistance"]))  # between dots and bar in ÷
 		self.shapeDistance = int(round(plan["shapeDistance"]))  # between the shapes in ± ≤ ≥
 		self.barDistance = int(round(plan["barDistance"]))  # between the two horizontals in = ≠ ≈
@@ -331,10 +331,8 @@ def notEqualShapes(p):
 
 
 def plusMinusShapes(p):
-	if p.adaptPlusMinus:
-		stemLength = max(p.length - p.shapeDistance - p.stroke, 2 * p.stroke)  # as tall as the plus
-	else:
-		stemLength = p.length
+	# the adaptation shortens the vertical stroke of the plus: 0 keeps it as long as in +, 1 makes ± as tall as +
+	stemLength = max(int(round(p.length - p.adaptation * (p.shapeDistance + p.stroke))), 2 * p.stroke)
 	height = stemLength + p.shapeDistance + p.stroke
 	top = int(round(height / 2.0))
 	bottom = top - height
@@ -397,18 +395,24 @@ def lessShapes(p):
 
 
 def chevronWithBar(p, mirrored):
-	"""< or > with a bar underneath. Same total height as the plain chevron, so the chevron gets flatter."""
+	"""
+	< or > with a bar underneath. The adaptation makes the chevron flatter: at 1 the total height is the one of the plain
+	chevron, at 0 the chevron stays as it is and the bar adds to the height.
+	"""
 	barBlock = p.shapeDistance + p.stroke
 
 	def heightOf(contour):
 		minX, minY, maxX, maxY = bounds([contour])
 		return maxY - minY
 
-	targetHeight = heightOf(chevronShape(p, mirrored)) - barBlock
+	plainHeight = heightOf(chevronShape(p, mirrored))
+	targetHeight = plainHeight - p.adaptation * barBlock
 	low, high = 10.0, chevronAngle  # flatter chevrons are not worth having, the glyph gets taller instead
 	while low < high and not chevronFits(p, mirrored, low):
 		low += 1.0
-	if heightOf(chevronShape(p, mirrored, low)) >= targetHeight:
+	if targetHeight >= plainHeight:
+		angle = chevronAngle  # no adaptation
+	elif heightOf(chevronShape(p, mirrored, low)) >= targetHeight:
 		angle = low
 	else:
 		for _ in range(30):
@@ -592,7 +596,7 @@ class BuildMathOperators(mekkaObject):
 		"italic": True,
 		"wiper": 100,
 		"angleAdjustment": -1,
-		"adaptPlusMinus": True,
+		"shapeAdaptation": 100,
 		"includeLessGreater": False,
 		"includeAscii": False,
 		"overwrite": True,
@@ -681,7 +685,8 @@ class BuildMathOperators(mekkaObject):
 		self.w.distancesLabel.setToolTip(tooltipText)
 		addField("dotDistance", "÷", 100, "Space between the dots and the bar in ÷, from edge to edge, in units. The overshoot of the dots is subtracted: the distance is the one of a dot that is as wide as the stroke.", 1)
 		addField("barDistance", "=", 100, "Space between the two horizontals in = ≠ ≈, from edge to edge, in units.", 1)
-		addField("shapeDistance", "±≤≥", 100, "Space between the plus and the minus in ±, and between the chevron and the bar in ≤ ≥, from edge to edge, in units.", 1)
+		addField("shapeDistance", "±≤≥", 100, "Space between the plus and the minus in ±, and between the chevron and the bar in ≤ ≥, from edge to edge, in units. The field behind it adapts the height.", 1)
+		addField("shapeAdaptation", None, 100, "Adaptation of the height of ± and ≤ ≥, in percent. 100: ± is as tall as + (its plus gets a shorter vertical stroke) and ≤ ≥ are as tall as < > (their chevron gets flatter). 0: no adaptation, the plus and the chevron stay as they are and ± and ≤ ≥ get taller by the distance and the bar. In between: partly.", 0, 100)
 
 		tooltipText = "Optical corrections, in units: the overshoot of the dots in ÷, the extra extension of ×, the knee caps of < > ≤ ≥, and the overhang and the stroke width of the slash in ≠."
 		self.w.correctionsLabel = vanilla.TextBox("auto", "Corrections", sizeStyle="small")
@@ -717,8 +722,6 @@ class BuildMathOperators(mekkaObject):
 
 		self.w.italic = vanilla.CheckBox("auto", "Respect italic angle", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.italic.setToolTip("Slants the shapes by the italic angle of each master (plus the angle adjustment), and corrects the stroke weight for the slant. Off: all operators are upright, and the two fields behind are disabled.")
-		self.w.adaptPlusMinus = vanilla.CheckBox("auto", "Adapt ± height", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.adaptPlusMinus.setToolTip("Adapt height in ±: shortens the vertical stroke of the plus in ±, so that ± is as tall as the plus. Off: ± is a full plus with a minus underneath, and taller than the plus.")
 		self.w.includeLessGreater = vanilla.CheckBox("auto", lessGreater, value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.includeLessGreater.setToolTip("Also draws less, greater, lessequal and greaterequal.")
 		self.w.includeAscii = vanilla.CheckBox("auto", asciiOperators, value=False, callback=self.SavePreferences, sizeStyle="small")
@@ -790,7 +793,7 @@ class BuildMathOperators(mekkaObject):
 			"H:|-inset-[centerLabel]-gap-[centerMode]-gap-[figureStyle(>=60)]-gap-[centerGlyphs(>=90)]-inset-|",
 			"H:|-inset-[sidebearingLabel]-gap-[sidebearing(60)]-gap-[sidebearingText]-(>=inset)-|",
 			"H:|-inset-[strokeLabel]-gap-[stroke(60)]-gap-[resetStroke]-gap-[strokeText]-(>=inset)-|",
-			"H:|-inset-[distancesLabel]-gap-[dotDistance(fieldWidth)]-tight-[dotDistanceLabel]-pair-[barDistance(fieldWidth)]-tight-[barDistanceLabel]-pair-[shapeDistance(fieldWidth)]-tight-[shapeDistanceLabel]-pair-[adaptPlusMinus]-(>=inset)-|",
+			"H:|-inset-[distancesLabel]-gap-[dotDistance(fieldWidth)]-tight-[dotDistanceLabel]-pair-[barDistance(fieldWidth)]-tight-[barDistanceLabel]-pair-[shapeDistance(fieldWidth)]-tight-[shapeAdaptation(fieldWidth)]-tight-[shapeDistanceLabel]-(>=inset)-|",
 			"H:|-inset-[correctionsLabel]-gap-[dotOvershoot(fieldWidth)]-tight-[dotOvershootLabel]-pair-[multiplyExtension(fieldWidth)]-tight-[multiplyExtensionLabel]-pair-[kneeCap(fieldWidth)]-tight-[kneeCapLabel]-pair-[slashOverhang(fieldWidth)]-tight-[slashStroke(fieldWidth)]-tight-[slashLabel]-(>=inset)-|",
 			"H:|-inset-[miterLabel]-gap-[miter(60)]-gap-[miterText]-(>=inset)-|",
 			"H:|-inset-[italicLabel]-gap-[italic]-(>=inset)-|",
@@ -835,7 +838,7 @@ class BuildMathOperators(mekkaObject):
 			("centerMode", ("centerLabel", "figureStyle", "centerGlyphs")),
 			("sidebearing", ("sidebearingLabel", "sidebearingText")),
 			("stroke", ("strokeLabel", "resetStroke", "strokeText")),
-			("dotDistance", ("distancesLabel", "dotDistanceLabel", "barDistance", "barDistanceLabel", "shapeDistance", "shapeDistanceLabel", "adaptPlusMinus")),
+			("dotDistance", ("distancesLabel", "dotDistanceLabel", "barDistance", "barDistanceLabel", "shapeDistance", "shapeAdaptation", "shapeDistanceLabel")),
 			("dotOvershoot", ("correctionsLabel", "dotOvershootLabel", "multiplyExtension", "multiplyExtensionLabel", "kneeCap", "kneeCapLabel", "slashOverhang", "slashStroke", "slashLabel")),
 			("miter", ("miterLabel", "miterText")),
 			("italic", ("italicLabel", )),
@@ -1051,6 +1054,7 @@ class BuildMathOperators(mekkaObject):
 				"sidebearing": int(round(float(self.pref("sidebearing")))),
 				"dotDistance": int(round(float(self.pref("dotDistance")))),
 				"shapeDistance": int(round(float(self.pref("shapeDistance")))),
+				"adaptation": float(self.pref("shapeAdaptation")),
 				"barDistance": int(round(float(self.pref("barDistance")))),
 				"overshoot": int(round(float(self.pref("dotOvershoot")))),
 				"kneeCap": int(round(float(self.pref("kneeCap")))),
@@ -1066,7 +1070,7 @@ class BuildMathOperators(mekkaObject):
 			return None
 		distances = (settings["dotDistance"], settings["shapeDistance"], settings["barDistance"])
 		corrections = (settings["overshoot"], settings["kneeCap"], settings["slashOverhang"])
-		if settings["stroke"] < 1 or settings["plusWidth"] < 1 or settings["sidebearing"] < 0 or min(distances) < 1 or min(corrections) < 0 or settings["miter"] < 0 or not 0 <= settings["wiper"] <= 100 or not -45 <= settings["angleAdjustment"] <= 45:
+		if settings["stroke"] < 1 or settings["plusWidth"] < 1 or settings["sidebearing"] < 0 or min(distances) < 1 or min(corrections) < 0 or settings["miter"] < 0 or not 0 <= settings["wiper"] <= 100 or not 0 <= settings["adaptation"] <= 100 or not -45 <= settings["angleAdjustment"] <= 45:
 			return None
 		settings["takeFromMinus"] = self.prefInt("drawMode") == 1 and not forceFromScratch
 		settings["widthMode"] = self.prefInt("widthMode")
@@ -1077,7 +1081,6 @@ class BuildMathOperators(mekkaObject):
 		settings["overwrite"] = self.prefBool("overwrite")
 		settings["backup"] = self.prefBool("backup") and settings["overwrite"]
 		settings["italic"] = self.prefBool("italic")
-		settings["adaptPlusMinus"] = self.prefBool("adaptPlusMinus")
 		characters = mathOperators
 		if self.prefBool("includeLessGreater"):
 			characters += lessGreater
@@ -1184,7 +1187,7 @@ class BuildMathOperators(mekkaObject):
 			"miter": settings["miter"],
 			"correction": settings["wiper"],
 			"italicAngle": italicAngle,
-			"adaptPlusMinus": settings["adaptPlusMinus"],
+			"adaptation": settings["adaptation"],
 		}
 		plan["lift"] = baselineLift(plan)
 		return plan, None
