@@ -264,10 +264,8 @@ class BuildPositionalFeature(mekkaObject):
 					)
 				)
 
-				# close script window and update features:
+				# close script window (createOTFeature() has recompiled the features):
 				self.w.close()
-				# thisFont.updateFeatures()
-				thisFont.compileFeatures()
 
 				# Final report:
 				Glyphs.showNotification(

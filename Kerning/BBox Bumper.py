@@ -541,6 +541,7 @@ class BBoxBumperKerning(mekkaObject):
 							"" if removedCount == 1 else "s",
 						))
 
+					print("🫱🏾‍🫲🏻 Adding feature code and recompiling features...")
 					featureStatus = createOTFeature(
 						featureName="kern",
 						featureCode=otCode.strip(),
@@ -549,8 +550,6 @@ class BBoxBumperKerning(mekkaObject):
 						prefix="# Automatic Code",
 					)
 					print("🏗 %s" % featureStatus)
-					print("🫱🏾‍🫲🏻 Recompiling features...")
-					thisFont.compileFeatures()
 
 			if Glyphs.font is not None:
 				self.w.bar.set(100)

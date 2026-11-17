@@ -445,7 +445,7 @@ Read it to understand existing scripts. Never use it for a new window, and conve
 | `numberFormatter(minimum, maximum, integersOnly, fractionDigits)`, `integerFormatter(minimum, maximum)`, `decimalFormatter(minimum, maximum, fractionDigits)` | `NSNumberFormatter` for numeric fields |
 | `SteppingEditText` | `vanilla.EditText` with arrow-key stepping, see “Integer fields” |
 | `updatedCode(oldCode, beginSig, endSig, newCode)` | Replaces text in `oldCode`, but only between the two signatures |
-| `createOTFeature(featureName, featureCode, targetFont, codeSig, createSeparateEntry, prefix, appendCode, ignoreAutomatic)` | Creates or updates an OT feature, keeping the code between `# BEGIN`/`# END` signature comments; returns a status message |
+| `createOTFeature(featureName, featureCode, targetFont, codeSig, createSeparateEntry, prefix, appendCode, ignoreAutomatic, compileFeatures=True)` | Creates or updates an OT feature, keeping the code between `# BEGIN`/`# END` signature comments, then runs `font.compileFeatures()`; returns a status message. When adding several features in a row, pass `compileFeatures=False` and compile once after the last one |
 | `createOTClass(className, classGlyphNames, targetFont, automate)` | Creates or updates an OT class; returns a status message |
 | `getLegibleFont(size=None)` | Returns a system legible font (Glyphs 2/3 compatible) |
 | `previewPanel()` | Returns the Preview Panel plugin instance, or `None`; use instead of scanning `Glyphs.delegate().valueForKey_("pluginInstances")`, which raises an `NSUnknownKeyException` in Glyphs 4 |

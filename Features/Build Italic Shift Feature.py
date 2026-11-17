@@ -135,6 +135,7 @@ class ItalicShiftFeature(mekkaObject):
 						codeSig=codeSig,
 						targetFont=thisFont,
 						featureCode=otCode,
+						compileFeatures=False,
 					)
 					# keep the code in the notes too, and make sure Glyphs does not regenerate the feature:
 					feature = thisFont.features[otFeature]
@@ -145,6 +146,7 @@ class ItalicShiftFeature(mekkaObject):
 						feature.notes = updatedCode(feature.notes, beginSig, endSig, otCode)
 					else:
 						feature.notes += "\n" + beginSig + otCode + "\n" + endSig
+				thisFont.compileFeatures()  # after the features are final
 				self.w.close()  # delete if you want window to stay open
 		except Exception as e:
 			# brings macro window to front and reports error:

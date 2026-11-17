@@ -351,8 +351,7 @@ class ContextualCycler(mekkaObject):
 				createSeparateEntry=self.prefBool("separateFeatureEntry"),
 			))
 
-			# recompile so the changes take effect:
-			thisFont.compileFeatures()
+			# createOTFeature() has recompiled the features, so the changes take effect
 			self.w.close()
 
 			# show the result in Font Info > Features:

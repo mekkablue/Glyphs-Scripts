@@ -145,6 +145,7 @@ def createOTFeatureWithNote(
 	targetFont=None,
 	codeSig="CUSTOM-CONTEXTUAL-ALTERNATES",
 	appendCode=True,
+	compileFeatures=True,
 ):
 	"""
 	Creates or updates an OpenType feature in the font (see createOTFeature), and adds the code with
@@ -153,7 +154,7 @@ def createOTFeatureWithNote(
 	if targetFont is None:
 		targetFont = Glyphs.font
 	featureCode = featureCode.rstrip()
-	print(createOTFeature(featureName, featureCode, targetFont, codeSig, appendCode=appendCode))
+	print(createOTFeature(featureName, featureCode, targetFont, codeSig, appendCode=appendCode, compileFeatures=compileFeatures))
 
 	targetFeature = targetFont.features[featureName]
 	if not targetFeature.notes:
@@ -429,6 +430,7 @@ class FeatureCodeTweaks(mekkaObject):
 				targetFont=thisFont,
 				codeSig="Decompose presentation forms",
 				appendCode=False,
+				compileFeatures=False,
 			)
 
 			# repeat in Small Caps if necessary:
@@ -465,6 +467,7 @@ class FeatureCodeTweaks(mekkaObject):
 							targetFont=thisFont,
 							codeSig="Decompose presentation forms",
 							appendCode=False,
+							compileFeatures=False,
 						)
 						if affectedFeature.automatic:
 							affectedFeature.automatic = False
@@ -614,6 +617,7 @@ class FeatureCodeTweaks(mekkaObject):
 					targetFont=thisFont,
 					codeSig="Dutch accented IJ/ij",
 					appendCode=True,
+					compileFeatures=False,
 				)
 
 			# TODO create jdotless.sc
@@ -679,6 +683,7 @@ class FeatureCodeTweaks(mekkaObject):
 				targetFont=thisFont,
 				codeSig="German cap sharp s",
 				appendCode=True,
+				compileFeatures=False,
 			)
 
 			# call lookup in calt:
@@ -689,6 +694,7 @@ class FeatureCodeTweaks(mekkaObject):
 				targetFont=thisFont,
 				codeSig="German cap sharp s",
 				appendCode=True,
+				compileFeatures=False,
 			)
 
 			# Update Languagesystems:
@@ -744,6 +750,7 @@ class FeatureCodeTweaks(mekkaObject):
 				targetFont=thisFont,
 				codeSig="Arrows as ligatures",
 				appendCode=True,
+				compileFeatures=False,
 			)
 
 	def magistraSubstitution(self, feature="calt"):
@@ -781,6 +788,7 @@ class FeatureCodeTweaks(mekkaObject):
 				targetFont=thisFont,
 				codeSig="Magistra",
 				appendCode=True,
+				compileFeatures=False,
 			)
 
 			# add kerning:
@@ -934,6 +942,7 @@ class FeatureCodeTweaks(mekkaObject):
 					targetFont=thisFont,
 					codeSig="Prepare cap marks for smallcaps",
 					appendCode=False,
+					compileFeatures=False,
 				)
 
 		# 2. SMCP: SMALL LETTERS WHERE CASEFOLDING CAN OVERLAP WITH OTHERS
@@ -986,6 +995,7 @@ class FeatureCodeTweaks(mekkaObject):
 					targetFont=thisFont,
 					codeSig="Alternate small-cap mappings",
 					appendCode=True,
+					compileFeatures=False,
 				)
 
 	def FeatureCodeTweaksMain(self, sender):
@@ -1044,6 +1054,12 @@ class FeatureCodeTweaks(mekkaObject):
 			if self.pref("ssXX2salt"):
 				print("\n- Add salt feature with ssXX lookups")
 				self.ssXX2salt()
+
+			# all feature code is in place, so compile once, after the last addition:
+			tweakNames = ("scFeatureFix", "addArrowLigs", "germanLocalization", "dutchLocalization", "decomposePresentationForms", "fShortSubstitution", "magistra", "ssXX2salt")
+			if any(self.pref(tweakName) for tweakName in tweakNames):
+				print("\n🫱🏾‍🫲🏻 Recompiling features...")
+				thisFont.compileFeatures()
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
