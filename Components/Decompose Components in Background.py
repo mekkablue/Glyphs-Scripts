@@ -4,9 +4,9 @@ Will backup foregrounds into backgrounds, and decompose backgrounds. Useful for 
 """
 
 import vanilla
-from mekkablue import mekkaObject, enableRadioGroup
+from mekkablue import mekkaObject, enableRadioGroup, fontFileName
 from GlyphsApp import Glyphs, GSBackgroundLayer, Message
-from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 
 
 class Decompose_Components_in_Background(mekkaObject):
@@ -64,6 +64,11 @@ class Decompose_Components_in_Background(mekkaObject):
 		self.w.whichMasters = vanilla.VerticalRadioGroup("auto", self.masterOptions, sizeStyle="small", callback=self.SavePreferences)
 		self.w.whichMasters.setToolTip("Choose which font masters shall be affected.")
 
+		# ## Progress bar and status line
+		self.w.bar = vanilla.ProgressBar("auto")
+		self.w.bar.set(0)
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+
 		# ## Action button
 		self.w.decomposeButton = vanilla.Button("auto", "Decompose", callback=self.decomposeButtonCallback)
 		self.w.setDefaultButton(self.w.decomposeButton)
@@ -73,6 +78,9 @@ class Decompose_Components_in_Background(mekkaObject):
 		for view in self.w.getNSWindow().contentView().subviews():
 			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
 
+		# a long status text must not widen the window:
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
 		self.w.addAutoPosSizeRules(
 			[
 				"H:|-inset-[descriptionText]-inset-|",
@@ -81,11 +89,13 @@ class Decompose_Components_in_Background(mekkaObject):
 				"H:|-inset-[whichGlyphsInWhichFonts]-(>=inset)-|",
 				"H:|-inset-[div_glyphsOptions]-inset-|",
 				"H:|-inset-[whichMasters]-(>=inset)-|",
-				"H:|-(>=inset)-[decomposeButton(>=120)]-inset-|",
-				"V:|-gap-[descriptionText]-row-[copyToBackgroundFirst]-gap-[div_copyToBackgroundFirst(1)]-gap-[whichGlyphsInWhichFonts]-gap-[div_glyphsOptions(1)]-gap-[whichMasters]-inset-[decomposeButton]-inset-|",
+				"H:|-inset-[bar]-inset-|",
+				"H:|-inset-[status]-(>=gap)-[decomposeButton(>=120)]-inset-|",
+				"V:|-gap-[descriptionText]-row-[copyToBackgroundFirst]-gap-[div_copyToBackgroundFirst(1)]-gap-[whichGlyphsInWhichFonts]-gap-[div_glyphsOptions(1)]-gap-[whichMasters]-barGap-[bar(16)]-inset-[decomposeButton]-inset-|",
 				{"view1": self.w.verbose, "attribute1": "centerY", "view2": self.w.copyToBackgroundFirst, "attribute2": "centerY"},
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.decomposeButton, "attribute2": "centerY"},
 			],
-			metrics={"inset": inset, "gap": 8, "row": 6},
+			metrics={"inset": inset, "gap": 8, "row": 6, "barGap": 12},
 		)
 
 		self.LoadPreferences()
@@ -97,6 +107,33 @@ class Decompose_Components_in_Background(mekkaObject):
 		# the scope ‘all open fonts’ always works on all masters:
 		allFontsSelected = self.w.whichGlyphsInWhichFonts.get() == 2
 		enableRadioGroup(self.w.whichMasters, not allFontsSelected)
+
+		# predict what will happen:
+		glyphCount, fontCount = self.affectedGlyphAndFontCount()
+		if not Glyphs.font:
+			self.w.status.set("⚠️ No font open.")
+		elif glyphCount == 0:
+			self.w.status.set("⚠️ No glyphs selected.")
+		else:
+			self.w.status.set(f"🔮 Will decompose backgrounds in {glyphCount:,} glyph{'' if glyphCount == 1 else 's'}{f' in {fontCount} fonts' if fontCount > 1 else ''}.")
+
+	def affectedGlyphAndFontCount(self):
+		"""Returns how many glyphs in how many fonts the current scope covers."""
+		font = Glyphs.font
+		if not font:
+			return 0, 0
+		scope = self.w.whichGlyphsInWhichFonts.get()
+		if scope == 0:
+			return len(font.selectedLayers), 1
+		if scope == 1:
+			return len(font.glyphs), 1
+		return sum(len(thisFont.glyphs) for thisFont in Glyphs.fonts), len(Glyphs.fonts)
+
+	def setProgress(self, percent, text):
+		"""Sets progress bar and status line, and redraws them right away, so they show while the script is busy."""
+		self.w.bar.set(percent)
+		self.w.status.set(text)
+		self.w.getNSWindow().displayIfNeeded()
 
 	def glyphsOptionsCallback(self, sender):
 		self.SavePreferences()
@@ -118,46 +155,59 @@ class Decompose_Components_in_Background(mekkaObject):
 		workOnAllFonts = whichGlyphsInWhichFonts == 2
 		verbose = self.prefBool("verbose")
 
-		# determine affected fonts
+		# determine affected fonts, glyphs and masters:
 		if workOnAllFonts:
 			selectedFonts = Glyphs.fonts
 		else:
 			selectedFonts = (Glyphs.font, )
 
-		print("Decompose Components in Background:")
+		jobs = []
 		for thisFont in selectedFonts:
-			print(f"\n📄 {thisFont.familyName}:")
-			fontCount = 0
-
-			# determine affected glyphs
 			if workOnAllGlyphs:
-				selectedGlyphs = thisFont.glyphs
+				selectedGlyphs = list(thisFont.glyphs)
 			else:
 				selectedGlyphs = [thisLayer.parent for thisLayer in thisFont.selectedLayers]
 
-			# determine affected masters
 			workOnAllMasters = workOnAllFonts or self.prefInt("whichMasters") == 1
 			if workOnAllMasters:
 				selectedMasterIDs = [master.id for master in thisFont.masters]
 			else:
 				selectedMasterIDs = (thisFont.selectedFontMaster.id, )
+			jobs.append((thisFont, selectedGlyphs, selectedMasterIDs))
+
+		totalGlyphs = sum(len(selectedGlyphs) for _, selectedGlyphs, _ in jobs)
+		if totalGlyphs == 0:
+			self.setProgress(0, "⚠️ No glyphs selected.")
+			return
+
+		print("Decompose Components in Background:")
+		self.setProgress(0, f"🛠️ Decomposing in {totalGlyphs:,} glyph{'' if totalGlyphs == 1 else 's'}…")
+		processedGlyphs = 0
+		totalCount = 0
+		failed = False
+		for thisFont, selectedGlyphs, selectedMasterIDs in jobs:
+			print(f"\n📄 {fontFileName(thisFont)}:")
+			fontCount = 0
 
 			thisFont.disableUpdateInterface()  # suppresses UI updates in Font View
 			try:
 				for thisGlyph in selectedGlyphs:
 					count = 0
-					# print("Processing", thisGlyph.name)
+					self.setProgress(100 * processedGlyphs // totalGlyphs, f"🔠 {thisGlyph.name}")
 					# thisGlyph.beginUndo()  # undo grouping causes crashes
 					for thisLayer in thisGlyph.layers:
 						if thisLayer is not None and (thisLayer.isMasterLayer or thisLayer.isSpecialLayer) and thisLayer.associatedMasterId in selectedMasterIDs:
 							count += self.process(thisLayer, copyToBackgroundFirst=copyToBackgroundFirst)
 					fontCount += count
+					processedGlyphs += 1
 					if verbose:
 						print(f"  Decomposed {count} component{'' if count == 1 else 's'}: {thisGlyph.name}")
 					# thisGlyph.endUndo()  # undo grouping causes crashes
+				totalCount += fontCount
 				print(f"Decomposed {fontCount} components in {len(selectedGlyphs)} glyphs.")
 
 			except Exception as e:
+				failed = True
 				Glyphs.showMacroWindow()
 				import traceback
 				print(f"\n⚠️ Script Error:\n\n{traceback.format_exc()}\n\n{e}")
@@ -165,6 +215,16 @@ class Decompose_Components_in_Background(mekkaObject):
 
 			finally:
 				thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
+
+			if failed:
+				break
+
+		if failed:
+			self.setProgress(100 * processedGlyphs // totalGlyphs, "❌ Script error, see Macro Window.")
+		else:
+			summary = f"Decomposed {totalCount:,} component{'' if totalCount == 1 else 's'} in {totalGlyphs:,} glyph{'' if totalGlyphs == 1 else 's'}."
+			self.setProgress(100, f"✅ {summary}")
+			Glyphs.showNotification("Decompose Backgrounds", f"{summary} Details in Macro Window.")
 
 	def process(self, thisLayer, copyToBackgroundFirst=False):
 		# Determine foreground and background:
