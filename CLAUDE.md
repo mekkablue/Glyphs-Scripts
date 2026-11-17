@@ -447,6 +447,7 @@ Read it to understand existing scripts. Never use it for a new window, and conve
 | `updatedCode(oldCode, beginSig, endSig, newCode)` | Replaces text in `oldCode`, but only between the two signatures |
 | `createOTFeature(featureName, featureCode, targetFont, codeSig, createSeparateEntry, prefix, appendCode, ignoreAutomatic, compileFeatures=True)` | Creates or updates an OT feature, keeping the code between `# BEGIN`/`# END` signature comments, then runs `font.compileFeatures()`; returns a status message. When adding several features in a row, pass `compileFeatures=False` and compile once after the last one |
 | `createOTClass(className, classGlyphNames, targetFont, automate)` | Creates or updates an OT class; returns a status message |
+| `enableRadioGroup(radioGroup, onOff=True)` | Enables or disables a `VerticalRadioGroup` or `HorizontalRadioGroup`; use instead of `radioGroup.enable()`, which raises an `AttributeError` in the vanilla bundled with Glyphs (robotools/vanilla#208) |
 | `getLegibleFont(size=None)` | Returns a system legible font (Glyphs 2/3 compatible) |
 | `previewPanel()` | Returns the Preview Panel plugin instance, or `None`; use instead of scanning `Glyphs.delegate().valueForKey_("pluginInstances")`, which raises an `NSUnknownKeyException` in Glyphs 4 |
 | `macroPanelController()` | Returns the controller of the Macro Panel (Window > Macro Panel), or `None`; use instead of `Glyphs.delegate().macroPanelController()`, which raises an `AttributeError` in Glyphs 4 |

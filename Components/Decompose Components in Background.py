@@ -4,7 +4,7 @@ Will backup foregrounds into backgrounds, and decompose backgrounds. Useful for 
 """
 
 import vanilla
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, enableRadioGroup
 from GlyphsApp import Glyphs, GSBackgroundLayer, Message
 from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 
@@ -96,7 +96,7 @@ class Decompose_Components_in_Background(mekkaObject):
 	def updateUI(self, sender=None):
 		# the scope ‘all open fonts’ always works on all masters:
 		allFontsSelected = self.w.whichGlyphsInWhichFonts.get() == 2
-		self.w.whichMasters.enable(not allFontsSelected)
+		enableRadioGroup(self.w.whichMasters, not allFontsSelected)
 
 	def glyphsOptionsCallback(self, sender):
 		self.SavePreferences()

@@ -405,6 +405,17 @@ def UpdateButton(posSize, callback, title=""):
 	return button
 
 
+def enableRadioGroup(radioGroup, onOff=True):
+	"""
+	Enables or disables all buttons of a vanilla VerticalRadioGroup or HorizontalRadioGroup.
+	WORKAROUND (Glyphs 4.0): radioGroup.enable() raises 'AttributeError: VNSStackView object has no attribute
+	setEnabled_' in the vanilla bundled with Glyphs, see https://github.com/robotools/vanilla/issues/208 (closed
+	upstream). Remove this wrapper, and call radioGroup.enable() again, once the bundled vanilla has the fix.
+	"""
+	for button in radioGroup._buttons:
+		button.enable(onOff)
+
+
 def updatedCode(oldCode, beginSig, endSig, newCode):
 	"""Replaces text in oldCode with newCode, but only between beginSig and endSig."""
 	beginOffset = oldCode.find(beginSig)

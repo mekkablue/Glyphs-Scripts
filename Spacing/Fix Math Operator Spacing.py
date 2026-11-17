@@ -8,7 +8,7 @@ import math
 import vanilla
 from AppKit import NSAffineTransform, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSMidY, NSTextAlignmentRight
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, fontFileName
+from mekkablue import mekkaObject, fontFileName, enableRadioGroup
 
 mathOperators = "+−×÷=≠±≈¬"
 lessGreater = "><≥≤"
@@ -204,7 +204,7 @@ class FixMathOperatorSpacing(mekkaObject):
 		self.w.metricKeysForMathOperators.enable(onOff)
 
 		onOff = self.w.syncWidthsLessGreater.get()
-		self.w.lessGreaterRadioButtons.enable(onOff)
+		enableRadioGroup(self.w.lessGreaterRadioButtons, onOff)
 		self.w.lessGreaterMetricReference.enable(onOff)
 		self.w.syncWidthOfLessGreaterReference.enable(onOff)
 
