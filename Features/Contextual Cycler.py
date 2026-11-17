@@ -355,6 +355,9 @@ class ContextualCycler(mekkaObject):
 			thisFont.compileFeatures()
 			self.w.close()
 
+			# show the result in Font Info > Features:
+			thisFont.parent.windowController().showFontInfoWindowWithTabSelected_(3)
+
 			Glyphs.showNotification(
 				"Contextual Cycler: %s" % thisFont.familyName,
 				"Built cycling code in ‘%s’, %i classes added or updated. Details in Macro Window." % (targetFeature, classCount),
