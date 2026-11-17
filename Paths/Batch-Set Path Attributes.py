@@ -54,9 +54,10 @@ lineCapsNames = (
 )
 
 lineJoinNames = (
-	"miter",
+	"sharp",
 	"round",
-	"bevel",
+	"miter",
+	"round (tight)",
 )
 
 scopeMaster = (
