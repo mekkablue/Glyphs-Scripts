@@ -184,7 +184,8 @@ class BaselineWiggle(mekkaObject):
 					if otClass not in [c.name for c in thisFont.classes]:
 						report = createOTClass(
 							className=otClass,
-							classGlyphs=[g.name for g in thisFont.glyphs if g.export],
+							classGlyphNames=[g.name for g in thisFont.glyphs if g.export],
+							targetFont=thisFont,
 						)
 						print(report)
 
