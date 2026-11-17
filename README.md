@@ -318,6 +318,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Axis Location Setter:** Batch-set axis locations for all instances with a certain name particle. E.g., set an axis location for all Condensed instances.
 * **Axis Mapper:** Extracts, resets and inserts an ‘avar’ axis mapping for the Axis Mappings parameter.
 * **Batch Grader:** Batch-add graded masters to a multiple-master setup.
+* **Batch-Add Brace Layers:** Batch-adds an intermediate (‘brace’) layer at given axis coordinates to the selected glyphs.
 * **Batch-Add Smart Axes:** Will add smart axes and additional smart layers to selected glyphs.
 * **Brace and Bracket Manager:** Find and replace brace or bracket layer coordinates in Glyphs 3 and later.
 * **Bracify:** Turn font masters into brace layers of certain glyphs. A.k.a. Sparsify.
@@ -331,7 +332,6 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **HOI Cleaner:** Removes all HOI (higher-order interpolation) attributes from all nodes in all layers of the frontmost font, and opens a tab with the affected glyphs. Requires Glyphs 4 or later and file format version 4 or later (Font Info → Document → File format version).
 * **HOI Dekinker:** Goes through each axis and finds kinks of smooth (green) curve nodes halfway between neighboring key layers (masters and brace layers) along that axis. Adds an HOI intermediate point in the lower layer for every kink larger than 0.92 units. Skips nodes that already have HOI attributes. Processes the selected glyphs (or the whole font if none is selected), reports in the Macro Window and opens a tab with the affected glyphs. Requires Glyphs 4 or later. Sets the file format version (Font Info → Document → File format version) to the major version of Glyphs if it is lower.
 * **Insert Instances:** GUI for calculating and inserting weight instances. It is described in this tutorial: https://www.glyphsapp.com/learn/multiple-masters-part-3-setting-up-instances
-* **Insert Layers:** Batch-insert brace or bracket layers in selected glyphs.
 * **Instance Cooker:** Insert many instances at once with a recipe.
 * **Kink Finder:** Finds kinks in outlines or the interpolation space, reports them in the Macro window and opens a new tab with affected glyphs. Kinks are described in this tutorial: https://glyphsapp.com/learn/multiple-masters-part-2-keeping-your-outlines-compatible
 * **New Tab with Dangerous Glyphs for Interpolation:** Opens a tab with all glyphs in the font that contain at least two compatible elements. I.e., glyphs where an element (a path or a component) could interpolate with the wrong element, like the equals sign. For a detailed description, see section *Be suspicious* in this tutorial: <http://www.glyphsapp.com/learn/multiple-masters-part-2-keeping-your-outlines-compatible>.

@@ -1,4 +1,4 @@
-# MenuTitle: Insert Layers
+# MenuTitle: Batch-Add Brace Layers
 __doc__ = """
 Batch-insert intermediate layers (‘brace layers’) in selected glyphs. (Glyphs 2: Batch-insert brace or bracket layers in selected glyphs.)
 """
@@ -12,7 +12,9 @@ from AppKit import (
 	NSLayoutConstraintOrientationVertical,
 	NSLayoutPriorityDefaultHigh,
 	NSLayoutPriorityWindowSizeStayPut,
+	NSWindowStyleMaskResizable,
 )
+from Foundation import NSSize
 
 
 class InsertSpecialLayersV3(mekkaObject):
@@ -26,7 +28,7 @@ class InsertSpecialLayersV3(mekkaObject):
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
-			"Insert Intermediate Layers",  # window title
+			"Batch-Add Brace Layers",  # window title
 			autosaveName=self.domain("mainwindow"),  # stores last window position
 		)
 
@@ -70,6 +72,15 @@ class InsertSpecialLayersV3(mekkaObject):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
+
+		# make the window horizontally resizable, but keep the height that Auto Layout determined.
+		# (Content sizes set directly on the NSWindow, so the title bar is not counted twice.)
+		nsWindow = self.w.getNSWindow()
+		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
+		nsWindow.layoutIfNeeded()  # make sure the content has its final size before we read it
+		contentSize = nsWindow.contentView().frame().size
+		nsWindow.setContentMinSize_(NSSize(contentSize.width, contentSize.height))
+		nsWindow.setContentMaxSize_(NSSize(contentSize.width + 1000, contentSize.height))
 
 	def resetCoordinates(self, sender=None):
 		if not Glyphs.font:
