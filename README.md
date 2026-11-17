@@ -335,7 +335,6 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Instance Cooker:** Insert many instances at once with a recipe.
 * **Kink Finder:** Finds kinks in outlines or the interpolation space, reports them in the Macro window and opens a new tab with affected glyphs. Kinks are described in this tutorial: https://glyphsapp.com/learn/multiple-masters-part-2-keeping-your-outlines-compatible
 * **New Tab with Dangerous Glyphs for Interpolation:** Opens a tab with all glyphs in the font that contain at least two compatible elements. I.e., glyphs where an element (a path or a component) could interpolate with the wrong element, like the equals sign. For a detailed description, see section *Be suspicious* in this tutorial: <http://www.glyphsapp.com/learn/multiple-masters-part-2-keeping-your-outlines-compatible>.
-* **New Tab with Special Layers:** Quickly adds a new edit tab with all glyphs containing brace and bracket layers.
 * **New Tab with Uneven Handle Distributions:** Finds glyphs where handle distributions change too much (e.g., from balanced to harmonised).
 * **Remove All Non-Master Layers:** Deletes all layers which are neither master layers, nor brace layers, nor bracket layers. Useful for getting rid of backup layers.
 * **Report Instance Interpolations:** Outputs master coefficients for each instance in Macro Window. Tells you which masters are involved in interpolating a specific instance, and to which extent.
