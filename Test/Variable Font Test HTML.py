@@ -787,7 +787,14 @@ def defaultVariationCSS(thisFont, variableFontSetting=None):
 	return ", ".join(defaultValues)
 
 
-def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, shouldCreateSamsa=False, defaultSize=None, glyphInfos="[]", plainSuffix="ttf"):
+def glyphsFilePathJSONForFont(thisFont):
+	# the file path for glyphsapp:// URLs, or null for a font that has not been saved
+	filepath = thisFont.filepath
+	jsonText = json.dumps(str(filepath) if filepath else None, ensure_ascii=False)
+	return jsonText.replace("</", "<\\/")
+
+
+def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, shouldCreateSamsa=False, defaultSize=None, glyphInfos="[]", plainSuffix="ttf", glyphsFilePath="null"):
 	samsaPlaceholder = "<!-- placeholder for external links, hold down OPTION and SHIFT while running the script -->"
 	htmlContent = """<html>
 	<!--<base href="..">--> <!-- uncomment for keeping the HTML in a subfolder -->
@@ -1178,6 +1185,13 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 
 			const sliders = document.getElementsByClassName('slider');
 			const glyphInfos = ###glyphInfos###;
+			const glyphsFilePath = ###glyphsFilePath###;
+			const glyphNameForCodePoint = {};
+			for (const info of glyphInfos) {
+				if (!info.f && info.n && !(info.c in glyphNameForCodePoint)) {
+					glyphNameForCodePoint[info.c] = info.n;
+				}
+			}
 			const plainFormat = {label: "###plainLabel###", suffix: "###plainSuffix###"};
 
 			const animStates = {};
@@ -1386,7 +1400,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 						tooltip.style.display = 'none';
 					});
 					cell.addEventListener('dblclick', function() {
-						openTextInGlyphs(info.n ? '/' + info.n : ch, 1);
+						openTextInGlyphs(info.n ? '/' + info.n : ch);
 					});
 					grid.appendChild(cell);
 				}
@@ -1513,17 +1527,44 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 					}
 				}
 			}
-			function zoomForTextLength(textLength) {
-				textLength = Math.max(2, Math.min(10, textLength));
-				return 5 * textLength * textLength - 135 * textLength + 1050;
+			function glyphNamesForText(text) {
+				// a token is either /glyphname or a single character; characters without a glyph in the font are left out
+				const names = [];
+				const characters = Array.from(text);
+				let i = 0;
+				while (i < characters.length) {
+					let name = '';
+					if (characters[i] === '/') {
+						let j = i + 1;
+						while (j < characters.length && characters[j] !== '/' && characters[j].trim() !== '') {
+							name += characters[j];
+							j++;
+						}
+						if (name) i = j;
+					}
+					if (!name) {
+						name = glyphNameForCodePoint[characters[i].codePointAt(0)];
+						i++;
+					}
+					if (name) names.push(name);
+				}
+				return names;
 			}
-			function openTextInGlyphs(text, textLength) {
-				// requires the GlyphsApp Server plug-in: https://github.com/mekkablue/glyphsapp-server
+			function openTextInGlyphs(text) {
+				// opens a new tab with these glyphs in Glyphs, see https://handbook.glyphsapp.com/en/single-page/#url-scheme
 				if (!text) return;
-				const zoom = zoomForTextLength(textLength ? textLength : text.length);
-				fetch('http://127.0.0.1:49152/frontmostfont/newtab/?text=' + encodeURIComponent(text) + '&zoom=' + zoom).catch(function(error) {
-					console.error('Could not reach GlyphsApp Server:', error);
-				});
+				if (!glyphsFilePath) {
+					console.warn('Cannot open in Glyphs: the font has not been saved, so there is no file path.');
+					return;
+				}
+				const glyphNames = glyphNamesForText(text);
+				if (!glyphNames.length) {
+					console.warn('Cannot open in Glyphs: found no glyphs for', text);
+					return;
+				}
+				window.location.href = 'glyphsapp://show/?path=' + encodeURIComponent(glyphsFilePath) + glyphNames.map(function(name) {
+					return '&glyph=' + encodeURIComponent(name);
+				}).join('');
 			}
 			function openSelectionInGlyphs() {
 				openTextInGlyphs(window.getSelection().toString());
@@ -1825,6 +1866,7 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 		(samsaPlaceholder, samsaReplaceWith),
 		("###defaultSize###", defaultSize),
 		("###glyphInfos###", glyphInfos),
+		("###glyphsFilePath###", glyphsFilePath),
 		("###plainSuffix###", plainSuffix),
 		("###plainLabel###", plainLabel),
 	)
@@ -2049,7 +2091,7 @@ else:
 			f" ({fileName})" if fileName else "",
 		))
 		print("👷🏼‍ Building HTML code...")
-		htmlContent = buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, shouldCreateSamsa, glyphInfos=glyphInfos, plainSuffix=plainSuffix)
+		htmlContent = buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, shouldCreateSamsa, glyphInfos=glyphInfos, plainSuffix=plainSuffix, glyphsFilePath=glyphsFilePathJSONForFont(thisFont))
 		htmlContent = resolveFamilyNamesPlaceholder(htmlContent, thisFont)  # catches residue anywhere else, e.g. in style or axis names
 
 		# Write file to disk:

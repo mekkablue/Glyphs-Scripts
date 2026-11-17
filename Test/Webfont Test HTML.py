@@ -106,6 +106,13 @@ def glyphInfoJSONForFont(thisFont):
 	return jsonText
 
 
+def glyphsFilePathJSONForFont(thisFont):
+	# the file path for glyphsapp:// URLs, or null for a font that has not been saved
+	filepath = thisFont.filepath
+	jsonText = json.dumps(str(filepath) if filepath else None, ensure_ascii=False)
+	return jsonText.replace("</", "<\\/")
+
+
 def getInstanceInfo(thisFont, activeInstance, fileFormat):
 	# Determine Family Name
 
@@ -755,6 +762,13 @@ htmlContent = """<head>
 	const selectorLength = selectorOptions.length;
 	const glyphInfoList = <!-- glyphInfoJSON -->;
 	const fontFaceList = <!-- fontFaceJSON -->;
+	const glyphsFilePath = <!-- glyphsFilePathJSON -->;
+	const glyphNameForChar = {};
+	for (const glyphInfo of glyphInfoList) {
+		if (glyphInfo.name && !(glyphInfo.char in glyphNameForChar)) {
+			glyphNameForChar[glyphInfo.char] = glyphInfo.name;
+		}
+	}
 	const viewOrder = ["waterfall", "grid", "text"];
 	const viewElementIds = {waterfall: "waterfall", grid: "grid", text: "textview"};
 
@@ -800,17 +814,44 @@ htmlContent = """<head>
 			});
 		}
 	}
-	function zoomForTextLength(textLength) {
-		textLength = Math.max(2, Math.min(10, textLength));
-		return 5 * textLength * textLength - 135 * textLength + 1050;
+	function glyphNamesForText(text) {
+		// a token is either /glyphname or a single character; characters without a glyph in the font are left out
+		const names = [];
+		const characters = Array.from(text);
+		let i = 0;
+		while (i < characters.length) {
+			let name = '';
+			if (characters[i] === '/') {
+				let j = i + 1;
+				while (j < characters.length && characters[j] !== '/' && characters[j].trim() !== '') {
+					name += characters[j];
+					j++;
+				}
+				if (name) i = j;
+			}
+			if (!name) {
+				name = glyphNameForChar[characters[i]];
+				i++;
+			}
+			if (name) names.push(name);
+		}
+		return names;
 	}
-	function openTextInGlyphs(text, textLength) {
-		// requires the GlyphsApp Server plug-in: https://github.com/mekkablue/glyphsapp-server
+	function openTextInGlyphs(text) {
+		// opens a new tab with these glyphs in Glyphs, see https://handbook.glyphsapp.com/en/single-page/#url-scheme
 		if (!text) return;
-		const zoom = zoomForTextLength(textLength ? textLength : text.length);
-		fetch('http://127.0.0.1:49152/frontmostfont/newtab/?text=' + encodeURIComponent(text) + '&zoom=' + zoom).catch(function(error) {
-			console.error('Could not reach GlyphsApp Server:', error);
-		});
+		if (!glyphsFilePath) {
+			console.warn('Cannot open in Glyphs: the font has not been saved, so there is no file path.');
+			return;
+		}
+		const glyphNames = glyphNamesForText(text);
+		if (!glyphNames.length) {
+			console.warn('Cannot open in Glyphs: found no glyphs for', text);
+			return;
+		}
+		window.location.href = 'glyphsapp://show/?path=' + encodeURIComponent(glyphsFilePath) + glyphNames.map(function(name) {
+			return '&glyph=' + encodeURIComponent(name);
+		}).join('');
 	}
 	function updateParagraph() {
 		// update paragraph text based on user input:
@@ -865,7 +906,7 @@ htmlContent = """<head>
 			tooltip.textContent = `${glyphInfo.name}  U+${glyphInfo.uni.toUpperCase()}`;
 			cell.appendChild(tooltip);
 			cell.addEventListener('dblclick', function() {
-				openTextInGlyphs(glyphInfo.name ? '/' + glyphInfo.name : glyphInfo.char, 1);
+				openTextInGlyphs(glyphInfo.name ? '/' + glyphInfo.name : glyphInfo.char);
 			});
 			fragment.appendChild(cell);
 		}
@@ -1047,6 +1088,7 @@ else:
 			("		<!-- moreFeatures -->\n", featureListForFont(thisFont)),
 			("		<!-- fontFaces -->\n", fontFacesCSS),
 			("<!-- glyphInfoJSON -->", glyphInfoJSONForFont(thisFont)),
+			("<!-- glyphsFilePathJSON -->", glyphsFilePathJSONForFont(thisFont)),
 			("<!-- fontFaceJSON -->", fontFacesJSONForInstances(activeFontInstances)),
 		)
 
