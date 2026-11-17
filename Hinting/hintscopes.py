@@ -1,9 +1,9 @@
 """
 Helper module (not a script) for Remove TT Hints and Remove PS Hints:
-the scope popup, sorted by escalation, and the glyphs and layers a scope covers.
+the scope popup, sorted by escalation, the glyphs and layers a scope covers, and the detection of detached hints.
 """
 
-from GlyphsApp import Glyphs
+from GlyphsApp import Glyphs, STEM, TOPGHOST, BOTTOMGHOST, TTSTEM, TTANCHOR, TTALIGN, TTINTERPOLATE, TTDIAGONAL, TTDELTA
 
 # sorted by escalation, from the least to the most layers that are affected:
 scopes = (
@@ -29,6 +29,33 @@ scopeTooltip = (
 	"• all open fonts: all layers of all glyphs of all open fonts\n\n"
 	"⚠️ Mind the bigger scopes: they remove hints in many glyphs with one click. Consider saving first."
 )
+
+
+# How many nodes each hint type is attached to (origin, target, other 1, other 2), see the Glyphs Handbook:
+# stem and shift (align) hints connect two points, interpolate three, diagonal four; snap (anchor), delta and ghost hints one.
+nodesNeededByHintType = {
+	STEM: 2,
+	TOPGHOST: 1,
+	BOTTOMGHOST: 1,
+	TTSTEM: 2,
+	TTANCHOR: 1,
+	TTALIGN: 2,
+	TTINTERPOLATE: 3,
+	TTDIAGONAL: 4,
+	TTDELTA: 1,
+}
+
+detachedTooltip = "detached hints, i.e., hints that are not attached to all the nodes they need anymore, for example because nodes were deleted or the path was changed"
+
+
+def isDetached(hint):
+	"""
+	True if one of the nodes the hint needs does not exist anymore.
+	The number of nodes depends on the type of hint, see nodesNeededByHintType.
+	"""
+	nodes = (hint.originNode, hint.targetNode, hint.otherNode1, hint.otherNode2)
+	neededCount = nodesNeededByHintType.get(hint.type, 1)
+	return any(node is None for node in nodes[:neededCount])
 
 
 def fontsForScope(scope):

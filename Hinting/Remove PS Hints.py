@@ -7,7 +7,7 @@ import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message, STEM, BOTTOMGHOST, TOPGHOST
 from mekkablue import mekkaObject, fontFileName
-from hintscopes import scopes, scopeTooltip, fontsForScope, glyphsAndLayers
+from hintscopes import scopes, scopeTooltip, detachedTooltip, isDetached, fontsForScope, glyphsAndLayers
 
 
 class RemovePSHints(mekkaObject):
@@ -16,6 +16,7 @@ class RemovePSHints(mekkaObject):
 		"verticalStemHints": 1,
 		"ghostHints": 1,
 		"scope": 2,
+		"onlyDetached": 0,
 		"includeBackgrounds": 0,
 	}
 
@@ -43,6 +44,8 @@ class RemovePSHints(mekkaObject):
 		self.w.verticalStemHints.setToolTip("Removes the PostScript stem hints that control vertical stems, i.e. hints in the x direction.")
 		self.w.ghostHints = vanilla.CheckBox("auto", "Ghost hints", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.ghostHints.setToolTip("Removes the top and bottom ghost hints, which hint edges that are not part of a stem.")
+		self.w.onlyDetached = vanilla.CheckBox("auto", "Only remove detached hints", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.onlyDetached.setToolTip(f"Of the checked hint types, only removes the {detachedTooltip}. Hints that are still attached are kept.")
 		self.w.includeBackgrounds = vanilla.CheckBox("auto", "Include backgrounds", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.includeBackgrounds.setToolTip("Also removes the hints in the background of each affected layer.")
 
@@ -68,13 +71,18 @@ class RemovePSHints(mekkaObject):
 			[
 				"H:|-inset-[descriptionText]-gap-[scope]-inset-|",
 				"H:|-inset-[horizontalStemHints]-(>=inset)-|",
-				"H:|-inset-[verticalStemHints]-(>=inset)-|",
+				"H:|-inset-[verticalStemHints]-gap-[onlyDetached]-(>=inset)-|",
 				"H:|-inset-[ghostHints]-gap-[includeBackgrounds]-(>=inset)-|",
 				"H:|-inset-[progress]-inset-|",
 				"H:|-inset-[status]-(>=gap)-[runButton(>=70)]-inset-|",
 				"V:|-gap-[scope]-headlineGap-[horizontalStemHints]-checkRow-[verticalStemHints]-checkRow-[ghostHints]-barGap-[progress(16)]-inset-[runButton]-inset-|",
 				{"view1": self.w.descriptionText, "attribute1": "centerY", "view2": self.w.scope, "attribute2": "centerY"},
 				{"view1": self.w.includeBackgrounds, "attribute1": "centerY", "view2": self.w.ghostHints, "attribute2": "centerY"},
+				{"view1": self.w.onlyDetached, "attribute1": "centerY", "view2": self.w.verticalStemHints, "attribute2": "centerY"},
+				# the stem and ghost checkboxes share one width, so the new column starts at one position, bottom-aligned with the ghost hints:
+				{"view1": self.w.verticalStemHints, "attribute1": "width", "view2": self.w.horizontalStemHints, "attribute2": "width"},
+				{"view1": self.w.ghostHints, "attribute1": "width", "view2": self.w.horizontalStemHints, "attribute2": "width"},
+				{"view1": self.w.onlyDetached, "attribute1": "left", "view2": self.w.includeBackgrounds, "attribute2": "left"},
 				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 			],
 			metrics={"inset": inset, "gap": 8, "headlineGap": 10, "checkRow": 5, "barGap": 12},
@@ -101,7 +109,7 @@ class RemovePSHints(mekkaObject):
 		self.w.status.set(text)
 		self.w.getNSWindow().displayIfNeeded()
 
-	def removeHintsFromLayer(self, primaryLayer, horizontalStemHints, verticalStemHints, ghostHints, includeBackgrounds):
+	def removeHintsFromLayer(self, primaryLayer, horizontalStemHints, verticalStemHints, ghostHints, includeBackgrounds, onlyDetached=False):
 		delCount = 0
 
 		layers = [primaryLayer]
@@ -111,7 +119,7 @@ class RemovePSHints(mekkaObject):
 		for layer in layers:
 			for i in reversed(range(len(layer.hints))):
 				hint = layer.hints[i]
-				if hint.isPostScript:
+				if hint.isPostScript and (not onlyDetached or isDetached(hint)):
 					if horizontalStemHints and hint.horizontal and hint.type == STEM:
 						del layer.hints[i]
 						delCount += 1
@@ -135,6 +143,7 @@ class RemovePSHints(mekkaObject):
 			verticalStemHints = self.prefBool("verticalStemHints")
 			ghostHints = self.prefBool("ghostHints")
 			includeBackgrounds = self.prefBool("includeBackgrounds")
+			onlyDetached = self.prefBool("onlyDetached")
 			scope = self.prefInt("scope")
 
 			theseFonts = fontsForScope(scope)
@@ -160,7 +169,7 @@ class RemovePSHints(mekkaObject):
 					self.setProgress(100 * processedGlyphs // totalGlyphs, f"🔠 {glyph.name}")
 					glyphCount = 0
 					for layer in layers:
-						glyphCount += self.removeHintsFromLayer(layer, horizontalStemHints, verticalStemHints, ghostHints, includeBackgrounds)
+						glyphCount += self.removeHintsFromLayer(layer, horizontalStemHints, verticalStemHints, ghostHints, includeBackgrounds, onlyDetached)
 					if glyphCount:
 						print(f"  - Removed {glyphCount} hint{'' if glyphCount == 1 else 's'} from {glyph.name}")
 					deletedHintsCount += glyphCount

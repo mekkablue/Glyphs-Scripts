@@ -1,18 +1,19 @@
 # MenuTitle: Remove TT Hints
 __doc__ = """
-Deletes a user-specified set of TT instructions in the selected glyphs, a master, the complete font or all open fonts. Can also delete the zero deltas (deltas with an offset of zero) in TT delta hints.
+Deletes a user-specified set of TT instructions in the selected glyphs, a master, the complete font or all open fonts. Can also delete detached hints and the zero deltas (deltas with an offset of zero) in TT delta hints.
 """
 
 import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, TTSTEM, TTANCHOR, TTALIGN, TTINTERPOLATE, TTDIAGONAL, TTDELTA, Message
 from mekkablue import mekkaObject, fontFileName
-from hintscopes import scopes, scopeTooltip, fontsForScope, glyphsAndLayers
+from hintscopes import scopes, scopeTooltip, detachedTooltip, isDetached, fontsForScope, glyphsAndLayers
 
 
 class RemoveTTHints(mekkaObject):
 	prefDict = {
 		"scope": 0,
+		"detachedHints": 0,
 		"zeroDeltas": 0,
 
 		"hStems": 0,
@@ -75,6 +76,9 @@ class RemoveTTHints(mekkaObject):
 				checkBox.setToolTip(f"{direction} {self.hintTooltips[name]}.")
 				setattr(self.w, f"{prefix}{name}", checkBox)
 
+		self.w.detachedHints = vanilla.CheckBox("auto", "Detached Hints", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.detachedHints.setToolTip(f"Removes all TT hints of any type that are {detachedTooltip}.")
+
 		self.w.zeroDeltas = vanilla.CheckBox("auto", "Zero Deltas", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.zeroDeltas.setToolTip(
 			"Removes the deltas with an offset of zero from all TT delta hints, because they have no effect. "
@@ -110,7 +114,7 @@ class RemoveTTHints(mekkaObject):
 
 		self.w.descriptionText.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
 
-		# two columns of checkboxes, one shared width, and Zero Deltas as a third column in the Delta row:
+		# two columns of checkboxes, one shared width, and Detached Hints and Zero Deltas as a third column in the Diagonal and Delta rows:
 		rowNames = [name for _, name in self.hintTypes]
 		hNames = [f"h{name}" for name in rowNames]
 		vNames = [f"v{name}" for name in rowNames]
@@ -122,10 +126,15 @@ class RemoveTTHints(mekkaObject):
 			{"view1": getattr(self.w, vName), "attribute1": "centerY", "view2": getattr(self.w, hName), "attribute2": "centerY"}
 			for hName, vName in zip(hNames, vNames)
 		]
+		rowRules.append({"view1": self.w.detachedHints, "attribute1": "centerY", "view2": self.w.hDiagonal, "attribute2": "centerY"})
 		rowRules.append({"view1": self.w.zeroDeltas, "attribute1": "centerY", "view2": self.w.hDelta, "attribute2": "centerY"})
+		# the third column starts at one position:
+		rowRules.append({"view1": self.w.detachedHints, "attribute1": "left", "view2": self.w.zeroDeltas, "attribute2": "left"})
 		rules = ["H:|-inset-[descriptionText]-gap-[scope]-inset-|"]
 		for hName, vName in zip(hNames, vNames):
-			if hName == "hDelta":
+			if hName == "hDiagonal":
+				rules.append(f"H:|-inset-[{hName}]-gap-[{vName}]-gap-[detachedHints]-(>=inset)-|")
+			elif hName == "hDelta":
 				rules.append(f"H:|-inset-[{hName}]-gap-[{vName}]-gap-[zeroDeltas]-(>=inset)-|")
 			else:
 				rules.append(f"H:|-inset-[{hName}]-gap-[{vName}]-(>=inset)-|")
@@ -175,7 +184,7 @@ class RemoveTTHints(mekkaObject):
 			self.SavePreferences()
 
 	def checkedTypeCount(self):
-		checkBoxNames = self.hintCheckBoxNames("h") + self.hintCheckBoxNames("v") + ["zeroDeltas"]
+		checkBoxNames = self.hintCheckBoxNames("h") + self.hintCheckBoxNames("v") + ["detachedHints", "zeroDeltas"]
 		return sum(1 for name in checkBoxNames if getattr(self.w, name).get())
 
 	def updateUI(self, sender=None):
@@ -217,7 +226,7 @@ class RemoveTTHints(mekkaObject):
 				del layer.hints[index]
 		return count
 
-	def removeHintsFromLayer(self, layer, removals, removeZeroDeltas):
+	def removeHintsFromLayer(self, layer, removals, removeZeroDeltas, removeDetached=False):
 		"""Returns the number of deleted hints and the number of deleted zero deltas."""
 		hintCount = 0
 		zeroDeltaCount = 0
@@ -225,7 +234,7 @@ class RemoveTTHints(mekkaObject):
 			hint = layer.hints[i]
 			if not hint.isTrueType:
 				continue
-			if (hint.type, bool(hint.horizontal)) in removals:
+			if (hint.type, bool(hint.horizontal)) in removals or (removeDetached and isDetached(hint)):
 				del layer.hints[i]
 				hintCount += 1
 			elif removeZeroDeltas and hint.type == TTDELTA:
@@ -255,6 +264,7 @@ class RemoveTTHints(mekkaObject):
 
 			scope = self.prefInt("scope")
 			removeZeroDeltas = self.prefBool("zeroDeltas")
+			removeDetached = self.prefBool("detachedHints")
 			removals = set()
 			for hintType, name in self.hintTypes:
 				if self.prefBool(f"h{name}"):
@@ -280,7 +290,7 @@ class RemoveTTHints(mekkaObject):
 				for glyph, layers in pairs:
 					self.setProgress(100 * processedGlyphs // totalGlyphs, f"🔠 {glyph.name}")
 					for layer in layers:
-						hintCount, zeroDeltaCount = self.removeHintsFromLayer(layer, removals, removeZeroDeltas)
+						hintCount, zeroDeltaCount = self.removeHintsFromLayer(layer, removals, removeZeroDeltas, removeDetached)
 						totalHints += hintCount
 						totalZeroDeltas += zeroDeltaCount
 					processedGlyphs += 1
