@@ -398,7 +398,6 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Bézier Fixer:** Small floating panel that combines Realign, Tunnify and Harmonize for the selected glyphs: realigns out-of-sync BCPs, balances handle distribution (Tunnify 2 algorithm, with an adjustable strength slider from 50–100%), and establishes G2 continuity at smooth nodes (Green Harmony algorithm). Optionally applies to all masters.
 * **Center Line:** Will create center lines between selected segments and their opposites. Hold down OPTION to put center lines in the background.
 * **Copy Glyphs from Other Font into Backup Layers:** Creates backup layers for selected glyphs in target font, and fills them with the respective glyphs from source font. Useful if you want to add glyphs from one font as bracket layers in another.
-* **Distribute Nodes:** Horizontally or vertically distributes nodes (depends on the width/height ratio of the selection bounding box).
 * **Fill Up with Rectangles:** Goes through your selected glyphs, and if it finds an empty one, inserts a placeholder rectangle. Useful for quickly building a dummy font for testing.
 * **Find Close Encounters of Orthogonal Line Segments:** Goes through all vertical and horizontal line segments, and finds pairs that are close, but do not align completely.
 * **Find Near Vertical Misses:** Finds nodes that are close but not exactly on vertical metrics.
@@ -413,7 +412,6 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Remove All Open Paths:** Deletes all *open* paths in the visible layers of all selected glyphs.
 * **Rewire Fire:** Finds, selects and marks duplicate coordinates. Two nodes on the same position typically can be rewired with Reconnect Nodes.
 * **Rotate Around Anchor:** GUI for rotating glyphs or selections of nodes and components around a 'rotate' anchor. Allows to step and repeat.
-* **Set Transform Origin:** Simple GUI for setting the Transform Origin of the Rotate tool numerically. Should also have an effect on the Scale tool.
 * **Snap Selected Points to Nearest Metric in All Masters:** Select points and run this script to snap them to the nearest metric in each compatible layer, given they are no more than 2 units away from the metric. Reports in the Macro window.
 * **Straight Stem Cruncher:** Finds distances between points in all layers, and compares them (with a tolerance) to specified stem widths. Lists glyphs that have deviating stems in their drawings.
 * **Tackle Short Segments:** Finds short segments (measured between the on-curve nodes, ignoring handles) up to a threshold you can set, and can remove them, multiply the length of short line segments by a factor, or straighten short curve segments.
