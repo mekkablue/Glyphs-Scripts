@@ -211,6 +211,8 @@ class RemoveImages(mekkaObject):
 
 			finally:
 				thisFont.enableUpdateInterface()
+				if thisFont.currentTab:
+					thisFont.currentTab.redraw()
 
 		if totalRemoved:
 			orphanNote = f" ({totalOrphaned} orphaned)" if totalOrphaned else ""

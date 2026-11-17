@@ -122,6 +122,8 @@ class TransformImages(mekkaObject):
 					ScaleAndMoveTransform.scaleXBy_yBy_(scaleX, scaleY)
 					ScaleAndMoveTransform.translateXBy_yBy_(moveX, moveY)
 					thisImage.setTransformStruct_(ScaleAndMoveTransform.transformStruct())
+			if Font.currentTab:
+				Font.currentTab.redraw()
 
 		except Exception as e:
 			raise e

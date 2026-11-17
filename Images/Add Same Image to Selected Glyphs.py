@@ -51,3 +51,5 @@ else:
 
 	finally:
 		Font.enableUpdateInterface()
+		if Font.currentTab:
+			Font.currentTab.redraw()

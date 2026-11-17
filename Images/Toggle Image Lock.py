@@ -57,6 +57,8 @@ class ToggleImageLock(mekkaObject):
 					if thisLayer.parent:
 						status = "Locked" if thisLayer.backgroundImage.locked else "Unlocked"
 						print(f"{status} image in {thisLayer.parent.name}.")
+			if thisFont.currentTab:
+				thisFont.currentTab.redraw()
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()

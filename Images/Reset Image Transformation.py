@@ -37,3 +37,5 @@ else:
 		raise e
 	finally:
 		Font.enableUpdateInterface()  # re-enables UI updates in Font View
+		if Font.currentTab:
+			Font.currentTab.redraw()

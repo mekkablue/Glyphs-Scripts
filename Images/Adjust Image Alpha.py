@@ -90,6 +90,8 @@ class AdjustImageAlpha(mekkaObject):
 				return
 			alpha = round(self.prefFloat("alphaSlider"))
 			self.applyAlphaToLayers(thisFont.selectedLayers, alpha)  # active layers of currently selected glyphs
+			if thisFont.currentTab:
+				thisFont.currentTab.redraw()
 
 		except Exception as e:
 			# brings macro window to front and reports error:
@@ -108,6 +110,8 @@ class AdjustImageAlpha(mekkaObject):
 			alpha = round(self.prefFloat("alphaSlider"))
 			for thisGlyph in thisFont.glyphs:
 				self.applyAlphaToLayers(thisGlyph.layers, alpha)
+			if thisFont.currentTab:
+				thisFont.currentTab.redraw()
 
 			Glyphs.showNotification("Adjust Image Alpha", "Set all images in %s to %i%% alpha." % (thisFont.familyName, alpha))
 
