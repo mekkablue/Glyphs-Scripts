@@ -1,12 +1,13 @@
 # MenuTitle: Remove PS Hints
 __doc__ = """
-Removes PS Hints, selectively or completely.
+Removes PS Hints, selectively or completely, in the selected glyphs, a master, the complete font or all open fonts.
 """
 
 import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message, STEM, BOTTOMGHOST, TOPGHOST
 from mekkablue import mekkaObject, fontFileName
+from hintscopes import scopes, scopeTooltip, scopeDescription, fontsForScope, glyphsAndLayers
 
 
 class RemovePSHints(mekkaObject):
@@ -14,17 +15,9 @@ class RemovePSHints(mekkaObject):
 		"horizontalStemHints": 1,
 		"verticalStemHints": 1,
 		"ghostHints": 1,
-		"where": 2,
+		"scope": 2,
 		"includeBackgrounds": 0,
 	}
-
-	wheres = (
-		"current layer of selected glyphs",
-		"all layers of selected glyphs",
-		"this master",
-		"⚠️ the complete font",
-		"⚠️ all open fonts",
-	)
 
 	def __init__(self):
 		# Window 'self.w':
@@ -40,12 +33,18 @@ class RemovePSHints(mekkaObject):
 		inset = 15
 
 		self.w.descriptionText = vanilla.TextBox("auto", "Remove the following hints in", sizeStyle='small', selectable=True)
-		self.w.where = vanilla.PopUpButton("auto", self.wheres, sizeStyle='small', callback=self.SavePreferences)
+		self.w.scope = vanilla.PopUpButton("auto", scopes, sizeStyle='small', callback=self.SavePreferences)
+		self.w.scope.setToolTip(scopeTooltip)
+		self.w.descriptionText.setToolTip(scopeTooltip)
 
 		self.w.horizontalStemHints = vanilla.CheckBox("auto", "Horizontal stem hints", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.horizontalStemHints.setToolTip("Removes the PostScript stem hints that control horizontal stems, i.e. hints in the y direction.")
 		self.w.verticalStemHints = vanilla.CheckBox("auto", "Vertical stem hints", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.verticalStemHints.setToolTip("Removes the PostScript stem hints that control vertical stems, i.e. hints in the x direction.")
 		self.w.ghostHints = vanilla.CheckBox("auto", "Ghost hints", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.ghostHints.setToolTip("Removes the top and bottom ghost hints, which hint edges that are not part of a stem.")
 		self.w.includeBackgrounds = vanilla.CheckBox("auto", "Include backgrounds", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.includeBackgrounds.setToolTip("Also removes the hints in the background of each affected layer.")
 
 		self.w.progress = vanilla.ProgressBar("auto")
 		self.w.progress.set(0)  # set progress indicator to zero
@@ -55,6 +54,7 @@ class RemovePSHints(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Remove Hints", callback=self.RemovePSHintsMain)
+		self.w.runButton.setToolTip("Removes the checked hint types in the chosen scope.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging,
@@ -66,14 +66,14 @@ class RemovePSHints(mekkaObject):
 
 		self.w.addAutoPosSizeRules(
 			[
-				"H:|-inset-[descriptionText]-gap-[where]-inset-|",
+				"H:|-inset-[descriptionText]-gap-[scope]-inset-|",
 				"H:|-inset-[horizontalStemHints]-(>=inset)-|",
 				"H:|-inset-[verticalStemHints]-(>=inset)-|",
 				"H:|-inset-[ghostHints]-gap-[includeBackgrounds]-(>=inset)-|",
 				"H:|-inset-[progress]-inset-|",
 				"H:|-inset-[status]-(>=gap)-[runButton(>=70)]-inset-|",
-				"V:|-gap-[where]-headlineGap-[horizontalStemHints]-checkRow-[verticalStemHints]-checkRow-[ghostHints]-barGap-[progress(16)]-inset-[runButton]-inset-|",
-				{"view1": self.w.descriptionText, "attribute1": "centerY", "view2": self.w.where, "attribute2": "centerY"},
+				"V:|-gap-[scope]-headlineGap-[horizontalStemHints]-checkRow-[verticalStemHints]-checkRow-[ghostHints]-barGap-[progress(16)]-inset-[runButton]-inset-|",
+				{"view1": self.w.descriptionText, "attribute1": "centerY", "view2": self.w.scope, "attribute2": "centerY"},
 				{"view1": self.w.includeBackgrounds, "attribute1": "centerY", "view2": self.w.ghostHints, "attribute2": "centerY"},
 				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 			],
@@ -87,11 +87,23 @@ class RemovePSHints(mekkaObject):
 		self.w.open()
 		self.w.makeKey()
 
+	def checkedTypeCount(self):
+		checkBoxNames = ("horizontalStemHints", "verticalStemHints", "ghostHints")
+		return sum(1 for name in checkBoxNames if getattr(self.w, name).get())
+
 	def updateUI(self, sender=None):
-		buttonEnable = self.pref("horizontalStemHints") or \
-			self.pref("verticalStemHints") or \
-			self.pref("ghostHints")
-		self.w.runButton.enable(onOff=buttonEnable)
+		typeCount = self.checkedTypeCount()
+		self.w.runButton.enable(typeCount > 0)
+		if typeCount == 0:
+			self.w.status.set("⚠️ Check at least one hint type.")
+		else:
+			self.w.status.set(f"🔮 Will remove {typeCount} type{'' if typeCount == 1 else 's'} of hints in {scopeDescription(self.w.scope.get())}.")
+
+	def setProgress(self, percent, text):
+		"""Sets progress bar and status line, and redraws them right away, so they show while the script is busy."""
+		self.w.progress.set(percent)
+		self.w.status.set(text)
+		self.w.getNSWindow().displayIfNeeded()
 
 	def removeHintsFromLayer(self, primaryLayer, horizontalStemHints, verticalStemHints, ghostHints, includeBackgrounds):
 		delCount = 0
@@ -102,94 +114,74 @@ class RemovePSHints(mekkaObject):
 
 		for layer in layers:
 			for i in reversed(range(len(layer.hints))):
-				h = layer.hints[i]
-				if Glyphs.versionNumber >= 3:
-					# GLYPHS 3
-					isPostScriptHint = h.isPostScript
-				else:
-					# GLYPHS 2
-					isPostScriptHint = h.isPostScript()
-
-				if isPostScriptHint:
-					if horizontalStemHints and h.horizontal and h.type == STEM:
+				hint = layer.hints[i]
+				if hint.isPostScript:
+					if horizontalStemHints and hint.horizontal and hint.type == STEM:
 						del layer.hints[i]
 						delCount += 1
-					elif verticalStemHints and not h.horizontal and h.type == STEM:
+					elif verticalStemHints and not hint.horizontal and hint.type == STEM:
 						del layer.hints[i]
 						delCount += 1
-					elif ghostHints and h.type in (BOTTOMGHOST, TOPGHOST):
+					elif ghostHints and hint.type in (BOTTOMGHOST, TOPGHOST):
 						del layer.hints[i]
 						delCount += 1
 		return delCount
 
 	def RemovePSHintsMain(self, sender):
 		try:
+			# clear macro window log:
+			Glyphs.clearLog()
+
 			# update settings to the latest user input:
 			self.SavePreferences()
 
-			horizontalStemHints = self.pref("horizontalStemHints")
-			verticalStemHints = self.pref("verticalStemHints")
-			ghostHints = self.pref("ghostHints")
-			where = self.pref("where")
-			includeBackgrounds = self.pref("includeBackgrounds")
+			horizontalStemHints = self.prefBool("horizontalStemHints")
+			verticalStemHints = self.prefBool("verticalStemHints")
+			ghostHints = self.prefBool("ghostHints")
+			includeBackgrounds = self.prefBool("includeBackgrounds")
+			scope = self.prefInt("scope")
 
-			if where >= 4:
-				theseFonts = Glyphs.fonts
-			else:
-				theseFonts = (Glyphs.font, ) if Glyphs.font else ()
-
+			theseFonts = fontsForScope(scope)
 			if not theseFonts:
+				self.setProgress(0, "⚠️ No font open.")
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 				return
 
+			# collect what is to be done:
+			jobs = [(thisFont, glyphsAndLayers(thisFont, scope)) for thisFont in theseFonts]
+			totalGlyphs = sum(len(pairs) for _, pairs in jobs)
+			if totalGlyphs == 0:
+				self.setProgress(0, "⚠️ No glyphs selected." if scope < 2 else "⚠️ No layers to process.")
+				return
+
+			print("Remove PS Hints Report")
+			self.setProgress(0, f"🛠️ Removing hints in {totalGlyphs:,} glyph{'' if totalGlyphs == 1 else 's'}…")
+			processedGlyphs = 0
 			deletedHintsCount = 0
-			for thisFont in theseFonts:
-				print("Remove PS Hints Report for %s" % thisFont.familyName)
-				print(fontFileName(thisFont, fullPath=True))
-				print()
+			for thisFont, pairs in jobs:
+				print(f"\n📄 {fontFileName(thisFont, fullPath=True)}")
+				for glyph, layers in pairs:
+					self.setProgress(100 * processedGlyphs // totalGlyphs, f"🔠 {glyph.name}")
+					glyphCount = 0
+					for layer in layers:
+						glyphCount += self.removeHintsFromLayer(layer, horizontalStemHints, verticalStemHints, ghostHints, includeBackgrounds)
+					if glyphCount:
+						print(f"  - Removed {glyphCount} hint{'' if glyphCount == 1 else 's'} from {glyph.name}")
+					deletedHintsCount += glyphCount
+					processedGlyphs += 1
 
-				if where == 0:
-					# Current Layer of Selected Glyphs
-					objectList = set(thisFont.selectedLayers)
-					count = len(objectList)
-					for i, l in enumerate(objectList):
-						self.w.progress.set(i / count * 100)
-						deletedHintsCount += self.removeHintsFromLayer(l, horizontalStemHints, verticalStemHints, ghostHints, includeBackgrounds)
-				elif where == 1:
-					# All Layers of Selected Glyphs
-					objectList = set(thisFont.selectedLayers)
-					count = len(objectList)
-					for i, l in enumerate(objectList):
-						self.w.progress.set(i / count * 100)
-						g = l.parent
-						for ll in g.layers:
-							deletedHintsCount += self.removeHintsFromLayer(ll, horizontalStemHints, verticalStemHints, ghostHints, includeBackgrounds)
-				elif where == 2:
-					# this Master
-					masterID = thisFont.selectedFontMaster.id
-					objectList = thisFont.glyphs
-					count = len(objectList)
-					for i, g in enumerate(objectList):
-						self.w.progress.set(i / count * 100)
-						for layer in g.layers:
-							if layer.associatedMasterId == masterID:
-								deletedHintsCount += self.removeHintsFromLayer(layer, horizontalStemHints, verticalStemHints, ghostHints, includeBackgrounds)
-				else:
-					# the Complete Font
-					objectList = thisFont.glyphs
-					count = len(objectList)
-					for i, glyph in enumerate(objectList):
-						self.w.progress.set(i / count * 100 / len(theseFonts))
-						for layer in glyph.layers:
-							deletedHintsCount += self.removeHintsFromLayer(layer, horizontalStemHints, verticalStemHints, ghostHints, includeBackgrounds)
-
-			# complete progress bar:
-			self.w.progress.set(100)
-			self.w.status.set(f"✅ Removed {deletedHintsCount} hint{'' if deletedHintsCount == 1 else 's'} in {len(theseFonts)} font{'' if len(theseFonts) == 1 else 's'}")
+			# final report:
+			summary = f"Removed {deletedHintsCount:,} hint{'' if deletedHintsCount == 1 else 's'} in {totalGlyphs:,} glyph{'' if totalGlyphs == 1 else 's'}"
+			if len(theseFonts) > 1:
+				summary += f" in {len(theseFonts)} fonts"
+			self.setProgress(100, f"✅ {summary}.")
+			Glyphs.showNotification("Remove PS Hints", f"{summary}. Details in Macro Window.")
+			print(f"\nTOTAL: {summary}.")
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print("Remove PS Hints Error: %s" % e)
+			self.w.status.set("❌ Script error, see Macro Window.")
+			print(f"Remove PS Hints Error: {e}")
 			import traceback
 			print(traceback.format_exc())
 

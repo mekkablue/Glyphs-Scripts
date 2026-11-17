@@ -286,9 +286,8 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **New Tab with Glyphs in Alignment Zones:** Opens a new tab and lists all glyphs that reach into alignment zones.
 * **New Tab with Layers with TTDeltas:** Opens a new tab with all layers that have defined TTDeltas.
 * **New Tabs with Glyphs Not Reaching Into Zones:** Opens a new tab with all glyphs that do NOT reach into any top or bottom alignment zone. Only counts glyphs that contain paths in the current master. Ignores empty glyphs and compounds.
-* **Remove PS Hints:** Deletes all stem and/or ghost hints throughout the current font, the selected master and/or the selected glyphs.
-* **Remove TT Hints:** Deletes a user-specified set of TT instructions throughout the current font, the selected master and/or the selected glyphs.
-* **Remove Zero Deltas in Selected Glyphs:** Goes through all layers of each selected glyph, and deletes all TT Delta Hints with an offset of zero. Detailed Report in Macro window.
+* **Remove PS Hints:** Deletes stem and/or ghost hints in the selected glyphs, the selected master, all masters but the current or the first one, the complete font or all open fonts.
+* **Remove TT Hints:** Deletes a user-specified set of TT instructions in the selected glyphs, the selected master, all masters but the current or the first one, the complete font or all open fonts. Also removes zero deltas, i.e., deltas with an offset of zero, from TT delta hints (this replaces the former script ‘Remove Zero Deltas in Selected Glyphs’).
 * **Set blueFuzz to Zero for Master Instances:** Adds blueFuzz custom parameter with value 0 for instances that are the same as a master.
 * **Set blueScale:** Sets maximum blueScale value (determining max size for overshoot suppression) possible in Font Info > Font. Outputs other options in Macro window.
 * **Set Family Alignment Zones:** Pick an instance and set its zones as Family Alignment Zones in *Font Info > Font > Custom Parameters.*
