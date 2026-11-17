@@ -31,11 +31,6 @@ scopeTooltip = (
 )
 
 
-def scopeDescription(scope):
-	"""The scope as a phrase for the status line, without the warning sign."""
-	return scopes[scope].replace("⚠️ ", "")
-
-
 def fontsForScope(scope):
 	"""The fonts a scope covers: all open fonts, or the frontmost font."""
 	if scope == allFontsScope:

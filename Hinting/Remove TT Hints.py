@@ -7,7 +7,7 @@ import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, TTSTEM, TTANCHOR, TTALIGN, TTINTERPOLATE, TTDIAGONAL, TTDELTA, Message
 from mekkablue import mekkaObject, fontFileName
-from hintscopes import scopes, scopeTooltip, scopeDescription, fontsForScope, glyphsAndLayers
+from hintscopes import scopes, scopeTooltip, fontsForScope, glyphsAndLayers
 
 
 class RemoveTTHints(mekkaObject):
@@ -179,12 +179,8 @@ class RemoveTTHints(mekkaObject):
 		return sum(1 for name in checkBoxNames if getattr(self.w, name).get())
 
 	def updateUI(self, sender=None):
-		typeCount = self.checkedTypeCount()
-		self.w.runButton.enable(typeCount > 0)
-		if typeCount == 0:
-			self.w.status.set("⚠️ Check at least one hint type.")
-		else:
-			self.w.status.set(f"🔮 Will remove {typeCount} type{'' if typeCount == 1 else 's'} of hints in {scopeDescription(self.w.scope.get())}.")
+		self.w.runButton.enable(self.checkedTypeCount() > 0)
+		self.w.status.set("🤖 Ready.")
 
 	def setProgress(self, percent, text):
 		"""Sets progress bar and status line, and redraws them right away, so they show while the script is busy."""
@@ -271,11 +267,11 @@ class RemoveTTHints(mekkaObject):
 			jobs = [(thisFont, glyphsAndLayers(thisFont, scope)) for thisFont in theseFonts]
 			totalGlyphs = sum(len(pairs) for _, pairs in jobs)
 			if totalGlyphs == 0:
-				self.setProgress(0, "⚠️ No glyphs selected." if scope < 2 else "⚠️ No layers to process.")
+				self.setProgress(0, "⚠️ Nothing selected." if scope < 2 else "⚠️ No layers.")
 				return
 
 			print("Remove TT Hints Report")
-			self.setProgress(0, f"🛠️ Removing hints in {totalGlyphs:,} glyph{'' if totalGlyphs == 1 else 's'}…")
+			self.setProgress(0, "🛠️ Removing hints…")
 			processedGlyphs = 0
 			totalHints = 0
 			totalZeroDeltas = 0
@@ -290,19 +286,18 @@ class RemoveTTHints(mekkaObject):
 					processedGlyphs += 1
 
 			# final report:
-			parts = [f"{totalHints:,} instruction{'' if totalHints == 1 else 's'}"]
+			parts = [f"{totalHints:,} hint{'' if totalHints == 1 else 's'}"]
 			if removeZeroDeltas:
 				parts.append(f"{totalZeroDeltas:,} zero delta{'' if totalZeroDeltas == 1 else 's'}")
 			summary = f"Removed {' and '.join(parts)}"
-			fontReport = f" in {len(theseFonts)} fonts" if len(theseFonts) > 1 else ""
-			self.setProgress(100, f"✅ {summary} in {totalGlyphs:,} glyph{'' if totalGlyphs == 1 else 's'}{fontReport}.")
+			self.setProgress(100, f"✅ {summary}.")
 			Glyphs.showNotification(summary, f"Font: {Glyphs.font.familyName}" if len(theseFonts) == 1 else f"{len(theseFonts)} fonts")
 			print(f"\nTOTAL: {summary}.")
 
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			self.w.status.set("❌ Script error, see Macro Window.")
+			self.w.status.set("❌ Error, see Macro Window.")
 			print(f"Remove TT Hints Error: {e}")
 			import traceback
 			print(traceback.format_exc())
