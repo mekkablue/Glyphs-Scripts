@@ -48,8 +48,8 @@ sortedStrokePositionNames = sorted(strokePositions.keys(), key=lambda thisListIt
 lineCapsNames = (
 	"straight cutoff",
 	"round (wide)",
-	"round (tight)",
 	"square",
+	"round (tight)",
 	"orthogonal",
 )
 
