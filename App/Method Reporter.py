@@ -4,7 +4,7 @@ Searches in PyObjC method names of a chosen object.
 """
 
 import vanilla
-from AppKit import NSObject, NSWindowStyleMaskResizable
+from AppKit import NSObject, NSLayoutConstraintOrientationHorizontal, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSWindowStyleMaskResizable
 from Foundation import NSSize
 from GlyphsApp import Glyphs
 from mekkablue import setClipboard, mekkaObject
@@ -20,10 +20,10 @@ class MethodReporter(mekkaObject):
 		self.methodCache = {}  # listing the methods of a big class takes a while, so do it only once
 
 		if Glyphs.versionNumber < 4.0:
-			infoValueObjects = ("GSFontInfoValue", "GSFontInfoValueLocalized")
+			infoValueObjects = ("GSFontInfoValue", "GSFontInfoValueSingle", "GSFontInfoValueLocalized")
 		else:
 			# Glyphs 4 renamed GSFontInfoValue* to GSInfoValue*
-			infoValueObjects = ("GSInfoValue", "GSInfoValueLocalized")
+			infoValueObjects = ("GSInfoValue", "GSInfoValueSingle", "GSInfoValueLocalized")
 
 		self.mostImportantObjects = (
 			"GSLayer",
@@ -43,18 +43,25 @@ class MethodReporter(mekkaObject):
 			"GSDocument",
 			"GSWindowController",
 			"GSEditViewController",
+			"GSFontViewController",
 			"GlyphsPreviewPanel",
+			"PreviewTextWindow",
 			"GSFeature",
 			"GSFeaturePrefix",
 			"GSFontMaster",
 		) + infoValueObjects + (
 			"GSGlyphEditView",
 			"GSGlyphInfo",
+			"GSGlyphReference",
 			"GSGlyphsInfo",
+			"GSGradient",
 			"GSGuide",
+			"GSHandle",
 			"GSGuideLine",
 			"GSHint",
 			"GSInstance",
+			"GSMetric",
+			"GSMetricStore",
 			"GSMetricValue",
 			"GSNameParticle",
 			"GSNode",
@@ -62,6 +69,7 @@ class MethodReporter(mekkaObject):
 			"GSPathSegment",
 			"GSProjectDocument",
 			"GSAxis",
+			"GSShape",
 			"GSSmartComponentAxis",
 			# NS object
 			"NSBezierPath",
@@ -70,6 +78,9 @@ class MethodReporter(mekkaObject):
 			"NSAffineTransformStruct",
 			"NSDate",
 			"NSImage",
+			"NSIndexPath",
+			"NSMenu",
+			"NSMenuItem",
 			"NSTextField",
 			"NSComboBox",
 			"NSPopUpButton",
@@ -123,14 +134,20 @@ class MethodReporter(mekkaObject):
 
 		self.w.addAutoPosSizeRules(
 			[
-				"H:|-inset-[objectPicker(150)]-gap-[textFilter]-gap-[filter]-inset-|",
+				"H:|-inset-[objectPicker(>=150)]-gap-[textFilter]-gap-[filter]-inset-|",
 				"H:|[methodList]|",
 				"V:|-inset-[objectPicker]-inset-[methodList(>=100)]|",
 				{"view1": self.w.textFilter, "attribute1": "centerY", "view2": self.w.objectPicker, "attribute2": "centerY"},
 				{"view1": self.w.filter, "attribute1": "centerY", "view2": self.w.objectPicker, "attribute2": "centerY"},
+				# when the window gets wider, the class name keeps at least 35% of its width:
+				{"view1": self.w.objectPicker, "attribute1": "width", "relation": ">=", "view2": self.w, "attribute2": "width", "multiplier": 0.35},
 			],
 			metrics={"inset": inset, "gap": 6},
 		)
+
+		# beyond that, the search field takes the extra width:
+		self.w.objectPicker.getNSComboBox().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.filter.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# Load Settings:
 		self.LoadPreferences()
