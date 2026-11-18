@@ -461,9 +461,14 @@ htmlContent = """<head>
 		.features .emojiButton {
 			vertical-align: -5%;
 			font-size: small;
+			padding: 0.15em 0.25em;
 		}
 		.emojiButton {
 			cursor: pointer;
+			text-decoration: none;
+		}
+		.emojiButton.gapAfter {
+			margin-right: 0.9em;
 		}
 		#flexbox {
 			display: flex;
@@ -579,8 +584,8 @@ htmlContent = """<head>
 			outline: 0 solid transparent;
 		}
 		.viewLink.activeView {
-			color: #333;
-			font-weight: bold;
+			background-color: #bbb;
+			border-radius: 0.3em;
 		}
 		.sliderControls {
 			display: none;
@@ -741,7 +746,7 @@ htmlContent = """<head>
 				border-color: #444;
 			}
 			.viewLink.activeView {
-				color: #eee;
+				background-color: #555;
 			}
 			.sliderControls label {
 				color: #aaa;
@@ -749,7 +754,7 @@ htmlContent = """<head>
 		}
 	</style>
 </head>
-<body onload="document.getElementById('textInput').focus();setCharset();">
+<body onload="document.getElementById('textInput').focus();setCharset();setView('text');">
 <div id="flexbox">
 <div id="controls">
 	<div>
@@ -762,12 +767,11 @@ htmlContent = """<head>
 		</div>
 	</div>
 	<p class="features">
-		<a href="javascript:setView('waterfall');" id="viewWaterfall" class="viewLink activeView">Waterfall</a>
-		<a href="javascript:setView('grid');" id="viewGrid" class="viewLink">Grid</a>
-		<a href="javascript:setView('text');" id="viewText" class="viewLink">Text</a>
-		&ensp;
+		<a onclick="reloadAllFonts();" id="reload" class="emojiButton gapAfter" title="Reload (after you reexported)">🔄</a>
+		<a onclick="setView('text');" id="viewText" class="emojiButton viewLink activeView" title="Text view">🔤</a>
+		<a onclick="setView('grid');" id="viewGrid" class="emojiButton viewLink" title="Grid view of all glyphs (double-click a glyph to open it in Glyphs)">🔡</a>
+		<a onclick="setView('waterfall');" id="viewWaterfall" class="emojiButton viewLink gapAfter" title="Waterfall view">⏬</a>
 		<a onclick="toggleInverse();" id="invert" class="emojiButton" title="Toggle x-ray (outline) display">🔲</a>
-		<a onclick="reloadAllFonts();" id="reload" class="emojiButton" title="Reload the fonts from disk (Ctrl-U)">🔄</a>
 		<label><input type="checkbox" id="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel" title="kern: Kerning">kern</label>
 		<label><input type="checkbox" id="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked><label for="liga" class="otFeatureLabel" title="liga, clig: Standard ligatures and contextual ligatures">liga/clig</label>
 		<label><input type="checkbox" id="calt" value="calt" class="otFeature" onchange="updateFeatures()" checked><label for="calt" class="otFeatureLabel" title="calt: Contextual alternates">calt</label>
@@ -817,7 +821,7 @@ htmlContent = """<head>
 			glyphNameForChar[glyphInfo.char] = glyphInfo.name;
 		}
 	}
-	const viewOrder = ["waterfall", "grid", "text"];
+	const viewOrder = ["text", "grid", "waterfall"];
 	const viewElementIds = {waterfall: "waterfall", grid: "grid", text: "textview"};
 
 	document.addEventListener('keyup', keyAnalysis);
