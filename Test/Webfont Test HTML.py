@@ -697,7 +697,12 @@ htmlContent = """<head>
 			bottom: 0;
 			padding: 2px;
 			width: 100%;
+			box-sizing: border-box;
 			font: x-small sans-serif;
+		}
+		#helptext span {
+			display: inline-block; /* an item never breaks across lines */
+			margin-right: 1.3em; /* plus the space between the items: about 1.6em */
 		}
 
 		/* Dark Mode */
@@ -799,7 +804,12 @@ htmlContent = """<head>
 
 <!-- Disclaimer -->
 <p id="helptext" onmouseleave="vanish(this);">
-	Ctrl-R: Reset text. Ctrl-J: LTR/RTL (all views). Ctrl-G: cycle views. Ctrl-U: reload fonts from disk. Cmd-Opt-Shift-E: open text in Glyphs. Double-click grid glyph: open in Glyphs. Ctrl-comma/period: step through fonts. Pull mouse across this note to make it disappear.
+	<span>Ctrl-R: reset text</span>
+	<span>Ctrl-U: reload fonts</span>
+	<span>Ctrl-comma/period: step through fonts</span>
+	<span>Ctrl-J: LTR/RTL</span>
+	<span>⌘⌥⇧E: open in Glyphs (or double-click cell)</span>
+	<span>Move mouse over this note to make it disappear.</span>
 </p>
 
 <script type="text/javascript">
