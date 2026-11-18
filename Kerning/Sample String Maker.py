@@ -5,7 +5,8 @@ Creates kern strings for all kerning groups in user-defined categories and adds 
 
 import vanilla
 import sampleText
-from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
+from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSWindowStyleMaskResizable
+from Foundation import NSSize
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, UpdateButton
 
@@ -109,6 +110,7 @@ class SampleStringMaker(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Add", callback=self.SampleStringMakerMain)
+		self.w.runButton.setToolTip("Adds the kern strings to the Sample Texts and closes this window. If ‘Open tab at first kern string’ is checked, also opens a tab at the first string.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window
@@ -164,6 +166,15 @@ class SampleStringMaker(mekkaObject):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
+
+		# make the window horizontally resizable, but keep the height that Auto Layout determined.
+		# (Content sizes set directly on the NSWindow, so the title bar is not counted twice.)
+		nsWindow = self.w.getNSWindow()
+		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
+		nsWindow.layoutIfNeeded()  # make sure the content has its final size before we read it
+		contentSize = nsWindow.contentView().frame().size
+		nsWindow.setContentMinSize_(NSSize(contentSize.width, contentSize.height))
+		nsWindow.setContentMaxSize_(NSSize(contentSize.width + 1000, contentSize.height))
 
 	def updateScripts(self, sender=None):
 		font = Glyphs.font

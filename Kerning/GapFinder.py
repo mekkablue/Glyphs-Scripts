@@ -15,8 +15,9 @@ from AppKit import (
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
 	NSTextAlignmentRight,
+	NSWindowStyleMaskResizable,
 )
-from Foundation import NSNotFound
+from Foundation import NSNotFound, NSSize
 
 
 intervalList = (1, 3, 5, 10, 20)
@@ -156,6 +157,15 @@ class GapFinder(mekkaObject):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
+
+		# make the window horizontally resizable, but keep the height that Auto Layout determined.
+		# (Content sizes set directly on the NSWindow, so the title bar is not counted twice.)
+		nsWindow = self.w.getNSWindow()
+		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
+		nsWindow.layoutIfNeeded()  # make sure the content has its final size before we read it
+		contentSize = nsWindow.contentView().frame().size
+		nsWindow.setContentMinSize_(NSSize(contentSize.width, contentSize.height))
+		nsWindow.setContentMaxSize_(NSSize(contentSize.width + 1000, contentSize.height))
 
 	def updateGUI(self, sender=None):
 		self.SavePreferences()
