@@ -99,6 +99,10 @@ else:
 		print("\n  MASTER: %s" % thisMaster.name)
 
 		masterKerning = thisFont.kerning[thisMaster.id]
+		if not masterKerning:
+			# a master without any kerning has no kerning dictionary at all (None)
+			print("  ⚠️ No kerning in this master.")
+			continue
 
 		for leftGlyphName in (noKerningToTheRight + unlikelyToBeKerned + tuple(glyphNamesWithExtensionsNotToBeKerned)):
 			if thisFont.glyphs[leftGlyphName]:
