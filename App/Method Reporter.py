@@ -233,8 +233,8 @@ class MethodReporter(mekkaObject):
 				{"view1": self.w.textFilter, "attribute1": "centerY", "view2": self.w.objectPicker, "attribute2": "centerY"},
 				{"view1": self.w.filter, "attribute1": "centerY", "view2": self.w.objectPicker, "attribute2": "centerY"},
 				# when the window gets wider, the Find label and field take as much of the extra width as they can,
-				# but the class name keeps at least 35% of the window width:
-				{"view1": self.w.objectPicker, "attribute1": "width", "relation": ">=", "view2": self.w, "attribute2": "width", "multiplier": 0.35},
+				# but the class name keeps at least 30% of the window width:
+				{"view1": self.w.objectPicker, "attribute1": "width", "relation": ">=", "view2": self.w, "attribute2": "width", "multiplier": 0.30},
 			],
 			metrics={"inset": inset, "gap": 6},
 		)
