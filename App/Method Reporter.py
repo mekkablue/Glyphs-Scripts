@@ -77,7 +77,6 @@ class MethodReporter(mekkaObject):
 			"NSColor",
 			"NSFont",
 			"NSAffineTransform",
-			"NSAffineTransformStruct",
 			"NSPoint",
 			"NSRect",
 			"NSSize",
