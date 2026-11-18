@@ -319,8 +319,10 @@ def otVarFileName(thisFont, thisInstance=None):
 			# The file name Glyphs reports still contains the unresolved placeholder and cannot be patched
 			# reliably (resolving it in place doubled "Corner": FlintstoneCornerCornerVF). Build the name
 			# from the resolved family name of the instance instead, like the exported file
-			# (e.g. "Flintstone Corner" > FlintstoneCornerVF.otf):
-			fileName = f"{familyNameOfInstance(thisInstance)}VF".replace(" ", "")
+			# (e.g. "Wei_sraum Pro VF" > Wei_sraumProVF.otf). A family name set in the VF setting is used as is;
+			# Glyphs only adds the "VF" suffix on its own if the VF setting has no family name (then there is
+			# no placeholder in the file name Glyphs reports, and this branch is not reached):
+			fileName = familyNameOfInstance(thisInstance).replace(" ", "")
 		if not fileName:
 			fileName = thisInstance.customParameters["fileName"]
 			if not fileName:
