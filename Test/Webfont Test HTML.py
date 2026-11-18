@@ -10,6 +10,7 @@ import codecs
 import webbrowser
 import json
 from urllib.parse import quote
+from html import escape
 Glyphs.registerDefault("com.mekkablue.WebFontTestHTML.includeEOT", 0)
 
 
@@ -419,7 +420,7 @@ def featureDescription(tag):
 	if tag in featureDescriptions:
 		return "%s: %s" % (tag, featureDescriptions[tag])
 	if len(tag) == 4 and tag[:2] in ("ss", "cv") and tag[2:].isdigit():
-		return "%s: %s %d" % (tag, "Stylistic set" if tag.startswith("ss") else "Character variant", int(tag[2:]))
+		return "%s: %s %d" % (tag, "Stylistic Set" if tag.startswith("ss") else "Character Variant", int(tag[2:]))
 	return "%s: OpenType feature" % tag
 
 
@@ -430,16 +431,15 @@ def featureListForFont(thisFont):
 	for (f, n) in featureList:
 		if f not in doneFeatures:  # avoid duplicates
 			doneFeatures.append(f)
+			tooltipText = featureDescription(f)
 			if f.startswith("ss") and n and n.startswith("Name:"):
-				# stylistic set name:
+				# stylistic set name as the second line of the tooltip:
 				setName = n.splitlines()[0][5:].strip()
-				returnString += '\t\t<input type="checkbox" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel">%s<span class="tooltip">%s</span></label>\n' % (
-					f, f, f, f, setName
-				)
-			else:
-				returnString += '\t\t<input type="checkbox" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel" title="%s">%s</label>\n' % (
-					f, f, f, featureDescription(f), f
-				)
+				if setName:
+					tooltipText += "\n\u2018%s\u2019" % setName
+			returnString += '\t\t<input type="checkbox" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel" title="%s">%s</label>\n' % (
+				f, f, f, escape(tooltipText, quote=True).replace("\n", "&#10;"), f
+			)
 	return returnString
 
 
@@ -469,7 +469,7 @@ htmlContent = """<head>
 			text-decoration: none;
 		}
 		.emojiButton.gapAfter {
-			margin-right: 0.3em;
+			margin-right: 0;
 		}
 		#flexbox {
 			display: flex;
@@ -510,6 +510,7 @@ htmlContent = """<head>
 		}
 		#waterfall, #grid, #textview {
 			flex: 1 1 auto;
+			box-sizing: border-box; /* width 100% plus padding would be wider than the window, and clip the right edge in RTL */
 			border: 0 solid transparent;
 			margin: 0;
 			padding: 0;
@@ -687,20 +688,6 @@ htmlContent = """<head>
 			visibility: collapse;
 			margin: 0 -1em 0 0;
 		}
-		.otFeatureLabel .tooltip {
-			visibility: hidden;
-			background-color: #333;
-			color: white;
-			text-align: center;
-			padding: 0px 5px;
-			top: -2em;
-			left: 0;
-			position: absolute;
-			z-index: 8;
-		}
-		.otFeatureLabel:hover .tooltip {
-			visibility: visible;
-		}
 
 		/* Footer paragraph: */
 		#helptext {
@@ -774,6 +761,7 @@ htmlContent = """<head>
 		<a onclick="setView('grid');" id="viewGrid" class="emojiButton viewLink" title="Grid view of all glyphs, double-click a glyph to open it in Glyphs – Ctrl-G cycles through the views">🔡</a>
 		<a onclick="setView('waterfall');" id="viewWaterfall" class="emojiButton viewLink gapAfter" title="Waterfall view – Ctrl-G cycles through the views">⏬</a>
 		<a onclick="toggleInverse();" id="invert" class="emojiButton" title="Toggle x-ray (outline) display">🔲</a>
+		<a onclick="toggleLeftRight();" id="direction" class="emojiButton gapAfter" title="Text direction: left to right. Click for right to left – Ctrl-J">➡️</a>
 		<label><input type="checkbox" id="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel" title="kern: Kerning">kern</label>
 		<label><input type="checkbox" id="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked><label for="liga" class="otFeatureLabel" title="liga, clig: Standard ligatures and contextual ligatures">liga/clig</label>
 		<label><input type="checkbox" id="calt" value="calt" class="otFeature" onchange="updateFeatures()" checked><label for="calt" class="otFeatureLabel" title="calt: Contextual alternates">calt</label>
@@ -808,7 +796,7 @@ htmlContent = """<head>
 
 <!-- Disclaimer -->
 <p id="helptext" onmouseleave="vanish(this);">
-	Ctrl-R: Reset text. Ctrl-J: LTR/RTL. Ctrl-G: cycle views. Ctrl-U: reload fonts from disk. Cmd-Opt-Shift-E: open text in Glyphs. Double-click grid glyph: open in Glyphs. Ctrl-comma/period: step through fonts. Pull mouse across this note to make it disappear.
+	Ctrl-R: Reset text. Ctrl-J: LTR/RTL (all views). Ctrl-G: cycle views. Ctrl-U: reload fonts from disk. Cmd-Opt-Shift-E: open text in Glyphs. Double-click grid glyph: open in Glyphs. Ctrl-comma/period: step through fonts. Pull mouse across this note to make it disappear.
 </p>
 
 <script type="text/javascript">
@@ -1069,14 +1057,14 @@ htmlContent = """<head>
 		item.style.setProperty("display", "none");
 	}
 	function toggleLeftRight() {
-		const waterfall = document.getElementById("waterfall");
-		if (waterfall.dir != "rtl") {
-			waterfall.dir = "rtl";
-			waterfall.align = "right";
-		} else {
-			waterfall.dir = "";
-			waterfall.align = "";
+		// the direction applies to all views: text and metrics line run right to left, the grid starts in the top right cell
+		const makeRTL = document.getElementById("waterfall").dir != "rtl";
+		for (const id of ["waterfall", "grid", "textview", "metricsLine"]) {
+			document.getElementById(id).dir = makeRTL ? "rtl" : "ltr";
 		}
+		const button = document.getElementById("direction");
+		button.textContent = makeRTL ? "⬅️" : "➡️";
+		button.title = makeRTL ? "Text direction: right to left. Click for left to right – Ctrl-J" : "Text direction: left to right. Click for right to left – Ctrl-J";
 	}
 	function toggleInverse() {
 		const testText = document.getElementById("waterfall");
