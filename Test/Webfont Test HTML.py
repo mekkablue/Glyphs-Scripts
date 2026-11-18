@@ -369,6 +369,60 @@ def fontFacesJSONForInstances(instanceList):
 	return jsonText
 
 
+featureDescriptions = {
+	"c2pc": "Petite capitals from capitals",
+	"c2sc": "Small capitals from capitals",
+	"case": "Case-sensitive forms",
+	"cpsp": "Capital spacing",
+	"dlig": "Discretionary ligatures",
+	"dnom": "Denominators",
+	"fina": "Terminal forms",
+	"frac": "Fractions",
+	"fwid": "Full widths",
+	"half": "Half forms",
+	"hist": "Historical forms",
+	"hlig": "Historical ligatures",
+	"init": "Initial forms",
+	"isol": "Isolated forms",
+	"jp04": "JIS04 forms",
+	"liga": "Standard ligatures",
+	"lnum": "Lining figures",
+	"locl": "Localized forms",
+	"mark": "Mark positioning",
+	"medi": "Medial forms",
+	"mkmk": "Mark-to-mark positioning",
+	"nalt": "Alternate annotation forms",
+	"numr": "Numerators",
+	"onum": "Oldstyle figures",
+	"ordn": "Ordinals",
+	"ornm": "Ornaments",
+	"palt": "Proportional alternate widths",
+	"pcap": "Petite capitals",
+	"pnum": "Proportional figures",
+	"pwid": "Proportional widths",
+	"rlig": "Required ligatures",
+	"rvrn": "Required variation alternates",
+	"salt": "Stylistic alternates",
+	"sinf": "Scientific inferiors",
+	"smcp": "Small capitals",
+	"subs": "Subscript",
+	"sups": "Superscript",
+	"swsh": "Swash",
+	"titl": "Titling",
+	"tnum": "Tabular figures",
+	"zero": "Slashed zero",
+}
+
+
+def featureDescription(tag):
+	"""A short description of an OpenType feature tag for the button tooltip."""
+	if tag in featureDescriptions:
+		return "%s: %s" % (tag, featureDescriptions[tag])
+	if len(tag) == 4 and tag[:2] in ("ss", "cv") and tag[2:].isdigit():
+		return "%s: %s %d" % (tag, "Stylistic set" if tag.startswith("ss") else "Character variant", int(tag[2:]))
+	return "%s: OpenType feature" % tag
+
+
 def featureListForFont(thisFont):
 	returnString = ""
 	featureList = [(f.name, f.notes) for f in thisFont.features if f.name not in ("ccmp", "aalt", "locl", "kern", "calt", "liga", "clig") and not f.disabled()]
@@ -383,8 +437,8 @@ def featureListForFont(thisFont):
 					f, f, f, f, setName
 				)
 			else:
-				returnString += '\t\t<input type="checkbox" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel">%s</label>\n' % (
-					f, f, f, f
+				returnString += '\t\t<input type="checkbox" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel" title="%s">%s</label>\n' % (
+					f, f, f, featureDescription(f), f
 				)
 	return returnString
 
@@ -590,6 +644,19 @@ htmlContent = """<head>
 			width: auto;
 			overflow: hidden;
 			border: 0 solid transparent;
+			display: flex;
+			align-items: center;
+		}
+		.wrapper input[type=text] {
+			flex: 1 1 auto;
+			min-width: 0;
+		}
+		#resetText {
+			flex: 0 0 auto;
+			margin: 0 0.2em 0 0.4em;
+			font-size: 1.4em;
+			line-height: 1;
+			text-decoration: none;
 		}
 		select {
 			float: left;
@@ -626,12 +693,6 @@ htmlContent = """<head>
 		}
 		.otFeatureLabel:hover .tooltip {
 			visibility: visible;
-		}
-		#featureLine {
-			display: none;
-			border-bottom: 1px solid #999;
-			padding: 0.5em 0;
-			margin-bottom: 0.5em;
 		}
 
 		/* Footer paragraph: */
@@ -697,29 +758,22 @@ htmlContent = """<head>
 		</select>
 		<div class="wrapper" spellcheck="false">
 			<input type="text" value="Type Text Here." id="textInput" onkeyup="updateParagraph()" />
+			<a onclick="setCharset();" id="resetText" class="emojiButton" title="Reset the sample text (Ctrl-R)">↺</a>
 		</div>
 	</div>
 	<p class="features">
-		<a href="javascript:setCharset();">Charset</a>
-		<a href="javascript:setLat1();">Lat1</a>
-		&ensp;
-		<a href="https://caniuse.com/#feat=woff">woff</a>
-		<a href="https://caniuse.com/#feat=woff2">woff2</a>
-		&ensp;
 		<a href="javascript:setView('waterfall');" id="viewWaterfall" class="viewLink activeView">Waterfall</a>
 		<a href="javascript:setView('grid');" id="viewGrid" class="viewLink">Grid</a>
 		<a href="javascript:setView('text');" id="viewText" class="viewLink">Text</a>
 		&ensp;
-		<a onclick="toggleInverse();" id="invert" class="emojiButton">🔲</a>
+		<a onclick="toggleInverse();" id="invert" class="emojiButton" title="Toggle x-ray (outline) display">🔲</a>
 		<a onclick="reloadAllFonts();" id="reload" class="emojiButton" title="Reload the fonts from disk (Ctrl-U)">🔄</a>
-		<label><input type="checkbox" id="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel">kern</label>
-		<label><input type="checkbox" id="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked><label for="liga" class="otFeatureLabel">liga/clig</label>
-		<label><input type="checkbox" id="calt" value="calt" class="otFeature" onchange="updateFeatures()" checked><label for="calt" class="otFeatureLabel">calt</label>
+		<label><input type="checkbox" id="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel" title="kern: Kerning">kern</label>
+		<label><input type="checkbox" id="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked><label for="liga" class="otFeatureLabel" title="liga, clig: Standard ligatures and contextual ligatures">liga/clig</label>
+		<label><input type="checkbox" id="calt" value="calt" class="otFeature" onchange="updateFeatures()" checked><label for="calt" class="otFeatureLabel" title="calt: Contextual alternates">calt</label>
 		<!-- moreFeatures -->
-		<label><input type="checkbox" value="show" onchange="updateFeatures();document.getElementById('featureLine').style.display=this.checked?'block':'none'">CSS</label>
-		<label><input type="checkbox" value="show" onchange="updateFeatures();document.getElementById('metricsLine').style.display=this.checked?'block':'none'">Metrics</label>
+		<label title="Show the text in one large line above the waterfall, in a band with a line above and below"><input type="checkbox" value="show" onchange="updateFeatures();document.getElementById('metricsLine').style.display=this.checked?'block':'none'">Metrics</label>
 	</p>
-	<p class="features" id="featureLine">font-feature-settings: "kern" on, "liga" on, "calt" on;</p>
 	<div class="sliderControls" id="gridControls">
 		<label>Size: <input type="range" id="gridSize" min="20" max="300" value="60" oninput="updateGridSize()"></label>
 	</div>
@@ -748,7 +802,7 @@ htmlContent = """<head>
 
 <!-- Disclaimer -->
 <p id="helptext" onmouseleave="vanish(this);">
-	Ctrl-R: Reset Charset. Ctrl-L: Latin1. Ctrl-J: LTR/RTL. Ctrl-G: cycle views. Ctrl-U: reload fonts from disk. Cmd-Opt-Shift-E: open text in Glyphs. Double-click grid glyph: open in Glyphs. Ctrl-comma/period: step through fonts. Pull mouse across this note to make it disappear.
+	Ctrl-R: Reset text. Ctrl-J: LTR/RTL. Ctrl-G: cycle views. Ctrl-U: reload fonts from disk. Cmd-Opt-Shift-E: open text in Glyphs. Double-click grid glyph: open in Glyphs. Ctrl-comma/period: step through fonts. Pull mouse across this note to make it disappear.
 </p>
 
 <script type="text/javascript">
@@ -774,8 +828,6 @@ htmlContent = """<head>
 		} else if (event.ctrlKey) {
 			if (event.code == 'KeyR') {
 				setCharset();
-			} else if (event.code == 'KeyL') {
-				setLat1();
 			} else if (event.code == 'KeyJ') {
 				toggleLeftRight();
 			} else if (event.code == 'KeyG') {
@@ -958,7 +1010,6 @@ htmlContent = """<head>
 		document.getElementById('waterfall').style.cssText = cssCode;
 		document.getElementById('grid').style.cssText = cssCode;
 		document.getElementById('textview').style.cssText = cssCode;
-		document.getElementById('featureLine').innerHTML = cssCode.replace(/;/g,";<br/>");
 		changeFont();
 		updateGridSize();
 		updateTextView();
@@ -974,10 +1025,6 @@ htmlContent = """<head>
 	function setDefaultText(defaultText) {
 		document.getElementById('textInput').value = decodeEntities(defaultText);
 		updateParagraph();
-	}
-	function setLat1() {
-		const lat1 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz &Agrave;&Aacute;&Acirc;&Atilde;&Auml;&Aring;&AElig;&Ccedil;&Egrave;&Eacute;&Ecirc;&Euml;&Igrave;&Iacute;&Icirc;&Iuml;&ETH;&Ntilde;&Ograve;&Oacute;&Ocirc;&Otilde;&Ouml;&Oslash;&OElig;&THORN;&Ugrave;&Uacute;&Ucirc;&Uuml;&Yacute;&Yuml; &agrave;&aacute;&acirc;&atilde;&auml;&aring;&aelig;&ccedil;&egrave;&eacute;&ecirc;&euml;&igrave;&iacute;&icirc;&iuml;&eth;&ntilde;&ograve;&oacute;&ocirc;&otilde;&ouml;&oslash;&oelig;&thorn;&szlig;&ugrave;&uacute;&ucirc;&uuml;&yacute;&yuml; .,:;&middot;&hellip;&iquest;?&iexcl;!&laquo;&raquo;&lsaquo;&rsaquo; /|&brvbar;\\()[]{}_-&ndash;&mdash;&sbquo;&bdquo;&lsquo;&rsquo;&ldquo;&rdquo;&quot;&#x27; #&amp;&sect;@&bull;&shy;*&dagger;&Dagger;&para; +&times;&divide;&plusmn;=&lt;&gt;&not;&mu; ^~&acute;`&circ;&macr;&tilde;&uml;&cedil; &yen;&euro;&pound;$&cent;&curren;&fnof; &trade;&reg;&copy; 1234567890 &ordf;&ordm;&deg;%&permil; &sup1;&sup2;&sup3;&frac14;&frac12;&frac34;";
-		return setDefaultText(lat1);
 	}
 	function setCharset() {
 		const completeCharSet = 'The Quick Brown Fox Jumps Over The Lazy Dog.';
