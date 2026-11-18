@@ -757,6 +757,11 @@ def externalAxisValue(font, axisId, internalValue):
 	return external1 + (float(internalValue) - internal1) * (external2 - external1) / (internal2 - internal1)
 
 
+def defaultNamesForAxis(axisTag):
+	"""The particle names an axis starts with, and is reset to."""
+	return "Roman, Italic" if axisTag == "ital" else ""
+
+
 uprightNames = ("roman", "regular", "normal")
 italicNames = ("italic", "oblique")
 
@@ -956,7 +961,7 @@ class InstanceMakerV4(mekkaObject):
 				self.prefDict["wght_lastName"] = 9    # Black
 				self.prefDict["wght_algorithm"] = 0   # linear
 			else:
-				self.prefDict[f"{safeTag}_values"] = ""
+				self.prefDict[f"{safeTag}_values"] = defaultNamesForAxis(tag)
 				self.prefDict[f"{safeTag}_range"] = "min:max"
 
 		inset = 15
@@ -978,7 +983,7 @@ class InstanceMakerV4(mekkaObject):
 		# Row: Elidable names
 		self.w.elidableLabel = vanilla.TextBox("auto", "Elidable names:", sizeStyle="small")
 		self.w.elidableNames = vanilla.EditText("auto", self.defaultElidableNames, callback=self.SavePreferences, sizeStyle="small")
-		tooltipText = "Comma-separated style names that are elidable: they can be omitted from composite names, e.g. 'Condensed Regular' becomes 'Condensed'."
+		tooltipText = "Comma-separated style names that are elidable: they can be omitted from composite names, e.g. 'Condensed Regular' becomes 'Condensed'. Typical elidable names are ‘Normal’ (wdth), ‘Roman’ (ital) or ‘Regular’ (wght and all other axes)."
 		self.w.elidableLabel.setToolTip(tooltipText)
 		self.w.elidableNames.setToolTip(tooltipText)
 		self.w.elidableNamesReset = UpdateButton("auto", callback=self.resetElidableNames)
@@ -1050,11 +1055,11 @@ class InstanceMakerV4(mekkaObject):
 					verticalChain += "-row-[wght_firstName]-row-[wght_algorithm]"
 
 				else:
-					# "Values:" label + field
+					# "Names:" label + field (the pref and attribute names keep saying values)
 					valuesLabelName = f"valuesLabel_{safeTag}"
-					setattr(self.w, valuesLabelName, vanilla.TextBox("auto", "Values:", sizeStyle="small"))
-					valField = vanilla.EditText("auto", "", callback=self.SavePreferences, sizeStyle="small")
-					valField.setToolTip("Comma-separated axis values to use as particles. They will be distributed linearly across the defined range.")
+					setattr(self.w, valuesLabelName, vanilla.TextBox("auto", "Names:", sizeStyle="small"))
+					valField = vanilla.EditText("auto", defaultNamesForAxis(tag), callback=self.SavePreferences, sizeStyle="small")
+					valField.setToolTip("Comma-separated names of the particles. They will be distributed linearly across the defined range.")
 					setattr(self.w, f"{safeTag}_values", valField)
 
 					# "Range:" label + field
@@ -1157,7 +1162,7 @@ class InstanceMakerV4(mekkaObject):
 				getattr(self.w, "wght_lastName").set(9)   # Black
 				getattr(self.w, "wght_algorithm").set(0)  # linear
 			else:
-				getattr(self.w, f"{safeTag}_values").set("")
+				getattr(self.w, f"{safeTag}_values").set(defaultNamesForAxis(tag))
 				getattr(self.w, f"{safeTag}_range").set("min:max")
 		self.SavePreferences()
 
