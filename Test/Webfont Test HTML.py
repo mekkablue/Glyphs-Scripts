@@ -7,18 +7,17 @@ from GlyphsApp import Glyphs, GSProjectDocument, INSTANCETYPESINGLE, Message
 from os import system, path
 from itertools import product
 import codecs
-import webbrowser
 import json
-from urllib.parse import quote
+import re
 from html import escape
 Glyphs.registerDefault("com.mekkablue.WebFontTestHTML.includeEOT", 0)
 
 
 def saveFileInLocation(content="Sorry, no content generated.", fileName="test.txt", filePath="~/Desktop"):
-	saveFileLocation = "%s/%s" % (filePath, fileName)
+	saveFileLocation = f"{filePath}/{fileName}"
 	saveFileLocation = saveFileLocation.replace("//", "/")
-	with codecs.open(saveFileLocation, "w", "utf-8") as thisFile:
-		print("Exporting to:", thisFile.name)
+	with codecs.open(saveFileLocation, "w", "utf-8-sig") as thisFile:
+		print(f"Exporting to: {thisFile.name}")
 		thisFile.write(content)
 		thisFile.close()
 	return True
@@ -65,38 +64,142 @@ def replaceSet(text, setOfReplacements):
 	for thisReplacement in setOfReplacements:
 		searchFor = thisReplacement[0]
 		replaceWith = thisReplacement[1]
-		text = text.replace(searchFor, replaceWith)
+		if searchFor != replaceWith:
+			text = text.replace(searchFor, replaceWith)
 	return text
 
 
+def resolveFamilyNamesPlaceholder(name, thisFont):
+	# {{{familyNames}}} is auto-replaced by font.familyName on export
+	if name and "{{{familyNames}}}" in name:
+		return name.replace("{{{familyNames}}}", thisFont.familyName)
+	return name
+
+
 def allUnicodeEscapesOfFont(thisFont):
-	importedGlyphs = thisFont.importedGlyphs()
-	if not importedGlyphs:
-		importedGlyphs = []
-	allUnicodes = ["&#x%s;" % g.unicode for g in list(thisFont.glyphs) + importedGlyphs if g.unicode and g.export and g.subCategory != "Nonspacing"]
-	allUnicodes += [" &#x%s;" % g.unicode for g in list(thisFont.glyphs) + importedGlyphs if g.unicode and g.export and g.subCategory == "Nonspacing"]
-	return "".join(allUnicodes)
+	allUnicodes = [f"&#x{g.unicode};" for g in thisFont.allGlyphs() if g.unicode and g.export and g.layers[0].shapes]
+	return " ".join(allUnicodes)
+
+
+# features that cannot be triggered one by one through CSS font-feature-settings, or are not part of aalt:
+NON_ALTERNATE_FEATURES = ("aalt", "locl", "ccmp", "rvrn", "rlig", "calt", "rclt")
+
+
+def glyphNamesOfFeatureItem(text, classes):
+	"""Resolves a glyph, a @class or a [glyph @class ...] to a list of glyph names; None if it is a sequence."""
+	text = text.strip()
+	if text.startswith("[") and text.endswith("]") and text.count("[") == 1:
+		tokens = text[1:-1].split()
+	elif len(text.split()) == 1:
+		tokens = [text]
+	else:
+		return None
+	names = []
+	for token in tokens:
+		if token.startswith("@"):
+			names.extend(classes.get(token[1:], []))
+		else:
+			names.append(token)
+	return names
+
+
+def alternateEntriesOfFont(thisFont):
+	"""
+	One-to-one substitutions (single and alternate substitutions, as listed in aalt) from the font's feature code,
+	as a list of dicts for the grid view: a base character plus the feature that turns it into the alternate.
+	"""
+	featureCodes = {}
+	featureOrder = []
+	for feature in thisFont.features:
+		if not getattr(feature, "active", True):
+			continue
+		featureCodes[feature.name] = re.sub(r"#[^\n]*", "", feature.code or "")
+		featureOrder.append(feature.name)
+
+	# a manual aalt dictates the order: feature xxxx;
+	aaltTags = re.findall(r"\bfeature\s+(\w{4})\s*;", featureCodes.get("aalt", ""))
+	tags = [tag for tag in aaltTags if tag in featureCodes] or [tag for tag in featureOrder if tag not in NON_ALTERNATE_FEATURES]
+
+	# glyph classes from the font, the prefixes and the feature code:
+	classes = {}
+	classSources = [f"@{c.name} = [{c.code}];" for c in thisFont.classes]
+	classSources += [(prefix.code or "") for prefix in thisFont.featurePrefixes]
+	classSources += list(featureCodes.values())
+	for source in classSources:
+		for className, members in re.findall(r"@([\w.]+)\s*=\s*\[([^\]]*)\]\s*;", re.sub(r"#[^\n]*", "", source)):
+			classes[className] = glyphNamesOfFeatureItem(f"[{members}]", classes) or []
+
+	entries = []
+	seen = set()
+	colorIndex = 0
+	rulePattern = re.compile(r"\bsub(?:stitute)?\s+([^;]+?)\s+(by|from)\s+([^;]+?)\s*;")
+	for tag in tags:
+		featureEntries = []
+		for sourceText, keyword, targetText in rulePattern.findall(featureCodes[tag]):
+			if "'" in sourceText:
+				continue  # contextual
+			sources = glyphNamesOfFeatureItem(sourceText, classes)
+			targets = glyphNamesOfFeatureItem(targetText, classes)
+			if not sources or not targets:
+				continue
+			pairs = []
+			if keyword == "from":
+				if len(sources) == 1:
+					pairs = [(sources[0], target, index + 1) for index, target in enumerate(targets)]
+			elif len(targets) == 1:
+				pairs = [(source, targets[0], 1) for source in sources]
+			elif len(targets) == len(sources):
+				pairs = [(source, target, 1) for source, target in zip(sources, targets)]
+			for sourceName, targetName, index in pairs:
+				key = (tag, sourceName, targetName)
+				sourceGlyph = thisFont.glyphs[sourceName]
+				targetGlyph = thisFont.glyphs[targetName]
+				if key in seen or sourceName == targetName or not sourceGlyph or not targetGlyph:
+					continue
+				if not sourceGlyph.unicode:
+					continue  # can only show alternates of encoded glyphs
+				seen.add(key)
+				entry = {
+					"c": int(sourceGlyph.unicode, 16),
+					"u": sourceGlyph.unicode,
+					"n": targetName,
+					"b": sourceName,
+					"f": tag,
+					"i": index,
+					"k": colorIndex,
+				}
+				if targetGlyph.category:
+					entry["cat"] = targetGlyph.category
+				if targetGlyph.subCategory:
+					entry["sub"] = targetGlyph.subCategory
+				featureEntries.append(entry)
+		if featureEntries:
+			entries.extend(featureEntries)
+			colorIndex += 1
+	return entries
 
 
 def allGlyphInfoOfFont(thisFont):
-	# collects char, glyph name and Unicode value for the grid view (with hover tooltip)
-	importedGlyphs = thisFont.importedGlyphs()
-	if not importedGlyphs:
-		importedGlyphs = []
+	# Collect per-glyph info for the grid view (code point + metadata for tooltips).
 	glyphInfos = []
-	for g in list(thisFont.glyphs) + importedGlyphs:
-		if g.unicode and g.export:
-			try:
-				char = chr(int(g.unicode, 16))
-			except ValueError:
-				continue
-			glyphInfos.append({
-				"char": char,
-				"name": g.name,
-				"uni": g.unicode,
-				"category": g.category or "",
-				"subCategory": g.subCategory or "",
-			})
+	for g in thisFont.allGlyphs():
+		if not (g.unicode and g.export and g.layers[0].shapes):
+			continue
+		entry = {"c": int(g.unicode, 16)}
+		entry["u"] = g.unicode
+		entry["n"] = g.name
+		try:
+			glyphInfo = g.glyphInfo
+		except:
+			glyphInfo = None
+		if glyphInfo is not None and glyphInfo.desc:
+			entry["d"] = glyphInfo.desc
+		if g.category:
+			entry["cat"] = g.category
+		if g.subCategory:
+			entry["sub"] = g.subCategory
+		glyphInfos.append(entry)
+	glyphInfos.extend(alternateEntriesOfFont(thisFont))
 	return glyphInfos
 
 
@@ -112,7 +215,7 @@ def getInstanceInfo(thisFont, activeInstance, fileFormat):
 
 	if Glyphs.versionNumber >= 3:
 		# GLYPHS 3
-		familyName = activeInstance.familyName
+		familyName = resolveFamilyNamesPlaceholder(activeInstance.familyName, thisFont)
 		if not familyName:
 			familyName = thisFont.familyName
 	else:
@@ -144,6 +247,10 @@ def getInstanceInfo(thisFont, activeInstance, fileFormat):
 		# Glyphs 4: fileName() now requires a format argument
 		instanceFileName = activeInstance.fileName(fileFormat)
 	firstPartOfFileName = ".".join(instanceFileName.split(".")[:-1])  # removes ".otf" at the end
+	if "{{{familyNames}}}" in firstPartOfFileName:
+		# the file name Glyphs reports still contains the unresolved token and cannot be patched reliably
+		# (see Variable Font Test HTML.py), so build it from the resolved names, like the exported file:
+		firstPartOfFileName = ""
 	if not firstPartOfFileName:
 		firstPartOfFileName = activeInstance.customParameters["fileName"]
 	if not firstPartOfFileName:
@@ -233,7 +340,10 @@ def particleStylesOfInstance(thisFont, particleInstance):
 		styleName = " ".join(nameParts) if nameParts else particleInstance.name
 		axisValues = {}
 		for axisTag, particle in zip(axisTags, particleCombination):
-			axisValue = particle.external if particle.external else particle.internal
+			# the sliders work in user space, so use external coordinates (internal as fallback):
+			axisValue = particle.external
+			if axisValue is None:
+				axisValue = particle.internal
 			if axisValue is None:
 				continue
 			axisValues[axisTag] = axisValue
@@ -426,7 +536,7 @@ def featureDescription(tag):
 
 def featureListForFont(thisFont):
 	returnString = ""
-	featureList = [(f.name, f.notes) for f in thisFont.features if f.name not in ("ccmp", "aalt", "locl", "kern", "calt", "liga", "clig") and not f.disabled()]
+	featureList = [(f.name, f.notes) for f in thisFont.features if f.name not in ("ccmp", "aalt", "locl", "kern", "calt", "liga", "clig", "rlig", "rclt", "rvrn") and not f.disabled()]
 	doneFeatures = []
 	for (f, n) in featureList:
 		if f not in doneFeatures:  # avoid duplicates
@@ -437,8 +547,8 @@ def featureListForFont(thisFont):
 				setName = n.splitlines()[0][5:].strip()
 				if setName:
 					tooltipText += "\n\u2018%s\u2019" % setName
-			returnString += '\t\t<input type="checkbox" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel" title="%s">%s</label>\n' % (
-				f, f, f, escape(tooltipText, quote=True).replace("\n", "&#10;"), f
+			returnString += '\t\t<input type="checkbox" name="%s" id="%s" value="%s" class="otFeature" onchange="updateFeatures()"><label for="%s" class="otFeatureLabel" title="%s">%s</label>\n' % (
+				f, f, f, f, escape(tooltipText, quote=True).replace("\n", "&#10;"), f
 			)
 	return returnString
 
@@ -519,11 +629,11 @@ htmlContent = """<head>
 			overflow-x: hidden;
 			overflow-y: scroll;
 			font-family: "nameOfTheFont";
-			font-feature-settings: "kern" on, "liga" on, "calt" on;
-			-moz-font-feature-settings: "kern" on, "liga" on, "calt" on;
-			-webkit-font-feature-settings: "kern" on, "liga" on, "calt" on;
-			-ms-font-feature-settings: "kern" on, "liga" on, "calt" on;
-			-o-font-feature-settings: "kern" on, "liga" on, "calt" on;
+			font-feature-settings: "kern" on, "liga" on, "calt" on, "locl" on;
+			-moz-font-feature-settings: "kern" on, "liga" on, "calt" on, "locl" on;
+			-webkit-font-feature-settings: "kern" on, "liga" on, "calt" on, "locl" on;
+			-ms-font-feature-settings: "kern" on, "liga" on, "calt" on, "locl" on;
+			-o-font-feature-settings: "kern" on, "liga" on, "calt" on, "locl" on;
 		}
 		div, p	{
 			padding: 0;
@@ -556,25 +666,65 @@ htmlContent = """<head>
 			line-height: 1;
 			position: relative;
 		}
-		.gridCell .tooltip {
-			visibility: hidden;
-			position: absolute;
-			bottom: 100%;
-			left: 50%;
-			transform: translateX(-50%);
-			background-color: #333;
-			color: white;
-			-webkit-text-stroke: 0; /* the tooltip stays readable in x-ray mode */
-			-webkit-text-fill-color: white;
-			text-align: center;
-			white-space: nowrap;
-			padding: 2px 5px;
-			font: normal normal normal small sans-serif;
-			border-radius: 0.2em;
-			z-index: 8;
+		.gridCell {
+			cursor: default;
 		}
-		.gridCell:hover .tooltip {
-			visibility: visible;
+		.gridCell:hover {
+			background-color: #eef;
+		}
+		/* alternates (one-to-one substitutions), alternating colors per OT feature: */
+		:root {
+			--featA-bg: #e8f6e8; --featA-border: #8fcf8f; --featA-text: #165a1c;
+			--featB-bg: #e8f0fb; --featB-border: #8db4e6; --featB-text: #17407a;
+		}
+		.gridCell.featA { background-color: var(--featA-bg); border-color: var(--featA-border); --tag-text: var(--featA-text); }
+		.gridCell.featB { background-color: var(--featB-bg); border-color: var(--featB-border); --tag-text: var(--featB-text); }
+		.gridCell.featA:hover, .gridCell.featB:hover { box-shadow: inset 0 0 0 999px rgba(128, 128, 128, 0.15); }
+		/* base glyphs that an active OT feature button substitutes: yellow backdrop, alternates stay blue/green */
+		.gridCell.featHit { background-color: rgba(255, 215, 0, 0.3); }
+		.featTag {
+			display: none;
+			position: absolute;
+			left: 0;
+			bottom: -16px;
+			width: 100%;
+			height: 16px;
+			font: 11px/16px sans-serif;
+			font-feature-settings: normal;
+			text-align: center;
+			color: var(--tag-text);
+			-webkit-text-stroke: 0;
+			-webkit-text-fill-color: var(--tag-text);
+			overflow: hidden;
+		}
+		#grid[data-tags] .gridCell.featA, #grid[data-tags] .gridCell.featB { border-bottom-width: 16px; }
+		#grid[data-tags] .featTag { display: block; }
+		#gridTooltip {
+			display: none;
+			position: fixed;
+			z-index: 30;
+			background: #f6f6f6;
+			color: #222;
+			border: 1px solid #ccc;
+			padding: 0.4em 0.7em;
+			border-radius: 0.3em;
+			pointer-events: none;
+			font: 12px sans-serif;
+			line-height: 1.4;
+			text-align: center;
+			box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+		}
+		#gridTooltip .refGlyph {
+			font-family: "Noto Sans", "Noto Serif", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+			font-size: 2.5em;
+			line-height: 1.1;
+		}
+		#gridTooltip .tooltipFeature {
+			color: #e07b00;
+			font-weight: bold;
+		}
+		#gridTooltip .cellMeta {
+			font: 12px sans-serif;
 		}
 		#textview {
 			display: none;
@@ -742,6 +892,18 @@ htmlContent = """<head>
 			.gridCell {
 				border-color: #444;
 			}
+			.gridCell:hover {
+				background-color: #223;
+			}
+			:root {
+				--featA-bg: #0e2a12; --featA-border: #2d7a35; --featA-text: #a9e3af;
+				--featB-bg: #0d1c33; --featB-border: #2a5fa8; --featB-text: #a8c8f5;
+			}
+			#gridTooltip {
+				background: #333;
+				color: white;
+				border-color: #333;
+			}
 			.viewLink.activeView, .emojiButton.on {
 				background-color: #555;
 			}
@@ -771,9 +933,9 @@ htmlContent = """<head>
 		<a onclick="toggleMetrics();" id="metrics" class="emojiButton" title="Vertical Metrics view for verifying OS/2.typoAscender and OS/2.typoDescender">↕️</a>
 		<a onclick="toggleLeftRight();" id="direction" class="emojiButton" title="Text direction: left to right. Click for right to left – Ctrl-J">➡️</a>
 		<a onclick="toggleInverse();" id="invert" class="emojiButton gapAfter" title="Toggle x-ray (outline) display">🔲</a>
-		<label><input type="checkbox" id="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel" title="kern: Kerning">kern</label>
-		<label><input type="checkbox" id="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked><label for="liga" class="otFeatureLabel" title="liga, clig: Standard ligatures and contextual ligatures">liga/clig</label>
-		<label><input type="checkbox" id="calt" value="calt" class="otFeature" onchange="updateFeatures()" checked><label for="calt" class="otFeatureLabel" title="calt: Contextual alternates">calt</label>
+		<label><input type="checkbox" name="kern" id="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel" title="kern: Kerning">kern</label>
+		<label><input type="checkbox" name="liga" id="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked><label for="liga" class="otFeatureLabel" title="liga, clig: Standard ligatures and contextual ligatures">liga/clig</label>
+		<label><input type="checkbox" name="calt" id="calt" value="calt" class="otFeature" onchange="updateFeatures()" checked><label for="calt" class="otFeatureLabel" title="calt: Contextual alternates">calt</label>
 		<!-- moreFeatures -->
 	</p>
 	<div class="sliderControls" id="gridControls">
@@ -823,8 +985,9 @@ htmlContent = """<head>
 	const fontFaceList = <!-- fontFaceJSON -->;
 	const glyphNameForChar = {};
 	for (const glyphInfo of glyphInfoList) {
-		if (glyphInfo.name && !(glyphInfo.char in glyphNameForChar)) {
-			glyphNameForChar[glyphInfo.char] = glyphInfo.name;
+		const char = String.fromCodePoint(glyphInfo.c);
+		if (glyphInfo.n && !glyphInfo.f && !(char in glyphNameForChar)) {  // alternates share the character of their base glyph
+			glyphNameForChar[char] = glyphInfo.n;
 		}
 	}
 	const viewOrder = ["text", "grid", "waterfall"];
@@ -963,6 +1126,7 @@ htmlContent = """<head>
 		setView(nextView);
 	}
 	function setView(view) {
+		if (gridTooltip) gridTooltip.style.display = 'none';
 		for (const v of viewOrder) {
 			document.getElementById(viewElementIds[v]).style.display = 'none';
 			document.getElementById('view' + v.charAt(0).toUpperCase() + v.slice(1)).classList.remove('activeView');
@@ -978,6 +1142,45 @@ htmlContent = """<head>
 			updateTextView();
 		}
 	}
+	let gridTooltip = null;
+	function ensureGridTooltip() {
+		if (!gridTooltip) {
+			gridTooltip = document.createElement('div');
+			gridTooltip.id = 'gridTooltip';
+			document.body.appendChild(gridTooltip);
+		}
+		return gridTooltip;
+	}
+	let gridTooltipsEnabled = true;
+	function activeFeatureTags() {
+		const activeFeatures = new Set();
+		for (const checkbox of document.getElementsByClassName("otFeature")) {
+			if (checkbox.checked) activeFeatures.add(checkbox.name);
+		}
+		return activeFeatures;
+	}
+	function activeFeaturesAffecting(codePoint) {
+		// tags of the active feature buttons that substitute this character (in aalt order, without duplicates)
+		const activeFeatures = activeFeatureTags();
+		const tags = [];
+		for (const info of glyphInfoList) {
+			if (info.f && info.c === codePoint && activeFeatures.has(info.f) && !tags.includes(info.f)) tags.push(info.f);
+		}
+		return tags;
+	}
+	function updateGridHighlights() {
+		// yellow backdrop for base glyphs that an active feature button substitutes (one-to-one substitutions
+		// known from the alternates); the alternate cells themselves keep their blue/green
+		const activeFeatures = activeFeatureTags();
+		const affected = new Set();
+		for (const info of glyphInfoList) {
+			if (info.f && activeFeatures.has(info.f)) affected.add(String(info.c));
+		}
+		for (const cell of document.getElementById('grid').getElementsByClassName('gridCell')) {
+			const isBaseCell = !cell.classList.contains('featA') && !cell.classList.contains('featB');
+			cell.classList.toggle('featHit', isBaseCell && affected.has(cell.dataset.cp));
+		}
+	}
 	let gridIsBuilt = false;
 	function buildGrid() {
 		if (gridIsBuilt) {
@@ -985,26 +1188,101 @@ htmlContent = """<head>
 		}
 		gridIsBuilt = true;
 		const grid = document.getElementById('grid');
+		const tooltip = ensureGridTooltip();
 		const fragment = document.createDocumentFragment();
-		for (const glyphInfo of glyphInfoList) {
+		for (const info of glyphInfoList) {
+			const ch = String.fromCodePoint(info.c);
 			const cell = document.createElement('div');
 			cell.className = 'gridCell';
-			cell.textContent = glyphInfo.char;
-			const tooltip = document.createElement('span');
-			tooltip.className = 'tooltip';
-			tooltip.textContent = `${glyphInfo.name}  U+${glyphInfo.uni.toUpperCase()}`;
-			cell.appendChild(tooltip);
+			cell.textContent = ch;
+			cell.dataset.cp = info.c;
+			if (info.f) {
+				// alternate: show the substitution of this feature only, independent of the feature buttons
+				cell.classList.add(info.k % 2 == 0 ? 'featA' : 'featB');
+				cell.style.setProperty('font-feature-settings', '"' + info.f + '" ' + info.i);
+				const tag = document.createElement('span');
+				tag.className = 'featTag';
+				tag.textContent = info.f;
+				cell.appendChild(tag);
+			}
+			function showTooltip() {
+				tooltip.innerHTML = '';
+				const refGlyph = document.createElement('div');
+				refGlyph.className = 'refGlyph';
+				refGlyph.textContent = ch;
+				tooltip.appendChild(refGlyph);
+				const metaLines = [];
+				if (info.f) {
+					metaLines.push('Feature: ' + info.f + (info.i > 1 ? ' (alternate ' + info.i + ')' : ''));
+					metaLines.push('/' + info.n);
+					metaLines.push('Alternate of /' + info.b + ' (U+' + info.u + ')');
+				} else {
+					metaLines.push('/' + info.n);
+					metaLines.push('U+' + info.u);
+					const accessTags = activeFeaturesAffecting(info.c);
+					if (accessTags.length > 0) metaLines.push({substitutedBy: accessTags});
+				}
+				if (info.d) metaLines.push(info.d);
+				if (info.cat) metaLines.push(info.cat);
+				if (info.sub) metaLines.push(info.sub);
+				for (const line of metaLines) {
+					const l = document.createElement('div');
+					l.className = 'cellMeta';
+					if (typeof line === 'string') {
+						l.textContent = line;
+					} else {
+						l.appendChild(document.createTextNode('Substituted by '));
+						line.substitutedBy.forEach(function(tag, index) {
+							if (index > 0) l.appendChild(document.createTextNode(', '));
+							const tagSpan = document.createElement('span');
+							tagSpan.className = 'tooltipFeature';
+							tagSpan.textContent = tag;
+							l.appendChild(tagSpan);
+						});
+					}
+					tooltip.appendChild(l);
+				}
+				tooltip.style.display = 'block';
+			}
+			cell.addEventListener('mouseenter', function() {
+				if (gridTooltipsEnabled) showTooltip();
+			});
+			cell.addEventListener('click', function(e) {
+				// a click toggles the tooltips (on by default)
+				gridTooltipsEnabled = !gridTooltipsEnabled;
+				if (gridTooltipsEnabled) {
+					showTooltip();
+					tooltip.style.left = (e.clientX + 14) + 'px';
+					tooltip.style.top = (e.clientY + 14) + 'px';
+				} else {
+					tooltip.style.display = 'none';
+				}
+			});
+			cell.addEventListener('mousemove', function(e) {
+				tooltip.style.left = (e.clientX + 14) + 'px';
+				tooltip.style.top = (e.clientY + 14) + 'px';
+			});
+			cell.addEventListener('mouseleave', function() {
+				tooltip.style.display = 'none';
+			});
 			cell.addEventListener('dblclick', function() {
-				openTextInGlyphs(glyphInfo.name ? '/' + glyphInfo.name : glyphInfo.char);
+				openTextInGlyphs(info.n ? '/' + info.n : ch);
 			});
 			fragment.appendChild(cell);
 		}
 		grid.appendChild(fragment);
+		updateGridHighlights();
 	}
 	function updateGridSize() {
 		const size = document.getElementById('gridSize').value;
 		document.getElementById('grid').style.fontSize = size + 'px';
 		document.documentElement.style.setProperty('--grid-cell-size', Math.round(size * 1.4) + 'px');
+		// from 60px on, alternates carry the name of their feature in a thicker bottom border:
+		if (size >= 60) {
+			document.getElementById('grid').setAttribute('data-tags', '');
+		} else {
+			document.getElementById('grid').removeAttribute('data-tags');
+		}
 	}
 	function updateTextView() {
 		const size = document.getElementById('textSize').value;
@@ -1017,6 +1295,7 @@ htmlContent = """<head>
 		// update features based on user input:
 		// first, get feature on/off line:
 		var cssCode = "";
+		var textCSS = "";  // only for the text views, not for the grid
 		var codeLine = "";
 		var checkboxes = document.getElementsByClassName("otFeature")
 		for (i = 0; i < checkboxes.length; i++) {
@@ -1038,7 +1317,7 @@ htmlContent = """<head>
 				cssCode += "font-variant-ligatures: "
 				cssCode += checkbox.checked ? 'historical-ligatures; ' : 'no-historical-ligatures; ';
 			} else if (checkbox.name=="case") {
-				testtext.style.textTransform = checkbox.checked ? "uppercase" : "none";
+				textCSS += "text-transform: " + (checkbox.checked ? 'uppercase' : 'none') + '; ';
 			}
 		}
 		codeLine = codeLine.slice(0, -2)
@@ -1058,15 +1337,16 @@ htmlContent = """<head>
 		const view = currentView();
 		const metricsLine = document.getElementById('metricsLine');
 		const metricsDisplay = metricsLine.style.display;
-		document.getElementById('waterfall').style.cssText = cssCode;
+		document.getElementById('waterfall').style.cssText = cssCode + textCSS;
 		document.getElementById('grid').style.cssText = cssCode;
-		document.getElementById('textview').style.cssText = cssCode;
-		metricsLine.style.cssText = cssCode;
+		document.getElementById('textview').style.cssText = cssCode + textCSS;
+		metricsLine.style.cssText = cssCode + textCSS;
 		metricsLine.style.display = metricsDisplay;
 		changeFont();
 		setView(view);
 		updateGridSize();
 		updateTextView();
+		updateGridHighlights();
 	}
 	function currentFontFamily() {
 		return `'${selector.options[selector.selectedIndex].text}'`;
@@ -1208,6 +1488,7 @@ else:
 		)
 
 		htmlContent = replaceSet(htmlContent, replacements)
+		htmlContent = resolveFamilyNamesPlaceholder(htmlContent, thisFont)  # safety net: no {{{familyNames}}} residue anywhere
 
 		# Write file to disk:
 		if exportPath:
@@ -1221,7 +1502,9 @@ else:
 			if saveFileInLocation(content=htmlContent, fileName=htmlFileName, filePath=exportPath):
 				print("Successfully wrote file to disk.")
 				system(f'open "{exportPath}"')
-				webbrowser.open(f"file://{quote(exportPath)}/{quote(htmlFileName)}")
+				# webbrowser.open() can raise UnicodeEncodeError on macOS when the
+				# osascript pipe defaults to ASCII, so open the file via `open` instead:
+				system(f'open "{exportPath}/{htmlFileName}"')
 			else:
 				print("Error writing file to disk.")
 		else:
