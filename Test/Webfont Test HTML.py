@@ -469,7 +469,7 @@ htmlContent = """<head>
 			text-decoration: none;
 		}
 		.emojiButton.gapAfter {
-			margin-right: 0;
+			margin-right: 0.15em;
 		}
 		#flexbox {
 			display: flex;
@@ -807,6 +807,7 @@ htmlContent = """<head>
 	<span>Ctrl-R: reset text</span>
 	<span>Ctrl-U: reload fonts</span>
 	<span>Ctrl-comma/period: step through fonts</span>
+	<span>Ctrl-G: cycle views</span>
 	<span>Ctrl-J: LTR/RTL</span>
 	<span>⌘⌥⇧E: open in Glyphs (or double-click cell)</span>
 	<span>Move mouse over this note to make it disappear.</span>
