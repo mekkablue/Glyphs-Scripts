@@ -766,7 +766,7 @@ htmlContent = """<head>
 	<p class="features">
 		<a onclick="reloadAllFonts();" id="reload" class="emojiButton gapAfter" title="Reload (after you reexported) – Ctrl-U">🔄</a>
 		<a onclick="setView('text');" id="viewText" class="emojiButton viewLink activeView" title="Text view – Ctrl-G cycles through the views">🔤</a>
-		<a onclick="setView('grid');" id="viewGrid" class="emojiButton viewLink" title="Grid view of all glyphs, double-click a glyph to open it in Glyphs – Ctrl-G cycles through the views">🔡</a>
+		<a onclick="setView('grid');" id="viewGrid" class="emojiButton viewLink" title="Grid view of all glyphs, double-click a glyph to edit it in Glyphs – Ctrl-G cycles through the views">🔡</a>
 		<a onclick="setView('waterfall');" id="viewWaterfall" class="emojiButton viewLink gapAfter" title="Waterfall view – Ctrl-G cycles through the views">⏬</a>
 		<a onclick="toggleMetrics();" id="metrics" class="emojiButton" title="Vertical Metrics view for verifying OS/2.typoAscender and OS/2.typoDescender">↕️</a>
 		<a onclick="toggleLeftRight();" id="direction" class="emojiButton" title="Text direction: left to right. Click for right to left – Ctrl-J">➡️</a>
@@ -807,9 +807,11 @@ htmlContent = """<head>
 	<span>Ctrl-R: reset text</span>
 	<span>Ctrl-U: reload fonts</span>
 	<span>Ctrl-comma/period: step through fonts</span>
+	<span>Ctrl-+/−: size</span>
+	<span>Ctrl-1/2: line distance</span>
 	<span>Ctrl-G: cycle views</span>
 	<span>Ctrl-J: LTR/RTL</span>
-	<span>⌘⌥⇧E: open in Glyphs (or double-click cell)</span>
+	<span>⌘⌥⇧E: edit in Glyphs (or double-click cell)</span>
 	<span>Move mouse over this note to make it disappear.</span>
 </p>
 
@@ -829,7 +831,44 @@ htmlContent = """<head>
 	const viewElementIds = {waterfall: "waterfall", grid: "grid", text: "textview"};
 
 	document.addEventListener('keyup', keyAnalysis);
+	document.addEventListener('keydown', sliderKeys);  // keydown, so that holding the keys keeps stepping
 
+	function stepSlider(sliderId, direction, percentStep) {
+		// percentStep: relative step (size), or null for a fixed step of 5 (line distance)
+		const slider = document.getElementById(sliderId);
+		const value = Number(slider.value);
+		const change = percentStep ? Math.max(1, Math.round(value * percentStep)) : 5;
+		slider.value = value + direction * change;  // the slider clamps to its minimum and maximum
+	}
+	function sliderKeys(event) {
+		// Ctrl-plus/minus: size, Ctrl-1/2: line distance. Only in the grid and text views.
+		if (!event.ctrlKey || event.metaKey || event.altKey) return;
+		const view = currentView();
+		if (view != 'grid' && view != 'text') return;
+		let direction = 0;
+		let isSize = false;
+		if (['+', '=', 'Add'].includes(event.key) || event.code == 'NumpadAdd') {
+			direction = 1; isSize = true;
+		} else if (['-', '_', '\u2212', 'Subtract'].includes(event.key) || event.code == 'NumpadSubtract') {
+			direction = -1; isSize = true;
+		} else if (event.key == '1') {
+			direction = -1;
+		} else if (event.key == '2') {
+			direction = 1;
+		} else {
+			return;
+		}
+		if (isSize) {
+			stepSlider(view == 'grid' ? 'gridSize' : 'textSize', direction, 0.1);
+			if (view == 'grid') updateGridSize(); else updateTextView();
+		} else if (view == 'text') {
+			stepSlider('textLineHeight', direction, null);  // the grid has no line distance
+			updateTextView();
+		} else {
+			return;
+		}
+		event.preventDefault();
+	}
 	function keyAnalysis(event) {
 		if (event.metaKey && event.altKey && event.shiftKey && event.code == 'KeyE') {
 			openTextInGlyphs(document.getElementById('textInput').value);
@@ -896,7 +935,7 @@ htmlContent = """<head>
 		if (!text) return;
 		const glyphNames = glyphNamesForText(text);
 		if (!glyphNames.length) {
-			console.warn('Cannot open in Glyphs: found no glyphs for', text);
+			console.warn('Cannot edit in Glyphs: found no glyphs for', text);
 			return;
 		}
 		window.location.href = 'glyphsapp://show/?' + glyphNames.map(function(name) {
