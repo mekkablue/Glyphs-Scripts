@@ -56,6 +56,7 @@ class MethodReporter(mekkaObject):
 			"GSHint",
 			"GSInstance",
 			"GSMetricValue",
+			"GSNameParticle",
 			"GSNode",
 			"GSPathPen",
 			"GSPathSegment",
