@@ -533,7 +533,7 @@ htmlContent = """<head>
 			margin-bottom: 0.8em;
 			overflow-wrap: break-word;
 		}
-		.○ .sampletext, .○#textview, .○#grid {
+		.○ .sampletext, .○#textview, .○#grid, .○#metricsLine {
 			-webkit-text-stroke: 1px black;
 			-webkit-text-fill-color: #FFF0;
 		}
@@ -586,7 +586,7 @@ htmlContent = """<head>
 		#textview:focus {
 			outline: 0 solid transparent;
 		}
-		.viewLink.activeView {
+		.viewLink.activeView, .emojiButton.on {
 			background-color: #bbb;
 			border-radius: 0.3em;
 		}
@@ -723,7 +723,7 @@ htmlContent = """<head>
 			#helptext {
 				background-color: #777;
 			}
-			.○ .sampletext, .○#textview, .○#grid {
+			.○ .sampletext, .○#textview, .○#grid, .○#metricsLine {
 				-webkit-text-stroke: 1px white;
 				-webkit-text-fill-color: #0000;
 			}
@@ -734,7 +734,7 @@ htmlContent = """<head>
 			.gridCell {
 				border-color: #444;
 			}
-			.viewLink.activeView {
+			.viewLink.activeView, .emojiButton.on {
 				background-color: #555;
 			}
 			.sliderControls label {
@@ -760,13 +760,13 @@ htmlContent = """<head>
 		<a onclick="setView('text');" id="viewText" class="emojiButton viewLink activeView" title="Text view – Ctrl-G cycles through the views">🔤</a>
 		<a onclick="setView('grid');" id="viewGrid" class="emojiButton viewLink" title="Grid view of all glyphs, double-click a glyph to open it in Glyphs – Ctrl-G cycles through the views">🔡</a>
 		<a onclick="setView('waterfall');" id="viewWaterfall" class="emojiButton viewLink gapAfter" title="Waterfall view – Ctrl-G cycles through the views">⏬</a>
+		<a onclick="toggleMetrics();" id="metrics" class="emojiButton" title="Vertical Metrics view for verifying OS/2.typoAscender and OS/2.typoDescender">↕️</a>
 		<a onclick="toggleInverse();" id="invert" class="emojiButton" title="Toggle x-ray (outline) display">🔲</a>
 		<a onclick="toggleLeftRight();" id="direction" class="emojiButton gapAfter" title="Text direction: left to right. Click for right to left – Ctrl-J">➡️</a>
 		<label><input type="checkbox" id="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel" title="kern: Kerning">kern</label>
 		<label><input type="checkbox" id="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked><label for="liga" class="otFeatureLabel" title="liga, clig: Standard ligatures and contextual ligatures">liga/clig</label>
 		<label><input type="checkbox" id="calt" value="calt" class="otFeature" onchange="updateFeatures()" checked><label for="calt" class="otFeatureLabel" title="calt: Contextual alternates">calt</label>
 		<!-- moreFeatures -->
-		<label title="Show the text in one large line above the view, in a band with a line above and below"><input type="checkbox" value="show" onchange="updateFeatures();document.getElementById('metricsLine').style.display=this.checked?'block':'none'">Metrics</label>
 	</p>
 	<div class="sliderControls" id="gridControls">
 		<label>Size: <input type="range" id="gridSize" min="20" max="300" value="60" oninput="updateGridSize()"></label>
@@ -776,7 +776,7 @@ htmlContent = """<head>
 		<label>Line Distance: <input type="range" id="textLineHeight" min="50" max="300" value="120" oninput="updateTextView()"></label>
 	</div>
 </div>
-<div id="metricsLine"></div>
+<div id="metricsLine" class="●"></div>
 <div id="waterfall" class="●">
 	<p><span class="label">08</span>&nbsp;<span class="sampletext" id="p08"></span></p>
 	<p><span class="label">09</span>&nbsp;<span class="sampletext" id="p09"></span></p>
@@ -1056,6 +1056,13 @@ htmlContent = """<head>
 	function vanish(item) {
 		item.style.setProperty("display", "none");
 	}
+	function toggleMetrics() {
+		const metricsLine = document.getElementById("metricsLine");
+		const showMetrics = metricsLine.style.display != "block";
+		updateFeatures();  // gives the line the current font and features (and keeps its display)
+		metricsLine.style.display = showMetrics ? "block" : "none";
+		document.getElementById("metrics").classList.toggle("on", showMetrics);
+	}
 	function toggleLeftRight() {
 		// the direction applies to all views: text and metrics line run right to left, the grid starts in the top right cell
 		const makeRTL = document.getElementById("waterfall").dir != "rtl";
@@ -1074,6 +1081,7 @@ htmlContent = """<head>
 			for (const v of viewOrder) {
 				document.getElementById(viewElementIds[v]).className = newClassName;
 			}
+			document.getElementById("metricsLine").className = newClassName;
 			link.textContent = newClassName == "○" ? "🔳" : "🔲";
 		}
 	}
