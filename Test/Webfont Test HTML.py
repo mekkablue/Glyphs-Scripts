@@ -777,7 +777,7 @@ htmlContent = """<head>
 		<label><input type="checkbox" id="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked><label for="liga" class="otFeatureLabel" title="liga, clig: Standard ligatures and contextual ligatures">liga/clig</label>
 		<label><input type="checkbox" id="calt" value="calt" class="otFeature" onchange="updateFeatures()" checked><label for="calt" class="otFeatureLabel" title="calt: Contextual alternates">calt</label>
 		<!-- moreFeatures -->
-		<label title="Show the text in one large line above the waterfall, in a band with a line above and below"><input type="checkbox" value="show" onchange="updateFeatures();document.getElementById('metricsLine').style.display=this.checked?'block':'none'">Metrics</label>
+		<label title="Show the text in one large line above the view, in a band with a line above and below"><input type="checkbox" value="show" onchange="updateFeatures();document.getElementById('metricsLine').style.display=this.checked?'block':'none'">Metrics</label>
 	</p>
 	<div class="sliderControls" id="gridControls">
 		<label>Size: <input type="range" id="gridSize" min="20" max="300" value="60" oninput="updateGridSize()"></label>
@@ -787,8 +787,8 @@ htmlContent = """<head>
 		<label>Line Distance: <input type="range" id="textLineHeight" min="50" max="300" value="120" oninput="updateTextView()"></label>
 	</div>
 </div>
+<div id="metricsLine"></div>
 <div id="waterfall" class="●">
-	<div id="metricsLine"></div>
 	<p><span class="label">08</span>&nbsp;<span class="sampletext" id="p08"></span></p>
 	<p><span class="label">09</span>&nbsp;<span class="sampletext" id="p09"></span></p>
 	<p><span class="label">10</span>&nbsp;<span class="sampletext" id="p10"></span></p>
@@ -1012,10 +1012,17 @@ htmlContent = """<head>
 			cssCode += "; "
 		}
 
+		// cssText replaces all inline styles, including the display of the views and of the metrics line:
+		const view = currentView();
+		const metricsLine = document.getElementById('metricsLine');
+		const metricsDisplay = metricsLine.style.display;
 		document.getElementById('waterfall').style.cssText = cssCode;
 		document.getElementById('grid').style.cssText = cssCode;
 		document.getElementById('textview').style.cssText = cssCode;
+		metricsLine.style.cssText = cssCode;
+		metricsLine.style.display = metricsDisplay;
 		changeFont();
+		setView(view);
 		updateGridSize();
 		updateTextView();
 	}
@@ -1026,6 +1033,7 @@ htmlContent = """<head>
 		document.getElementById('waterfall').style.fontFamily = fontFamily;
 		document.getElementById('grid').style.fontFamily = fontFamily;
 		document.getElementById('textview').style.fontFamily = fontFamily;
+		document.getElementById('metricsLine').style.fontFamily = fontFamily;
 	}
 	function setDefaultText(defaultText) {
 		document.getElementById('textInput').value = decodeEntities(defaultText);
