@@ -769,8 +769,8 @@ htmlContent = """<head>
 		<a onclick="setView('grid');" id="viewGrid" class="emojiButton viewLink" title="Grid view of all glyphs, double-click a glyph to open it in Glyphs – Ctrl-G cycles through the views">🔡</a>
 		<a onclick="setView('waterfall');" id="viewWaterfall" class="emojiButton viewLink gapAfter" title="Waterfall view – Ctrl-G cycles through the views">⏬</a>
 		<a onclick="toggleMetrics();" id="metrics" class="emojiButton" title="Vertical Metrics view for verifying OS/2.typoAscender and OS/2.typoDescender">↕️</a>
-		<a onclick="toggleInverse();" id="invert" class="emojiButton" title="Toggle x-ray (outline) display">🔲</a>
-		<a onclick="toggleLeftRight();" id="direction" class="emojiButton gapAfter" title="Text direction: left to right. Click for right to left – Ctrl-J">➡️</a>
+		<a onclick="toggleLeftRight();" id="direction" class="emojiButton" title="Text direction: left to right. Click for right to left – Ctrl-J">➡️</a>
+		<a onclick="toggleInverse();" id="invert" class="emojiButton gapAfter" title="Toggle x-ray (outline) display">🔲</a>
 		<label><input type="checkbox" id="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel" title="kern: Kerning">kern</label>
 		<label><input type="checkbox" id="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked><label for="liga" class="otFeatureLabel" title="liga, clig: Standard ligatures and contextual ligatures">liga/clig</label>
 		<label><input type="checkbox" id="calt" value="calt" class="otFeature" onchange="updateFeatures()" checked><label for="calt" class="otFeatureLabel" title="calt: Contextual alternates">calt</label>
