@@ -5,10 +5,10 @@ Define an angle above which a node will be set to blue, below which it will be s
 
 import objc
 import vanilla
-from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
-from Foundation import NSPoint
+from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSWindowStyleMaskResizable
+from Foundation import NSPoint, NSSize
 from GlyphsApp import Glyphs, GSControlLayer, GSOFFCURVE, GSSMOOTH, GSSHARP, Message
-from mekkablue import mekkaObject, reportFontName, SteppingEditText, decimalFormatter
+from mekkablue import mekkaObject, reportFontName, SteppingEditText, decimalFormatter, UpdateButton
 from mekkablue.geometry import angle
 
 GlyphsPathPlugin = objc.lookUpClass("GlyphsPathPlugin")
@@ -66,6 +66,8 @@ class GreenBlueManager(mekkaObject):
 
 		self.w.excludeText = vanilla.TextBox("auto", "Exclude glyphs with:", sizeStyle="small", selectable=True)
 		self.w.exclude = vanilla.EditText("auto", ".ornm, BlackIndex, Heart, apple", callback=self.SavePreferences, sizeStyle="small")
+		self.w.resetButton = UpdateButton("auto", callback=self.resetToDefaults)
+		self.w.resetButton.setToolTip("Resets all settings of this window to their defaults.")
 
 		self.w.reportInMacroWindow = vanilla.CheckBox("auto", "Report in Macro window", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reportInMacroWindowVerbose = vanilla.CheckBox("auto", "Verbose", value=False, callback=self.SavePreferences, sizeStyle='small')
@@ -112,7 +114,7 @@ class GreenBlueManager(mekkaObject):
 				"H:|-inset-[realignHandles]-(>=inset)-|",
 				"H:|-inset-[allMasters]-(>=inset)-|",
 				"H:|-inset-[completeFont]-gap-[scope]-inset-|",
-				"H:|-inset-[excludeText]-gap-[exclude]-inset-|",
+				"H:|-inset-[excludeText]-gap-[exclude]-gap-[resetButton]-inset-|",
 				"H:|-inset-[reportInMacroWindow]-gap-[reportInMacroWindowVerbose]-(>=inset)-|",
 				"H:|-inset-[shouldMark]-gap-[reuseTab]-(>=inset)-|",
 				"H:|-inset-[progress]-inset-|",
@@ -121,6 +123,7 @@ class GreenBlueManager(mekkaObject):
 				{"view1": self.w.thresholdAngleText, "attribute1": "centerY", "view2": self.w.thresholdAngle, "attribute2": "centerY"},
 				{"view1": self.w.scope, "attribute1": "centerY", "view2": self.w.completeFont, "attribute2": "centerY"},
 				{"view1": self.w.excludeText, "attribute1": "centerY", "view2": self.w.exclude, "attribute2": "centerY"},
+				{"view1": self.w.resetButton, "attribute1": "centerY", "view2": self.w.exclude, "attribute2": "centerY"},
 				{"view1": self.w.reportInMacroWindowVerbose, "attribute1": "centerY", "view2": self.w.reportInMacroWindow, "attribute2": "centerY"},
 				{"view1": self.w.reuseTab, "attribute1": "centerY", "view2": self.w.shouldMark, "attribute2": "centerY"},
 				{"view1": self.w.reportInMacroWindow, "attribute1": "width", "view2": self.w.shouldMark, "attribute2": "width"},
@@ -138,6 +141,20 @@ class GreenBlueManager(mekkaObject):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
+
+		# make the window horizontally resizable, but keep the height that Auto Layout determined.
+		# (Content sizes set directly on the NSWindow, so the title bar is not counted twice.)
+		nsWindow = self.w.getNSWindow()
+		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
+		nsWindow.layoutIfNeeded()  # make sure the content has its final size before we read it
+		contentSize = nsWindow.contentView().frame().size
+		nsWindow.setContentMinSize_(NSSize(contentSize.width, contentSize.height))
+		nsWindow.setContentMaxSize_(NSSize(contentSize.width + 1000, contentSize.height))
+
+	def resetToDefaults(self, sender=None):
+		for prefName, defaultValue in self.prefDict.items():
+			self.setPref(prefName, defaultValue)
+		self.LoadPreferences()
 
 	def updateUI(self, sender=None):
 		if not self.w.realignHandles.get() and not self.w.fixGreenBlue.get():

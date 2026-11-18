@@ -6,9 +6,10 @@ never includes composites. Uses each layer's individual metrics (supports per-la
 """
 
 import vanilla
-from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
+from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSWindowStyleMaskResizable
+from Foundation import NSSize
 from GlyphsApp import Glyphs, GSAnnotation, TEXT, GSOFFCURVE, GSUppercase, GSLowercase, GSMetricsTypexHeight, GSMetricsTypeCapHeight, Message
-from mekkablue import mekkaObject, SteppingEditText, decimalFormatter
+from mekkablue import mekkaObject, SteppingEditText, decimalFormatter, UpdateButton
 
 
 class FindNearVerticalMisses(mekkaObject):
@@ -66,6 +67,8 @@ class FindNearVerticalMisses(mekkaObject):
 		self.w.excludeText.setToolTip(tooltipText)
 		self.w.exclude = vanilla.EditText("auto", ".ornm, .notdef, comb", callback=self.SavePreferences, sizeStyle="small")
 		self.w.exclude.setToolTip(tooltipText)
+		self.w.resetButton = UpdateButton("auto", callback=self.resetToDefaults)
+		self.w.resetButton.setToolTip("Resets all settings of this window to their defaults.")
 
 		self.w.openTab = vanilla.CheckBox("auto", "Open tab", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.openTab.setToolTip("Opens an edit tab showing all layers that contain at least one near-miss node.")
@@ -98,7 +101,7 @@ class FindNearVerticalMisses(mekkaObject):
 				"H:|-inset-[tolerateIfExtremum]-(>=inset)-|",
 				"H:|-inset-[markNodes]-(>=inset)-|",
 				"H:|-inset-[limitToLetters]-(>=inset)-|",
-				"H:|-inset-[excludeText]-gap-[exclude]-inset-|",
+				"H:|-inset-[excludeText]-gap-[exclude]-gap-[resetButton]-inset-|",
 				"H:|-inset-[openTab]-gap-[reuseTab]-(>=inset)-|",
 				"H:|-inset-[progress]-inset-|",
 				"H:|-inset-[status]-(>=gap)-[runButton(>=70)]-inset-|",
@@ -106,6 +109,7 @@ class FindNearVerticalMisses(mekkaObject):
 				{"view1": self.w.devianceText, "attribute1": "centerY", "view2": self.w.deviance, "attribute2": "centerY"},
 				{"view1": self.w.devianceUnitsText, "attribute1": "centerY", "view2": self.w.deviance, "attribute2": "centerY"},
 				{"view1": self.w.excludeText, "attribute1": "centerY", "view2": self.w.exclude, "attribute2": "centerY"},
+				{"view1": self.w.resetButton, "attribute1": "centerY", "view2": self.w.exclude, "attribute2": "centerY"},
 				{"view1": self.w.reuseTab, "attribute1": "centerY", "view2": self.w.openTab, "attribute2": "centerY"},
 				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 			],
@@ -115,6 +119,20 @@ class FindNearVerticalMisses(mekkaObject):
 		self.LoadPreferences()
 		self.w.open()
 		self.w.makeKey()
+
+		# make the window horizontally resizable, but keep the height that Auto Layout determined.
+		# (Content sizes set directly on the NSWindow, so the title bar is not counted twice.)
+		nsWindow = self.w.getNSWindow()
+		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
+		nsWindow.layoutIfNeeded()  # make sure the content has its final size before we read it
+		contentSize = nsWindow.contentView().frame().size
+		nsWindow.setContentMinSize_(NSSize(contentSize.width, contentSize.height))
+		nsWindow.setContentMaxSize_(NSSize(contentSize.width + 1000, contentSize.height))
+
+	def resetToDefaults(self, sender=None):
+		for prefName, defaultValue in self.prefDict.items():
+			self.setPref(prefName, defaultValue)
+		self.LoadPreferences()
 
 	def updateUI(self, sender=None):
 		self.w.reuseTab.enable(self.w.openTab.get())
