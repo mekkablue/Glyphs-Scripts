@@ -757,6 +757,48 @@ def externalAxisValue(font, axisId, internalValue):
 	return external1 + (float(internalValue) - internal1) * (external2 - external1) / (internal2 - internal1)
 
 
+uprightNames = ("roman", "regular", "normal")
+italicNames = ("italic", "oblique")
+
+
+def styleLinksForAxis(font, axisId, axisTag, particleInfos):
+	"""
+	Returns a dictionary of particle name: (attribute, linked particle name) for style linking on one axis:
+	• wght: the Bold particle (or external value 700) is bold, and links to Regular, Normal or Roman (or external value 400),
+	• ital and slnt: the Italic or Oblique particle (or ital=1, or the most negative slnt) is italic,
+	  and links to Roman, Regular or Normal (or ital=0 or slnt=0).
+	"""
+	if axisTag not in ("wght", "ital", "slnt"):
+		return {}
+
+	# the values the styles are recognized by are the user-space (external) values:
+	values = []
+	for info in particleInfos:
+		externalValue = info.get("externalValue")
+		values.append(float(externalValue) if externalValue is not None else externalAxisValue(font, axisId, info["internalValue"]))
+	names = [info["name"] for info in particleInfos]
+	isName = lambda index, candidates: names[index].strip().lower() in candidates
+
+	if axisTag == "wght":
+		styleIndexes = [i for i in range(len(names)) if isName(i, ("bold", )) or abs(values[i] - 700) < 0.001]
+		targetIndexes = [i for i in range(len(names)) if abs(values[i] - 400) < 0.001] or [i for i in range(len(names)) if isName(i, uprightNames)]
+		attribute = "isBold"
+	else:
+		mostNegative = min(values) if values else 0
+		styleIndexes = [
+			i for i in range(len(names))
+			if isName(i, italicNames) or (axisTag == "ital" and abs(values[i] - 1) < 0.001) or (axisTag == "slnt" and mostNegative < 0 and values[i] == mostNegative)
+		]
+		targetIndexes = [i for i in range(len(names)) if abs(values[i]) < 0.001] or [i for i in range(len(names)) if isName(i, uprightNames)]
+		attribute = "isItalic"
+
+	targetIndexes = [i for i in targetIndexes if i not in styleIndexes]
+	if not styleIndexes or not targetIndexes:
+		return {}
+	targetName = names[targetIndexes[0]]
+	return {names[i]: (attribute, targetName) for i in styleIndexes}
+
+
 def buildNameParticle(name, internalValue, externalValue):
 	"""
 	Returns a GSNameParticle with the supplied name and axis values.
@@ -841,6 +883,7 @@ def insertParticlesIntoFont(font, particlesDict):
 			continue
 
 		axisParticles = NSMutableArray.array()
+		styleLinks = styleLinksForAxis(font, axisId, axisTag, particles) if hasAttributes else {}
 		for particleInfo in particles:
 			name = particleInfo["name"]
 			internalValue = particleInfo["internalValue"]
@@ -857,6 +900,12 @@ def insertParticlesIntoFont(font, particlesDict):
 				if name in elidableNames:
 					particle.setAttribute_forKey_(1, "isElidable")
 					report += ", elidable"
+				if name in styleLinks:
+					# style linking: bold links to regular, italic to roman
+					attribute, linkedName = styleLinks[name]
+					particle.setAttribute_forKey_(1, attribute)
+					particle.setAttribute_forKey_(linkedName, "linkStyle")
+					report += f", {'bold' if attribute == 'isBold' else 'italic'} (linked to {linkedName})"
 				if axisTag == "wdth":
 					# the width class relates to the width in percent of normal, i.e., the external value:
 					percent = float(externalValue) if externalValue is not None else externalAxisValue(font, axisId, internalValue)
@@ -871,7 +920,7 @@ def insertParticlesIntoFont(font, particlesDict):
 	particleInstance.setNameParticles_(allParticles)
 
 	if not hasAttributes:
-		print(f"\n\t⚠️ Elidable particles and width classes need Glyphs build {BUILD_WITH_PARTICLE_ATTRIBUTES} or later (this is {Glyphs.buildNumber}), so they were not set.")
+		print(f"\n\t⚠️ Elidable particles, width classes and style linking need Glyphs build {BUILD_WITH_PARTICLE_ATTRIBUTES} or later (this is {Glyphs.buildNumber}), so they were not set.")
 
 
 class InstanceMakerV4(mekkaObject):
