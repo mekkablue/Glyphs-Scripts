@@ -471,7 +471,7 @@ htmlContent = """<head>
 			margin-bottom: 0.8em;
 			overflow-wrap: break-word;
 		}
-		.○ .sampletext, .○#textview {
+		.○ .sampletext, .○#textview, .○#grid {
 			-webkit-text-stroke: 1px black;
 			-webkit-text-fill-color: #FFF0;
 		}
@@ -502,6 +502,8 @@ htmlContent = """<head>
 			transform: translateX(-50%);
 			background-color: #333;
 			color: white;
+			-webkit-text-stroke: 0; /* the tooltip stays readable in x-ray mode */
+			-webkit-text-fill-color: white;
 			text-align: center;
 			white-space: nowrap;
 			padding: 2px 5px;
@@ -666,7 +668,7 @@ htmlContent = """<head>
 			#helptext {
 				background-color: #777;
 			}
-			.○ .sampletext, .○#textview {
+			.○ .sampletext, .○#textview, .○#grid {
 				-webkit-text-stroke: 1px white;
 				-webkit-text-fill-color: #0000;
 			}
