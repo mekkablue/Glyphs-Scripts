@@ -379,12 +379,10 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Remove Small Kerning Pairs:** Removes all kerning pairs in the current font master with a value smaller than specified, or a value equal to zero. Be careful.
 * **Report Kerning Mistakes:** Tries to find unnecessary kernings and groupings. Reports in Macro window, for reviewing.
 * **Sample String Maker:** Creates kern strings for user-defined categories and adds them to the Sample Strings. Group kerning only, glyphs without groups are ignored.
-* **Sample Strings with Master Kerning:** Creates kern strings for the current kerning and adds them to the Sample Strings.
 * **Set Kerning Groups:** Sets left and right kerning groups for all selected glyphs. In the case of compounds, will use the groups of the base components, otherwise makes an informed guess based on a built-in dictionary.
 * **Split Kerning Groups:** In existing group kerning, separate some glyphs out of a kerning group, effectively duplicating the kern groups with the new group.
 * **Steal Kerning from InDesign:** Steals the kerning from text set in InDesign. Useful for extracting InDesign’s [Optical Kerning](https://web.archive.org/web/20160414170915/http://blog.extensis.com/adobe/about-adobe’s-optical-kerning.php) values.
 * **Steal Kerning Groups:** Steals left/right kerning groups for all selected glyphs from a 2nd font.
-* **Transfer RTL Kerning:** Transfers RTL kerning from one master to another.
 
 ## Paths
 
