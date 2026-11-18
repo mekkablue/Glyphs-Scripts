@@ -462,13 +462,14 @@ htmlContent = """<head>
 			vertical-align: -5%;
 			font-size: small;
 			padding: 0.15em 0.25em;
+			margin: 0 -0.25em; /* padding only for the highlight of the active view: the buttons stay close together */
 		}
 		.emojiButton {
 			cursor: pointer;
 			text-decoration: none;
 		}
 		.emojiButton.gapAfter {
-			margin-right: 0.9em;
+			margin-right: 0.3em;
 		}
 		#flexbox {
 			display: flex;
