@@ -708,6 +708,9 @@ htmlContent = """<head>
 			.features, .label, a, body, p, #metricsLine {
 				color: white;
 			}
+			#waterfall, #grid, #textview {
+				color: white; /* the light rule is set by id, so it also needs to be overridden by id */
+			}
 			.label {
 				background-color: black;
 				padding: 2px 3px;
