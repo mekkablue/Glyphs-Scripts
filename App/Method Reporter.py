@@ -4,7 +4,7 @@ Searches in PyObjC method names of a chosen object.
 """
 
 import vanilla
-from AppKit import NSObject, NSLayoutConstraintOrientationHorizontal, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSWindowStyleMaskResizable
+from AppKit import NSObject, NSWindowStyleMaskResizable
 from Foundation import NSSize
 from GlyphsApp import Glyphs
 from mekkablue import setClipboard, mekkaObject
@@ -134,20 +134,18 @@ class MethodReporter(mekkaObject):
 
 		self.w.addAutoPosSizeRules(
 			[
-				"H:|-inset-[objectPicker(>=150)]-gap-[textFilter]-gap-[filter]-inset-|",
+				# the class name prefers its initial width of 150 (weak, 250), but never less (required):
+				"H:|-inset-[objectPicker(>=150,==150@250)]-gap-[textFilter]-gap-[filter]-inset-|",
 				"H:|[methodList]|",
 				"V:|-inset-[objectPicker]-inset-[methodList(>=100)]|",
 				{"view1": self.w.textFilter, "attribute1": "centerY", "view2": self.w.objectPicker, "attribute2": "centerY"},
 				{"view1": self.w.filter, "attribute1": "centerY", "view2": self.w.objectPicker, "attribute2": "centerY"},
-				# when the window gets wider, the class name keeps at least 35% of its width:
+				# when the window gets wider, the Find label and field take as much of the extra width as they can,
+				# but the class name keeps at least 35% of the window width:
 				{"view1": self.w.objectPicker, "attribute1": "width", "relation": ">=", "view2": self.w, "attribute2": "width", "multiplier": 0.35},
 			],
 			metrics={"inset": inset, "gap": 6},
 		)
-
-		# beyond that, the search field takes the extra width:
-		self.w.objectPicker.getNSComboBox().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
-		self.w.filter.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# Load Settings:
 		self.LoadPreferences()
