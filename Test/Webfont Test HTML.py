@@ -356,7 +356,7 @@ def fontFaces(instanceList):
 	for thisInstanceInfo in instanceList:
 		fileName = thisInstanceInfo[0]
 		nameOfTheFont = thisInstanceInfo[1]
-		returnString += "\t\t@font-face { font-family: '%s'; src: url('%s'); }\n" % (nameOfTheFont, fileName)
+		returnString += "\t\t@font-face { font-family: '%s'; src: url('%s'); font-display: block; }\n" % (nameOfTheFont, fileName)
 
 	return returnString
 
@@ -755,7 +755,7 @@ htmlContent = """<head>
 		}
 	</style>
 </head>
-<body onload="document.getElementById('textInput').focus();setCharset();setView('text');">
+<body onload="document.getElementById('textInput').focus();setCharset();setView('text');preloadFonts();">
 <div id="flexbox">
 <div id="controls">
 	<div>
@@ -1026,14 +1026,30 @@ htmlContent = """<head>
 		updateGridSize();
 		updateTextView();
 	}
+	function currentFontFamily() {
+		return `'${selector.options[selector.selectedIndex].text}'`;
+	}
+	function applyFontFamily() {
+		const fontFamily = currentFontFamily();
+		for (const id of ['waterfall', 'grid', 'textview', 'metricsLine']) {
+			document.getElementById(id).style.fontFamily = fontFamily;
+		}
+	}
 	function changeFont() {
-		var selected_index = selector.selectedIndex;
-		var selected_option_text = selector.options[selected_index].text;
-		const fontFamily = `'${selected_option_text}'`;
-		document.getElementById('waterfall').style.fontFamily = fontFamily;
-		document.getElementById('grid').style.fontFamily = fontFamily;
-		document.getElementById('textview').style.fontFamily = fontFamily;
-		document.getElementById('metricsLine').style.fontFamily = fontFamily;
+		// Fonts load lazily, on first use. Switching the family before the font has loaded shows a fallback font
+		// for a moment (flash of unstyled text), so wait for the font, and only then apply it:
+		const fontSpec = `1em ${currentFontFamily()}`;
+		if (document.fonts.check(fontSpec)) {
+			applyFontFamily();
+		} else {
+			document.fonts.load(fontSpec).then(applyFontFamily, applyFontFamily);
+		}
+	}
+	function preloadFonts() {
+		// load all fonts right away, so that stepping through them with Ctrl-comma/period is instant:
+		for (const fontFace of fontFaceList) {
+			document.fonts.load(`1em '${fontFace.family}'`);
+		}
 	}
 	function setDefaultText(defaultText) {
 		document.getElementById('textInput').value = decodeEntities(defaultText);
