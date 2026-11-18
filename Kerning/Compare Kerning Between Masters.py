@@ -1,11 +1,12 @@
 # MenuTitle: Compare Kerning Between Masters
 __doc__ = """
-Report differences in kerning structures between two masters.
+Report differences in kerning structures between two masters, and sync them by adding zero kerns.
 """
 
 import vanilla
 from mekkablue import mekkaObject, newLineControlLayer, reportFontName, UpdateButton
 from GlyphsApp import Glyphs, Message
+from Foundation import NSNotFound
 from AppKit import (
 	NSLayoutConstraintOrientationHorizontal,
 	NSLayoutConstraintOrientationVertical,
@@ -58,8 +59,13 @@ class CompareKerningBetweenMasters(mekkaObject):
 
 		self.w.reuseTab = vanilla.CheckBox("auto", "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle="small")
 
-		# Run Button:
+		# Buttons:
+		self.w.syncButton = vanilla.Button("auto", "Sync Kern Pairs", callback=self.SyncKernPairs)
+		self.w.syncButton.setToolTip(
+			"Syncs kern pair structure between masters by adding zero kerns: kern pairs of the checked types that exist in only one of the two masters are added with the value 0 to the other one. Existing kerning is not changed. Helps preserve interpolatable kerning in OTVar exports."
+		)
 		self.w.runButton = vanilla.Button("auto", "Compare", callback=self.CompareKerningBetweenMastersMain)
+		self.w.runButton.setToolTip("Opens a tab with the kern pairs of the checked types that exist in only one of the two masters.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window
@@ -83,9 +89,10 @@ class CompareKerningBetweenMasters(mekkaObject):
 				"H:|-inset-[group2group]-inset-[group2glyph]-(>=inset)-|",
 				"H:|-inset-[glyph2group]-inset-[glyph2glyph]-(>=inset)-|",
 				"H:|-inset-[reuseTab]-(>=inset)-|",
-				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"H:|-inset-[syncButton(>=70)]-(>=gap)-[runButton(>=70)]-inset-|",
 				"V:|-gap-[descriptionText]-row-[firstMaster]-row-[secondMaster]-section-[kernTypeText]-row-[group2group]-checkRow-[glyph2group]-section-[reuseTab]-inset-[runButton]-inset-|",
 				"V:[kernTypeText]-row-[group2glyph]-checkRow-[glyph2glyph]",
+				{"view1": self.w.syncButton, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 				{"view1": self.w.firstMasterText, "attribute1": "centerY", "view2": self.w.firstMaster, "attribute2": "centerY"},
 				{"view1": self.w.secondMasterText, "attribute1": "centerY", "view2": self.w.secondMaster, "attribute2": "centerY"},
 				{"view1": self.w.updateButton, "attribute1": "centerY", "view2": self.w.secondMaster, "attribute2": "centerY"},
@@ -113,10 +120,9 @@ class CompareKerningBetweenMasters(mekkaObject):
 
 	def verifyButtonStatus(self, sender=None):
 		font = Glyphs.font
-		if not font or self.pref("firstMaster") == self.pref("secondMaster"):
-			self.w.runButton.enable(False)
-		else:
-			self.w.runButton.enable(True)
+		onOff = bool(font) and self.pref("firstMaster") != self.pref("secondMaster")
+		self.w.runButton.enable(onOff)
+		self.w.syncButton.enable(onOff)
 
 	def updateUI(self, sender=None):
 		menu = self.menuItemsForFrontMostFont()
@@ -132,10 +138,9 @@ class CompareKerningBetweenMasters(mekkaObject):
 			self.w.secondMaster.set(rightChoice)
 
 		font = Glyphs.font
-		if not font or self.pref("firstMaster") == self.pref("secondMaster"):
-			self.w.runButton.enable(False)
-		else:
-			self.w.runButton.enable(True)
+		onOff = bool(font) and self.pref("firstMaster") != self.pref("secondMaster")
+		self.w.runButton.enable(onOff)
+		self.w.syncButton.enable(onOff)
 
 	def namesForGroupName(self, groupName, font, isLeft=True):
 		names = []
@@ -174,6 +179,144 @@ class CompareKerningBetweenMasters(mekkaObject):
 			print(f"⚠️ No glyph found for: {name}")
 			return None
 
+	def selectedMasters(self, font):
+		"""Returns the first and the second master, as chosen in the popups."""
+		masters = []
+		for popup, prefName in ((self.w.firstMaster, "firstMaster"), (self.w.secondMaster, "secondMaster")):
+			choice = popup.getItems()[self.prefInt(prefName)]
+			masterID = choice.split("(ID: ")[1][:-1]
+			masters.append(font.masters[masterID])
+		return masters[0], masters[1]
+
+	def enabledKinds(self):
+		"""The kinds of kern pairs that are checked in the window."""
+		return {kind for kind in ("group2group", "group2glyph", "glyph2group", "glyph2glyph") if self.pref(kind)}
+
+	def kerningIsMissing(self, value):
+		return value is None or value >= NSNotFound
+
+	def missingKernPairs(self, font, firstMasterID, secondMasterID, firstKerning, secondKerning, enabledKinds, stats):
+		"""
+		Yields (kind, left, right, leftName, rightName, missingIn) for each kern pair that exists in only one of the two masters.
+		kind: "group2group", "group2glyph", "glyph2group" or "glyph2glyph", limited to those in enabledKinds.
+		left, right: the keys as in the kerning dictionary (glyph IDs or @MMK_ group keys).
+		leftName, rightName: glyph names or @MMK_ group keys, as kerningForPair() and setKerningForPair() take them.
+		missingIn: "first" or "second", or "both" if kerningForPair() finds the pair in neither master (e.g., RTL pairs).
+		Pairs with stale glyph IDs are counted in stats["skipped"].
+		"""
+		for L in set(list(firstKerning.keys()) + list(secondKerning.keys())):
+			LisGroup = L[0] == "@"
+			RKeys = []
+			for kerning in (firstKerning, secondKerning):
+				if L in kerning.keys():
+					RKeys.extend(list(kerning[L].keys()))
+			for R in set(RKeys):
+				RisGroup = R[0] == "@"
+
+				# Guard against stale glyph IDs
+				if LisGroup:
+					Lname = L
+				else:
+					Lglyph = font.glyphForId_(L)
+					if Lglyph is None:
+						stats["skipped"] += 1
+						continue
+					Lname = Lglyph.name
+
+				if RisGroup:
+					Rname = R
+				else:
+					Rglyph = font.glyphForId_(R)
+					if Rglyph is None:
+						stats["skipped"] += 1
+						continue
+					Rname = Rglyph.name
+
+				firstIsMissing = self.kerningIsMissing(font.kerningForPair(firstMasterID, Lname, Rname))
+				secondIsMissing = self.kerningIsMissing(font.kerningForPair(secondMasterID, Lname, Rname))
+				if not (firstIsMissing or secondIsMissing):
+					continue
+
+				if LisGroup and RisGroup:
+					kind = "group2group"
+				elif LisGroup:
+					kind = "group2glyph"
+				elif RisGroup:
+					kind = "glyph2group"
+				else:
+					kind = "glyph2glyph"
+				if kind not in enabledKinds:
+					continue
+
+				if firstIsMissing and secondIsMissing:
+					missingIn = "both"
+				elif secondIsMissing:
+					missingIn = "second"
+				else:
+					missingIn = "first"
+				yield kind, L, R, Lname, Rname, missingIn
+
+	def shortKernName(self, name):
+		return name.replace("@MMK_L_", "@").replace("@MMK_R_", "@")
+
+	def SyncKernPairs(self, sender=None):
+		try:
+			# clear macro window log:
+			Glyphs.clearLog()
+
+			# update settings to the latest user input:
+			self.SavePreferences()
+
+			thisFont = Glyphs.font  # frontmost font
+			if thisFont is None:
+				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+				return
+
+			print(f"Sync Kern Pairs Report for {reportFontName(thisFont)}")
+			print()
+
+			firstMaster, secondMaster = self.selectedMasters(thisFont)
+			masters = {"first": firstMaster, "second": secondMaster}
+			kerningOfMaster = {}
+			for key, master in masters.items():
+				# a master without any kerning has no kerning dictionary at all:
+				kerningOfMaster[key] = thisFont.kerning[master.id] or {}
+				if not kerningOfMaster[key]:
+					print(f"⚠️ Master ‘{master.name}’ has no kerning at all.")
+
+			stats = {"skipped": 0}
+			pairsToAdd = []
+			for kind, L, R, Lname, Rname, missingIn in self.missingKernPairs(
+				thisFont, firstMaster.id, secondMaster.id, kerningOfMaster["first"], kerningOfMaster["second"], self.enabledKinds(), stats
+			):
+				if missingIn == "both":
+					continue  # kerningForPair() finds it in neither master (e.g., RTL), so we cannot tell and leave it alone
+				pairsToAdd.append((masters[missingIn], Lname, Rname))
+
+			if stats["skipped"]:
+				print(f"⚠️ Skipped {stats['skipped']} pairs with stale or missing glyph IDs.")
+
+			addedCounts = {firstMaster.id: 0, secondMaster.id: 0}
+			for master, Lname, Rname in pairsToAdd:
+				thisFont.setKerningForPair(master.id, Lname, Rname, 0.0)
+				addedCounts[master.id] += 1
+				print(f"\t➕ {master.name}: {self.shortKernName(Lname)}-{self.shortKernName(Rname)} = 0")
+
+			addedCount = len(pairsToAdd)
+			if addedCount:
+				message = f"Added {addedCount} zero kern{'' if addedCount == 1 else 's'}: {addedCounts[firstMaster.id]} in ‘{firstMaster.name}’, {addedCounts[secondMaster.id]} in ‘{secondMaster.name}’."
+			else:
+				message = f"Kern pair structure of ‘{firstMaster.name}’ and ‘{secondMaster.name}’ is in sync already, given your selection."
+			print(f"\n✅ {message}")
+			Glyphs.showNotification("Sync Kern Pairs", message)
+
+		except Exception as e:
+			# brings macro window to front and reports error:
+			Glyphs.showMacroWindow()
+			print(f"Sync Kern Pairs Error: {e}")
+			import traceback
+			print(traceback.format_exc())
+
 	def CompareKerningBetweenMastersMain(self, sender=None):
 		try:
 			# clear macro window log:
@@ -190,13 +333,6 @@ class CompareKerningBetweenMasters(mekkaObject):
 				print(f"Compare Kerning Between Masters Report for {reportName}")
 				print()
 
-				group2group = bool(self.pref("group2group"))
-				group2glyph = bool(self.pref("group2glyph"))
-				glyph2group = bool(self.pref("glyph2group"))
-				glyph2glyph = bool(self.pref("glyph2glyph"))
-				firstMaster = self.prefInt("firstMaster")
-				secondMaster = self.prefInt("secondMaster")
-
 				group2groupLayersMissingFirst = []
 				group2glyphLayersMissingFirst = []
 				glyph2groupLayersMissingFirst = []
@@ -206,15 +342,15 @@ class CompareKerningBetweenMasters(mekkaObject):
 				glyph2groupLayersMissingSecond = []
 				glyph2glyphLayersMissingSecond = []
 
-				firstMasterChoice = self.w.firstMaster.getItems()[firstMaster]
-				firstMasterID = firstMasterChoice.split("(ID: ")[1][:-1]
-				firstMaster = thisFont.masters[firstMasterID]
-				firstKerning = thisFont.kerning[firstMaster.id]
-
-				secondMasterChoice = self.w.secondMaster.getItems()[secondMaster]
-				secondMasterID = secondMasterChoice.split("(ID: ")[1][:-1]
-				secondMaster = thisFont.masters[secondMasterID]
-				secondKerning = thisFont.kerning[secondMaster.id]
+				firstMaster, secondMaster = self.selectedMasters(thisFont)
+				firstMasterID = firstMaster.id
+				secondMasterID = secondMaster.id
+				# a master without any kerning has no kerning dictionary at all (None); then every pair of the other master is missing here:
+				firstKerning = thisFont.kerning[firstMasterID] or {}
+				secondKerning = thisFont.kerning[secondMasterID] or {}
+				for master, kerning in ((firstMaster, firstKerning), (secondMaster, secondKerning)):
+					if not kerning:
+						print(f"⚠️ Master ‘{master.name}’ has no kerning at all.")
 
 				spaceGlyph = thisFont.glyphs["space"]
 				if spaceGlyph is None:
@@ -224,80 +360,44 @@ class CompareKerningBetweenMasters(mekkaObject):
 
 				missingKernCount = 0
 				skippedCount = 0
+				targetLists = {
+					("group2group", "first"): group2groupLayersMissingFirst,
+					("group2group", "second"): group2groupLayersMissingSecond,
+					("group2glyph", "first"): group2glyphLayersMissingFirst,
+					("group2glyph", "second"): group2glyphLayersMissingSecond,
+					("glyph2group", "first"): glyph2groupLayersMissingFirst,
+					("glyph2group", "second"): glyph2groupLayersMissingSecond,
+					("glyph2glyph", "first"): glyph2glyphLayersMissingFirst,
+					("glyph2glyph", "second"): glyph2glyphLayersMissingSecond,
+				}
+				stats = {"skipped": 0}
 
-				for L in set(list(firstKerning.keys()) + list(secondKerning.keys())):
-					LisGroup = L[0] == "@"
-					RKeys = []
-					for kerning in (firstKerning, secondKerning):
-						if L in kerning.keys():
-							RKeys.extend(list(kerning[L].keys()))
-					for R in set(RKeys):
-						RisGroup = R[0] == "@"
+				for kind, L, R, Lname, Rname, missingIn in self.missingKernPairs(thisFont, firstMasterID, secondMasterID, firstKerning, secondKerning, self.enabledKinds(), stats):
+					if missingIn == "both":
+						missingIn = "second"  # as before: if the pair is found in neither master, it is listed as missing in the second
+					targetList = targetLists[(kind, missingIn)]
 
-						# Guard against stale glyph IDs
-						if LisGroup:
-							Lname = L
-						else:
-							Lglyph = thisFont.glyphForId_(L)
-							if Lglyph is None:
-								skippedCount += 1
-								continue
-							Lname = Lglyph.name
+					glyphNameOnLSide = self.glyphNameForKerningName(L, thisFont, isLeft=True)
+					glyphNameOnRSide = self.glyphNameForKerningName(R, thisFont, isLeft=False)
+					if glyphNameOnLSide is None or glyphNameOnRSide is None:
+						skippedCount += 1
+						continue
 
-						if RisGroup:
-							Rname = R
-						else:
-							Rglyph = thisFont.glyphForId_(R)
-							if Rglyph is None:
-								skippedCount += 1
-								continue
-							Rname = Rglyph.name
+					glyphOnLSide = thisFont.glyphs[glyphNameOnLSide]
+					glyphOnRSide = thisFont.glyphs[glyphNameOnRSide]
+					if glyphOnLSide is None or glyphOnRSide is None:
+						skippedCount += 1
+						continue
 
-						kerningInFirstMaster = thisFont.kerningForPair(firstMasterID, Lname, Rname)
-						kerningInSecondMaster = thisFont.kerningForPair(secondMasterID, Lname, Rname)
-						if kerningInFirstMaster is None or kerningInSecondMaster is None:
-							targetList = None
-							if LisGroup and RisGroup and group2group:
-								if kerningInFirstMaster is None:
-									targetList = group2groupLayersMissingFirst
-								if kerningInSecondMaster is None:
-									targetList = group2groupLayersMissingSecond
-							if LisGroup and not RisGroup and group2glyph:
-								if kerningInFirstMaster is None:
-									targetList = group2glyphLayersMissingFirst
-								if kerningInSecondMaster is None:
-									targetList = group2glyphLayersMissingSecond
-							if not LisGroup and not RisGroup and glyph2glyph:
-								if kerningInFirstMaster is None:
-									targetList = glyph2glyphLayersMissingFirst
-								if kerningInSecondMaster is None:
-									targetList = glyph2glyphLayersMissingSecond
-							if not LisGroup and RisGroup and glyph2group:
-								if kerningInFirstMaster is None:
-									targetList = glyph2groupLayersMissingFirst
-								if kerningInSecondMaster is None:
-									targetList = glyph2groupLayersMissingSecond
+					missingKernCount += 1
+					targetList.append(glyphOnLSide.layers[firstMaster.id])
+					targetList.append(glyphOnRSide.layers[firstMaster.id])
+					targetList.append(spaceGlyph.layers[firstMaster.id])
+					targetList.append(glyphOnLSide.layers[secondMaster.id])
+					targetList.append(glyphOnRSide.layers[secondMaster.id])
+					targetList.append(newLineControlLayer())
 
-							if targetList is not None:
-								glyphNameOnLSide = self.glyphNameForKerningName(L, thisFont, isLeft=True)
-								glyphNameOnRSide = self.glyphNameForKerningName(R, thisFont, isLeft=False)
-								if glyphNameOnLSide is None or glyphNameOnRSide is None:
-									skippedCount += 1
-									continue
-
-								glyphOnLSide = thisFont.glyphs[glyphNameOnLSide]
-								glyphOnRSide = thisFont.glyphs[glyphNameOnRSide]
-								if glyphOnLSide is None or glyphOnRSide is None:
-									skippedCount += 1
-									continue
-
-								missingKernCount += 1
-								targetList.append(glyphOnLSide.layers[firstMaster.id])
-								targetList.append(glyphOnRSide.layers[firstMaster.id])
-								targetList.append(spaceGlyph.layers[firstMaster.id])
-								targetList.append(glyphOnLSide.layers[secondMaster.id])
-								targetList.append(glyphOnRSide.layers[secondMaster.id])
-								targetList.append(newLineControlLayer())
+				skippedCount += stats["skipped"]
 
 				if skippedCount:
 					print(f"⚠️ Skipped {skippedCount} pairs with stale or missing glyph IDs.")
