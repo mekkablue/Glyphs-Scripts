@@ -488,6 +488,7 @@ htmlContent = """<head>
 			-webkit-user-select: none;
 		}
 		#metricsLine {
+			flex: 0 0 auto; /* never squeezed by a tall view: the waterfall is much taller than the window */
 			background-color: #EEE;
 			border-top: 1px solid #AAA;
 			border-bottom: 1px solid #AAA;
