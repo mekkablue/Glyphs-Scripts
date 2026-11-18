@@ -767,10 +767,10 @@ htmlContent = """<head>
 		</div>
 	</div>
 	<p class="features">
-		<a onclick="reloadAllFonts();" id="reload" class="emojiButton gapAfter" title="Reload (after you reexported)">🔄</a>
-		<a onclick="setView('text');" id="viewText" class="emojiButton viewLink activeView" title="Text view">🔤</a>
-		<a onclick="setView('grid');" id="viewGrid" class="emojiButton viewLink" title="Grid view of all glyphs (double-click a glyph to open it in Glyphs)">🔡</a>
-		<a onclick="setView('waterfall');" id="viewWaterfall" class="emojiButton viewLink gapAfter" title="Waterfall view">⏬</a>
+		<a onclick="reloadAllFonts();" id="reload" class="emojiButton gapAfter" title="Reload (after you reexported) – Ctrl-U">🔄</a>
+		<a onclick="setView('text');" id="viewText" class="emojiButton viewLink activeView" title="Text view – Ctrl-G cycles through the views">🔤</a>
+		<a onclick="setView('grid');" id="viewGrid" class="emojiButton viewLink" title="Grid view of all glyphs, double-click a glyph to open it in Glyphs – Ctrl-G cycles through the views">🔡</a>
+		<a onclick="setView('waterfall');" id="viewWaterfall" class="emojiButton viewLink gapAfter" title="Waterfall view – Ctrl-G cycles through the views">⏬</a>
 		<a onclick="toggleInverse();" id="invert" class="emojiButton" title="Toggle x-ray (outline) display">🔲</a>
 		<label><input type="checkbox" id="kern" value="kern" class="otFeature" onchange="updateFeatures()" checked><label for="kern" class="otFeatureLabel" title="kern: Kerning">kern</label>
 		<label><input type="checkbox" id="liga" value="liga" class="otFeature" onchange="updateFeatures()" checked><label for="liga" class="otFeatureLabel" title="liga, clig: Standard ligatures and contextual ligatures">liga/clig</label>
