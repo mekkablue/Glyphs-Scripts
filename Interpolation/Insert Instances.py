@@ -718,6 +718,45 @@ class InstanceMaker(mekkaObject):
 
 # ---- Glyphs 4+ particles UI ----
 
+# usWidthClass and its approximate width in percent of normal, from the OpenType spec (OS/2 table, 5 is normal):
+# https://learn.microsoft.com/en-us/typography/opentype/spec/os2#uswidthclass
+widthClassPercentages = {
+	1: 50,  # Ultra-condensed
+	2: 62.5,  # Extra-condensed
+	3: 75,  # Condensed
+	4: 87.5,  # Semi-condensed
+	5: 100,  # Medium (normal)
+	6: 112.5,  # Semi-expanded
+	7: 125,  # Expanded
+	8: 150,  # Extra-expanded
+	9: 200,  # Ultra-expanded
+}
+
+# GSNameParticle attributes (isElidable, widthClass) are available since this Glyphs build:
+BUILD_WITH_PARTICLE_ATTRIBUTES = 4204
+
+
+def widthClassForPercentage(percent):
+	"""Returns the usWidthClass (1 to 9) whose width in percent of normal is closest to this value."""
+	return min(widthClassPercentages, key=lambda widthClass: (abs(widthClassPercentages[widthClass] - percent), widthClass))
+
+
+def externalAxisValue(font, axisId, internalValue):
+	"""
+	Returns the user-space (external) value on this axis for a design-space (internal) value,
+	interpolated between the master coordinates, which carry both. Without a mapping, they are the same.
+	"""
+	pairs = sorted({(float(master.internalAxesValues[axisId]), float(master.externalAxesValues[axisId])) for master in font.masters})
+	if len(pairs) < 2:
+		return float(internalValue)
+	# the segment between two masters that contains the value, or the first or last segment to extrapolate:
+	index = 1
+	while index < len(pairs) - 1 and internalValue > pairs[index][0]:
+		index += 1
+	(internal1, external1), (internal2, external2) = pairs[index - 1], pairs[index]
+	return external1 + (float(internalValue) - internal1) * (external2 - external1) / (internal2 - internal1)
+
+
 def buildNameParticle(name, internalValue, externalValue):
 	"""
 	Returns a GSNameParticle with the supplied name and axis values.
@@ -758,6 +797,7 @@ def insertParticlesIntoFont(font, particlesDict):
 	removeParticles = particlesDict.get("removeParticles", False)
 	elidableNames = particlesDict.get("elidableNames", [])
 	axesData = particlesDict.get("axes", {})
+	hasAttributes = Glyphs.buildNumber >= BUILD_WITH_PARTICLE_ATTRIBUTES
 
 	if removeInstances:
 		count = 0
@@ -806,20 +846,32 @@ def insertParticlesIntoFont(font, particlesDict):
 			internalValue = particleInfo["internalValue"]
 			# stays None if the axis has no separate external coordinate:
 			externalValue = particleInfo.get("externalValue")
-			axisParticles.addObject_(buildNameParticle(name, internalValue, externalValue))
+			particle = buildNameParticle(name, internalValue, externalValue)
+			axisParticles.addObject_(particle)
 			if externalValue is None or float(externalValue) == float(internalValue):
-				print(f"\t\t✅ {name} ({internalValue})")
+				report = f"\t\t✅ {name} ({internalValue})"
 			else:
-				print(f"\t\t✅ {name} ({internalValue}>{externalValue})")
+				report = f"\t\t✅ {name} ({internalValue}>{externalValue})"
+
+			if hasAttributes:
+				if name in elidableNames:
+					particle.setAttribute_forKey_(1, "isElidable")
+					report += ", elidable"
+				if axisTag == "wdth":
+					# the width class relates to the width in percent of normal, i.e., the external value:
+					percent = float(externalValue) if externalValue is not None else externalAxisValue(font, axisId, internalValue)
+					widthClass = widthClassForPercentage(percent)
+					particle.setAttribute_forKey_(widthClass, "widthClass")
+					report += f", width class {widthClass}"
+			print(report)
 
 		# adds the particles of this axis to the new set:
 		allParticles.setObject_forKey_(axisParticles, axisId)
 
 	particleInstance.setNameParticles_(allParticles)
 
-	# #TODO: mark these particles as elidable once the API supports it:
-	if elidableNames:
-		print(f"\n\t⚠️ Elidability is not implemented yet, so these names were ignored: {', '.join(elidableNames)}")
+	if not hasAttributes:
+		print(f"\n\t⚠️ Elidable particles and width classes need Glyphs build {BUILD_WITH_PARTICLE_ATTRIBUTES} or later (this is {Glyphs.buildNumber}), so they were not set.")
 
 
 class InstanceMakerV4(mekkaObject):
