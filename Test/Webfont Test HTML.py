@@ -106,13 +106,6 @@ def glyphInfoJSONForFont(thisFont):
 	return jsonText
 
 
-def glyphsFilePathJSONForFont(thisFont):
-	# the file path for glyphsapp:// URLs, or null for a font that has not been saved
-	filepath = thisFont.filepath
-	jsonText = json.dumps(str(filepath) if filepath else None, ensure_ascii=False)
-	return jsonText.replace("</", "<\\/")
-
-
 def getInstanceInfo(thisFont, activeInstance, fileFormat):
 	# Determine Family Name
 
@@ -762,7 +755,6 @@ htmlContent = """<head>
 	const selectorLength = selectorOptions.length;
 	const glyphInfoList = <!-- glyphInfoJSON -->;
 	const fontFaceList = <!-- fontFaceJSON -->;
-	const glyphsFilePath = <!-- glyphsFilePathJSON -->;
 	const glyphNameForChar = {};
 	for (const glyphInfo of glyphInfoList) {
 		if (glyphInfo.name && !(glyphInfo.char in glyphNameForChar)) {
@@ -840,18 +832,14 @@ htmlContent = """<head>
 	function openTextInGlyphs(text) {
 		// opens a new tab with these glyphs in Glyphs, see https://handbook.glyphsapp.com/en/single-page/#url-scheme
 		if (!text) return;
-		if (!glyphsFilePath) {
-			console.warn('Cannot open in Glyphs: the font has not been saved, so there is no file path.');
-			return;
-		}
 		const glyphNames = glyphNamesForText(text);
 		if (!glyphNames.length) {
 			console.warn('Cannot open in Glyphs: found no glyphs for', text);
 			return;
 		}
-		window.location.href = 'glyphsapp://show/?path=' + encodeURIComponent(glyphsFilePath) + glyphNames.map(function(name) {
-			return '&glyph=' + encodeURIComponent(name);
-		}).join('');
+		window.location.href = 'glyphsapp://show/?' + glyphNames.map(function(name) {
+			return 'glyph=' + encodeURIComponent(name);
+		}).join('&');
 	}
 	function updateParagraph() {
 		// update paragraph text based on user input:
@@ -1088,7 +1076,6 @@ else:
 			("		<!-- moreFeatures -->\n", featureListForFont(thisFont)),
 			("		<!-- fontFaces -->\n", fontFacesCSS),
 			("<!-- glyphInfoJSON -->", glyphInfoJSONForFont(thisFont)),
-			("<!-- glyphsFilePathJSON -->", glyphsFilePathJSONForFont(thisFont)),
 			("<!-- fontFaceJSON -->", fontFacesJSONForInstances(activeFontInstances)),
 		)
 

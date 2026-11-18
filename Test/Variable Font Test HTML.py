@@ -787,14 +787,7 @@ def defaultVariationCSS(thisFont, variableFontSetting=None):
 	return ", ".join(defaultValues)
 
 
-def glyphsFilePathJSONForFont(thisFont):
-	# the file path for glyphsapp:// URLs, or null for a font that has not been saved
-	filepath = thisFont.filepath
-	jsonText = json.dumps(str(filepath) if filepath else None, ensure_ascii=False)
-	return jsonText.replace("</", "<\\/")
-
-
-def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, shouldCreateSamsa=False, defaultSize=None, glyphInfos="[]", plainSuffix="ttf", glyphsFilePath="null"):
+def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, shouldCreateSamsa=False, defaultSize=None, glyphInfos="[]", plainSuffix="ttf"):
 	samsaPlaceholder = "<!-- placeholder for external links, hold down OPTION and SHIFT while running the script -->"
 	htmlContent = """<html>
 	<!--<base href="..">--> <!-- uncomment for keeping the HTML in a subfolder -->
@@ -1185,7 +1178,6 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 
 			const sliders = document.getElementsByClassName('slider');
 			const glyphInfos = ###glyphInfos###;
-			const glyphsFilePath = ###glyphsFilePath###;
 			const glyphNameForCodePoint = {};
 			for (const info of glyphInfos) {
 				if (!info.f && info.n && !(info.c in glyphNameForCodePoint)) {
@@ -1553,18 +1545,14 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 			function openTextInGlyphs(text) {
 				// opens a new tab with these glyphs in Glyphs, see https://handbook.glyphsapp.com/en/single-page/#url-scheme
 				if (!text) return;
-				if (!glyphsFilePath) {
-					console.warn('Cannot open in Glyphs: the font has not been saved, so there is no file path.');
-					return;
-				}
 				const glyphNames = glyphNamesForText(text);
 				if (!glyphNames.length) {
 					console.warn('Cannot open in Glyphs: found no glyphs for', text);
 					return;
 				}
-				window.location.href = 'glyphsapp://show/?path=' + encodeURIComponent(glyphsFilePath) + glyphNames.map(function(name) {
-					return '&glyph=' + encodeURIComponent(name);
-				}).join('');
+				window.location.href = 'glyphsapp://show/?' + glyphNames.map(function(name) {
+					return 'glyph=' + encodeURIComponent(name);
+				}).join('&');
 			}
 			function openSelectionInGlyphs() {
 				openTextInGlyphs(window.getSelection().toString());
@@ -1866,7 +1854,6 @@ def buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, fe
 		(samsaPlaceholder, samsaReplaceWith),
 		("###defaultSize###", defaultSize),
 		("###glyphInfos###", glyphInfos),
-		("###glyphsFilePath###", glyphsFilePath),
 		("###plainSuffix###", plainSuffix),
 		("###plainLabel###", plainLabel),
 	)
@@ -2091,7 +2078,7 @@ else:
 			f" ({fileName})" if fileName else "",
 		))
 		print("👷🏼‍ Building HTML code...")
-		htmlContent = buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, shouldCreateSamsa, glyphInfos=glyphInfos, plainSuffix=plainSuffix, glyphsFilePath=glyphsFilePathJSONForFont(thisFont))
+		htmlContent = buildHTML(fullName, fileName, unicodeEscapes, otVarSliders, variationCSS, featureList, styleMenu, fontLangMenu, shouldCreateSamsa, glyphInfos=glyphInfos, plainSuffix=plainSuffix)
 		htmlContent = resolveFamilyNamesPlaceholder(htmlContent, thisFont)  # catches residue anywhere else, e.g. in style or axis names
 
 		# Write file to disk:
