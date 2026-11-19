@@ -25,7 +25,7 @@ class GreenBlueManager(mekkaObject):
 		"reportInMacroWindow": 1,
 		"reportInMacroWindowVerbose": 0,
 		"shouldMark": 0,
-		"layerScope": 0,  # 0 = selected layers, 1 = all masters of selected glyphs, 2 = all glyphs in font, 3 = all glyphs in all open fonts
+		"layerScope": 0,  # 0 = selected layers, 1 = all masters of selected glyphs, 2 = all glyphs on current master, 3 = all glyphs in font, 4 = all glyphs in all open fonts
 		"reuseTab": 1,
 		"exclude": ".ornm, BlackIndex, Heart, apple",
 	}
@@ -79,12 +79,12 @@ class GreenBlueManager(mekkaObject):
 
 		self.w.separator = vanilla.HorizontalLine("auto")
 
-		scopeTooltip = "Which layers to process. The ⚠️ options go through all master and special (brace, bracket) layers and can take a while."
+		scopeTooltip = "Which layers to process. The ⚠️ options cover all glyphs and can take a while. All masters and special (brace, bracket) layers are included, except in the current-master option."
 		self.w.scopeText = vanilla.TextBox("auto", "Process:", sizeStyle="small", selectable=True)
 		self.w.scopeText.setToolTip(scopeTooltip)
 		self.w.layerScope = vanilla.PopUpButton(
 			"auto",
-			("currently selected layers only", "all masters of selected glyphs", "⚠️ all glyphs in font", "⚠️ all glyphs in all open fonts"),
+			("currently selected layers only", "all masters of selected glyphs", "⚠️ all glyphs, but current master only", "⚠️ all glyphs in font", "⚠️ all glyphs in all open fonts"),
 			sizeStyle="small",
 			callback=self.SavePreferences,
 		)
@@ -378,7 +378,7 @@ class GreenBlueManager(mekkaObject):
 			if not Glyphs.font:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 				return
-			elif scope == 3:  # all glyphs in all open fonts
+			elif scope == 4:  # all glyphs in all open fonts
 				theseFonts = Glyphs.fonts
 			else:  # current font
 				theseFonts = (Glyphs.font, )
@@ -399,10 +399,13 @@ class GreenBlueManager(mekkaObject):
 
 				# determine which layers to process:
 				layersToBeProcessed, glyphsToBeProcessed = [], []
-				if scope in (2, 3):  # all glyphs in font(s)
+				if scope >= 2:  # all glyphs
 					for thisGlyph in thisFont.glyphs:
 						if any([x in thisGlyph.name for x in exclude]):
 							print(f"Skipping {thisGlyph.name}: excluded as requested.")
+							continue
+						if scope == 2:  # current master only
+							layersToBeProcessed.append(thisGlyph.layers[thisFont.selectedFontMaster.id])
 							continue
 						for thisLayer in thisGlyph.layers:
 							if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
