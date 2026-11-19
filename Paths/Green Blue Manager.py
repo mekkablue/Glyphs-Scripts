@@ -108,8 +108,8 @@ class GreenBlueManager(mekkaObject):
 		self.w.thresholdAngle.getNSTextField().setAlignment_(NSTextAlignmentRight)
 		self.w.thresholdDegreeText = vanilla.TextBox("auto", "°", sizeStyle='small')
 
-		self.w.fixGreenBlue = vanilla.CheckBox("auto", "Fix green vs. blue along threshold of", value=True, callback=self.SavePreferences, sizeStyle='small')
-		fixTooltip = "Sets on-curve nodes green if the connection angle is at most the threshold angle, blue if it is larger."
+		self.w.fixGreenBlue = vanilla.CheckBox("auto", "Fix green/blue connections at a threshold of", value=True, callback=self.SavePreferences, sizeStyle='small')
+		fixTooltip = "Connections up to this angle become green, larger ones blue."
 		for element in (self.w.fixGreenBlue, self.w.thresholdAngle, self.w.thresholdDegreeText):
 			element.setToolTip(fixTooltip)
 
@@ -118,11 +118,11 @@ class GreenBlueManager(mekkaObject):
 
 		if self.hasStarNodes:
 			self.w.starNodes = vanilla.CheckBox("auto", "Between curves:", value=False, callback=self.SavePreferences, sizeStyle='small')
-			starNodesTooltip = "Acts on smooth nodes between two curves. Downgrading turns star nodes into plain green nodes; ‘keep G2’ also moves each node to its G2-harmonized position (Green Harmony). Star nodes need file format version 4, which is set if needed."
+			starNodesTooltip = "Applies to nodes between two curves. ‘Keeping G2’ also moves the node to its G2-harmonized position (Green Harmony). Star nodes require file format version 4, which is set automatically."
 			self.w.starNodes.setToolTip(starNodesTooltip)
 			self.w.starNodesAction = vanilla.PopUpButton(
 				"auto",
-				("turn green nodes into star nodes", "downgrade star nodes to green nodes", "downgrade star nodes to green nodes, but keep G2"),
+				("turn green nodes into star nodes", "downgrade star nodes to green nodes", "downgrade star nodes to green nodes, keeping G2"),
 				sizeStyle="small",
 				callback=self.SavePreferences,
 			)
@@ -130,21 +130,21 @@ class GreenBlueManager(mekkaObject):
 
 		self.w.separator = vanilla.HorizontalLine("auto")
 
-		scopeTooltip = "Which layers to process. The ⚠️ options cover all glyphs and can take a while. They include all master and special (brace, bracket) layers, except the current-master option."
+		scopeTooltip = "Which layers to process. The ⚠️ options cover all glyphs and can take a while."
 		self.w.scopeText = vanilla.TextBox("auto", "Process", sizeStyle="small", selectable=True)
 		self.w.scopeText.setToolTip(scopeTooltip)
 		self.w.layerScope = vanilla.PopUpButton(
 			"auto",
-			("currently selected layers only", "all masters of selected glyphs", "⚠️ all glyphs, but current master only", "⚠️ all glyphs in font", "⚠️ all glyphs in all open fonts"),
+			("selected layers only", "all masters of selected glyphs", "⚠️ all glyphs, current master only", "⚠️ all glyphs in font", "⚠️ all glyphs in all open fonts"),
 			sizeStyle="small",
 			callback=self.SavePreferences,
 		)
 		self.w.layerScope.setToolTip(scopeTooltip)
 
-		self.w.excludeText = vanilla.TextBox("auto", "Exclude glyphs with", sizeStyle="small", selectable=True)
+		self.w.excludeText = vanilla.TextBox("auto", "Exclude glyphs containing", sizeStyle="small", selectable=True)
 		self.w.exclude = vanilla.EditText("auto", ".ornm, BlackIndex, Heart, apple", callback=self.SavePreferences, sizeStyle="small")
 		self.w.resetButton = UpdateButton("auto", callback=self.resetToDefaults)
-		excludeTooltip = "Skips glyphs whose names contain any of these comma-separated strings. Only applies to the ⚠️ ‘all glyphs’ options."
+		excludeTooltip = "Glyphs whose names contain any of these comma-separated strings are skipped. Applies to the ⚠️ options only."
 		self.w.excludeText.setToolTip(excludeTooltip)
 		self.w.exclude.setToolTip(excludeTooltip)
 		self.w.resetButton.setToolTip("Resets all settings of this window to their defaults.")
