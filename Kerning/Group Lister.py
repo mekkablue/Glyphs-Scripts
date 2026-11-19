@@ -137,16 +137,16 @@ class GroupLister(mekkaObject):
 		self.w.addAutoPosSizeRules(
 			[
 				"H:|-inset-[descriptionText]-inset-|",
-				"H:|-inset-[leftGroups]-gap-[rightGroups]-(>=inset)-|",
-				"H:|-inset-[includeGroupless]-(>=inset)-|",
+				"H:|-inset-[leftGroups]-gap-[rightGroups]-gap-[includeGroupless]-(>=inset)-|",
 				"H:|-inset-[textScope]-gap-[scope]-inset-|",
 				"H:|-indentedInset-[onlyCategory]-popupGap-[categoryChoice]-gap-[updateCategoriesButton]-inset-|",
 				"H:|-indentedInset-[onlyCase]-popupGap-[caseChoice]-inset-|",
 				"H:|-inset-[listPairings]-(>=inset)-|",
 				"H:|-inset-[reuseTab]-(>=gap)-[textEditViewWidth]-gap-[toggleEditViewWidth(>=70)]-inset-|",
 				"H:|-inset-[statusText]-(>=gap)-[listButton(>=70)]-inset-|",
-				"V:|-gap-[descriptionText]-row-[leftGroups]-checkRow-[includeGroupless]-section-[scope]-stackRow-[onlyCategory]-stackRow-[onlyCase]-stackRow-[listPairings]-section-[toggleEditViewWidth]-section-[listButton]-inset-|",
+				"V:|-gap-[descriptionText]-row-[leftGroups]-section-[scope]-stackRow-[onlyCategory]-stackRow-[onlyCase]-stackRow-[listPairings]-section-[toggleEditViewWidth]-section-[listButton]-inset-|",
 				centerY("rightGroups", "leftGroups"),
+				centerY("includeGroupless", "leftGroups"),
 				centerY("textScope", "scope"),
 				centerY("categoryChoice", "onlyCategory"),
 				centerY("updateCategoriesButton", "onlyCategory"),
@@ -156,7 +156,7 @@ class GroupLister(mekkaObject):
 				centerY("statusText", "listButton"),
 				equalWidth("onlyCase", "onlyCategory"),
 			],
-			metrics={"inset": inset, "indentedInset": inset + 20, "gap": 8, "popupGap": 16, "row": 8, "checkRow": 5, "stackRow": 8, "section": 12},
+			metrics={"inset": inset, "indentedInset": inset + 20, "gap": 8, "popupGap": 16, "row": 8, "stackRow": 8, "section": 12},
 		)
 
 		# Load Settings:
