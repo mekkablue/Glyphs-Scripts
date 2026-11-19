@@ -3,17 +3,22 @@ __doc__ = """
 Intersect two sets of glyphs with each other in order to get all possible glyph combinations, optionally without repeating pairs that are in the text already, and optionally only pairs of kerning groups. The glyphs come from the selection, from text entries, from categories or from tokens.
 """
 
+import math
 import vanilla
 from kernanalysis import stringToListOfGlyphsForFont, listOfNamesForCategories, categoryList, splitString
 from mekkablue import mekkaObject, reportFontName, UpdateButton
 from GlyphsApp import Glyphs, GSFeature, Message
 from AppKit import (
+	NSLayoutAttributeHeight,
+	NSLayoutAttributeNotAnAttribute,
+	NSLayoutConstraint,
 	NSLayoutConstraintOrientationHorizontal,
 	NSLayoutConstraintOrientationVertical,
 	NSLayoutPriorityDefaultHigh,
 	NSLayoutPriorityDefaultLow,
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
+	NSLayoutRelationEqual,
 	NSTextAlignmentRight,
 	NSWindowStyleMaskResizable,
 )
@@ -38,7 +43,7 @@ defaultTokens = (
 )
 
 glyphsTabIndex, categoriesTabIndex, tokensTabIndex = 0, 1, 2
-tabsHeight = 150  # the tabs have a fixed height; it must fit the tallest tab (Glyphs)
+tabsStartHeight = 150  # only the start value; the tab group is fitted to the content of the open tab
 
 
 class KernStringMixer(mekkaObject):
@@ -79,100 +84,127 @@ class KernStringMixer(mekkaObject):
 
 		# the controls inside of the tabs are kept here, because they are not attributes of the window:
 		self.tabElements = {}
-		self.w.tabs = vanilla.Tabs("auto", ("Glyphs", "Categories", "Tokens"), callback=self.SavePreferences, sizeStyle="small")
+		self.w.tabs = vanilla.Tabs("auto", ("Glyphs", "Categories", "Tokens"), callback=self.tabsChanged, sizeStyle="small")
 		self.w.tabs.setToolTip("Where the glyphs for the two sides of the pairs come from: the selection or text entries (Glyphs), categories, or tokens. The tab that is open is the one that counts.")
 		glyphsTab, categoriesTab, tokensTab = self.w.tabs[0], self.w.tabs[1], self.w.tabs[2]
 
+		# Each tab holds one group with all its controls, so that the height of the content can be measured.
+		def rightAlign(*labels):
+			# labels are right-aligned, hug their text and share one width:
+			for label in labels:
+				nsLabel = label.getNSTextField()
+				nsLabel.setAlignment_(NSTextAlignmentRight)
+				nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+				nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		def equalWidth(view, referenceView):
+			return {"view1": view, "attribute1": "width", "view2": referenceView, "attribute2": "width"}
+
+		def centerY(view, referenceView):
+			return {"view1": view, "attribute1": "centerY", "view2": referenceView, "attribute2": "centerY"}
+
+		tabRules = ["H:|[content]|", "V:|[content]"]  # the group is as high as its content, at the top of the tab
+
 		# --- Glyphs tab ---
-		glyphsTab.glyphsSource = vanilla.VerticalRadioGroup("auto", ("Currently selected glyphs", "Enter manually"), callback=self.SavePreferences, sizeStyle="small")
-		glyphsTab.glyphsSource.setToolTip("Use the glyphs selected in the frontmost font for both sides of the pairs, or enter the glyphs for the two sides below.")
+		glyphsTab.content = glyphsGroup = vanilla.Group("auto")
+		glyphsGroup.glyphsSource = vanilla.VerticalRadioGroup("auto", ("Currently selected glyphs", "Enter manually"), callback=self.SavePreferences)
+		glyphsGroup.glyphsSource.setToolTip("Use the glyphs selected in the frontmost font for both sides of the pairs, or enter the glyphs for the two sides below.")
 		entryTooltip = (
 			"Characters (HOAFTVXY), slash-escaped glyph names (/Aacute /a.sc), names with wildcards (/*.ss01 for all glyphs that end in .ss01, "
 			"/A? for A plus one more character) and categories (@Letter:Uppercase) can be mixed. Spaces are ignored."
 		)
-		glyphsTab.manualFirst = vanilla.EditText("auto", "HOAFTVXY/*.ss01", callback=self.SavePreferences, sizeStyle="small")
-		glyphsTab.manualFirst.setToolTip("Glyphs for the first side of the pairs (one line of the text per glyph). " + entryTooltip)
-		glyphsTab.manualSecond = vanilla.EditText("auto", "", callback=self.SavePreferences, sizeStyle="small")
-		glyphsTab.manualSecond.getNSTextField().setPlaceholderString_("Leave empty to intersect first group with itself")
-		glyphsTab.manualSecond.setToolTip("Glyphs for the second side of the pairs. Leave empty to intersect the first group with itself. " + entryTooltip)
+		glyphsGroup.firstText = vanilla.TextBox("auto", "First:", selectable=True)
+		glyphsGroup.firstText.setToolTip("Glyphs for the first side of the pairs (one line of the text per glyph). " + entryTooltip)
+		glyphsGroup.manualFirst = vanilla.EditText("auto", "HOAFTVXY/*.ss01", callback=self.SavePreferences)
+		glyphsGroup.manualFirst.setToolTip("Glyphs for the first side of the pairs (one line of the text per glyph). " + entryTooltip)
+		glyphsGroup.secondText = vanilla.TextBox("auto", "Second:", selectable=True)
+		glyphsGroup.secondText.setToolTip("Glyphs for the second side of the pairs. Leave empty to intersect the first group with itself. " + entryTooltip)
+		glyphsGroup.manualSecond = vanilla.EditText("auto", "", callback=self.SavePreferences)
+		glyphsGroup.manualSecond.getNSTextField().setPlaceholderString_("Leave empty to intersect first group with itself")
+		glyphsGroup.manualSecond.setToolTip("Glyphs for the second side of the pairs. Leave empty to intersect the first group with itself. " + entryTooltip)
 		self.tabElements.update({
-			"glyphsSource": glyphsTab.glyphsSource,
-			"manualFirst": glyphsTab.manualFirst,
-			"manualSecond": glyphsTab.manualSecond,
+			"glyphsSource": glyphsGroup.glyphsSource,
+			"manualFirst": glyphsGroup.manualFirst,
+			"manualSecond": glyphsGroup.manualSecond,
 		})
-		glyphsTab.addAutoPosSizeRules(
+		rightAlign(glyphsGroup.firstText, glyphsGroup.secondText)
+		glyphsGroup.addAutoPosSizeRules(
 			[
 				"H:|-inset-[glyphsSource]-(>=inset)-|",
-				"H:|-indent-[manualFirst]-inset-|",
-				"H:|-indent-[manualSecond]-inset-|",
-				"V:|-gap-[glyphsSource]-gap-[manualFirst]-row-[manualSecond]-(>=gap)-|",
+				"H:|-indent-[firstText]-gap-[manualFirst]-inset-|",
+				"H:|-indent-[secondText]-gap-[manualSecond]-inset-|",
+				"V:|-gap-[glyphsSource]-gap-[manualFirst]-row-[manualSecond]-gap-|",
+				centerY(glyphsGroup.firstText, glyphsGroup.manualFirst),
+				centerY(glyphsGroup.secondText, glyphsGroup.manualSecond),
+				equalWidth(glyphsGroup.secondText, glyphsGroup.firstText),
 			],
 			metrics={"inset": tabInset, "indent": tabInset + 18, "gap": 8, "row": 6},
 		)
+		glyphsTab.addAutoPosSizeRules(tabRules)
 
 		# --- Categories tab ---
-		categoriesTab.scriptText = vanilla.TextBox("auto", "Script:", sizeStyle='small', selectable=True)
-		categoriesTab.scriptPopup = vanilla.PopUpButton("auto", self.scripts, sizeStyle='small', callback=self.SavePreferences)
-		categoriesTab.scriptPopup.setToolTip("Script for letters, will be ignored for all other categories (e.g., numbers).")
-		categoriesTab.scriptUpdate = UpdateButton("auto", callback=self.updateScripts)
-		categoriesTab.scriptUpdate.setToolTip("Lists the scripts of the glyphs in the frontmost font.")
-		categoriesTab.leftCategoryText = vanilla.TextBox("auto", "Left Category:", sizeStyle='small', selectable=True)
-		categoriesTab.leftCategoryPopup = vanilla.PopUpButton("auto", categoryList, sizeStyle='small', callback=self.SavePreferences)
-		categoriesTab.leftCategoryPopup.setToolTip("Category:Subcategory for the left side of the pairs.")
-		categoriesTab.rightCategoryText = vanilla.TextBox("auto", "Right Category:", sizeStyle='small', selectable=True)
-		categoriesTab.rightCategoryPopup = vanilla.PopUpButton("auto", categoryList, sizeStyle='small', callback=self.SavePreferences)
-		categoriesTab.rightCategoryPopup.setToolTip("Category:Subcategory for the right side of the pairs.")
+		categoriesTab.content = categoriesGroup = vanilla.Group("auto")
+		categoriesGroup.scriptText = vanilla.TextBox("auto", "Script:", selectable=True)
+		categoriesGroup.scriptPopup = vanilla.PopUpButton("auto", self.scripts, callback=self.SavePreferences)
+		categoriesGroup.scriptPopup.setToolTip("Script for letters, will be ignored for all other categories (e.g., numbers).")
+		categoriesGroup.scriptUpdate = UpdateButton("auto", callback=self.updateScripts)
+		categoriesGroup.scriptUpdate.setToolTip("Lists the scripts of the glyphs in the frontmost font.")
+		categoriesGroup.leftCategoryText = vanilla.TextBox("auto", "Left Category:", selectable=True)
+		categoriesGroup.leftCategoryPopup = vanilla.PopUpButton("auto", categoryList, callback=self.SavePreferences)
+		categoriesGroup.leftCategoryPopup.setToolTip("Category:Subcategory for the left side of the pairs.")
+		categoriesGroup.rightCategoryText = vanilla.TextBox("auto", "Right Category:", selectable=True)
+		categoriesGroup.rightCategoryPopup = vanilla.PopUpButton("auto", categoryList, callback=self.SavePreferences)
+		categoriesGroup.rightCategoryPopup.setToolTip("Category:Subcategory for the right side of the pairs.")
 		self.tabElements.update({
-			"scriptPopup": categoriesTab.scriptPopup,
-			"leftCategoryPopup": categoriesTab.leftCategoryPopup,
-			"rightCategoryPopup": categoriesTab.rightCategoryPopup,
+			"scriptPopup": categoriesGroup.scriptPopup,
+			"leftCategoryPopup": categoriesGroup.leftCategoryPopup,
+			"rightCategoryPopup": categoriesGroup.rightCategoryPopup,
 		})
-		# labels are right-aligned, hug their text and share one width:
-		for label in (categoriesTab.scriptText, categoriesTab.leftCategoryText, categoriesTab.rightCategoryText):
-			nsLabel = label.getNSTextField()
-			nsLabel.setAlignment_(NSTextAlignmentRight)
-			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
-			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
-		categoriesTab.addAutoPosSizeRules(
+		rightAlign(categoriesGroup.scriptText, categoriesGroup.leftCategoryText, categoriesGroup.rightCategoryText)
+		categoriesGroup.addAutoPosSizeRules(
 			[
 				"H:|-inset-[scriptText]-gap-[scriptPopup]-gap-[scriptUpdate]-inset-|",
 				"H:|-inset-[leftCategoryText]-gap-[leftCategoryPopup]-inset-|",
 				"H:|-inset-[rightCategoryText]-gap-[rightCategoryPopup]-inset-|",
-				"V:|-gap-[scriptPopup]-row-[leftCategoryPopup]-row-[rightCategoryPopup]-(>=gap)-|",
-				{"view1": categoriesTab.scriptText, "attribute1": "centerY", "view2": categoriesTab.scriptPopup, "attribute2": "centerY"},
-				{"view1": categoriesTab.scriptUpdate, "attribute1": "centerY", "view2": categoriesTab.scriptPopup, "attribute2": "centerY"},
-				{"view1": categoriesTab.leftCategoryText, "attribute1": "centerY", "view2": categoriesTab.leftCategoryPopup, "attribute2": "centerY"},
-				{"view1": categoriesTab.rightCategoryText, "attribute1": "centerY", "view2": categoriesTab.rightCategoryPopup, "attribute2": "centerY"},
-				{"view1": categoriesTab.scriptText, "attribute1": "width", "view2": categoriesTab.rightCategoryText, "attribute2": "width"},
-				{"view1": categoriesTab.leftCategoryText, "attribute1": "width", "view2": categoriesTab.rightCategoryText, "attribute2": "width"},
+				"V:|-gap-[scriptPopup]-row-[leftCategoryPopup]-row-[rightCategoryPopup]-gap-|",
+				centerY(categoriesGroup.scriptText, categoriesGroup.scriptPopup),
+				centerY(categoriesGroup.scriptUpdate, categoriesGroup.scriptPopup),
+				centerY(categoriesGroup.leftCategoryText, categoriesGroup.leftCategoryPopup),
+				centerY(categoriesGroup.rightCategoryText, categoriesGroup.rightCategoryPopup),
+				equalWidth(categoriesGroup.scriptText, categoriesGroup.rightCategoryText),
+				equalWidth(categoriesGroup.leftCategoryText, categoriesGroup.rightCategoryText),
 			],
 			metrics={"inset": tabInset, "gap": 8, "row": 6},
 		)
+		categoriesTab.addAutoPosSizeRules(tabRules)
 
 		# --- Tokens tab ---
+		tokensTab.content = tokensGroup = vanilla.Group("auto")
 		tokenHelpText = "Write a token. Click on the help button for more info."
-		tokensTab.mixString1 = vanilla.ComboBox("auto", defaultTokens, callback=self.SavePreferences)
-		tokensTab.mixString1.setToolTip(tokenHelpText)
-		tokensTab.mixString2 = vanilla.ComboBox("auto", defaultTokens, callback=self.SavePreferences)
-		tokensTab.mixString2.setToolTip(tokenHelpText)
-		tokensTab.helpTokens = vanilla.HelpButton("auto", callback=self.openURL)
-		tokensTab.helpTokens.setToolTip("Opens the tutorial about tokens on glyphsapp.com.")
+		tokensGroup.mixString1 = vanilla.ComboBox("auto", defaultTokens, callback=self.SavePreferences)
+		tokensGroup.mixString1.setToolTip(tokenHelpText)
+		tokensGroup.mixString2 = vanilla.ComboBox("auto", defaultTokens, callback=self.SavePreferences)
+		tokensGroup.mixString2.setToolTip(tokenHelpText)
+		tokensGroup.helpTokens = vanilla.HelpButton("auto", callback=self.openURL)
+		tokensGroup.helpTokens.setToolTip("Opens the tutorial about tokens on glyphsapp.com.")
 		self.tabElements.update({
-			"mixString1": tokensTab.mixString1,
-			"mixString2": tokensTab.mixString2,
+			"mixString1": tokensGroup.mixString1,
+			"mixString2": tokensGroup.mixString2,
 		})
 		# the combo boxes take the width, however long their tokens are:
-		for comboBox in (tokensTab.mixString1, tokensTab.mixString2):
+		for comboBox in (tokensGroup.mixString1, tokensGroup.mixString2):
 			comboBox.getNSComboBox().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
-		tokensTab.addAutoPosSizeRules(
+		tokensGroup.addAutoPosSizeRules(
 			[
 				"H:|-inset-[mixString1]-inset-|",
 				"H:|-inset-[mixString2]-inset-|",
 				"H:|-inset-[helpTokens]-(>=inset)-|",
-				"V:|-gap-[mixString1]-row-[mixString2]-gap-[helpTokens]-(>=gap)-|",
+				"V:|-gap-[mixString1]-row-[mixString2]-gap-[helpTokens]-gap-|",
 			],
 			metrics={"inset": tabInset, "gap": 8, "row": 6},
 		)
+		tokensTab.addAutoPosSizeRules(tabRules)
+		self.tabGroups = (glyphsGroup, categoriesGroup, tokensGroup)  # in the order of the tabs
 
 		# --- checkboxes below the tabs ---
 		self.w.groupsOnly = vanilla.CheckBox("auto", "Groups only", value=False, callback=self.SavePreferences, sizeStyle='small')
@@ -212,14 +244,26 @@ class KernStringMixer(mekkaObject):
 				"H:|-inset-[groupsOnly]-gap-[exportingOnly]-gap-[pathsOnly]-(>=inset)-|",
 				"H:|-inset-[avoidDuplicates]-gap-[reuseTab]-(>=inset)-|",
 				"H:|-inset-[statusText]-(>=gap)-[runButton(>=70)]-inset-|",
-				"V:|-gap-[descriptionText]-row-[tabs(tabsHeight)]-row-[groupsOnly]-checkRow-[avoidDuplicates]-inset-[runButton]-inset-|",
+				"V:|-gap-[descriptionText]-row-[tabs]-row-[groupsOnly]-checkRow-[avoidDuplicates]-inset-[runButton]-inset-|",
 				{"view1": self.w.exportingOnly, "attribute1": "centerY", "view2": self.w.groupsOnly, "attribute2": "centerY"},
 				{"view1": self.w.pathsOnly, "attribute1": "centerY", "view2": self.w.groupsOnly, "attribute2": "centerY"},
 				{"view1": self.w.reuseTab, "attribute1": "centerY", "view2": self.w.avoidDuplicates, "attribute2": "centerY"},
 				{"view1": self.w.statusText, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 			],
-			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5, "tabsHeight": tabsHeight},
+			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
 		)
+
+		# the height of the tab group follows the content of the open tab, so it is a constraint we can change:
+		self.tabsHeightConstraint = NSLayoutConstraint.constraintWithItem_attribute_relatedBy_toItem_attribute_multiplier_constant_(
+			self.w.tabs.getNSTabView(),
+			NSLayoutAttributeHeight,
+			NSLayoutRelationEqual,
+			None,
+			NSLayoutAttributeNotAnAttribute,
+			1.0,
+			tabsStartHeight,
+		)
+		NSLayoutConstraint.activateConstraints_([self.tabsHeightConstraint])
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -229,15 +273,52 @@ class KernStringMixer(mekkaObject):
 		self.w.makeKey()
 
 		# make the window horizontally resizable, but keep the height that Auto Layout determined.
-		# (Content sizes set directly on the NSWindow, so the title bar is not counted twice.)
 		nsWindow = self.w.getNSWindow()
 		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
-		nsWindow.layoutIfNeeded()  # make sure the content has its final size before we read it
-		contentSize = nsWindow.contentView().frame().size
-		nsWindow.setContentMinSize_(NSSize(contentSize.width, contentSize.height))
-		nsWindow.setContentMaxSize_(NSSize(contentSize.width + 1000, contentSize.height))
+		self.fitTabsToContent()
 
 	# --- preferences and UI ---
+
+	isLoading = False
+
+	def LoadPreferences(self):
+		# selecting the saved tab calls the tab callback; it must not save the controls that are not loaded yet:
+		self.isLoading = True
+		try:
+			return super().LoadPreferences()
+		finally:
+			self.isLoading = False
+
+	def SavePreferences(self, sender=None):
+		if self.isLoading:
+			return True
+		return super().SavePreferences(sender)
+
+	def tabsChanged(self, sender=None):
+		if self.isLoading:
+			return
+		self.fitTabsToContent()
+		self.SavePreferences(sender)
+
+	def fitTabsToContent(self):
+		"""Makes the tab group as high as the content of the open tab, and the window as high as its content."""
+		nsWindow = self.w.getNSWindow()
+		nsWindow.layoutIfNeeded()
+		nsTabView = self.w.tabs.getNSTabView()
+		tabsChrome = nsTabView.frame().size.height - nsTabView.contentRect().size.height  # the strip with the tab titles, and the frame
+		groupHeight = self.tabGroups[self.w.tabs.get()].getNSView().fittingSize().height
+		self.tabsHeightConstraint.setConstant_(math.ceil(tabsChrome + groupHeight))
+		nsWindow.layoutIfNeeded()
+
+		# the window height follows; the width can be changed by the user, the height cannot:
+		contentView = nsWindow.contentView()
+		width = contentView.frame().size.width
+		height = math.ceil(contentView.fittingSize().height)
+		nsWindow.setContentMinSize_(NSSize(width, 1))
+		nsWindow.setContentMaxSize_(NSSize(width + 1000, 10000))
+		self.w.resize(width, height, animate=False)
+		nsWindow.setContentMinSize_(NSSize(width, height))
+		nsWindow.setContentMaxSize_(NSSize(width + 1000, height))
 
 	def uiElement(self, prefName):
 		# the controls in the tabs are not attributes of the window:
