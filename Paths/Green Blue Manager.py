@@ -22,6 +22,9 @@ else:
 	smoothConnections = (GSSMOOTH, )
 
 
+thresholdWarningAngle = 20  # a larger threshold angle gets a warning in the window
+
+
 def harmonizeNode(node):
 	"""
 	G2-harmonizes a green on-curve node between two cubic curve segments by moving it along the line between its handles.
@@ -107,6 +110,8 @@ class GreenBlueManager(mekkaObject):
 		self.w.thresholdAngle = SteppingEditText("auto", self.prefDict["thresholdAngle"], callback=self.SavePreferences, sizeStyle='small', formatter=formatter)
 		self.w.thresholdAngle.getNSTextField().setAlignment_(NSTextAlignmentRight)
 		self.w.thresholdDegreeText = vanilla.TextBox("auto", "°", sizeStyle='small')
+		self.w.thresholdWarningText = vanilla.TextBox("auto", "⚠️ sure?", sizeStyle='small')
+		self.w.thresholdWarningText.setToolTip(f"A corner above {thresholdWarningAngle}° is a lot to flatten into a smooth connection. It may change the appearance of the affected shapes significantly.")
 
 		self.w.fixGreenBlue = vanilla.CheckBox("auto", "Fix green/blue connections at a threshold of", value=True, callback=self.SavePreferences, sizeStyle='small')
 		fixTooltip = "Connections up to this angle become green, larger ones blue."
@@ -191,7 +196,7 @@ class GreenBlueManager(mekkaObject):
 
 		rules = [
 			"H:|-inset-[descriptionText]-inset-|",
-			"H:|-inset-[fixGreenBlue]-gap-[thresholdAngle(33)]-degreeGap-[thresholdDegreeText]-(>=inset)-|",
+			"H:|-inset-[fixGreenBlue]-gap-[thresholdAngle(33)]-degreeGap-[thresholdDegreeText]-gap-[thresholdWarningText]-(>=inset)-|",
 			"H:|-inset-[realignHandles]-(>=inset)-|",
 			"H:|-inset-[separator]-inset-|",
 			"H:|-inset-[scopeText]-gap-[layerScope]-inset-|",
@@ -202,6 +207,7 @@ class GreenBlueManager(mekkaObject):
 			"H:|-inset-[processingText]-(>=gap)-[runButton(>=100)]-inset-|",
 			{"view1": self.w.thresholdAngle, "attribute1": "centerY", "view2": self.w.fixGreenBlue, "attribute2": "centerY"},
 			{"view1": self.w.thresholdDegreeText, "attribute1": "centerY", "view2": self.w.fixGreenBlue, "attribute2": "centerY"},
+			{"view1": self.w.thresholdWarningText, "attribute1": "centerY", "view2": self.w.fixGreenBlue, "attribute2": "centerY"},
 			{"view1": self.w.scopeText, "attribute1": "centerY", "view2": self.w.layerScope, "attribute2": "centerY"},
 			{"view1": self.w.excludeText, "attribute1": "centerY", "view2": self.w.exclude, "attribute2": "centerY"},
 			{"view1": self.w.resetButton, "attribute1": "centerY", "view2": self.w.exclude, "attribute2": "centerY"},
@@ -262,6 +268,8 @@ class GreenBlueManager(mekkaObject):
 
 		if self.hasStarNodes:
 			self.w.starNodesAction.enable(self.w.starNodes.get())
+		self.w.thresholdWarningText.show(self.prefFloat("thresholdAngle") > thresholdWarningAngle)
+
 		# without any treatment, the run always opens a tab:
 		self.w.openTab.enable(not noTreatment)
 		self.w.reuseTab.enable(noTreatment or self.w.openTab.get())
