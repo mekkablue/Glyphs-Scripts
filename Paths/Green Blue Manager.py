@@ -104,14 +104,13 @@ class GreenBlueManager(mekkaObject):
 		self.w.descriptionText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		formatter = decimalFormatter(0, 180)
-		self.w.thresholdAngleText = vanilla.TextBox("auto", "Threshold angle", sizeStyle='small', selectable=True)
 		self.w.thresholdAngle = SteppingEditText("auto", self.prefDict["thresholdAngle"], callback=self.SavePreferences, sizeStyle='small', formatter=formatter)
-		thresholdTooltip = "Connection angles up to this value (in degrees) become green, larger ones blue."
-		self.w.thresholdAngleText.setToolTip(thresholdTooltip)
-		self.w.thresholdAngle.setToolTip(thresholdTooltip)
+		self.w.thresholdDegreeText = vanilla.TextBox("auto", "°", sizeStyle='small')
 
-		self.w.fixGreenBlue = vanilla.CheckBox("auto", "Fix green vs. blue connection for on-curves", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.fixGreenBlue.setToolTip("Sets on-curve nodes green or blue according to the threshold angle. With all treatments off, only opens a tab with the affected layers.")
+		self.w.fixGreenBlue = vanilla.CheckBox("auto", "Fix green vs. blue along threshold of", value=True, callback=self.SavePreferences, sizeStyle='small')
+		fixTooltip = "Sets on-curve nodes green if the connection angle is at most the threshold angle, blue if it is larger."
+		for element in (self.w.fixGreenBlue, self.w.thresholdAngle, self.w.thresholdDegreeText):
+			element.setToolTip(fixTooltip)
 
 		self.w.realignHandles = vanilla.CheckBox("auto", "Realign handles attached to green nodes", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.realignHandles.setToolTip("Aligns the handles next to green nodes. With all treatments off, only opens a tab with the affected layers.")
@@ -150,7 +149,7 @@ class GreenBlueManager(mekkaObject):
 		self.w.resetButton.setToolTip("Resets all settings of this window to their defaults.")
 
 		self.w.openTab = vanilla.CheckBox("auto", "Open tab with result", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.openTab.setToolTip("Opens a tab with the affected layers.")
+		self.w.openTab.setToolTip("Opens a tab with the affected layers. Always on if no treatment is enabled.")
 		self.w.reuseTab = vanilla.CheckBox("auto", "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reuseTab.setToolTip("Shows the result in the current tab instead of opening a new one.")
 
@@ -180,38 +179,39 @@ class GreenBlueManager(mekkaObject):
 			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
 
 		# labels are right-aligned and share the width of the widest one:
-		labelNames = ("thresholdAngleText", "scopeText", "excludeText")
+		labelNames = ("scopeText", "excludeText")
 		for labelName in labelNames:
 			nsLabel = getattr(self.w, labelName).getNSTextField()
 			nsLabel.setAlignment_(NSTextAlignmentRight)
 			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
 			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 
+		self.w.fixGreenBlue.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+
 		rules = [
 			"H:|-inset-[descriptionText]-inset-|",
-			"H:|-inset-[thresholdAngleText]-gap-[thresholdAngle(55)]-(>=inset)-|",
-			"H:|-inset-[fixGreenBlue]-(>=inset)-|",
+			"H:|-inset-[fixGreenBlue]-gap-[thresholdAngle(55)]-degreeGap-[thresholdDegreeText]-(>=inset)-|",
 			"H:|-inset-[realignHandles]-(>=inset)-|",
 			"H:|-inset-[separator]-inset-|",
 			"H:|-inset-[scopeText]-gap-[layerScope]-inset-|",
 			"H:|-inset-[excludeText]-gap-[exclude]-gap-[resetButton]-inset-|",
-			"H:|-inset-[openTab]-gap-[reuseTab]-(>=inset)-|",
-			"H:|-inset-[shouldMark]-(>=inset)-|",
+			"H:|-inset-[openTab]-gap-[reuseTab]-gap-[shouldMark]-(>=inset)-|",
 			"H:|-inset-[reportInMacroWindow]-gap-[reportInMacroWindowVerbose]-(>=inset)-|",
 			"H:|-inset-[progress]-inset-|",
 			"H:|-inset-[processingText]-(>=gap)-[runButton(>=100)]-inset-|",
-			{"view1": self.w.thresholdAngleText, "attribute1": "centerY", "view2": self.w.thresholdAngle, "attribute2": "centerY"},
+			{"view1": self.w.thresholdAngle, "attribute1": "centerY", "view2": self.w.fixGreenBlue, "attribute2": "centerY"},
+			{"view1": self.w.thresholdDegreeText, "attribute1": "centerY", "view2": self.w.fixGreenBlue, "attribute2": "centerY"},
 			{"view1": self.w.scopeText, "attribute1": "centerY", "view2": self.w.layerScope, "attribute2": "centerY"},
 			{"view1": self.w.excludeText, "attribute1": "centerY", "view2": self.w.exclude, "attribute2": "centerY"},
 			{"view1": self.w.resetButton, "attribute1": "centerY", "view2": self.w.exclude, "attribute2": "centerY"},
 			{"view1": self.w.reportInMacroWindowVerbose, "attribute1": "centerY", "view2": self.w.reportInMacroWindow, "attribute2": "centerY"},
 			{"view1": self.w.reuseTab, "attribute1": "centerY", "view2": self.w.openTab, "attribute2": "centerY"},
+			{"view1": self.w.shouldMark, "attribute1": "centerY", "view2": self.w.openTab, "attribute2": "centerY"},
 			{"view1": self.w.reportInMacroWindow, "attribute1": "width", "view2": self.w.openTab, "attribute2": "width"},
-			{"view1": self.w.thresholdAngleText, "attribute1": "width", "view2": self.w.excludeText, "attribute2": "width"},
 			{"view1": self.w.scopeText, "attribute1": "width", "view2": self.w.excludeText, "attribute2": "width"},
 			{"view1": self.w.processingText, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 		]
-		verticalRule = "V:|-inset-[descriptionText(42)]-row-[thresholdAngle]-row-[fixGreenBlue]-stackRow-[realignHandles]"
+		verticalRule = "V:|-inset-[descriptionText(42)]-row-[fixGreenBlue]-stackRow-[realignHandles]"
 
 		if self.hasStarNodes:
 			# the checkbox hugs its title, the popup behind it takes the leftover width:
@@ -223,10 +223,10 @@ class GreenBlueManager(mekkaObject):
 			rules.append({"view1": self.w.starNodesAction, "attribute1": "centerY", "view2": self.w.starNodes, "attribute2": "centerY"})
 			verticalRule += "-stackRow-[starNodes]"
 
-		verticalRule += "-row-[separator(1)]-row-[layerScope]-row-[exclude]-stackRow-[openTab]-stackRow-[shouldMark]-stackRow-[reportInMacroWindow]-barGap-[progress(16)]-inset-[runButton]-inset-|"
+		verticalRule += "-row-[separator(1)]-row-[layerScope]-row-[exclude]-stackRow-[openTab]-stackRow-[reportInMacroWindow]-barGap-[progress(16)]-inset-[runButton]-inset-|"
 		rules.append(verticalRule)
 
-		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "row": 8, "stackRow": 8, "barGap": 12})
+		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "degreeGap": 2, "row": 8, "stackRow": 8, "barGap": 12})
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -253,14 +253,17 @@ class GreenBlueManager(mekkaObject):
 
 	def updateUI(self, sender=None):
 		shouldStar = self.hasStarNodes and self.w.starNodes.get()
-		if not self.w.realignHandles.get() and not self.w.fixGreenBlue.get() and not shouldStar:
+		noTreatment = not self.w.realignHandles.get() and not self.w.fixGreenBlue.get() and not shouldStar
+		if noTreatment:
 			self.w.runButton.setTitle("Open Tab")
 		else:
 			self.w.runButton.setTitle("Treat Nodes")
 
 		if self.hasStarNodes:
 			self.w.starNodesAction.enable(self.w.starNodes.get())
-		self.w.reuseTab.enable(self.w.openTab.get())
+		# without any treatment, the run always opens a tab:
+		self.w.openTab.enable(not noTreatment)
+		self.w.reuseTab.enable(noTreatment or self.w.openTab.get())
 		self.w.reportInMacroWindowVerbose.enable(self.w.reportInMacroWindow.get())
 
 	def realignLayer(self, layer, shouldRealign=False, shouldReport=False, shouldVerbose=False):
@@ -456,7 +459,7 @@ class GreenBlueManager(mekkaObject):
 				shouldFix = self.pref("fixGreenBlue")
 				shouldStar = self.hasStarNodes and self.pref("starNodes")
 				starNodesAction = self.pref("starNodesAction")
-				openTab = self.pref("openTab")
+				openTab = self.pref("openTab") or not (shouldFix or shouldRealign or shouldStar)  # no treatment: always open a tab
 				reuseTab = self.pref("reuseTab")
 				exclude = [x.strip() for x in self.pref("exclude").split(",") if x.strip()]
 
