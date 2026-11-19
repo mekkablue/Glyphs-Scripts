@@ -105,6 +105,7 @@ class GreenBlueManager(mekkaObject):
 
 		formatter = decimalFormatter(0, 180)
 		self.w.thresholdAngle = SteppingEditText("auto", self.prefDict["thresholdAngle"], callback=self.SavePreferences, sizeStyle='small', formatter=formatter)
+		self.w.thresholdAngle.getNSTextField().setAlignment_(NSTextAlignmentRight)
 		self.w.thresholdDegreeText = vanilla.TextBox("auto", "°", sizeStyle='small')
 
 		self.w.fixGreenBlue = vanilla.CheckBox("auto", "Fix green vs. blue along threshold of", value=True, callback=self.SavePreferences, sizeStyle='small')
@@ -190,7 +191,7 @@ class GreenBlueManager(mekkaObject):
 
 		rules = [
 			"H:|-inset-[descriptionText]-inset-|",
-			"H:|-inset-[fixGreenBlue]-gap-[thresholdAngle(55)]-degreeGap-[thresholdDegreeText]-(>=inset)-|",
+			"H:|-inset-[fixGreenBlue]-gap-[thresholdAngle(33)]-degreeGap-[thresholdDegreeText]-(>=inset)-|",
 			"H:|-inset-[realignHandles]-(>=inset)-|",
 			"H:|-inset-[separator]-inset-|",
 			"H:|-inset-[scopeText]-gap-[layerScope]-inset-|",
