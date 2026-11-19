@@ -57,7 +57,7 @@ class KernStringMixer(mekkaObject):
 		"leftCategoryPopup": 0,
 		"rightCategoryPopup": 0,
 		"mixString1": defaultTokens[0],
-		"mixString2": defaultTokens[1],
+		"mixString2": defaultTokens[0],
 		"groupsOnly": False,
 		"exportingOnly": True,
 		"pathsOnly": False,
