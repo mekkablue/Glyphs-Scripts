@@ -1,6 +1,6 @@
 # MenuTitle: Kern String Mixer
 __doc__ = """
-Intersect two sets of glyphs with each other in order to get all possible glyph combinations.
+Intersect two sets of glyphs with each other in order to get all possible glyph combinations, optionally without repeating pairs that are in the text already.
 """
 
 import vanilla
@@ -39,6 +39,7 @@ class KernStringMixer(mekkaObject):
 		# "prefName": defaultValue,
 		"mixString1": defaultTokens[0],
 		"mixString2": defaultTokens[1],
+		"avoidDuplicates": True,
 		"reuseTab": True,
 	}
 
@@ -64,7 +65,13 @@ class KernStringMixer(mekkaObject):
 		self.w.mixString2 = vanilla.ComboBox("auto", defaultTokens, callback=self.SavePreferences)
 		self.w.mixString2.setToolTip(tokenHelpText)
 
+		self.w.avoidDuplicates = vanilla.CheckBox("auto", "Avoid duplicate pairs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.avoidDuplicates.setToolTip(
+			"If enabled, a pair that is in the text already is not repeated. If ‘BA’ appeared in the A row, the B row will not contain it again. Makes the text shorter if both tokens have glyphs in common, e.g., if both are the same."
+		)
+
 		self.w.reuseTab = vanilla.CheckBox("auto", "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reuseTab.setToolTip("If enabled, will not open a new tab, but reuse the current Edit tab. Will open an Edit tab if none is open.")
 
 		# Buttons at bottom:
 		self.w.helpTokens = vanilla.HelpButton("auto", callback=self.openURL)
@@ -85,12 +92,13 @@ class KernStringMixer(mekkaObject):
 				"H:|-inset-[descriptionText]-inset-|",
 				"H:|-inset-[mixString1]-inset-|",
 				"H:|-inset-[mixString2]-inset-|",
+				"H:|-inset-[avoidDuplicates]-(>=inset)-|",
 				"H:|-inset-[reuseTab]-(>=inset)-|",
 				"H:|-inset-[helpTokens]-(>=gap)-[runButton(>=70)]-inset-|",
-				"V:|-gap-[descriptionText]-row-[mixString1]-row-[mixString2]-gap-[reuseTab]-inset-[runButton]-inset-|",
+				"V:|-gap-[descriptionText]-row-[mixString1]-row-[mixString2]-gap-[avoidDuplicates]-checkRow-[reuseTab]-inset-[runButton]-inset-|",
 				{"view1": self.w.helpTokens, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 			],
-			metrics={"inset": inset, "gap": 8, "row": 6},
+			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
 		)
 
 		# Load Settings:
@@ -140,6 +148,28 @@ class KernStringMixer(mekkaObject):
 		print("Evaluation: %s\n" % evaluatedToken)
 		return evaluatedToken
 
+	def mixedText(self, firstNames, secondNames, avoidDuplicates=True):
+		"""
+		Returns the text for the tab (one line per first glyph, ‘/a/b/a/c/a’, so a-b, b-a, a-c and c-a are all next to each other)
+		and the number of pairs left out because they were in the text already.
+		"""
+		tabText = ""
+		shownPairs = set()  # pairs of neighboring glyphs that are in the text already
+		skippedCount = 0
+		for a in firstNames:
+			glyphNames = []
+			for b in secondNames:
+				if avoidDuplicates and (a, b) in shownPairs:
+					skippedCount += 1
+					continue
+				glyphNames += [a, b]
+			if not glyphNames:
+				continue  # all pairs of this line are in the text already
+			glyphNames.append(a)
+			shownPairs.update(zip(glyphNames, glyphNames[1:]))
+			tabText += "".join("/" + glyphName for glyphName in glyphNames) + "\n"
+		return tabText, skippedCount
+
 	def KernStringMixerMain(self, sender=None):
 		try:
 			# clear macro window log:
@@ -181,12 +211,9 @@ class KernStringMixer(mekkaObject):
 
 				aa = aa.split()
 				bb = bb.split()
-				for a in aa:
-					for b in bb:
-						tabText += "/" + a
-						tabText += "/" + b
-					tabText += "/" + a
-					tabText += "\n"
+				tabText, skippedCount = self.mixedText(aa, bb, avoidDuplicates=self.prefBool("avoidDuplicates"))
+				if skippedCount:
+					print("Left out %i pair%s that %s in the text already." % (skippedCount, "" if skippedCount == 1 else "s", "was" if skippedCount == 1 else "were"))
 
 				thisTab = thisFont.currentTab
 				if not thisTab or not self.pref("reuseTab"):
