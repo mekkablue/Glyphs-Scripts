@@ -230,10 +230,11 @@ class GreenBlueManager(mekkaObject):
 			rules.append({"view1": self.w.starNodesAction, "attribute1": "centerY", "view2": self.w.starNodes, "attribute2": "centerY"})
 			verticalRule += "-stackRow-[starNodes]"
 
-		verticalRule += "-row-[separator(1)]-row-[layerScope]-row-[exclude]-stackRow-[openTab]-stackRow-[reportInMacroWindow]-barGap-[progress(16)]-inset-[runButton]-inset-|"
+		# the popup next to the last checkbox reaches below the checkbox, so the gap above the separator is larger than the one below it
+		verticalRule += "-dividerAbove-[separator(1)]-dividerBelow-[layerScope]-row-[exclude]-stackRow-[openTab]-stackRow-[reportInMacroWindow]-barGap-[progress(16)]-inset-[runButton]-inset-|"
 		rules.append(verticalRule)
 
-		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "degreeGap": 2, "row": 8, "stackRow": 8, "barGap": 12})
+		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "degreeGap": 2, "row": 8, "dividerAbove": 14, "dividerBelow": 11, "stackRow": 8, "barGap": 12})
 
 		# Load Settings:
 		self.LoadPreferences()
