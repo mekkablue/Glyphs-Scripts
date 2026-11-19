@@ -1,6 +1,6 @@
 # MenuTitle: Green Blue Manager
 __doc__ = """
-Define an angle above which a node will be set to blue, below which it will be set to green.
+Define an angle above which a node will be set to blue, below which it will be set to green. In Glyphs 4, green nodes between two curves can also be turned into star nodes and back.
 """
 
 import objc
@@ -13,19 +13,20 @@ from mekkablue.geometry import angle
 
 GlyphsPathPlugin = objc.lookUpClass("GlyphsPathPlugin")
 
+starNodeConnection = 102  # value of node.connection for star nodes (Glyphs 4); green nodes are GSSMOOTH (100)
+
 
 class GreenBlueManager(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"thresholdAngle": 11,
-		"completeFont": 1,
 		"fixGreenBlue": 1,
 		"realignHandles": 1,
 		"reportInMacroWindow": 1,
 		"reportInMacroWindowVerbose": 0,
 		"shouldMark": 0,
 		"allMasters": 0,
-		"scope": 0,
+		"processScope": 0,  # 0 = selected glyphs, 1 = all glyphs in frontmost font, 2 = all glyphs in all open fonts
 		"reuseTab": 1,
 		"exclude": ".ornm, BlackIndex, Heart, apple",
 	}
@@ -33,8 +34,13 @@ class GreenBlueManager(mekkaObject):
 	def __init__(self):
 		self.Tool = GlyphsPathPlugin.new()
 
+		# star nodes exist in Glyphs 4 and later only:
+		self.hasStarNodes = Glyphs.versionNumber >= 4.0
+		if self.hasStarNodes:
+			self.prefDict = {**self.prefDict, "starNodes": 0, "starNodesAction": 0}
+
 		# Window 'self.w':
-		windowWidth = 355
+		windowWidth = 440
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
@@ -57,12 +63,33 @@ class GreenBlueManager(mekkaObject):
 		self.w.realignHandles = vanilla.CheckBox("auto", "Realign handles attached to green nodes", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.realignHandles.setToolTip("If a BCP (grey handle) follows a green node, it will be aligned to the previous two points. Deselect both Fix and Realign options for a new tab with all glyphs that have nodes with wrong connections according to the threshold angle.")
 
+		if self.hasStarNodes:
+			self.w.starNodes = vanilla.CheckBox("auto", "Star nodes", value=False, callback=self.SavePreferences, sizeStyle='small')
+			starNodesTooltip = "Converts between green nodes and star nodes. Only affects nodes between two curve segments. Sets the file format version of the font to 4 if it is lower."
+			self.w.starNodes.setToolTip(starNodesTooltip)
+			self.w.starNodesAction = vanilla.PopUpButton(
+				"auto",
+				("turn green nodes between curves into star nodes", "turn star nodes back into green nodes"),
+				sizeStyle="small",
+				callback=self.SavePreferences,
+			)
+			self.w.starNodesAction.setToolTip(starNodesTooltip)
+
+		self.w.separator = vanilla.HorizontalLine("auto")
+
+		scopeTooltip = "Which glyphs to process. Careful: ‘all glyphs’ goes through all active (i.e., master, brace and bracket) layers and can take a minute."
+		self.w.scopeText = vanilla.TextBox("auto", "Process:", sizeStyle="small", selectable=True)
+		self.w.scopeText.setToolTip(scopeTooltip)
+		self.w.processScope = vanilla.PopUpButton(
+			"auto",
+			("selected glyphs", "all glyphs in frontmost font", "⚠️ all glyphs in ALL open fonts"),
+			sizeStyle="small",
+			callback=self.SavePreferences,
+		)
+		self.w.processScope.setToolTip(scopeTooltip)
+
 		self.w.allMasters = vanilla.CheckBox("auto", "Process ⚠️ ALL masters of selected glyphs", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.allMasters.setToolTip("If checked, will go through all master layers and special layers of selected glyphs. If unchecked, will only process the currently visible layer.")
-
-		self.w.completeFont = vanilla.CheckBox("auto", "Process ⚠️ ALL glyphs in", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.completeFont.setToolTip("If checked, will go through all active (i.e., master, brace and bracket) layers of all glyphs. If unchecked, will only go through selected layers. Careful: can take a minute.")
-		self.w.scope = vanilla.PopUpButton("auto", ("frontmost font", "⚠️ ALL open fonts"), sizeStyle="small", callback=self.SavePreferences)
 
 		self.w.excludeText = vanilla.TextBox("auto", "Exclude glyphs with:", sizeStyle="small", selectable=True)
 		self.w.exclude = vanilla.EditText("auto", ".ornm, BlackIndex, Heart, apple", callback=self.SavePreferences, sizeStyle="small")
@@ -95,43 +122,53 @@ class GreenBlueManager(mekkaObject):
 			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
 
 		# labels are right-aligned and share the width of the widest one:
-		labelNames = ("thresholdAngleText", "excludeText")
+		labelNames = ("thresholdAngleText", "scopeText", "excludeText")
 		for labelName in labelNames:
 			nsLabel = getattr(self.w, labelName).getNSTextField()
 			nsLabel.setAlignment_(NSTextAlignmentRight)
 			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
 			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 
-		# the checkbox hugs its title, the popup behind it takes the leftover width:
-		self.w.completeFont.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
-		self.w.scope.getNSPopUpButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		rules = [
+			"H:|-inset-[descriptionText]-inset-|",
+			"H:|-inset-[thresholdAngleText]-gap-[thresholdAngle(55)]-(>=inset)-|",
+			"H:|-inset-[fixGreenBlue]-(>=inset)-|",
+			"H:|-inset-[realignHandles]-(>=inset)-|",
+			"H:|-inset-[separator]-inset-|",
+			"H:|-inset-[scopeText]-gap-[processScope]-inset-|",
+			"H:|-inset-[allMasters]-(>=inset)-|",
+			"H:|-inset-[excludeText]-gap-[exclude]-gap-[resetButton]-inset-|",
+			"H:|-inset-[reportInMacroWindow]-gap-[reportInMacroWindowVerbose]-(>=inset)-|",
+			"H:|-inset-[shouldMark]-gap-[reuseTab]-(>=inset)-|",
+			"H:|-inset-[progress]-inset-|",
+			"H:|-inset-[processingText]-(>=gap)-[runButton(>=100)]-inset-|",
+			{"view1": self.w.thresholdAngleText, "attribute1": "centerY", "view2": self.w.thresholdAngle, "attribute2": "centerY"},
+			{"view1": self.w.scopeText, "attribute1": "centerY", "view2": self.w.processScope, "attribute2": "centerY"},
+			{"view1": self.w.excludeText, "attribute1": "centerY", "view2": self.w.exclude, "attribute2": "centerY"},
+			{"view1": self.w.resetButton, "attribute1": "centerY", "view2": self.w.exclude, "attribute2": "centerY"},
+			{"view1": self.w.reportInMacroWindowVerbose, "attribute1": "centerY", "view2": self.w.reportInMacroWindow, "attribute2": "centerY"},
+			{"view1": self.w.reuseTab, "attribute1": "centerY", "view2": self.w.shouldMark, "attribute2": "centerY"},
+			{"view1": self.w.reportInMacroWindow, "attribute1": "width", "view2": self.w.shouldMark, "attribute2": "width"},
+			{"view1": self.w.thresholdAngleText, "attribute1": "width", "view2": self.w.excludeText, "attribute2": "width"},
+			{"view1": self.w.scopeText, "attribute1": "width", "view2": self.w.excludeText, "attribute2": "width"},
+			{"view1": self.w.processingText, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
+		]
+		verticalRule = "V:|-inset-[descriptionText(42)]-row-[thresholdAngle]-row-[fixGreenBlue]-stackRow-[realignHandles]"
 
-		self.w.addAutoPosSizeRules(
-			[
-				"H:|-inset-[descriptionText]-inset-|",
-				"H:|-inset-[thresholdAngleText]-gap-[thresholdAngle(55)]-(>=inset)-|",
-				"H:|-inset-[fixGreenBlue]-(>=inset)-|",
-				"H:|-inset-[realignHandles]-(>=inset)-|",
-				"H:|-inset-[allMasters]-(>=inset)-|",
-				"H:|-inset-[completeFont]-gap-[scope]-inset-|",
-				"H:|-inset-[excludeText]-gap-[exclude]-gap-[resetButton]-inset-|",
-				"H:|-inset-[reportInMacroWindow]-gap-[reportInMacroWindowVerbose]-(>=inset)-|",
-				"H:|-inset-[shouldMark]-gap-[reuseTab]-(>=inset)-|",
-				"H:|-inset-[progress]-inset-|",
-				"H:|-inset-[processingText]-(>=gap)-[runButton(>=100)]-inset-|",
-				"V:|-inset-[descriptionText(42)]-row-[thresholdAngle]-row-[fixGreenBlue]-stackRow-[realignHandles]-stackRow-[allMasters]-stackRow-[completeFont]-stackRow-[exclude]-stackRow-[reportInMacroWindow]-stackRow-[shouldMark]-barGap-[progress(16)]-inset-[runButton]-inset-|",
-				{"view1": self.w.thresholdAngleText, "attribute1": "centerY", "view2": self.w.thresholdAngle, "attribute2": "centerY"},
-				{"view1": self.w.scope, "attribute1": "centerY", "view2": self.w.completeFont, "attribute2": "centerY"},
-				{"view1": self.w.excludeText, "attribute1": "centerY", "view2": self.w.exclude, "attribute2": "centerY"},
-				{"view1": self.w.resetButton, "attribute1": "centerY", "view2": self.w.exclude, "attribute2": "centerY"},
-				{"view1": self.w.reportInMacroWindowVerbose, "attribute1": "centerY", "view2": self.w.reportInMacroWindow, "attribute2": "centerY"},
-				{"view1": self.w.reuseTab, "attribute1": "centerY", "view2": self.w.shouldMark, "attribute2": "centerY"},
-				{"view1": self.w.reportInMacroWindow, "attribute1": "width", "view2": self.w.shouldMark, "attribute2": "width"},
-				{"view1": self.w.thresholdAngleText, "attribute1": "width", "view2": self.w.excludeText, "attribute2": "width"},
-				{"view1": self.w.processingText, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
-			],
-			metrics={"inset": inset, "gap": 8, "row": 8, "stackRow": 8, "barGap": 12},
-		)
+		if self.hasStarNodes:
+			# the checkbox hugs its title, the popup behind it takes the leftover width:
+			self.w.starNodes.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsStarNodesAction = self.w.starNodesAction.getNSPopUpButton()
+			nsStarNodesAction.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+			nsStarNodesAction.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+			rules.append("H:|-inset-[starNodes]-gap-[starNodesAction]-inset-|")
+			rules.append({"view1": self.w.starNodesAction, "attribute1": "centerY", "view2": self.w.starNodes, "attribute2": "centerY"})
+			verticalRule += "-stackRow-[starNodes]"
+
+		verticalRule += "-row-[separator(1)]-row-[processScope]-row-[allMasters]-stackRow-[exclude]-stackRow-[reportInMacroWindow]-stackRow-[shouldMark]-barGap-[progress(16)]-inset-[runButton]-inset-|"
+		rules.append(verticalRule)
+
+		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "row": 8, "stackRow": 8, "barGap": 12})
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -157,13 +194,15 @@ class GreenBlueManager(mekkaObject):
 		self.LoadPreferences()
 
 	def updateUI(self, sender=None):
-		if not self.w.realignHandles.get() and not self.w.fixGreenBlue.get():
+		shouldStar = self.hasStarNodes and self.w.starNodes.get()
+		if not self.w.realignHandles.get() and not self.w.fixGreenBlue.get() and not shouldStar:
 			self.w.runButton.setTitle("Open Tab")
 		else:
 			self.w.runButton.setTitle("Treat Nodes")
 
+		if self.hasStarNodes:
+			self.w.starNodesAction.enable(self.w.starNodes.get())
 		self.w.reportInMacroWindowVerbose.enable(self.w.reportInMacroWindow.get())
-		self.w.scope.enable(self.w.completeFont.get())
 
 	def realignLayer(self, layer, shouldRealign=False, shouldReport=False, shouldVerbose=False):
 		def closestPointOnLine(P, A, B):
@@ -272,7 +311,7 @@ class GreenBlueManager(mekkaObject):
 					if hotNode is not None:
 						if hotNode.prevNode and hotNode.nextNode:
 							angleDiff = abs(angle(hotNode.prevNode, hotNode) - angle(hotNode, hotNode.nextNode)) % 360
-							if (angleDiff <= thresholdAngle or angleDiff >= 360 - thresholdAngle) and hotNode.connection != GSSMOOTH:
+							if (angleDiff <= thresholdAngle or angleDiff >= 360 - thresholdAngle) and hotNode.connection not in (GSSMOOTH, starNodeConnection):
 								layerCount += 1
 								if shouldFix:
 									hotNode.connection = GSSMOOTH
@@ -297,17 +336,46 @@ class GreenBlueManager(mekkaObject):
 
 		return layerCount
 
+	def starNodesOnLayer(self, thisLayer, makeStars=True, shouldReport=False, shouldVerbose=False):
+		layerCount = 0
+		for thisPath in thisLayer.paths:
+			for thisNode in thisPath.nodes:
+				prevNode, nextNode = thisNode.prevNode, thisNode.nextNode
+				if prevNode is None or nextNode is None:
+					continue
+				if not (prevNode.type == GSOFFCURVE and nextNode.type == GSOFFCURVE):
+					continue  # only nodes between two curves
+				if makeStars and thisNode.connection == GSSMOOTH:
+					thisNode.selected = True
+					thisNode.connection = starNodeConnection
+					layerCount += 1
+				elif not makeStars and thisNode.connection == starNodeConnection:
+					thisNode.selected = False
+					thisNode.connection = GSSMOOTH
+					layerCount += 1
+
+		if shouldReport and shouldVerbose:
+			if layerCount:
+				if makeStars:
+					print(f'   ⚠️ Turned {layerCount} green node{"" if layerCount == 1 else "s"} into star node{"" if layerCount == 1 else "s"}.')
+				else:
+					print(f'   ⚠️ Turned {layerCount} star node{"" if layerCount == 1 else "s"} back into green.')
+			else:
+				print("   ✅ No nodes to convert.")
+
+		return layerCount
+
 	def GreenBlueManagerMain(self, sender):
 		try:
 			shouldReport = self.pref("reportInMacroWindow")
 			if shouldReport:
 				Glyphs.clearLog()
 
-			scope = self.pref("scope")
+			scope = self.pref("processScope")
 			if not Glyphs.font:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 				return
-			elif scope == 1: # all open fonts
+			elif scope == 2:  # all glyphs in all open fonts
 				theseFonts = Glyphs.fonts
 			else: # current font
 				theseFonts = (Glyphs.font, )
@@ -321,12 +389,14 @@ class GreenBlueManager(mekkaObject):
 				shouldRealign = self.pref("realignHandles")
 				shouldVerbose = self.pref("reportInMacroWindowVerbose")
 				shouldFix = self.pref("fixGreenBlue")
+				shouldStar = self.hasStarNodes and self.pref("starNodes")
+				makeStars = self.pref("starNodesAction") == 0
 				reuseTab = self.pref("reuseTab")
 				exclude = [x.strip() for x in self.pref("exclude").split(",") if x.strip()]
 
 				# determine which layers to process:
 				layersToBeProcessed, glyphsToBeProcessed = [], []
-				if self.pref("completeFont"):
+				if scope in (1, 2):
 					mID = thisFont.selectedFontMaster.id
 					for thisGlyph in thisFont.glyphs:
 						if any([x in thisGlyph.name for x in exclude]):
@@ -358,6 +428,7 @@ class GreenBlueManager(mekkaObject):
 					numberOfLayers = len(layersToBeProcessed)
 					affectedLayersFixedConnections = []
 					affectedLayersRealignedHandles = []
+					affectedLayersStarNodes = []
 
 					# process layers:
 					for i, thisLayer in enumerate(layersToBeProcessed):
@@ -379,6 +450,15 @@ class GreenBlueManager(mekkaObject):
 						if numberOfAligns:
 							affectedLayersRealignedHandles.append(thisLayer)
 
+						if shouldStar:
+							numberOfStars = self.starNodesOnLayer(thisLayer, makeStars, shouldReport, shouldVerbose)
+							if numberOfStars:
+								affectedLayersStarNodes.append(thisLayer)
+
+					if affectedLayersStarNodes and makeStars and thisFont.formatVersion < 4:
+						print(f"☑️ Star nodes need file format version 4: setting it from {thisFont.formatVersion} to 4.")
+						thisFont.formatVersion = max(4, thisFont.formatVersion)
+
 					self.w.progress.set(100)
 					statusMessage = "✅ Processed %i layer%s." % (
 						numberOfLayers,
@@ -395,17 +475,18 @@ class GreenBlueManager(mekkaObject):
 						titles.append("Aligned BCPs")
 					else:
 						titles.append("Unaligned BCPs")
-					# onlyReport = not shouldFix and not shouldRealign
+					if shouldStar:
+						titles.append("Turned green nodes into star nodes" if makeStars else "Turned star nodes back into green nodes")
+					affectedGroups = [(titles[0], affectedLayersFixedConnections), (titles[1], affectedLayersRealignedHandles)]
+					if shouldStar:
+						affectedGroups.append((titles[2], affectedLayersStarNodes))
+					affectedGroups = [(title, layers) for title, layers in affectedGroups if layers]
 
 					if shouldReport:
-						if affectedLayersFixedConnections:
-							print(f"\n{titles[0]} in following layers:")
-							for fixedLayer in affectedLayersFixedConnections:
-								print(f"   {fixedLayer.parent.name}, layer '{fixedLayer.name}'")
-						if affectedLayersRealignedHandles:
-							print(f"\n{titles[1]} in following layers:")
-							for fixedLayer in affectedLayersRealignedHandles:
-								print(f"   {fixedLayer.parent.name}, layer '{fixedLayer.name}'")
+						for title, layers in affectedGroups:
+							print(f"\n{title} in following layers:")
+							for affectedLayer in layers:
+								print(f"   {affectedLayer.parent.name}, layer '{affectedLayer.name}'")
 						print(f"\nDone. {statusMessage}")
 						# Glyphs.showMacroWindow()
 
@@ -416,33 +497,25 @@ class GreenBlueManager(mekkaObject):
 						else:
 							thisFont.currentTab.forceRedraw()
 						thisFont.currentTab.reflow()
-						if affectedLayersFixedConnections or affectedLayersRealignedHandles:
-							message = ""
-							if affectedLayersFixedConnections:
-								message += f"• {titles[0]}\n"
-							if affectedLayersRealignedHandles:
-								message += f"• {titles[1]}\n"
+						if affectedGroups:
+							message = "".join(f"• {title}\n" for title, layers in affectedGroups)
 							print(message)
 							continue
 
 					else:
 						# opens new Edit tab:
-						if affectedLayersFixedConnections or affectedLayersRealignedHandles:
+						if affectedGroups:
 							if reuseTab and thisFont.currentTab:
 								outputTab = thisFont.currentTab
 								outputTab.text = "\n"
 							else:
 								outputTab = thisFont.newTab()
 
-							if affectedLayersFixedConnections:
-								outputTab.text += f"{titles[0]}:\n"
-								for affectedLayer in affectedLayersFixedConnections:
-									outputTab.layers.append(affectedLayer)
-							if affectedLayersFixedConnections and affectedLayersRealignedHandles:
-								outputTab.text += "\n\n"
-							if affectedLayersRealignedHandles:
-								outputTab.text += f"{titles[1]}:\n"
-								for affectedLayer in affectedLayersRealignedHandles:
+							for groupIndex, (title, layers) in enumerate(affectedGroups):
+								if groupIndex:
+									outputTab.text += "\n\n"
+								outputTab.text += f"{title}:\n"
+								for affectedLayer in layers:
 									outputTab.layers.append(affectedLayer)
 							continue
 					continue
