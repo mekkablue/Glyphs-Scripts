@@ -12,7 +12,6 @@ from AppKit import (
 	NSLayoutPriorityDefaultLow,
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
-	NSTextAlignmentRight,
 )
 from GlyphsApp import Glyphs, GSControlLayer, Message
 from mekkablue import mekkaObject, caseDict, fontFileName, UpdateButton
@@ -117,7 +116,7 @@ class GroupLister(mekkaObject):
 			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
 
 		# the checkboxes in front of a popup hug their text, the popups stretch;
-		# the scope label is right-aligned and as wide as the checkboxes, so all popups start at one x-position:
+		# the category and case rows are indented below the scope row, and both start their popups at one x-position:
 		for checkBox in (self.w.onlyCategory, self.w.onlyCase):
 			nsCheckBox = checkBox.getNSButton()
 			nsCheckBox.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
@@ -126,7 +125,6 @@ class GroupLister(mekkaObject):
 		for popup in (self.w.scope, self.w.categoryChoice, self.w.caseChoice):
 			popup.getNSPopUpButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 		nsLabel = self.w.textScope.getNSTextField()
-		nsLabel.setAlignment_(NSTextAlignmentRight)
 		nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
 		nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 
@@ -141,9 +139,9 @@ class GroupLister(mekkaObject):
 				"H:|-inset-[descriptionText]-inset-|",
 				"H:|-inset-[leftGroups]-gap-[rightGroups]-(>=inset)-|",
 				"H:|-inset-[includeGroupless]-(>=inset)-|",
-				"H:|-inset-[textScope]-popupGap-[scope]-inset-|",
-				"H:|-inset-[onlyCategory]-popupGap-[categoryChoice]-gap-[updateCategoriesButton]-inset-|",
-				"H:|-inset-[onlyCase]-popupGap-[caseChoice]-inset-|",
+				"H:|-inset-[textScope]-gap-[scope]-inset-|",
+				"H:|-indentedInset-[onlyCategory]-popupGap-[categoryChoice]-gap-[updateCategoriesButton]-inset-|",
+				"H:|-indentedInset-[onlyCase]-popupGap-[caseChoice]-inset-|",
 				"H:|-inset-[listPairings]-(>=inset)-|",
 				"H:|-inset-[reuseTab]-(>=gap)-[textEditViewWidth]-gap-[toggleEditViewWidth(>=70)]-inset-|",
 				"H:|-inset-[statusText]-(>=gap)-[listButton(>=70)]-inset-|",
@@ -157,9 +155,8 @@ class GroupLister(mekkaObject):
 				centerY("textEditViewWidth", "toggleEditViewWidth"),
 				centerY("statusText", "listButton"),
 				equalWidth("onlyCase", "onlyCategory"),
-				equalWidth("textScope", "onlyCategory"),
 			],
-			metrics={"inset": inset, "gap": 8, "popupGap": 16, "row": 8, "checkRow": 5, "stackRow": 8, "section": 12},
+			metrics={"inset": inset, "indentedInset": inset + 20, "gap": 8, "popupGap": 16, "row": 8, "checkRow": 5, "stackRow": 8, "section": 12},
 		)
 
 		# Load Settings:
