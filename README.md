@@ -355,7 +355,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Auto Bumper:** Specify a minimum distance, left and right glyphs, and Auto Bumper will add the minimum necessary kerning for the current master.
 * **BBox Bumper:** Like Auto Bumper, but with the bounding box of a group of glyphs, and the kerning inserted as GPOS feature code in Font Info > Features > kern. Useful if you want to do group kerning with classes that are different from the kerning groups.
 * **Compare Kerning Between Masters:** Report differences in kerning structures between two masters, and sync them by adding zero kerns for pairs that exist in only one of the two. Helps preserve interpolatable kerning in OTVar exports. Replaces Zero Kerner.
-* **Compress Glyph:** Compress kerning for specified glyph only.
+* **Compress Glyph:** Compress kerning (i.e., replace glyph kerning with group kerning) for glyphs matching comma-separated names with `*` and `?` wildcards, in this master, all masters or all open fonts. Optionally opens a tab with the affected pairs; the last compression can be undone.
 * **Convert RTL Kerning from Glyphs 2 to 3:** Convert RTL kerning from Glyphs 2 to Glyphs 3 format and switches the kerning classes. (Hold down OPTION and SHIFT to convert from Glyphs 3 back to Glyphs 2.) Detailed report in Macro Window.
 * **Copy Kerning Exceptions to Double Accents:** Copies Kerning exceptions with abreve, `acircumflex`, `ecircumflex`, `ocircumflex`, `udieresis` into Vietnamese and Pinyin double accents.
 * **Exception Cleaner:** Removes kerning exceptions (glyph-to-glyph, glyph-to-group, group-to-glyph) in the current master, all masters, or all masters of all open fonts. Optionally only those that differ less than a threshold from the group kerning for the same pair. Group-to-group kerning is never touched.
@@ -370,7 +370,6 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **New Tab with Selected Glyph Combinations:** Takes your selected glyphs and opens a new tab with all possible combinations of the letters. Also outputs a string for copying into the Macro window, in case the opening of the tab fails.
 * **New Tab with Uneven Symmetric Kernings:** Finds kern pairs for symmetric letters like ATA AVA TOT WIW etc. and sees if AT is the same as TA, etc.
 * **New Tabs with Punctuation Kern Strings:** Outputs several tabs with kern strings with punctuation.
-* **Partial Compress:** Compress kerning, but for certain glyphs only.
 * **Remove Kerning Between Categories:** Removes kerning between glyphs, categories, subcategories, scripts.
 * **Remove Kerning Pairs for Selected Glyphs:** Deletes all kerning pairs with the selected glyphs, for the current master only.
 * **Remove Orphaned Group Kerning:** Deletes all group kernings referring to groups that are not in the font.
