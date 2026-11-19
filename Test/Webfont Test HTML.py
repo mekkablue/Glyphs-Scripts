@@ -320,23 +320,24 @@ def particleStylesOfInstance(thisFont, particleInstance):
 	"""
 	Multiplies the name particles of all axes with each other, in the order of
 	the font's axes, and returns a list of (styleName, axisValues) tuples,
-	axisValues being a dict {axisTag: axisValue}. "Regular" is elidable for
-	every axis; if all particles are elided, the instance name is the fallback.
+	axisValues being a dict {axisTag: axisValue}. Elidable particles disappear
+	when combined with others; if a style consists of elidable particles only,
+	the instance name is the fallback.
 	"""
 	axisTags = []
 	particlesPerAxis = []
-	for axis in thisFont.axes:
-		particles = particleInstance.nameParticles[axis.axisId]
-		if not particles:
+	# GSInstance.nameParticles is a list of axis groups (one list of particles per axis), parallel to the font's axes:
+	for axisGroup, axis in zip(particleInstance.nameParticles, thisFont.axes):
+		if not axisGroup:
 			continue
 		axisTags.append(axis.axisTag)
-		particlesPerAxis.append(list(particles))
+		particlesPerAxis.append(list(axisGroup))
 	if not particlesPerAxis:
 		return []
 
 	styles = []
 	for particleCombination in product(*particlesPerAxis):
-		nameParts = [particle.name for particle in particleCombination if particle.name != "Regular"]
+		nameParts = [particle.name for particle in particleCombination if not particle.isElidable()]
 		styleName = " ".join(nameParts) if nameParts else particleInstance.name
 		axisValues = {}
 		for axisTag, particle in zip(axisTags, particleCombination):
