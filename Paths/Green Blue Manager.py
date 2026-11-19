@@ -22,6 +22,7 @@ class GreenBlueManager(mekkaObject):
 		"thresholdAngle": 11,
 		"fixGreenBlue": 1,
 		"realignHandles": 1,
+		"openTab": 1,
 		"reportInMacroWindow": 1,
 		"reportInMacroWindowVerbose": 0,
 		"shouldMark": 0,
@@ -98,15 +99,18 @@ class GreenBlueManager(mekkaObject):
 		self.w.exclude.setToolTip(excludeTooltip)
 		self.w.resetButton.setToolTip("Resets all settings of this window to their defaults.")
 
-		self.w.reportInMacroWindow = vanilla.CheckBox("auto", "Report in Macro Panel", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reportInMacroWindowVerbose = vanilla.CheckBox("auto", "Verbose", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reportInMacroWindow.setToolTip("Writes a report to the Macro Panel.")
-		self.w.reportInMacroWindowVerbose.setToolTip("Reports every layer, not just the ones with changes.")
+		self.w.openTab = vanilla.CheckBox("auto", "Open tab with result", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.openTab.setToolTip("Opens a tab with the affected layers.")
+		self.w.reuseTab = vanilla.CheckBox("auto", "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reuseTab.setToolTip("Shows the result in the current tab instead of opening a new one.")
 
 		self.w.shouldMark = vanilla.CheckBox("auto", "Mark affected nodes", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.shouldMark.setToolTip("Names changed nodes: 💚 for green, 🔷 for blue.")
-		self.w.reuseTab = vanilla.CheckBox("auto", "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reuseTab.setToolTip("Shows the result in the current tab instead of opening a new one.")
+
+		self.w.reportInMacroWindow = vanilla.CheckBox("auto", "Report in Macro Window", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reportInMacroWindow.setToolTip("Writes a report to the Macro Panel.")
+		self.w.reportInMacroWindowVerbose = vanilla.CheckBox("auto", "Verbose", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reportInMacroWindowVerbose.setToolTip("Reports every layer, not just the ones with changes.")
 
 		self.w.progress = vanilla.ProgressBar("auto")
 		self.w.progress.set(0)  # set progress indicator to zero
@@ -141,8 +145,9 @@ class GreenBlueManager(mekkaObject):
 			"H:|-inset-[separator]-inset-|",
 			"H:|-inset-[scopeText]-gap-[layerScope]-inset-|",
 			"H:|-inset-[excludeText]-gap-[exclude]-gap-[resetButton]-inset-|",
+			"H:|-inset-[openTab]-gap-[reuseTab]-(>=inset)-|",
+			"H:|-inset-[shouldMark]-(>=inset)-|",
 			"H:|-inset-[reportInMacroWindow]-gap-[reportInMacroWindowVerbose]-(>=inset)-|",
-			"H:|-inset-[shouldMark]-gap-[reuseTab]-(>=inset)-|",
 			"H:|-inset-[progress]-inset-|",
 			"H:|-inset-[processingText]-(>=gap)-[runButton(>=100)]-inset-|",
 			{"view1": self.w.thresholdAngleText, "attribute1": "centerY", "view2": self.w.thresholdAngle, "attribute2": "centerY"},
@@ -150,8 +155,8 @@ class GreenBlueManager(mekkaObject):
 			{"view1": self.w.excludeText, "attribute1": "centerY", "view2": self.w.exclude, "attribute2": "centerY"},
 			{"view1": self.w.resetButton, "attribute1": "centerY", "view2": self.w.exclude, "attribute2": "centerY"},
 			{"view1": self.w.reportInMacroWindowVerbose, "attribute1": "centerY", "view2": self.w.reportInMacroWindow, "attribute2": "centerY"},
-			{"view1": self.w.reuseTab, "attribute1": "centerY", "view2": self.w.shouldMark, "attribute2": "centerY"},
-			{"view1": self.w.reportInMacroWindow, "attribute1": "width", "view2": self.w.shouldMark, "attribute2": "width"},
+			{"view1": self.w.reuseTab, "attribute1": "centerY", "view2": self.w.openTab, "attribute2": "centerY"},
+			{"view1": self.w.reportInMacroWindow, "attribute1": "width", "view2": self.w.openTab, "attribute2": "width"},
 			{"view1": self.w.thresholdAngleText, "attribute1": "width", "view2": self.w.excludeText, "attribute2": "width"},
 			{"view1": self.w.scopeText, "attribute1": "width", "view2": self.w.excludeText, "attribute2": "width"},
 			{"view1": self.w.processingText, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
@@ -168,7 +173,7 @@ class GreenBlueManager(mekkaObject):
 			rules.append({"view1": self.w.starNodesAction, "attribute1": "centerY", "view2": self.w.starNodes, "attribute2": "centerY"})
 			verticalRule += "-stackRow-[starNodes]"
 
-		verticalRule += "-row-[separator(1)]-row-[layerScope]-row-[exclude]-stackRow-[reportInMacroWindow]-stackRow-[shouldMark]-barGap-[progress(16)]-inset-[runButton]-inset-|"
+		verticalRule += "-row-[separator(1)]-row-[layerScope]-row-[exclude]-stackRow-[openTab]-stackRow-[shouldMark]-stackRow-[reportInMacroWindow]-barGap-[progress(16)]-inset-[runButton]-inset-|"
 		rules.append(verticalRule)
 
 		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "row": 8, "stackRow": 8, "barGap": 12})
@@ -205,6 +210,7 @@ class GreenBlueManager(mekkaObject):
 
 		if self.hasStarNodes:
 			self.w.starNodesAction.enable(self.w.starNodes.get())
+		self.w.reuseTab.enable(self.w.openTab.get())
 		self.w.reportInMacroWindowVerbose.enable(self.w.reportInMacroWindow.get())
 
 	def realignLayer(self, layer, shouldRealign=False, shouldReport=False, shouldVerbose=False):
@@ -394,6 +400,7 @@ class GreenBlueManager(mekkaObject):
 				shouldFix = self.pref("fixGreenBlue")
 				shouldStar = self.hasStarNodes and self.pref("starNodes")
 				makeStars = self.pref("starNodesAction") == 0
+				openTab = self.pref("openTab")
 				reuseTab = self.pref("reuseTab")
 				exclude = [x.strip() for x in self.pref("exclude").split(",") if x.strip()]
 
@@ -504,7 +511,7 @@ class GreenBlueManager(mekkaObject):
 
 					else:
 						# opens new Edit tab:
-						if affectedGroups:
+						if affectedGroups and openTab:
 							if reuseTab and thisFont.currentTab:
 								outputTab = thisFont.currentTab
 								outputTab.text = "\n"
