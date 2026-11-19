@@ -1,7 +1,9 @@
 # MenuTitle: Green Blue Manager
 __doc__ = """
-Define an angle above which a node will be set to blue, below which it will be set to green. In Glyphs 4, green nodes between two curves can also be turned into star nodes and back.
+Define an angle above which a node will be set to blue, below which it will be set to green. In Glyphs 4, green nodes between two curves can also be turned into star nodes and back, optionally G2-harmonized (Green Harmony).
 """
+
+from math import sqrt
 
 import objc
 import vanilla
@@ -13,7 +15,55 @@ from mekkablue.geometry import angle
 
 GlyphsPathPlugin = objc.lookUpClass("GlyphsPathPlugin")
 
-starNodeConnection = 102  # value of node.connection for star nodes (Glyphs 4); green nodes are GSSMOOTH (100)
+if Glyphs.versionNumber >= 4.0:
+	from GlyphsApp import GSSUPERSMOOTH  # star nodes
+	smoothConnections = (GSSMOOTH, GSSUPERSMOOTH)
+else:
+	smoothConnections = (GSSMOOTH, )
+
+
+def harmonizeNode(node):
+	"""
+	G2-harmonizes a green on-curve node between two cubic curve segments by moving it along the line between its handles.
+	Returns True if the node was moved. Algorithm by Simon Cozens, as implemented in Green Harmony by Alex Slobzheninov:
+	https://github.com/slobzheninov/GreenHarmony
+	"""
+	nextHandle, prevHandle = node.nextNode, node.prevNode
+	if nextHandle is None or prevHandle is None:
+		return False
+	nextFarHandle, prevFarHandle = nextHandle.nextNode, prevHandle.prevNode
+	if nextFarHandle is None or prevFarHandle is None:
+		return False
+	if any(point.type != GSOFFCURVE for point in (nextHandle, prevHandle, nextFarHandle, prevFarHandle)):
+		return False
+
+	# intersection of the lines through the handles of each segment:
+	x1, y1, x2, y2 = nextHandle.x, nextHandle.y, nextFarHandle.x, nextFarHandle.y
+	x3, y3, x4, y4 = prevHandle.x, prevHandle.y, prevFarHandle.x, prevFarHandle.y
+	denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+	if denominator == 0:
+		return False  # parallel lines, no intersection
+	intersectionX = ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4)) / denominator
+	intersectionY = ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4)) / denominator
+
+	def distance(x, y, otherX, otherY):
+		return sqrt((otherX - x)**2 + (otherY - y)**2)
+
+	nextDistance = distance(x1, y1, intersectionX, intersectionY)
+	prevFarDistance = distance(x3, y3, x4, y4)
+	if nextDistance == 0 or prevFarDistance == 0:
+		return False
+
+	# ratio between the handle lengths and their distances to the intersection:
+	ratio = sqrt(distance(x2, y2, x1, y1) / nextDistance * distance(intersectionX, intersectionY, x3, y3) / prevFarDistance)
+	if ratio == 0:
+		return False
+	t = ratio / (ratio + 1)
+	newPosition = NSPoint(x1 + t * (x3 - x1), y1 + t * (y3 - y1))
+	if newPosition.x == node.x and newPosition.y == node.y:
+		return False
+	node.position = newPosition
+	return True
 
 
 class GreenBlueManager(mekkaObject):
@@ -53,7 +103,7 @@ class GreenBlueManager(mekkaObject):
 		self.w.descriptionText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		formatter = decimalFormatter(0, 180)
-		self.w.thresholdAngleText = vanilla.TextBox("auto", "Threshold angle:", sizeStyle='small', selectable=True)
+		self.w.thresholdAngleText = vanilla.TextBox("auto", "Threshold angle", sizeStyle='small', selectable=True)
 		self.w.thresholdAngle = SteppingEditText("auto", self.prefDict["thresholdAngle"], callback=self.SavePreferences, sizeStyle='small', formatter=formatter)
 		thresholdTooltip = "Connection angles up to this value (in degrees) become green, larger ones blue."
 		self.w.thresholdAngleText.setToolTip(thresholdTooltip)
@@ -66,12 +116,12 @@ class GreenBlueManager(mekkaObject):
 		self.w.realignHandles.setToolTip("Aligns the handles next to green nodes. With all treatments off, only opens a tab with the affected layers.")
 
 		if self.hasStarNodes:
-			self.w.starNodes = vanilla.CheckBox("auto", "Star nodes", value=False, callback=self.SavePreferences, sizeStyle='small')
-			starNodesTooltip = "Converts between green and star nodes. Only affects nodes between two curves. Raises the file format version to 4 if needed."
+			self.w.starNodes = vanilla.CheckBox("auto", "Between curves:", value=False, callback=self.SavePreferences, sizeStyle='small')
+			starNodesTooltip = "Acts on smooth nodes between two curves. Downgrading turns star nodes into plain green nodes; ‘keep G2’ also moves each node to its G2-harmonized position (Green Harmony). Star nodes need file format version 4, which is set if needed."
 			self.w.starNodes.setToolTip(starNodesTooltip)
 			self.w.starNodesAction = vanilla.PopUpButton(
 				"auto",
-				("turn green nodes between curves into star nodes", "turn star nodes back into green nodes"),
+				("turn green nodes into star nodes", "downgrade star nodes to green nodes", "downgrade star nodes to green nodes, but keep G2"),
 				sizeStyle="small",
 				callback=self.SavePreferences,
 			)
@@ -80,7 +130,7 @@ class GreenBlueManager(mekkaObject):
 		self.w.separator = vanilla.HorizontalLine("auto")
 
 		scopeTooltip = "Which layers to process. The ⚠️ options cover all glyphs and can take a while. They include all master and special (brace, bracket) layers, except the current-master option."
-		self.w.scopeText = vanilla.TextBox("auto", "Process:", sizeStyle="small", selectable=True)
+		self.w.scopeText = vanilla.TextBox("auto", "Process", sizeStyle="small", selectable=True)
 		self.w.scopeText.setToolTip(scopeTooltip)
 		self.w.layerScope = vanilla.PopUpButton(
 			"auto",
@@ -90,7 +140,7 @@ class GreenBlueManager(mekkaObject):
 		)
 		self.w.layerScope.setToolTip(scopeTooltip)
 
-		self.w.excludeText = vanilla.TextBox("auto", "Exclude glyphs with:", sizeStyle="small", selectable=True)
+		self.w.excludeText = vanilla.TextBox("auto", "Exclude glyphs with", sizeStyle="small", selectable=True)
 		self.w.exclude = vanilla.EditText("auto", ".ornm, BlackIndex, Heart, apple", callback=self.SavePreferences, sizeStyle="small")
 		self.w.resetButton = UpdateButton("auto", callback=self.resetToDefaults)
 		excludeTooltip = "Skips glyphs whose names contain any of these comma-separated strings. Only applies to the ⚠️ ‘all glyphs’ options."
@@ -314,7 +364,7 @@ class GreenBlueManager(mekkaObject):
 					if hotNode is not None:
 						if hotNode.prevNode and hotNode.nextNode:
 							angleDiff = abs(angle(hotNode.prevNode, hotNode) - angle(hotNode, hotNode.nextNode)) % 360
-							if (angleDiff <= thresholdAngle or angleDiff >= 360 - thresholdAngle) and hotNode.connection not in (GSSMOOTH, starNodeConnection):
+							if (angleDiff <= thresholdAngle or angleDiff >= 360 - thresholdAngle) and hotNode.connection not in smoothConnections:
 								layerCount += 1
 								if shouldFix:
 									hotNode.connection = GSSMOOTH
@@ -339,7 +389,8 @@ class GreenBlueManager(mekkaObject):
 
 		return layerCount
 
-	def starNodesOnLayer(self, thisLayer, makeStars=True, shouldReport=False, shouldVerbose=False):
+	def starNodesOnLayer(self, thisLayer, action=0, shouldReport=False, shouldVerbose=False):
+		# action: 0 = turn green nodes into star nodes, 1 = downgrade star nodes to green, 2 = downgrade and harmonize (G2)
 		layerCount = 0
 		for thisPath in thisLayer.paths:
 			for thisNode in thisPath.nodes:
@@ -348,21 +399,26 @@ class GreenBlueManager(mekkaObject):
 					continue
 				if not (prevNode.type == GSOFFCURVE and nextNode.type == GSOFFCURVE):
 					continue  # only nodes between two curves
-				if makeStars and thisNode.connection == GSSMOOTH:
+				if action == 0 and thisNode.connection == GSSMOOTH:
 					thisNode.selected = True
-					thisNode.connection = starNodeConnection
+					thisNode.connection = GSSUPERSMOOTH
 					layerCount += 1
-				elif not makeStars and thisNode.connection == starNodeConnection:
+				elif action != 0 and thisNode.connection == GSSUPERSMOOTH:
 					thisNode.selected = False
 					thisNode.connection = GSSMOOTH
+					if action == 2:
+						harmonizeNode(thisNode)
 					layerCount += 1
 
 		if shouldReport and shouldVerbose:
+			plural = "" if layerCount == 1 else "s"
 			if layerCount:
-				if makeStars:
-					print(f'   ⚠️ Turned {layerCount} green node{"" if layerCount == 1 else "s"} into star node{"" if layerCount == 1 else "s"}.')
+				if action == 0:
+					print(f"   ⚠️ Turned {layerCount} green node{plural} into star node{plural}.")
+				elif action == 1:
+					print(f"   ⚠️ Downgraded {layerCount} star node{plural} to green.")
 				else:
-					print(f'   ⚠️ Turned {layerCount} star node{"" if layerCount == 1 else "s"} back into green.')
+					print(f"   ⚠️ Downgraded {layerCount} star node{plural} to green and harmonized.")
 			else:
 				print("   ✅ No nodes to convert.")
 
@@ -393,7 +449,7 @@ class GreenBlueManager(mekkaObject):
 				shouldVerbose = self.pref("reportInMacroWindowVerbose")
 				shouldFix = self.pref("fixGreenBlue")
 				shouldStar = self.hasStarNodes and self.pref("starNodes")
-				makeStars = self.pref("starNodesAction") == 0
+				starNodesAction = self.pref("starNodesAction")
 				reuseTab = self.pref("reuseTab")
 				exclude = [x.strip() for x in self.pref("exclude").split(",") if x.strip()]
 
@@ -451,11 +507,11 @@ class GreenBlueManager(mekkaObject):
 							affectedLayersRealignedHandles.append(thisLayer)
 
 						if shouldStar:
-							numberOfStars = self.starNodesOnLayer(thisLayer, makeStars, shouldReport, shouldVerbose)
+							numberOfStars = self.starNodesOnLayer(thisLayer, starNodesAction, shouldReport, shouldVerbose)
 							if numberOfStars:
 								affectedLayersStarNodes.append(thisLayer)
 
-					if affectedLayersStarNodes and makeStars and thisFont.formatVersion < 4:
+					if affectedLayersStarNodes and starNodesAction == 0 and thisFont.formatVersion < 4:
 						print(f"☑️ Star nodes need file format version 4: setting it from {thisFont.formatVersion} to 4.")
 						thisFont.formatVersion = max(4, thisFont.formatVersion)
 
@@ -476,7 +532,7 @@ class GreenBlueManager(mekkaObject):
 					else:
 						titles.append("Unaligned BCPs")
 					if shouldStar:
-						titles.append("Turned green nodes into star nodes" if makeStars else "Turned star nodes back into green nodes")
+						titles.append(("Turned green nodes into star nodes", "Downgraded star nodes to green nodes", "Downgraded star nodes to green nodes and harmonized them")[starNodesAction])
 					affectedGroups = [(titles[0], affectedLayersFixedConnections), (titles[1], affectedLayersRealignedHandles)]
 					if shouldStar:
 						affectedGroups.append((titles[2], affectedLayersStarNodes))
