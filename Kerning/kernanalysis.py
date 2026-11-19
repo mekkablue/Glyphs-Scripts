@@ -1,5 +1,5 @@
 from AppKit import NSPoint, NSNotFound
-from mekkablue import caseDict
+from mekkablue import caseDict, match
 from GlyphsApp import Glyphs, GSLayer, GSPath, GSNode, GSLINE
 import math
 
@@ -88,6 +88,17 @@ def stringToListOfGlyphsForFont(string, Font, report=True, excludeNonExporting=T
 		else:
 			# actual single glyph names:
 			glyph = Font.glyphForName_(parsedName + suffix)
+
+			# names with wildcards, e.g., /*.ss01 for all glyphs with that ending (a single * or ? is just that character):
+			if not glyph and len(parsedName) > 1 and ("*" in parsedName or "?" in parsedName):
+				matchingGlyphs = [g for g in Font.glyphs if match(parsedName + suffix, g.name) and (g.export or not excludeNonExporting)]
+				if matchingGlyphs:
+					glyphList += matchingGlyphs
+					if report:
+						print("Added glyphs matching '%s': %s" % (parsedName + suffix, ", ".join([g.name for g in matchingGlyphs])))
+				elif report:
+					print("Warning: no glyphs found matching '%s'." % (parsedName + suffix))
+				continue
 
 			# actual single character:
 			if not glyph and len(parsedName) == 1:
