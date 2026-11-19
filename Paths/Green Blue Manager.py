@@ -53,21 +53,21 @@ class GreenBlueManager(mekkaObject):
 		self.w.descriptionText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		formatter = decimalFormatter(0, 180)
-		self.w.thresholdAngleText = vanilla.TextBox("auto", "Threshold Angle", sizeStyle='small', selectable=True)
+		self.w.thresholdAngleText = vanilla.TextBox("auto", "Threshold angle:", sizeStyle='small', selectable=True)
 		self.w.thresholdAngle = SteppingEditText("auto", self.prefDict["thresholdAngle"], callback=self.SavePreferences, sizeStyle='small', formatter=formatter)
-		thresholdTooltip = "Connections with an angle up to this value (in degrees) should be green, larger ones blue."
+		thresholdTooltip = "Connection angles up to this value (in degrees) become green, larger ones blue."
 		self.w.thresholdAngleText.setToolTip(thresholdTooltip)
 		self.w.thresholdAngle.setToolTip(thresholdTooltip)
 
 		self.w.fixGreenBlue = vanilla.CheckBox("auto", "Fix green vs. blue connection for on-curves", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.fixGreenBlue.setToolTip("Sets on-curve nodes green or blue according to the threshold angle. If off (and Realign and Star nodes are off, too), only reports wrong nodes in a tab.")
+		self.w.fixGreenBlue.setToolTip("Sets on-curve nodes green or blue according to the threshold angle. With all treatments off, only opens a tab with the affected layers.")
 
 		self.w.realignHandles = vanilla.CheckBox("auto", "Realign handles attached to green nodes", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.realignHandles.setToolTip("Aligns the handles next to green nodes. If off (and Fix and Star nodes are off, too), only reports unaligned handles in a tab.")
+		self.w.realignHandles.setToolTip("Aligns the handles next to green nodes. With all treatments off, only opens a tab with the affected layers.")
 
 		if self.hasStarNodes:
 			self.w.starNodes = vanilla.CheckBox("auto", "Star nodes", value=False, callback=self.SavePreferences, sizeStyle='small')
-			starNodesTooltip = "Converts between green and star nodes, only between two curves. Raises the file format version to 4 if needed."
+			starNodesTooltip = "Converts between green and star nodes. Only affects nodes between two curves. Raises the file format version to 4 if needed."
 			self.w.starNodes.setToolTip(starNodesTooltip)
 			self.w.starNodesAction = vanilla.PopUpButton(
 				"auto",
@@ -79,7 +79,7 @@ class GreenBlueManager(mekkaObject):
 
 		self.w.separator = vanilla.HorizontalLine("auto")
 
-		scopeTooltip = "Which layers to process. The ⚠️ options cover all glyphs and can take a while. All masters and special (brace, bracket) layers are included, except in the current-master option."
+		scopeTooltip = "Which layers to process. The ⚠️ options cover all glyphs and can take a while. They include all master and special (brace, bracket) layers, except the current-master option."
 		self.w.scopeText = vanilla.TextBox("auto", "Process:", sizeStyle="small", selectable=True)
 		self.w.scopeText.setToolTip(scopeTooltip)
 		self.w.layerScope = vanilla.PopUpButton(
@@ -98,7 +98,7 @@ class GreenBlueManager(mekkaObject):
 		self.w.exclude.setToolTip(excludeTooltip)
 		self.w.resetButton.setToolTip("Resets all settings of this window to their defaults.")
 
-		self.w.reportInMacroWindow = vanilla.CheckBox("auto", "Report in Macro window", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reportInMacroWindow = vanilla.CheckBox("auto", "Report in Macro Panel", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reportInMacroWindowVerbose = vanilla.CheckBox("auto", "Verbose", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reportInMacroWindow.setToolTip("Writes a report to the Macro Panel.")
 		self.w.reportInMacroWindowVerbose.setToolTip("Reports every layer, not just the ones with changes.")
@@ -116,7 +116,7 @@ class GreenBlueManager(mekkaObject):
 		self.w.processingText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button("auto", "Treat Points", callback=self.GreenBlueManagerMain)
+		self.w.runButton = vanilla.Button("auto", "Treat Nodes", callback=self.GreenBlueManagerMain)
 		self.w.runButton.setToolTip("Runs the enabled treatments on the chosen layers. Without any treatment enabled, opens a tab with the affected layers.")
 		self.w.setDefaultButton(self.w.runButton)
 
@@ -386,7 +386,7 @@ class GreenBlueManager(mekkaObject):
 			for thisFont in theseFonts:
 				reportName = reportFontName(thisFont)
 
-				print(f"GreenBlueManager Report for {reportName}")
+				print(f"Green Blue Manager Report for {reportName}")
 				print()
 
 				shouldRealign = self.pref("realignHandles")
