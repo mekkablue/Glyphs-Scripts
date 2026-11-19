@@ -25,8 +25,7 @@ class GreenBlueManager(mekkaObject):
 		"reportInMacroWindow": 1,
 		"reportInMacroWindowVerbose": 0,
 		"shouldMark": 0,
-		"allMasters": 0,
-		"processScope": 0,  # 0 = selected glyphs, 1 = all glyphs in frontmost font, 2 = all glyphs in all open fonts
+		"layerScope": 0,  # 0 = selected layers, 1 = all masters of selected glyphs, 2 = all glyphs in font, 3 = all glyphs in all open fonts
 		"reuseTab": 1,
 		"exclude": ".ornm, BlackIndex, Heart, apple",
 	}
@@ -56,16 +55,19 @@ class GreenBlueManager(mekkaObject):
 		formatter = decimalFormatter(0, 180)
 		self.w.thresholdAngleText = vanilla.TextBox("auto", "Threshold Angle", sizeStyle='small', selectable=True)
 		self.w.thresholdAngle = SteppingEditText("auto", self.prefDict["thresholdAngle"], callback=self.SavePreferences, sizeStyle='small', formatter=formatter)
+		thresholdTooltip = "Connections with an angle up to this value (in degrees) should be green, larger ones blue."
+		self.w.thresholdAngleText.setToolTip(thresholdTooltip)
+		self.w.thresholdAngle.setToolTip(thresholdTooltip)
 
 		self.w.fixGreenBlue = vanilla.CheckBox("auto", "Fix green vs. blue connection for on-curves", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.fixGreenBlue.setToolTip("Sets the green/blue state of an on-curve node according to the connection angle. Any connection below the threshold angle will be green, otherwise blue. Deselect both Fix and Realign options for a new tab with all glyphs that have nodes with wrong connections according to the threshold angle.")
+		self.w.fixGreenBlue.setToolTip("Sets on-curve nodes green or blue according to the threshold angle. If off (and Realign and Star nodes are off, too), only reports wrong nodes in a tab.")
 
 		self.w.realignHandles = vanilla.CheckBox("auto", "Realign handles attached to green nodes", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.realignHandles.setToolTip("If a BCP (grey handle) follows a green node, it will be aligned to the previous two points. Deselect both Fix and Realign options for a new tab with all glyphs that have nodes with wrong connections according to the threshold angle.")
+		self.w.realignHandles.setToolTip("Aligns the handles next to green nodes. If off (and Fix and Star nodes are off, too), only reports unaligned handles in a tab.")
 
 		if self.hasStarNodes:
 			self.w.starNodes = vanilla.CheckBox("auto", "Star nodes", value=False, callback=self.SavePreferences, sizeStyle='small')
-			starNodesTooltip = "Converts between green nodes and star nodes. Only affects nodes between two curve segments. Sets the file format version of the font to 4 if it is lower."
+			starNodesTooltip = "Converts between green and star nodes, only between two curves. Raises the file format version to 4 if needed."
 			self.w.starNodes.setToolTip(starNodesTooltip)
 			self.w.starNodesAction = vanilla.PopUpButton(
 				"auto",
@@ -77,43 +79,45 @@ class GreenBlueManager(mekkaObject):
 
 		self.w.separator = vanilla.HorizontalLine("auto")
 
-		scopeTooltip = "Which glyphs to process. Careful: ‘all glyphs’ goes through all active (i.e., master, brace and bracket) layers and can take a minute."
+		scopeTooltip = "Which layers to process. The ⚠️ options go through all master and special (brace, bracket) layers and can take a while."
 		self.w.scopeText = vanilla.TextBox("auto", "Process:", sizeStyle="small", selectable=True)
 		self.w.scopeText.setToolTip(scopeTooltip)
-		self.w.processScope = vanilla.PopUpButton(
+		self.w.layerScope = vanilla.PopUpButton(
 			"auto",
-			("selected glyphs", "all glyphs in frontmost font", "⚠️ all glyphs in ALL open fonts"),
+			("currently selected layers only", "all masters of selected glyphs", "⚠️ all glyphs in font", "⚠️ all glyphs in all open fonts"),
 			sizeStyle="small",
 			callback=self.SavePreferences,
 		)
-		self.w.processScope.setToolTip(scopeTooltip)
-
-		self.w.allMasters = vanilla.CheckBox("auto", "Process ⚠️ ALL masters of selected glyphs", value=False, callback=self.SavePreferences, sizeStyle="small")
-		self.w.allMasters.setToolTip("If checked, will go through all master layers and special layers of selected glyphs. If unchecked, will only process the currently visible layer.")
+		self.w.layerScope.setToolTip(scopeTooltip)
 
 		self.w.excludeText = vanilla.TextBox("auto", "Exclude glyphs with:", sizeStyle="small", selectable=True)
 		self.w.exclude = vanilla.EditText("auto", ".ornm, BlackIndex, Heart, apple", callback=self.SavePreferences, sizeStyle="small")
 		self.w.resetButton = UpdateButton("auto", callback=self.resetToDefaults)
+		excludeTooltip = "Skips glyphs whose names contain any of these comma-separated strings. Only applies to the ⚠️ ‘all glyphs’ options."
+		self.w.excludeText.setToolTip(excludeTooltip)
+		self.w.exclude.setToolTip(excludeTooltip)
 		self.w.resetButton.setToolTip("Resets all settings of this window to their defaults.")
 
 		self.w.reportInMacroWindow = vanilla.CheckBox("auto", "Report in Macro window", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reportInMacroWindowVerbose = vanilla.CheckBox("auto", "Verbose", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reportInMacroWindow.setToolTip("If enabled, will output a report in Window > Macro Panel.")
-		self.w.reportInMacroWindowVerbose.setToolTip("If enabled, will output a verbose (detailed) report in Window > Macro Panel.")
+		self.w.reportInMacroWindow.setToolTip("Writes a report to the Macro Panel.")
+		self.w.reportInMacroWindowVerbose.setToolTip("Reports every layer, not just the ones with changes.")
 
 		self.w.shouldMark = vanilla.CheckBox("auto", "Mark affected nodes", value=False, callback=self.SavePreferences, sizeStyle='small')
-		self.w.shouldMark.setToolTip("If enabled, will mark (intended) node type changes as follows: 💚=SMOOTH 🔷=CORNER.")
+		self.w.shouldMark.setToolTip("Names changed nodes: 💚 for green, 🔷 for blue.")
 		self.w.reuseTab = vanilla.CheckBox("auto", "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.reuseTab.setToolTip("If enabled, will use the current tab for output, and only open a new tab if there is none open.")
+		self.w.reuseTab.setToolTip("Shows the result in the current tab instead of opening a new one.")
 
 		self.w.progress = vanilla.ProgressBar("auto")
 		self.w.progress.set(0)  # set progress indicator to zero
+		self.w.progress.setToolTip("Progress of the run.")
 
 		self.w.processingText = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle='small', selectable=True)
 		self.w.processingText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Treat Points", callback=self.GreenBlueManagerMain)
+		self.w.runButton.setToolTip("Runs the enabled treatments on the chosen layers. Without any treatment enabled, opens a tab with the affected layers.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window
@@ -135,15 +139,14 @@ class GreenBlueManager(mekkaObject):
 			"H:|-inset-[fixGreenBlue]-(>=inset)-|",
 			"H:|-inset-[realignHandles]-(>=inset)-|",
 			"H:|-inset-[separator]-inset-|",
-			"H:|-inset-[scopeText]-gap-[processScope]-inset-|",
-			"H:|-inset-[allMasters]-(>=inset)-|",
+			"H:|-inset-[scopeText]-gap-[layerScope]-inset-|",
 			"H:|-inset-[excludeText]-gap-[exclude]-gap-[resetButton]-inset-|",
 			"H:|-inset-[reportInMacroWindow]-gap-[reportInMacroWindowVerbose]-(>=inset)-|",
 			"H:|-inset-[shouldMark]-gap-[reuseTab]-(>=inset)-|",
 			"H:|-inset-[progress]-inset-|",
 			"H:|-inset-[processingText]-(>=gap)-[runButton(>=100)]-inset-|",
 			{"view1": self.w.thresholdAngleText, "attribute1": "centerY", "view2": self.w.thresholdAngle, "attribute2": "centerY"},
-			{"view1": self.w.scopeText, "attribute1": "centerY", "view2": self.w.processScope, "attribute2": "centerY"},
+			{"view1": self.w.scopeText, "attribute1": "centerY", "view2": self.w.layerScope, "attribute2": "centerY"},
 			{"view1": self.w.excludeText, "attribute1": "centerY", "view2": self.w.exclude, "attribute2": "centerY"},
 			{"view1": self.w.resetButton, "attribute1": "centerY", "view2": self.w.exclude, "attribute2": "centerY"},
 			{"view1": self.w.reportInMacroWindowVerbose, "attribute1": "centerY", "view2": self.w.reportInMacroWindow, "attribute2": "centerY"},
@@ -165,7 +168,7 @@ class GreenBlueManager(mekkaObject):
 			rules.append({"view1": self.w.starNodesAction, "attribute1": "centerY", "view2": self.w.starNodes, "attribute2": "centerY"})
 			verticalRule += "-stackRow-[starNodes]"
 
-		verticalRule += "-row-[separator(1)]-row-[processScope]-row-[allMasters]-stackRow-[exclude]-stackRow-[reportInMacroWindow]-stackRow-[shouldMark]-barGap-[progress(16)]-inset-[runButton]-inset-|"
+		verticalRule += "-row-[separator(1)]-row-[layerScope]-row-[exclude]-stackRow-[reportInMacroWindow]-stackRow-[shouldMark]-barGap-[progress(16)]-inset-[runButton]-inset-|"
 		rules.append(verticalRule)
 
 		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "row": 8, "stackRow": 8, "barGap": 12})
@@ -371,13 +374,13 @@ class GreenBlueManager(mekkaObject):
 			if shouldReport:
 				Glyphs.clearLog()
 
-			scope = self.pref("processScope")
+			scope = self.pref("layerScope")
 			if not Glyphs.font:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 				return
-			elif scope == 2:  # all glyphs in all open fonts
+			elif scope == 3:  # all glyphs in all open fonts
 				theseFonts = Glyphs.fonts
-			else: # current font
+			else:  # current font
 				theseFonts = (Glyphs.font, )
 
 			for thisFont in theseFonts:
@@ -396,33 +399,27 @@ class GreenBlueManager(mekkaObject):
 
 				# determine which layers to process:
 				layersToBeProcessed, glyphsToBeProcessed = [], []
-				if scope in (1, 2):
-					mID = thisFont.selectedFontMaster.id
+				if scope in (2, 3):  # all glyphs in font(s)
 					for thisGlyph in thisFont.glyphs:
 						if any([x in thisGlyph.name for x in exclude]):
 							print(f"Skipping {thisGlyph.name}: excluded as requested.")
 							continue
-						if self.pref("allMasters"):
-							for thisLayer in thisGlyph.layers:
-								if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
-									layersToBeProcessed.append(thisLayer)
-						else:
-							thisLayer = thisGlyph.layers[mID]
-							layersToBeProcessed.append(thisLayer)
-				else:
-					if self.pref("allMasters"):
-						glyphsToBeProcessed = [layer.parent for layer in thisFont.selectedLayers if layer.parent and not isinstance(layer, GSControlLayer)]
-						for g in glyphsToBeProcessed:
-							for layer in g.layers:
-								if layer.isSpecialLayer or layer.isMasterLayer:
-									layersToBeProcessed.append(layer)
-					else:
-						layersToBeProcessed = thisFont.selectedLayers
-				
+						for thisLayer in thisGlyph.layers:
+							if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
+								layersToBeProcessed.append(thisLayer)
+				elif scope == 1:  # all masters of selected glyphs
+					glyphsToBeProcessed = [layer.parent for layer in thisFont.selectedLayers if layer.parent and not isinstance(layer, GSControlLayer)]
+					for g in glyphsToBeProcessed:
+						for layer in g.layers:
+							if layer.isSpecialLayer or layer.isMasterLayer:
+								layersToBeProcessed.append(layer)
+				else:  # currently selected layers only
+					layersToBeProcessed = thisFont.selectedLayers
+
 				if not layersToBeProcessed:
 					print(
 						"❌ Green Blue Manager Error: No Selection",
-						"\n⚠️ No glyphs selected for processing. Either select some glyphs or select the option ‘Process ALL glyphs’.",
+						"\n⚠️ No glyphs selected for processing. Either select some glyphs or choose one of the ‘all glyphs’ options in ‘Process’.",
 					)
 				else:
 					numberOfLayers = len(layersToBeProcessed)
