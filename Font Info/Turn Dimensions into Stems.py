@@ -1,5 +1,4 @@
 # MenuTitle: Turn Dimensions into Stems
-# -*- coding: utf-8 -*-
 __doc__ = """
 Turns all H and V dimensions (in the Dimensions palette) into H and V stems.
 """

@@ -1,5 +1,4 @@
 # MenuTitle: Increase Line Height
-# -*- coding: utf-8 -*-
 __doc__ = """
 Increase the Edit View line height.
 """

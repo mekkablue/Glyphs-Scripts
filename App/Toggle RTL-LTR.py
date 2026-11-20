@@ -1,5 +1,4 @@
 # MenuTitle: Toggle RTL/LTR
-# -*- coding: utf-8 -*-
 __doc__ = """
 Toggle frontmost tab between LTR and RTL writing direction. Useful for setting a keyboard shortcuts.
 """

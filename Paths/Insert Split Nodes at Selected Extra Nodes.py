@@ -1,5 +1,4 @@
 # MenuTitle: Insert Split Nodes at Selected Extra Nodes
-# -*- coding: utf-8 -*-
 __doc__="""
 Select an Extra Node (View > Show Nodes > Extra Nodes) and run this script, it will insert nodes in the respective paths. Do not rely on this script, it will become an extension to the Select tool (V) later.
 """

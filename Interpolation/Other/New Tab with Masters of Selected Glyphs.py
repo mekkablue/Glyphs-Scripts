@@ -1,5 +1,4 @@
 # MenuTitle: New Tab with Masters of Selected Glyphs
-# -*- coding: utf-8 -*-
 __doc__ = """
 Opens a new Edit tab containing all masters of selected glyphs.
 """

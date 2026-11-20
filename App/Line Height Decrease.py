@@ -1,5 +1,4 @@
 # MenuTitle: Decrease Line Height
-# -*- coding: utf-8 -*-
 __doc__ = """
 Decrease the Edit View line height.
 """

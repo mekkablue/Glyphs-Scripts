@@ -1,5 +1,4 @@
 # MenuTitle: Make Glyph Smart
-# -*- coding: utf-8 -*-
 __doc__ = """
 Turn the currently selected glyph(s) into smart glyphs, and establish the current font axes as the glyph’s smart axes.
 """

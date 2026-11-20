@@ -1,5 +1,4 @@
 # MenuTitle: Set WWS Names (Name IDs 21 and 22)
-# -*- coding: utf-8 -*-
 __doc__ = """
 Sets WWS custom parameters (Name IDs 21 and 22) for all instances where necessary: Puts all info except RIBBI into the WWSFamilyName, and only keeps RIBBI for the WWSSubfamilyName.
 """

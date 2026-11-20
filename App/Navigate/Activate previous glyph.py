@@ -1,5 +1,4 @@
 # MenuTitle: Activate Previous Glyph
-# -*- coding: utf-8 -*-
 __doc__ = """
 Will activate the previous glyph in Edit view.
 """

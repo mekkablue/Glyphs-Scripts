@@ -1,5 +1,4 @@
 # MenuTitle: Show Masters of Next Glyph
-# -*- coding: utf-8 -*-
 __doc__ = """
 Shows all masters for the next glyph.
 """

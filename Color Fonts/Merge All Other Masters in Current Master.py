@@ -1,5 +1,4 @@
 # MenuTitle: Merge All Other Masters in Current Master
-# -*- coding: utf-8 -*-
 __doc__ = """
 For selected glyphs, merges all paths from other masters onto the current master layer.
 """

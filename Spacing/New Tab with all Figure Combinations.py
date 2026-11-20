@@ -1,5 +1,4 @@
 # MenuTitle: New Tab with All Figure Combinations
-# -*- coding: utf-8 -*-
 __doc__ = """
 Opens a new edit tab and outputs all possible figure combos: 00010203..., 10111213... etc.
 """

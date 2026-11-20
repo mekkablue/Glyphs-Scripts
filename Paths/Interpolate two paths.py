@@ -1,5 +1,4 @@
 # MenuTitle: Interpolate Two Paths
-# -*- coding: utf-8 -*-
 __doc__ = """
 Select two paths and run this script, it will replace them with their interpolation at 50%.
 """

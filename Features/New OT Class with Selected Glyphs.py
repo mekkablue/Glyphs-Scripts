@@ -1,5 +1,4 @@
 # MenuTitle: New OT Class with Selected Glyphs
-# -*- coding: utf-8 -*-
 __doc__ = """
 Creates a new OT class containing the selected glyphs.
 """

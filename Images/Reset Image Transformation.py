@@ -1,5 +1,4 @@
 # MenuTitle: Reset Image Transformations
-# -*- coding: utf-8 -*-
 __doc__ = """
 Resets all placed images to 100% scale and 0/0 position.
 """

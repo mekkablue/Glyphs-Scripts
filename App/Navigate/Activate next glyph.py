@@ -1,5 +1,4 @@
 # MenuTitle: Activate Next Glyph
-# -*- coding: utf-8 -*-
 __doc__ = """
 Will activate the next glyph in Edit view.
 """

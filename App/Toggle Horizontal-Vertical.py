@@ -1,5 +1,4 @@
 # MenuTitle: Toggle Horizontal-Vertical
-# -*- coding: utf-8 -*-
 __doc__ = """
 Toggle frontmost tab between LTR (horizontal) and vertical writing direction. Useful for setting a keyboard shortcuts.
 """

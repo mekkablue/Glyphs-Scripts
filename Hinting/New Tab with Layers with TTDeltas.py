@@ -1,5 +1,4 @@
 # MenuTitle: New Tab with Layers with TTDeltas
-# -*- coding: utf-8 -*-
 __doc__ = """
 Opens new tab with layers with deltas.
 """
