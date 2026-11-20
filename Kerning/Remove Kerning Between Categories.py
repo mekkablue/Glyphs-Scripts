@@ -1,6 +1,6 @@
 # MenuTitle: Remove Kerning Between Categories
 __doc__ = """
-Removes kerning between glyphs, categories, subcategories, scripts.
+Removes kerning between glyphs, categories, subcategories, scripts, cases. Optionally only exceptions, or only group kerning.
 """
 
 import vanilla
@@ -14,7 +14,15 @@ class RemoveKerning(mekkaObject):
 		"includeDirtyCategories": 0,
 		"reportInMacroWindow": 0,
 		"processAllMasters": 0,
+		"limitToKind": 0,
+		"kindToRemove": 0,
 	}
+	kindsToRemove = (
+		"All exceptions (glyph-glyph, glyph-group, group-glyph)",
+		"Strict exceptions (glyph-glyph)",
+		"All group kernings (group-group, group-glyph, glyph-group)",
+		"Strict group kernings (group-group)",
+	)
 	registeredCases = (
 		"No Case",  # 0 GSNoCase
 		"Uppercase",  # 1 GSUppercase
@@ -40,9 +48,9 @@ class RemoveKerning(mekkaObject):
 		rowNames = ("Category", "SubCategory", "Script", "Case")
 		rowTitles = ("Category", "Subcategory", "Script", "Case")
 		for rowName, rowTitle in zip(rowNames, rowTitles):
-			setattr(self.w, f"left{rowName}Text", vanilla.TextBox("auto", f"L {rowTitle}:", sizeStyle='small', selectable=True))
+			setattr(self.w, f"left{rowName}Text", vanilla.TextBox("auto", f"L {rowTitle}", sizeStyle='small', selectable=True))
 			setattr(self.w, f"left{rowName}", vanilla.PopUpButton("auto", (), sizeStyle='small', callback=self.updateUI))
-			setattr(self.w, f"right{rowName}Text", vanilla.TextBox("auto", f"R {rowTitle}:", sizeStyle='small', selectable=True))
+			setattr(self.w, f"right{rowName}Text", vanilla.TextBox("auto", f"R {rowTitle}", sizeStyle='small', selectable=True))
 			setattr(self.w, f"right{rowName}", vanilla.PopUpButton("auto", (), sizeStyle='small', callback=self.updateUI))
 
 		if Glyphs.versionNumber < 3:
@@ -50,6 +58,14 @@ class RemoveKerning(mekkaObject):
 			self.w.rightCase.enable(False)
 
 		self.ReloadCategories()
+
+		self.w.limitToKind = vanilla.CheckBox("auto", "Only remove", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.limitToKind.setToolTip("Limit the removal to a kind of kerning pairs, chosen on the right. Without this, all pairs between the glyphs above are removed: exceptions as well as group kerning.")
+		self.w.kindToRemove = vanilla.PopUpButton("auto", self.kindsToRemove, callback=self.SavePreferences, sizeStyle='small')
+		self.w.kindToRemove.setToolTip(
+			"Exceptions are pairs with a glyph on at least one side (glyph-glyph, glyph-group, group-glyph); ‘strict’ exceptions are glyph-glyph pairs only. "
+			"Group kerning is pairs with a group on at least one side (group-group, group-glyph, glyph-group); ‘strict’ group kerning is group-group pairs only."
+		)
 
 		self.w.includeDirtyCategories = vanilla.CheckBox("auto", "Delete group kerning even if groups are ‘dirty’ (e.g., group with uppercase and lowercase letters mixed)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reportInMacroWindow = vanilla.CheckBox("auto", "Detailed report in macro window", value=False, callback=self.SavePreferences, sizeStyle='small')
@@ -74,6 +90,10 @@ class RemoveKerning(mekkaObject):
 		for view in self.w.getNSWindow().contentView().subviews():
 			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
 
+		self.w.limitToKind.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.kindToRemove.getNSPopUpButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.kindToRemove.getNSPopUpButton().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
 		# labels are right-aligned, hug their text and share one width:
 		labelNames = [f"{side}{rowName}Text" for rowName in rowNames for side in ("left", "right")]
 		for labelName in labelNames:
@@ -97,18 +117,20 @@ class RemoveKerning(mekkaObject):
 			rules.append(equal("width", f"right{rowName}Text", "leftCategoryText"))
 			rules.append(equal("width", f"right{rowName}", "leftCategory"))
 		rules += [
+			"H:|-inset-[limitToKind]-gap-[kindToRemove]-inset-|",
 			"H:|-inset-[includeDirtyCategories]-(>=inset)-|",
 			"H:|-inset-[reportInMacroWindow]-(>=inset)-|",
 			"H:|-inset-[processAllMasters]-(>=inset)-|",
 			"H:|-inset-[progress]-inset-|",
 			"H:|-inset-[statusText]-(>=gap)-[reloadButton(>=70)]-gap-[runButton(>=70)]-inset-|",
-			"V:|-inset-[descriptionText]-headlineGap-[leftCategory]-row-[leftSubCategory]-row-[leftScript]-row-[leftCase]-sectionGap-[includeDirtyCategories]-checkRow-[reportInMacroWindow]-checkRow-[processAllMasters]-sectionGap-[progress(16)]-inset-[runButton]-inset-|",
+			"V:|-inset-[descriptionText]-headlineGap-[leftCategory]-row-[leftSubCategory]-row-[leftScript]-row-[leftCase]-sectionGap-[limitToKind]-stackRow-[includeDirtyCategories]-stackRow-[reportInMacroWindow]-stackRow-[processAllMasters]-sectionGap-[progress(16)]-inset-[runButton]-inset-|",
 			"V:[reloadButton]-inset-|",
 			equal("centerY", "statusText", "runButton"),
+			equal("centerY", "kindToRemove", "limitToKind"),
 		]
 		self.w.addAutoPosSizeRules(
 			rules,
-			metrics={"inset": inset, "gap": 8, "columnGap": 20, "row": 6, "headlineGap": 12, "sectionGap": 14, "checkRow": 5},
+			metrics={"inset": inset, "gap": 8, "columnGap": 20, "row": 6, "headlineGap": 12, "sectionGap": 14, "stackRow": 8},
 		)
 
 		# Load Settings:
@@ -139,23 +161,12 @@ class RemoveKerning(mekkaObject):
 			print(e)
 
 	def updateUI(self, sender=None):
+		self.w.kindToRemove.enable(bool(self.w.limitToKind.get()))
 		self.buttonEnable()
 		self.status(self.predictionText())
 
 	def buttonEnable(self, sender=None):
-		count = 0
-		count += self.w.leftCategory.get()
-		count += self.w.rightCategory.get()
-		count += self.w.leftSubCategory.get()
-		count += self.w.rightSubCategory.get()
-		count += self.w.leftScript.get()
-		count += self.w.rightScript.get()
-		count += self.w.leftCase.get()
-		count += self.w.rightCase.get()
-		if count > 0:
-			self.w.runButton.enable(True)
-		else:
-			self.w.runButton.enable(False)
+		self.w.runButton.enable(self.anyCriterionIsSet())
 
 	def allCases(self, sender=None):
 		if Glyphs.versionNumber < 3:
@@ -298,6 +309,19 @@ class RemoveKerning(mekkaObject):
 		for groupName in rightGroups:
 			rightNameForKey["@MMK_R_%s" % groupName] = "@MMK_R_%s" % groupName
 
+		limitToKind = self.prefBool("limitToKind")
+		kind = self.prefInt("kindToRemove")
+
+		def isOfKind(leftKey, rightKey):
+			leftIsGroup, rightIsGroup = leftKey.startswith("@"), rightKey.startswith("@")
+			if kind == 0:  # all exceptions: a glyph on at least one side
+				return not (leftIsGroup and rightIsGroup)
+			if kind == 1:  # strict exceptions: glyph-glyph
+				return not leftIsGroup and not rightIsGroup
+			if kind == 2:  # all group kernings: a group on at least one side
+				return leftIsGroup or rightIsGroup
+			return leftIsGroup and rightIsGroup  # strict group kernings: group-group
+
 		pairs = []
 		for masterID in self.mastersToProcess(thisFont):
 			kerning = thisFont.kerning[masterID]
@@ -307,7 +331,7 @@ class RemoveKerning(mekkaObject):
 				if leftKey not in leftNameForKey:
 					continue
 				for rightKey in list(kerning[leftKey].keys()):
-					if rightKey in rightNameForKey:
+					if rightKey in rightNameForKey and (not limitToKind or isOfKind(leftKey, rightKey)):
 						pairs.append((masterID, leftNameForKey[leftKey], rightNameForKey[rightKey]))
 		return pairs
 
@@ -319,7 +343,9 @@ class RemoveKerning(mekkaObject):
 		return "🔮 Will remove %i pair%s." % (pairCount, "" if pairCount == 1 else "s")
 
 	def anyCriterionIsSet(self):
-		# the button is only enabled if at least one popup is not ‘Any’; without that, nothing is removed
+		"""Without a criterion, everything would be removed: at least one popup is not ‘Any’, or the kind of pairs is limited."""
+		if self.w.limitToKind.get():
+			return True
 		return any(
 			getattr(self.w, f"{side}{rowName}").get() > 0
 			for side in ("left", "right")
