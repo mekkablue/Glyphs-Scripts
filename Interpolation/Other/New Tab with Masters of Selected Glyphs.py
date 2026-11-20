@@ -1,6 +1,5 @@
 # MenuTitle: New Tab with Masters of Selected Glyphs
 # -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Opens a new Edit tab containing all masters of selected glyphs.
 """

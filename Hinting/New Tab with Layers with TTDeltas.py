@@ -1,6 +1,5 @@
 # MenuTitle: New Tab with Layers with TTDeltas
 # -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Opens new tab with layers with deltas.
 """

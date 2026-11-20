@@ -1,6 +1,5 @@
 # MenuTitle: Remove Orphaned Group Kerning
 # -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Deletes all group kernings referring to groups that are not (anymore) in the font.
 """

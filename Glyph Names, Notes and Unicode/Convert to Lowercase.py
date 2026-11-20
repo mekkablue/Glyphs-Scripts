@@ -1,6 +1,5 @@
 # MenuTitle: Convert to Lowercase
 # -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Turns uppercase names into lowercase names, e.g., `A` → `a`, `Ccaron` → `ccaron`, `AEacute` → `aeacute`, etc. Useful for smallcap glyphs.
 """

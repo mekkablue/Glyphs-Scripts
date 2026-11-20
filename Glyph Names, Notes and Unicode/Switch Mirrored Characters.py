@@ -1,6 +1,5 @@
 # MenuTitle: Switch Mirrored Characters
 # -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 In the current Edit View, switch mirrored BiDi characters, e.g. () → )(. Useful for switching parentheses and quotes after switching writing direction in a tab.
 """

@@ -1,6 +1,5 @@
 # MenuTitle: Shine Through Anchors
 # -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 In all layers of selected glyphs, inserts (‘traversing’) anchors from components.
 """

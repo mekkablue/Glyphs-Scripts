@@ -1,6 +1,5 @@
 # MenuTitle: Add sbix Images to Font
 # -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Will get all PNG, GIF, JPG files in a folder and create iColor layers with them in the current font. File name convention: ‘glyphName resolution.suffix’, e.g., ‘Adieresis 128.png’.
 """

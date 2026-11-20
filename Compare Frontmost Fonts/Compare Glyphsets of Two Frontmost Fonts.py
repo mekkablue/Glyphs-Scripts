@@ -1,6 +1,5 @@
 # MenuTitle: Compare Glyphsets
 # -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Compares the glyph set of the two frontmost fonts, outputs a report in the Macro Window, and opens a tab in each font with the glyphs that are missing in the other font.
 """

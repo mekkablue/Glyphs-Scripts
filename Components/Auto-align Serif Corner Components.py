@@ -1,6 +1,5 @@
 # MenuTitle: Auto-Align Serif Corner Components
 # -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Sets the alignment (left or right) of serif corner components (_corner.*) in the selected glyphs, depending on the orientation of the serif, the segment next to the corner’s node, and the horizontal scale of the corner component.
 """

@@ -1,6 +1,5 @@
 # MenuTitle: Add All Missing Color Layers to Selected Glyphs
 # -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Adds a duplicate of the fallback (master) layer for each color defined in the Color Palettes parameter, for each selected glyph.
 """
