@@ -10,8 +10,8 @@ from mekkablue import mekkaObject, UpdateButton
 from GlyphsApp import Glyphs, Message, GSMetricsTypeItalicAngle
 from AppKit import (
 	NSAffineTransform, NSAttributedString, NSBezierPath, NSBitmapImageFileTypePNG, NSColor, NSFont,
-	NSFontAttributeName, NSForegroundColorAttributeName, NSGraphicsContext, NSPasteboard, NSPasteboardTypePNG,
-	NSRectFill, NSView,
+	NSFontAttributeName, NSForegroundColorAttributeName, NSGraphicsContext, NSImage, NSPasteboard,
+	NSPasteboardTypePNG, NSRectFill, NSView,
 	NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical,
 	NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut,
 )
@@ -279,6 +279,13 @@ class ReportHighestAndLowestGlyphs(mekkaObject):
 			sizeStyle="small",
 		)
 		self.w.scope.setToolTip(scopeTooltip)
+		self.w.previousButton = vanilla.Button("auto", "", callback=self.stepThrough)
+		self.w.previousButton.getNSButton().setImage_(NSImage.imageNamed_("NSGoLeftTemplate"))
+		self.w.previousButton.getNSButton().setBordered_(False)
+		self.w.nextButton = vanilla.Button("auto", "", callback=self.stepThrough)
+		self.w.nextButton.getNSButton().setImage_(NSImage.imageNamed_("NSGoRightTemplate"))
+		self.w.nextButton.getNSButton().setBordered_(False)
+
 		self.w.updateButton = UpdateButton("auto", callback=self.refresh)
 		self.w.updateButton.setToolTip("Measure and redraw again, e.g. after switching the master, changing glyphs or opening a font.")
 
@@ -311,7 +318,9 @@ class ReportHighestAndLowestGlyphs(mekkaObject):
 				"H:|-inset-[report]-inset-|",
 				"H:|-inset-[showHighLow]-gap-[showLeftRight]-(>=inset)-|",
 				"H:|-inset-[showBBox]-gap-[showAll]-(>=inset)-|",
-				"H:|-inset-[scopeLabel]-gap-[scope]-gap-[updateButton(24)]-inset-|",
+				"H:|-inset-[scopeLabel]-gap-[scope]-gap-[previousButton(24)]-buttonGap-[nextButton(24)]-buttonGap-[updateButton(24)]-inset-|",
+				{"view1": self.w.previousButton, "attribute1": "centerY", "view2": self.w.scope, "attribute2": "centerY"},
+				{"view1": self.w.nextButton, "attribute1": "centerY", "view2": self.w.scope, "attribute2": "centerY"},
 				{"view1": self.w.updateButton, "attribute1": "centerY", "view2": self.w.scope, "attribute2": "centerY"},
 				"H:|-inset-[showMetrics]-gap-[showDesignMetrics]-(>=inset)-|",
 				"H:|-inset-[showLabels]-gap-[showNumbers]-(>=inset)-|",
@@ -327,7 +336,7 @@ class ReportHighestAndLowestGlyphs(mekkaObject):
 				{"view1": self.w.showBBox, "attribute1": "width", "view2": self.w.showHighLow, "attribute2": "width"},
 				{"view1": self.w.scopeLabel, "attribute1": "centerY", "view2": self.w.scope, "attribute2": "centerY"},
 			],
-			metrics={"inset": inset, "gap": 8, "row": 8, "checkRow": 5},
+			metrics={"inset": inset, "gap": 8, "row": 8, "checkRow": 5, "buttonGap": 4},
 		)
 
 		self.LoadPreferences()
@@ -415,6 +424,16 @@ class ReportHighestAndLowestGlyphs(mekkaObject):
 		if not Glyphs.font or self.w is None:
 			return
 		scope = self.prefInt("scope")
+		self.w.showLabels.enable(self.prefBool("showMetrics"))
+		stepEnabled = scope == 0 or (scope == 1 and len(Glyphs.fonts) > 1)
+		stepTooltips = {
+			0: ("Select the previous master of the frontmost font.", "Select the next master of the frontmost font."),
+			1: ("Bring the previous open font to the front.", "Bring the next open font to the front."),
+			2: ("Stepping is not available when measuring all open fonts.", ) * 2,
+		}[scope]
+		for button, tooltip in zip((self.w.previousButton, self.w.nextButton), stepTooltips):
+			button.enable(stepEnabled)
+			button.setToolTip(tooltip)
 		if scope != self.cachedScope:
 			self.cachedEntries = self.collectEntries()
 			self.cachedScope = scope
@@ -493,6 +512,19 @@ class ReportHighestAndLowestGlyphs(mekkaObject):
 		view.showBBox = self.prefBool("showBBox")
 		view.setNeedsDisplay_(True)
 		self.w.openTabButton.enable(bool(self.shownEntries))
+
+	def stepThrough(self, sender=None):
+		font = Glyphs.font
+		if not font:
+			return
+		step = -1 if sender is self.w.previousButton else 1
+		if self.prefInt("scope") == 0:
+			font.masterIndex = (font.masterIndex + step) % len(font.masters)
+		else:
+			fonts = tuple(Glyphs.fonts)
+			targetFont = fonts[(fonts.index(font) + step) % len(fonts)]
+			targetFont.parent.windowController().window().makeKeyAndOrderFront_(None)
+		self.refresh()
 
 	def refresh(self, sender=None):
 		self.cachedScope = None
