@@ -1,5 +1,6 @@
 # MenuTitle: Close All Tabs of All Open Fonts
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Closes all Edit tabs of all fonts currently open in the app.
 """

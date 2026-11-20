@@ -1,5 +1,6 @@
 # MenuTitle: Remove All Open Paths
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Deletes all open paths in visible layers of selected glyphs.
 """

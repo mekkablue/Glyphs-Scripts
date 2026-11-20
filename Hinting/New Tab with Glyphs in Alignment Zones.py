@@ -1,5 +1,6 @@
 # MenuTitle: New Tab with Glyphs in Alignment Zones
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
 from collections import OrderedDict
 __doc__ = """
 Opens a new tab and lists all glyphs that reach into alignment zones.

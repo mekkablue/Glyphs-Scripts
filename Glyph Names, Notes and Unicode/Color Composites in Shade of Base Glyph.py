@@ -1,5 +1,6 @@
 # MenuTitle: Color Composites in Shade of Base Glyph
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Color Composites in a lighter shade of the base glyph. E.g., if your A is has a red label color, then ÄÁÀĂ... will have a lighter shade of red.
 """

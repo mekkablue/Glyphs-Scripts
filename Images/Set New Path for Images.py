@@ -1,5 +1,6 @@
 # MenuTitle: Set New Path for Images
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Resets the path for placed images in selected glyphs. Useful if you have moved your images.
 """

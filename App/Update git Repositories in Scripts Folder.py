@@ -1,5 +1,6 @@
 # MenuTitle: Update Git Repositories in Scripts Folder
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Executes a 'git pull' command on all subfolders in the Glyphs Scripts folder. Will not work for the Glyphs 3 Repositories folder, which you need to take care of with the Plugin Manager.
 """

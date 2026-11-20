@@ -1,5 +1,6 @@
 # MenuTitle: Move ogonek Anchors to Baseline Intersection
 # -*- coding: utf-8 -*-
+from __future__ import division, print_function, unicode_literals
 __doc__ = """
 In selected glyphs, moves all ogonek and _ogonek anchors to the rightmost intersection of the outline with the baseline. Verbose report in
 """

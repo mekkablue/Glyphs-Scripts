@@ -1,4 +1,5 @@
 # MenuTitle: Convert RTL Kerning from Glyphs 2 to 3
+from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Convert RTL kerning from Glyphs 2 to Glyphs 3 format and switches the kerning classes. Detailed report in Macro Window.
 
