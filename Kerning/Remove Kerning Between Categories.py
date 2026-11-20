@@ -80,10 +80,18 @@ class RemoveKerning(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Remove", callback=self.RemoveKerningMain)
+		self.w.runButton.setToolTip("Removes the pairs. If you would like to see them first, click List.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Reload Button:
 		self.w.reloadButton = vanilla.Button("auto", "Reload", callback=self.ReloadCategories)
+		self.w.reloadButton.setToolTip("Reloads the categories, subcategories, scripts and cases of the frontmost font into the popups.")
+
+		# List Button:
+		self.w.listButton = vanilla.Button("auto", "List", callback=self.ListPairsMain)
+		self.w.listButton.setToolTip(
+			"Opens a tab in the frontmost font with the pairs that Remove would delete, instead of deleting them. Pairs with a kerning group are shown with a glyph of that group. With all masters, each pair is listed once."
+		)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window
 		# ends up exactly as tall as the content
@@ -122,9 +130,10 @@ class RemoveKerning(mekkaObject):
 			"H:|-inset-[reportInMacroWindow]-(>=inset)-|",
 			"H:|-inset-[processAllMasters]-(>=inset)-|",
 			"H:|-inset-[progress]-inset-|",
-			"H:|-inset-[statusText]-(>=gap)-[reloadButton(>=70)]-gap-[runButton(>=70)]-inset-|",
+			"H:|-inset-[statusText]-(>=gap)-[reloadButton(>=70)]-gap-[listButton(>=70)]-gap-[runButton(>=70)]-inset-|",
 			"V:|-inset-[descriptionText]-headlineGap-[leftCategory]-row-[leftSubCategory]-row-[leftScript]-row-[leftCase]-sectionGap-[limitToKind]-stackRow-[includeDirtyCategories]-stackRow-[reportInMacroWindow]-stackRow-[processAllMasters]-sectionGap-[progress(16)]-inset-[runButton]-inset-|",
 			"V:[reloadButton]-inset-|",
+			"V:[listButton]-inset-|",
 			equal("centerY", "statusText", "runButton"),
 			equal("centerY", "kindToRemove", "limitToKind"),
 		]
@@ -166,7 +175,9 @@ class RemoveKerning(mekkaObject):
 		self.status(self.predictionText())
 
 	def buttonEnable(self, sender=None):
-		self.w.runButton.enable(self.anyCriterionIsSet())
+		onOff = self.anyCriterionIsSet()
+		self.w.runButton.enable(onOff)
+		self.w.listButton.enable(onOff)
 
 	def allCases(self, sender=None):
 		if Glyphs.versionNumber < 3:
@@ -351,6 +362,72 @@ class RemoveKerning(mekkaObject):
 			for side in ("left", "right")
 			for rowName in ("Category", "SubCategory", "Script", "Case")
 		)
+
+	def glyphNameForKerningName(self, thisFont, name, isLeft):
+		"""The glyph to show for a name in a pair: glyph names are kept, a kerning group becomes one of its glyphs (the one named like the group, if it is a member)."""
+		if not name.startswith("@"):
+			return name
+		groupName = name.split("_", 2)[2]  # @MMK_L_A -> A
+		members = [
+			thisGlyph.name for thisGlyph in thisFont.glyphs
+			if (thisGlyph.rightKerningGroup if isLeft else thisGlyph.leftKerningGroup) == groupName
+		]
+		if groupName in members:
+			return groupName
+		return members[0] if members else None
+
+	def tabTextForPairs(self, thisFont, pairs):
+		"""One line for each left glyph, ‘/A/V/space/A/W/space’; each pair once, even if it is in more than one master."""
+		rightNamesForLeftName = {}
+		for masterID, leftName, rightName in pairs:
+			leftGlyphName = self.glyphNameForKerningName(thisFont, leftName, True)
+			rightGlyphName = self.glyphNameForKerningName(thisFont, rightName, False)
+			if leftGlyphName and rightGlyphName:
+				rightNamesForLeftName.setdefault(leftGlyphName, {})[rightGlyphName] = None
+		lines = [
+			"/space".join("/%s/%s" % (leftGlyphName, rightGlyphName) for rightGlyphName in rightGlyphNames)
+			for leftGlyphName, rightGlyphNames in rightNamesForLeftName.items()
+		]
+		pairCount = sum(len(rightGlyphNames) for rightGlyphNames in rightNamesForLeftName.values())
+		return "\n".join(lines), pairCount
+
+	def ListPairsMain(self, sender):
+		try:
+			# update settings to the latest user input:
+			self.SavePreferences()
+
+			thisFont = Glyphs.font  # frontmost font
+			if thisFont is None:
+				self.status("❌ No font open.")
+				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+				return
+
+			pairs = self.pairsToRemove(thisFont)
+			tabText, pairCount = self.tabTextForPairs(thisFont, pairs)
+			if not pairCount:
+				self.status("⚠️ No pairs to list.")
+				return
+
+			if self.pref("reportInMacroWindow"):
+				Glyphs.clearLog()
+				print("Remove Kerning Between Categories, pairs to be removed in %s:" % thisFont.familyName)
+				for masterID, leftName, rightName in pairs:
+					print("\t%s: %s %s" % (thisFont.fontMasterForId_(masterID).name, leftName, rightName))
+
+			# the tab shows one master at a time: the current one if it has pairs, otherwise the first one with pairs
+			masterIDs = [masterID for masterID, leftName, rightName in pairs]
+			masterID = thisFont.selectedFontMaster.id if thisFont.selectedFontMaster.id in masterIDs else masterIDs[0]
+			thisTab = thisFont.newTab(tabText)
+			thisTab.masterIndex = [thisMaster.id for thisMaster in thisFont.masters].index(masterID)
+			self.status("✅ Listed %i pair%s." % (pairCount, "" if pairCount == 1 else "s"))
+
+		except Exception as e:
+			# brings macro window to front and reports error:
+			Glyphs.showMacroWindow()
+			self.status("❌ Error. Details in Macro Window.")
+			print("Remove Kerning Between Categories Error: %s" % e)
+			import traceback
+			print(traceback.format_exc())
 
 	def RemoveKerningMain(self, sender):
 		try:
