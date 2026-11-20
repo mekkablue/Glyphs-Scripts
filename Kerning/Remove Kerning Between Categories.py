@@ -29,7 +29,7 @@ class RemoveKerning(mekkaObject):
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
-			"Remove Kerning",  # window title
+			"Remove Kerning Between Categories",  # window title
 			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
@@ -41,9 +41,9 @@ class RemoveKerning(mekkaObject):
 		rowTitles = ("Category", "Subcategory", "Script", "Case")
 		for rowName, rowTitle in zip(rowNames, rowTitles):
 			setattr(self.w, f"left{rowName}Text", vanilla.TextBox("auto", f"L {rowTitle}:", sizeStyle='small', selectable=True))
-			setattr(self.w, f"left{rowName}", vanilla.PopUpButton("auto", (), sizeStyle='small', callback=self.buttonEnable))
+			setattr(self.w, f"left{rowName}", vanilla.PopUpButton("auto", (), sizeStyle='small', callback=self.updateUI))
 			setattr(self.w, f"right{rowName}Text", vanilla.TextBox("auto", f"R {rowTitle}:", sizeStyle='small', selectable=True))
-			setattr(self.w, f"right{rowName}", vanilla.PopUpButton("auto", (), sizeStyle='small', callback=self.buttonEnable))
+			setattr(self.w, f"right{rowName}", vanilla.PopUpButton("auto", (), sizeStyle='small', callback=self.updateUI))
 
 		if Glyphs.versionNumber < 3:
 			self.w.leftCase.enable(False)
@@ -58,7 +58,8 @@ class RemoveKerning(mekkaObject):
 		self.w.progress = vanilla.ProgressBar("auto")
 		self.w.progress.set(0)  # set progress indicator to zero
 
-		self.w.statusText = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle='small', selectable=True)
+		self.w.statusText = vanilla.TextBox("auto", "🔮 Will remove – pairs.", sizeStyle='small', selectable=True)
+		self.w.statusText.setToolTip("Before you run: how many kerning pairs will be removed with the current settings. Afterwards: how many were removed.")
 		self.w.statusText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# Run Button:
@@ -112,8 +113,7 @@ class RemoveKerning(mekkaObject):
 
 		# Load Settings:
 		self.LoadPreferences()
-
-		self.buttonEnable()
+		self.updateUI()
 
 		# Open window and focus on it:
 		self.w.open()
@@ -133,8 +133,14 @@ class RemoveKerning(mekkaObject):
 			self.w.rightScript.setItems(scripts)
 			self.w.leftCase.setItems(cases)
 			self.w.rightCase.setItems(cases)
+			if sender is not None:
+				self.updateUI()  # the Reload button: the popups are back at ‘Any’
 		except Exception as e:
 			print(e)
+
+	def updateUI(self, sender=None):
+		self.buttonEnable()
+		self.status(self.predictionText())
 
 	def buttonEnable(self, sender=None):
 		count = 0
@@ -204,6 +210,122 @@ class RemoveKerning(mekkaObject):
 		if macroWindow:
 			print(" %s" % statusmsg)
 
+	def popupValues(self, side):
+		"""Category, subcategory, script and case chosen in the popups of a side (‘left’ or ‘right’); ‘Any’ if not restricted."""
+		category = getattr(self.w, f"{side}Category")
+		subCategory = getattr(self.w, f"{side}SubCategory")
+		script = getattr(self.w, f"{side}Script")
+		case = getattr(self.w, f"{side}Case")
+		return (
+			category.getItems()[category.get()],
+			subCategory.getItems()[subCategory.get()],
+			script.getItems()[script.get()],
+			self.caseAsNumberOrAny(case.getItems()[case.get()]),
+		)
+
+	def matchingGlyphsAndGroups(self, thisFont, reportInMacroWindow=None):
+		"""
+		Returns the names of the glyphs and the kerning groups that match the left and the right side:
+		leftGlyphNames, rightGlyphNames, leftGroups, rightGroups.
+		If reportInMacroWindow is not None, the status line shows the glyph that is looked at.
+		"""
+		announce = reportInMacroWindow is not None
+		includeDirtyCategories = self.prefBool("includeDirtyCategories")
+		leftCategory, leftSubCategory, leftScript, leftCase = self.popupValues("left")
+		rightCategory, rightSubCategory, rightScript, rightCase = self.popupValues("right")
+
+		leftGlyphNames, rightGlyphNames = [], []
+		leftGroups, rightGroups = [], []
+
+		for thisGlyph in thisFont.glyphs:
+			if announce:
+				self.status("🔠 %s" % thisGlyph.name, reportInMacroWindow)
+
+			leftCategoryOK = leftCategory == "Any" or thisGlyph.category == leftCategory
+			leftSubCategoryOK = leftSubCategory == "Any" or thisGlyph.subCategory == leftSubCategory
+			leftScriptOK = leftScript == "Any" or thisGlyph.script == leftScript
+			leftCaseOK = leftCase == "Any" or thisGlyph.case == leftCase
+			isAMatchingLeftGlyph = leftCategoryOK and leftSubCategoryOK and leftScriptOK and leftCaseOK
+			if isAMatchingLeftGlyph:
+				leftGlyphNames.append(thisGlyph.name)
+				if thisGlyph.rightKerningGroup and thisGlyph.rightKerningGroup not in leftGroups:
+					leftGroups.append(thisGlyph.rightKerningGroup)
+
+			rightCategoryOK = rightCategory == "Any" or thisGlyph.category == rightCategory
+			rightSubCategoryOK = rightSubCategory == "Any" or thisGlyph.subCategory == rightSubCategory
+			rightScriptOK = rightScript == "Any" or thisGlyph.script == rightScript
+			rightCaseOK = rightCase == "Any" or thisGlyph.case == rightCase
+			isAMatchingRightGlyph = rightCategoryOK and rightSubCategoryOK and rightScriptOK and rightCaseOK
+			if isAMatchingRightGlyph:
+				rightGlyphNames.append(thisGlyph.name)
+				if thisGlyph.leftKerningGroup and thisGlyph.leftKerningGroup not in rightGroups:
+					rightGroups.append(thisGlyph.leftKerningGroup)
+
+		if not includeDirtyCategories:
+			if announce:
+				self.status("🛠️ Sorting out dirty groups…", reportInMacroWindow)
+			if leftGroups or rightGroups:
+				for thisGlyph in thisFont.glyphs:
+					if thisGlyph.rightKerningGroup in leftGroups and thisGlyph.name not in leftGlyphNames:
+						while thisGlyph.rightKerningGroup in leftGroups:
+							leftGroups.remove(thisGlyph.rightKerningGroup)
+						if announce:
+							self.status("Dirty right group @MMK_L_%s skipped." % thisGlyph.rightKerningGroup, reportInMacroWindow)
+					if thisGlyph.leftKerningGroup in rightGroups and thisGlyph.name not in rightGlyphNames:
+						while thisGlyph.leftKerningGroup in rightGroups:
+							rightGroups.remove(thisGlyph.leftKerningGroup)
+						if announce:
+							self.status("Dirty left group @MMK_R_%s skipped." % thisGlyph.leftKerningGroup, reportInMacroWindow)
+
+		return leftGlyphNames, rightGlyphNames, leftGroups, rightGroups
+
+	def mastersToProcess(self, thisFont):
+		if self.prefBool("processAllMasters"):
+			return tuple(m.id for m in thisFont.masters)
+		return (thisFont.selectedFontMaster.id, )
+
+	def pairsToRemove(self, thisFont, reportInMacroWindow=None):
+		"""Returns (masterID, left name, right name) for each kerning pair that will be removed. Names are glyph names or @MMK_ group keys."""
+		leftGlyphNames, rightGlyphNames, leftGroups, rightGroups = self.matchingGlyphsAndGroups(thisFont, reportInMacroWindow)
+
+		# the kerning dictionary has glyph IDs and group keys; removeKerningForPair() wants glyph names and group keys:
+		leftNameForKey, rightNameForKey = {}, {}
+		for glyphNames, nameForKey in ((leftGlyphNames, leftNameForKey), (rightGlyphNames, rightNameForKey)):
+			for glyphName in glyphNames:
+				nameForKey[thisFont.glyphs[glyphName].id] = glyphName
+		for groupName in leftGroups:
+			leftNameForKey["@MMK_L_%s" % groupName] = "@MMK_L_%s" % groupName
+		for groupName in rightGroups:
+			rightNameForKey["@MMK_R_%s" % groupName] = "@MMK_R_%s" % groupName
+
+		pairs = []
+		for masterID in self.mastersToProcess(thisFont):
+			kerning = thisFont.kerning[masterID]
+			if not kerning:
+				continue  # a master without any kerning has no kerning dictionary at all
+			for leftKey in list(kerning.keys()):
+				if leftKey not in leftNameForKey:
+					continue
+				for rightKey in list(kerning[leftKey].keys()):
+					if rightKey in rightNameForKey:
+						pairs.append((masterID, leftNameForKey[leftKey], rightNameForKey[rightKey]))
+		return pairs
+
+	def predictionText(self):
+		thisFont = Glyphs.font
+		if thisFont is None or not self.anyCriterionIsSet():
+			return "🔮 Will remove – pairs."
+		pairCount = len(self.pairsToRemove(thisFont))
+		return "🔮 Will remove %i pair%s." % (pairCount, "" if pairCount == 1 else "s")
+
+	def anyCriterionIsSet(self):
+		# the button is only enabled if at least one popup is not ‘Any’; without that, nothing is removed
+		return any(
+			getattr(self.w, f"{side}{rowName}").get() > 0
+			for side in ("left", "right")
+			for rowName in ("Category", "SubCategory", "Script", "Case")
+		)
+
 	def RemoveKerningMain(self, sender):
 		try:
 			# update settings to the latest user input:
@@ -214,108 +336,26 @@ class RemoveKerning(mekkaObject):
 				self.status("❌ No font open.")
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 				return
-			includeDirtyCategories = self.pref("includeDirtyCategories")
 			reportInMacroWindow = self.pref("reportInMacroWindow")
 
 			# brings macro window to front and clears its log:
 			if reportInMacroWindow:
 				Glyphs.clearLog()
 
-			print("'Remove Kerning' Report for: %s" % thisFont.familyName)
+			print("Remove Kerning Between Categories Report for: %s" % thisFont.familyName)
 			if thisFont.filepath:
 				print(thisFont.filepath)
 				print()
 
-			leftCategory = self.w.leftCategory.getItems()[self.w.leftCategory.get()]
-			leftSubCategory = self.w.leftSubCategory.getItems()[self.w.leftSubCategory.get()]
-			leftScript = self.w.leftScript.getItems()[self.w.leftScript.get()]
-			leftCase = self.caseAsNumberOrAny(self.w.leftCase.getItems()[self.w.leftCase.get()])
-
-			rightCategory = self.w.rightCategory.getItems()[self.w.rightCategory.get()]
-			rightSubCategory = self.w.rightSubCategory.getItems()[self.w.rightSubCategory.get()]
-			rightScript = self.w.rightScript.getItems()[self.w.rightScript.get()]
-			rightCase = self.caseAsNumberOrAny(self.w.rightCase.getItems()[self.w.rightCase.get()])
-
-			leftGlyphNames, rightGlyphNames = [], []
-			leftGroups, rightGroups = [], []
-
-			for thisGlyph in thisFont.glyphs:
-				self.status("🔠 %s" % thisGlyph.name, reportInMacroWindow)
-
-				leftCategoryOK = leftCategory == "Any" or thisGlyph.category == leftCategory
-				leftSubCategoryOK = leftSubCategory == "Any" or thisGlyph.subCategory == leftSubCategory
-				leftScriptOK = leftScript == "Any" or thisGlyph.script == leftScript
-				leftCaseOK = leftCase == "Any" or thisGlyph.case == leftCase
-				isAMatchingLeftGlyph = leftCategoryOK and leftSubCategoryOK and leftScriptOK and leftCaseOK
-				if isAMatchingLeftGlyph:
-					leftGlyphNames.append(thisGlyph.name)
-					if thisGlyph.rightKerningGroup and thisGlyph.rightKerningGroup not in leftGroups:
-						leftGroups.append(thisGlyph.rightKerningGroup)
-
-				rightCategoryOK = rightCategory == "Any" or thisGlyph.category == rightCategory
-				rightSubCategoryOK = rightSubCategory == "Any" or thisGlyph.subCategory == rightSubCategory
-				rightScriptOK = rightScript == "Any" or thisGlyph.script == rightScript
-				rightCaseOK = rightCase == "Any" or thisGlyph.case == rightCase
-				isAMatchingRightGlyph = rightCategoryOK and rightSubCategoryOK and rightScriptOK and rightCaseOK
-				if isAMatchingRightGlyph:
-					rightGlyphNames.append(thisGlyph.name)
-					if thisGlyph.leftKerningGroup and thisGlyph.leftKerningGroup not in rightGroups:
-						rightGroups.append(thisGlyph.leftKerningGroup)
-
-			if not includeDirtyCategories:
-				self.status("🛠️ Sorting out dirty groups…", reportInMacroWindow)
-				if leftGroups or rightGroups:
-					for thisGlyph in thisFont.glyphs:
-						if thisGlyph.rightKerningGroup in leftGroups and thisGlyph.name not in leftGlyphNames:
-							while thisGlyph.rightKerningGroup in leftGroups:
-								leftGroups.remove(thisGlyph.rightKerningGroup)
-							self.status("Dirty right group @MMK_L_%s skipped." % thisGlyph.rightKerningGroup, reportInMacroWindow)
-						if thisGlyph.leftKerningGroup in rightGroups and thisGlyph.name not in rightGlyphNames:
-							while thisGlyph.leftKerningGroup in rightGroups:
-								rightGroups.remove(thisGlyph.leftKerningGroup)
-							self.status("Dirty left group @MMK_R_%s skipped." % thisGlyph.leftKerningGroup, reportInMacroWindow)
-
-			if self.pref("processAllMasters"):
-				masterIDs = tuple([m.id for m in thisFont.masters])
-			else:
-				masterIDs = (thisFont.selectedFontMaster.id, )
-
-			leftNames = leftGlyphNames + ["@MMK_L_%s" % groupname for groupname in leftGroups]
-			rightNames = rightGlyphNames + ["@MMK_R_%s" % groupname for groupname in rightGroups]
-
-			fullLength = max(1, len(masterIDs) * len(leftNames) * len(rightNames))
-			counter = 0
+			pairs = self.pairsToRemove(thisFont, reportInMacroWindow)
+			fullLength = max(1, len(pairs))
 			removalCount = 0
-
-			for masterID in masterIDs:
+			for masterID, leftName, rightName in pairs:
 				masterName = thisFont.fontMasterForId_(masterID).name
-				self.status("🛠️ Processing master '%s'…" % masterName, reportInMacroWindow)
-				if masterID in thisFont.kerning.keys():
-					for leftName in leftNames:
-						try:
-							leftID = thisFont.glyphs[leftName].id
-						except:
-							# tried to find a glyph named like a group
-							leftID = leftName
-						if leftID in thisFont.kerning[masterID].keys():
-							for rightName in rightNames:
-								try:
-									rightID = thisFont.glyphs[rightName].id
-								except:
-									# tried to find a glyph named like a group
-									rightID = rightName
-								if rightID in thisFont.kerning[masterID][leftID].keys():
-									self.status("🛠️ Master %s: removing %s:%s" % (masterName, leftName, rightName), True)
-									thisFont.removeKerningForPair(masterID, leftName, rightName)
-									removalCount += 1
-								counter += 1
-								self.w.progress.set(counter / fullLength * 100)
-						else:
-							counter += len(rightNames)
-							self.w.progress.set(counter / fullLength * 100)
-				else:
-					counter += len(leftNames) * len(rightNames)
-					self.w.progress.set(counter / fullLength * 100)
+				self.status("🛠️ Master %s: removing %s:%s" % (masterName, leftName, rightName), True)
+				thisFont.removeKerningForPair(masterID, leftName, rightName)
+				removalCount += 1
+				self.w.progress.set(removalCount / fullLength * 100)
 
 			self.w.progress.set(100)
 			self.status(
@@ -329,7 +369,7 @@ class RemoveKerning(mekkaObject):
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print("Remove Kerning Error: %s" % e)
+			print("Remove Kerning Between Categories Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
 
