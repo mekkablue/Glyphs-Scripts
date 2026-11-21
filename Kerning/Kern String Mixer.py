@@ -445,7 +445,7 @@ class KernStringMixer(mekkaObject):
 
 	def mixedText(self, firstNames, secondNames, avoidDuplicates=True, groups=None):
 		"""
-		Returns the text for the tab (one line per first glyph, ‘/a/b/a/c/a’, so a-b, b-a, a-c and c-a are all next to each other),
+		Returns the text for the tab (one line per first glyph, ‘/a/b/a/c/a’, so a-b, b-a, a-c and c-a are all next to each other; the glyph with itself is just ‘/a/a’),
 		the number of pairs left out because they were in the text already, and the number of pairs in the text.
 		groups: None, or the right groups and the left groups of the glyphs (see groupsOfNames()); then pairs of groups count, not of glyphs.
 		"""
@@ -470,7 +470,10 @@ class KernStringMixer(mekkaObject):
 				if (avoidDuplicates or groups) and pairKey(a, b) in shownPairs:
 					skippedCount += 1
 					continue
-				glyphNames += [a, b]
+				if not glyphNames:
+					glyphNames.append(a)
+				# a glyph with itself needs only one more a, otherwise ‘/A/A/A’ would show AA twice
+				glyphNames += [a] if b == a else [b, a]
 				pairCount += 1
 				# a is followed by b, and b by the next a (or the closing a of the line); register both right away,
 				# so that with groups, the next glyph of the same group is recognized in this line already:
@@ -478,7 +481,6 @@ class KernStringMixer(mekkaObject):
 				shownPairs.add(pairKey(b, a))
 			if not glyphNames:
 				continue  # all pairs of this line are in the text already
-			glyphNames.append(a)
 			tabText += "".join("/" + glyphName for glyphName in glyphNames) + "\n"
 		return tabText, skippedCount, pairCount
 
