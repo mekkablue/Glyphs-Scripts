@@ -131,5 +131,5 @@ else:
 
 	print("\nDON'T FORGET:\n")
 	print("  Please clean up kerning with:\n     Window > Kerning > gear menu > Clean up\n")
-	print("  Please test for overkerns with:\n     Script > mekkablue > Metrics > New Tab wth Overkerned Pairs\n")
+	print("  Please test for overkerns with:\n     Script > mekkablue > Kerning > Fix Overkerns\n")
 	print("  Please test for very small pairs with:\n     Script > mekkablue > Metrics > Delete Small Kern Pairs\n")
