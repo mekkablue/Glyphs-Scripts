@@ -4,7 +4,8 @@ Removes all parameters of one kind from Font Info > Font, Masters, Instances. Us
 """
 
 import vanilla
-from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
+from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSWindowStyleMaskResizable
+from Foundation import NSSize
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, UpdateButton, fontFileName
 
@@ -20,6 +21,7 @@ class RemoveCustomParameters(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 380
+		windowWidthResize = 400  # user can resize the width by this much
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
@@ -29,19 +31,19 @@ class RemoveCustomParameters(mekkaObject):
 
 		# UI elements:
 		inset = 15
-		self.w.descriptionText = vanilla.TextBox("auto", "Remove parameter:", sizeStyle='small', selectable=True)
+		self.w.descriptionText = vanilla.TextBox("auto", "Remove parameter", sizeStyle='small', selectable=True)
 		self.w.parameterMenu = vanilla.PopUpButton("auto", self.parametersOfCurrentFont(), sizeStyle='small', callback=self.SavePreferences)
 		self.w.parameterMenu.setToolTip("Remove this custom parameter from the designated parts of Font Info.")
 		self.w.updateButton = UpdateButton("auto", callback=self.updateMenu)
 		self.w.updateButton.setToolTip("Scans the current font for all its custom parameters and updates the menu to the left.")
 
-		self.w.removeFromText = vanilla.TextBox("auto", "From Font Info >", sizeStyle='small', selectable=True)
+		self.w.removeFromText = vanilla.TextBox("auto", "From Font Info →", sizeStyle='small', selectable=True)
 		self.w.removeFromFont = vanilla.CheckBox("auto", "Font", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.removeFromFont.setToolTip("If enabled, will remove the chosen custom parameters from File > Font Info > Font.")
 		self.w.removeFromMasters = vanilla.CheckBox("auto", "Masters", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.removeFromMasters.setToolTip("If enabled, will remove the chosen custom parameters from File > Font Info > Masters.")
-		self.w.removeFromStyles = vanilla.CheckBox("auto", "Styles" if Glyphs.versionNumber >= 3.0 else "Instances", value=True, callback=self.SavePreferences, sizeStyle='small')
-		self.w.removeFromStyles.setToolTip("If enabled, will remove the chosen custom parameters from File > Font Info > Styles (Instances in Glyphs 2).")
+		self.w.removeFromStyles = vanilla.CheckBox("auto", "Exports" if Glyphs.versionNumber >= 3.0 else "Instances", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.removeFromStyles.setToolTip("If enabled, will remove the chosen custom parameters from File > Font Info > Exports (Instances in Glyphs 2).")
 
 		self.w.removeInText = vanilla.TextBox("auto", "Remove in", sizeStyle='small', selectable=True)
 		self.w.removeIn = vanilla.PopUpButton("auto", ("current font", "⚠️ ALL open fonts"), sizeStyle='small', callback=self.SavePreferences)
@@ -49,9 +51,24 @@ class RemoveCustomParameters(mekkaObject):
 		self.w.removeInText.setToolTip(tooltipText)
 		self.w.removeIn.setToolTip(tooltipText)
 
+		self.w.statusText = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small", selectable=True)
+		self.w.statusText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
+		self.removals = []  # (font, container, index, parameter, description) of the most recent removal, for Undo
+		self.w.undoButton = vanilla.Button("auto", "Undo", callback=self.undoRemoval)
+		self.w.undoButton.setToolTip("Puts back the parameters removed by the most recent click on Remove, at their original positions.")
+		self.w.undoButton.enable(False)
+
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Remove", callback=self.RemoveCustomParametersMain)
 		self.w.setDefaultButton(self.w.runButton)
+
+		# the popups take the extra width, the update button stays snug at the right
+		self.w.parameterMenu.getNSPopUpButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.removeIn.getNSPopUpButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
+		# the update button has the same low hugging as the popup and would take half the extra width
+		self.w.updateButton.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window
 		# ends up exactly as tall as the content
@@ -68,12 +85,14 @@ class RemoveCustomParameters(mekkaObject):
 
 		self.w.addAutoPosSizeRules(
 			[
-				"H:|-inset-[descriptionText]-gap-[parameterMenu(>=150)]-gap-[updateButton]-inset-|",
-				"H:|-inset-[removeFromText]-gap-[removeFromFont]-gap-[removeFromMasters]-gap-[removeFromStyles]-(>=inset)-|",
-				"H:|-inset-[removeInText]-gap-[removeIn(>=150)]-(>=inset)-|",
-				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"H:|-inset-[descriptionText]-gap-[parameterMenu(>=100)]-gap-[updateButton(24)]-inset-|",
+				"H:|-inset-[removeFromText]-gap-[removeFromFont]-checkGap-[removeFromMasters]-checkGap-[removeFromStyles]-(>=inset)-|",
+				"H:|-inset-[removeInText]-gap-[removeIn(>=100)]-inset-|",
+				"H:|-inset-[statusText]-(>=gap)-[undoButton(>=70)]-gap-[runButton(>=70)]-inset-|",
 				"V:|-inset-[parameterMenu]-row-[removeFromFont]-row-[removeIn]-inset-[runButton]-inset-|",
 				{"view1": self.w.descriptionText, "attribute1": "centerY", "view2": self.w.parameterMenu, "attribute2": "centerY"},
+				{"view1": self.w.statusText, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
+				{"view1": self.w.undoButton, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 				{"view1": self.w.updateButton, "attribute1": "centerY", "view2": self.w.parameterMenu, "attribute2": "centerY"},
 				{"view1": self.w.removeFromText, "attribute1": "centerY", "view2": self.w.removeFromFont, "attribute2": "centerY"},
 				{"view1": self.w.removeFromMasters, "attribute1": "centerY", "view2": self.w.removeFromFont, "attribute2": "centerY"},
@@ -82,7 +101,7 @@ class RemoveCustomParameters(mekkaObject):
 				{"view1": self.w.removeFromText, "attribute1": "width", "view2": self.w.descriptionText, "attribute2": "width"},
 				{"view1": self.w.removeInText, "attribute1": "width", "view2": self.w.descriptionText, "attribute2": "width"},
 			],
-			metrics={"inset": inset, "gap": 8, "row": 8},
+			metrics={"inset": inset, "gap": 8, "row": 8, "checkGap": 6},
 		)
 
 		# Load Settings:
@@ -92,6 +111,36 @@ class RemoveCustomParameters(mekkaObject):
 		self.updateUI()
 		self.w.open()
 		self.w.makeKey()
+
+		# Resizable in width only. Vanilla's minSize/maxSize would count the title bar twice,
+		# so set the limits on the NSWindow, in content sizes, with the size Auto Layout asks for:
+		nsWindow = self.w.getNSWindow()
+		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
+		fittingSize = nsWindow.contentView().fittingSize()
+		minWidth = windowWidth * 0.86  # Auto Layout still keeps the window from getting too narrow for its content
+		nsWindow.setContentMinSize_(NSSize(minWidth, fittingSize.height))
+		nsWindow.setContentMaxSize_(NSSize(windowWidth + windowWidthResize, fittingSize.height))
+
+	def setStatus(self, text):
+		"""Sets the status line and redraws it right away."""
+		self.w.statusText.set(text)
+		self.w.statusText.getNSTextField().display()
+
+	def parameterCount(self):
+		"""Number of occurrences the current settings would remove."""
+		parameterName = self.w.parameterMenu.getItem()
+		count = 0
+		for thisFont in self.currentFonts():
+			containers = []
+			if self.pref("removeFromFont"):
+				containers.append(thisFont)
+			if self.pref("removeFromMasters"):
+				containers.extend(thisFont.masters)
+			if self.pref("removeFromStyles"):
+				containers.extend(thisFont.instances)
+			for container in containers:
+				count += sum(1 for parameter in container.customParameters if parameter.name == parameterName)
+		return count
 
 	def updateMenu(self, sender=None):
 		currentParameters = self.parametersOfCurrentFont()
@@ -104,7 +153,14 @@ class RemoveCustomParameters(mekkaObject):
 		shouldRemoveFromMasters = self.pref("removeFromMasters")
 		shouldRemoveFromStyles = self.pref("removeFromStyles")
 		buttonOnOff = menuChoice and (shouldRemoveFromFont or shouldRemoveFromMasters or shouldRemoveFromStyles)
-		self.w.runButton.enable(buttonOnOff)
+		self.w.runButton.enable(bool(buttonOnOff))
+		if not Glyphs.font:
+			self.setStatus("❌ No font open.")
+		elif not buttonOnOff:
+			self.setStatus("🤖 Ready.")
+		else:
+			count = self.parameterCount()
+			self.setStatus(f"🔮 Will remove {count} parameter{'' if count == 1 else 's'}.")
 
 	def parametersOfCurrentFont(self, sender=None):
 		theseFonts = self.currentFonts()
@@ -131,6 +187,35 @@ class RemoveCustomParameters(mekkaObject):
 			theseFonts = (Glyphs.font, ) if Glyphs.font else ()  # frontmost font only
 		return theseFonts
 
+	def undoRemoval(self, sender=None):
+		try:
+			Glyphs.clearLog()
+			print("Remove Custom Parameters: Undo\n")
+			restoredCount = 0
+			parameterName = None
+			# reverse order of removal, so that every parameter goes back to its original index
+			for thisFont, container, index, parameter, description in reversed(self.removals):
+				if thisFont not in Glyphs.fonts:
+					print(f"\t⚠️ Skipped {description}: font was closed")
+					continue
+				container.customParameters.insert(index, parameter)
+				restoredCount += 1
+				parameterName = parameter.name
+				print(f"\t↩️ Restored ‘{parameter.name}’ in {description}")
+			self.removals = []
+			self.w.undoButton.enable(False)
+			self.updateMenu()
+			if parameterName:
+				self.w.parameterMenu.setItem(parameterName)
+			self.updateUI()
+			self.setStatus(f"✅ Restored {restoredCount} parameter{'' if restoredCount == 1 else 's'}. Details in Macro Window.")
+			print("\n✅ Done")
+		except Exception as e:
+			Glyphs.showMacroWindow()
+			print(f"Remove Custom Parameters Undo Error: {e}")
+			import traceback
+			print(traceback.format_exc())
+
 	def RemoveCustomParametersMain(self, sender=None):
 		try:
 			# clear macro window log:
@@ -144,41 +229,43 @@ class RemoveCustomParameters(mekkaObject):
 			else:
 				theseFonts = self.currentFonts()
 
-				deletedParameterCount = 0
+				parameterToBeDeleted = self.w.parameterMenu.getItem()
+				removeFromFont = self.pref("removeFromFont")
+				removeFromMasters = self.pref("removeFromMasters")
+				removeFromStyles = self.pref("removeFromStyles")
+
+				print("Remove Custom Parameters Report")
+				print(f"Parameter: ‘{parameterToBeDeleted}’\n")
+
+				removals = []
 				for thisFont in theseFonts:
-					print("Remove Custom Parameters Report for %s" % thisFont.familyName)
-					print(fontFileName(thisFont, fullPath=True))
+					print(f"📄 {fontFileName(thisFont, fullPath=True)}")
+
+					containers = []
+					if removeFromFont:
+						containers.append((thisFont, "Font"))
+					if removeFromMasters:
+						containers.extend((master, f"Master {master.name}") for master in thisFont.masters)
+					if removeFromStyles:
+						containers.extend((instance, f"Export {instance.name}") for instance in thisFont.instances)
+
+					for container, description in containers:
+						for cpi in reversed(range(len(container.customParameters))):
+							parameter = container.customParameters[cpi]
+							if parameter.name == parameterToBeDeleted:
+								del container.customParameters[cpi]
+								removals.append((thisFont, container, cpi, parameter, description))
+								print(f"\t🚫 Removed ‘{parameterToBeDeleted}’ in {description}")
 					print()
 
-					parameterToBeDeleted = self.w.parameterMenu.getItem()
-					removeFromFont = self.pref("removeFromFont")
-					removeFromMasters = self.pref("removeFromMasters")
-					removeFromStyles = self.pref("removeFromStyles")
+				deletedParameterCount = len(removals)
+				if deletedParameterCount:
+					self.removals = removals
+				self.w.undoButton.enable(bool(self.removals))
 
-					if removeFromFont:
-						for cpi in reversed(range(len(thisFont.customParameters))):
-							if thisFont.customParameters[cpi].name == parameterToBeDeleted:
-								del thisFont.customParameters[cpi]
-								deletedParameterCount += 1
-								print("🚫 Removed parameter in Font")
-
-					if removeFromMasters:
-						for master in thisFont.masters:
-							for cpi in reversed(range(len(master.customParameters))):
-								if master.customParameters[cpi].name == parameterToBeDeleted:
-									del master.customParameters[cpi]
-									deletedParameterCount += 1
-									print("🚫 Removed parameter in Master %s" % master.name)
-
-					if removeFromStyles:
-						for instance in thisFont.instances:
-							for cpi in reversed(range(len(instance.customParameters))):
-								if instance.customParameters[cpi].name == parameterToBeDeleted:
-									del instance.customParameters[cpi]
-									deletedParameterCount += 1
-									print("🚫 Removed parameter in Style %s" % instance.name)
-
-				self.w.close()  # delete if you want window to stay open
+				# the removed parameter is gone from the menu, so refresh it, then report in the status line:
+				self.updateMenu()
+				self.setStatus(f"✅ Removed {deletedParameterCount} parameter{'' if deletedParameterCount == 1 else 's'}. Details in Macro Window.")
 
 				# Final report:
 				Glyphs.showNotification(
@@ -192,7 +279,7 @@ class RemoveCustomParameters(mekkaObject):
 						parameterToBeDeleted,
 					),
 				)
-				print("\nDone.")
+				print("✅ Done")
 
 		except Exception as e:
 			# brings macro window to front and reports error:
