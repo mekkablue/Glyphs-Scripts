@@ -266,6 +266,17 @@ def clearGuides(layerOrMaster):
 		layerOrMaster.guides = []
 
 
+def setGuides(layerOrMaster, guides):
+	"""
+	Sets the guides of a GSLayer or a GSFontMaster to the given list, e.g. to remove single guides.
+	See guidesOf() for why we need to distinguish between guideLines and guides.
+	"""
+	if hasattr(layerOrMaster, "guideLines"):
+		layerOrMaster.guideLines = list(guides)
+	else:
+		layerOrMaster.guides = list(guides)
+
+
 def layerGroupsOf(glyph):
 	"""
 	Returns the groups of interpolation-compatible layer IDs of a GSGlyph,

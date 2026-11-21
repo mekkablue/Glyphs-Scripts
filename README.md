@@ -268,10 +268,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 *These scripts are mostly intended for cleaning up the plethora of guides I see when working on third-party fonts.*
 
 * **Guides through All Selected Nodes:** Lays guides through all selected nodes in current glyph. Tries to avoid duplicate guides.
-* **Remove Global Guides in Current Master:** Deletes all global (red) guides in the current master.
-* **Remove Local Guides in Selected Glyphs:** Deletes all local (blue) guides in selected glyphs.
-* **Select All Global Guides:** Selects all global (red) guides in Edit view. Useful if you have many and need to batch-transform them.
-* **Select All Local Guides in Selected Glyphs:** Selects all local (blue) guides (in all selected glyphs).
+* **Guide Manager:** Selects or removes local (blue) and global (red) guides, each with its own scope, with a prediction of what will be affected. Optionally removes only conditional global guides that match no glyph (their rules are too strict, so they never show). Undo takes back the most recent removal.
 
 ## Hinting
 

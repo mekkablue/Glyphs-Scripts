@@ -24,7 +24,7 @@ Python scripts for the [Glyphs font editor](http://glyphsapp.com/). Scripts run 
 | `Features/` | OpenType feature code generation (15 scripts) |
 | `Font Info/` | Font metadata handling (8 scripts) |
 | `Glyph Names, Notes and Unicode/` | Naming & Unicode assignment (12 scripts) |
-| `Guides/` | Guide management (10 scripts) |
+| `Guides/` | Guide management (2 scripts) |
 | `Hinting/` | TrueType hinting utilities (6 scripts) |
 | `Images/` | Image/bitmap handling (7 scripts) |
 | `Interpolation/` | Variable font, brace layers, axis manipulation (19 scripts) |
@@ -439,6 +439,7 @@ Read it to understand existing scripts. Never use it for a new window, and conve
 | `newGlyphWithName(glyphName)` | Returns a new `GSGlyph` with that name; use instead of `GSGlyph(glyphName)`, which raises a `TypeError` in some Glyphs versions |
 | `guidesOf(layerOrMaster)` | Returns the guides of a `GSLayer` or `GSFontMaster`; use instead of `.guideLines`, which is gone in Glyphs 4, or `.guides`, which does not exist in Glyphs 2 |
 | `clearGuides(layerOrMaster)` | Deletes all guides of a `GSLayer` or `GSFontMaster`, Glyphs 2/3/4 compatible |
+| `setGuides(layerOrMaster, guides)` | Sets the guides of a `GSLayer` or `GSFontMaster` to a list, e.g. to remove single guides or put them back; Glyphs 2/3/4 compatible |
 | `layerGroupsOf(glyph)` | Returns the interpolation-compatible layer ID groups of a `GSGlyph` as tuples; use instead of `layerGroups_masters_error_()`, which groups by instances — not the default in Glyphs 3/4 — and instead of `glyph.layerGroups()`, which does not exist in Glyphs 3.1 |
 | `newAnchorWithName(anchorName, position=None)` | Returns a new `GSAnchor`; use instead of `GSAnchor(name, position)` (raises a `TypeError` in Glyphs 4) or `GSAnchor.alloc().initWithName_position_()` (missing in Glyphs 3) |
 | `fontFileName(font, fullPath=False)` | File name (or full path) of a `GSFont` for reports; `f"{font.familyName} (unsaved)"` if the font has no file. Use instead of hand-written `filepath` checks |
