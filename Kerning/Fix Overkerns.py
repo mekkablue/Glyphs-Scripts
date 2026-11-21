@@ -1,19 +1,21 @@
-# MenuTitle: New Tab with Overkerned Pairs
+# MenuTitle: Fix Overkerns
 __doc__ = """
-Asks a threshold percentage, and opens a new tab with all kern pairs going beyond the width threshold. Option to fix them too.
+Finds negative kern pairs going beyond a percentage of the glyph widths, and opens a new tab with the affected pairs. Report only lists them, Fix also rounds them down to the maximum allowed value.
 """
 
 import vanilla
-from mekkablue import mekkaObject, newLineControlLayer, reportFontName, SteppingEditText, integerFormatter
+from mekkablue import mekkaObject, newLineControlLayer, reportFontName, SteppingEditText, integerFormatter, UpdateButton, caseDict
 from GlyphsApp import Glyphs, Message
+from Foundation import NSSize
 from AppKit import (
-	NSColor,
 	NSLayoutConstraintOrientationHorizontal,
 	NSLayoutConstraintOrientationVertical,
 	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityDefaultLow,
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
 	NSTextAlignmentRight,
+	NSWindowStyleMaskResizable,
 )
 
 
@@ -21,7 +23,7 @@ def roundedDownBy(value, base):
 	return base * round(value // base)
 
 
-class NewTabwithOverkernedPairs(mekkaObject):
+class FixOverkerns(mekkaObject):
 	prefDict = {
 		# "prefName": defaultValue,
 		"threshold": 40,
@@ -35,28 +37,30 @@ class NewTabwithOverkernedPairs(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 460
+		windowWidthResize = 600  # user can resize the width by this much
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
-			"Negative Overkerns in this Master",  # window title
+			"Fix Overkerns",  # window title
 			autosaveName=self.domain("mainwindow")  # stores last window position
 		)
 
 		# UI elements:
 		inset = 15
 
-		tooltipText = "Max percentage of the (narrower) glyph or group width that may be kerned."
-		self.w.thresholdText = vanilla.TextBox("auto", "Open tab with kerns beyond threshold:", sizeStyle='small', selectable=True)
-		self.w.threshold = vanilla.EditText("auto", "40", callback=self.SavePreferences, sizeStyle='small')
+		tooltipText = (
+			"Max percentage of the (narrower) glyph or group width that may be kerned. "
+			"Example: With 40% and a comma of width 160, a negative kern pair with the comma is reported if it is larger than 64 (40% of 160)."
+		)
+		self.w.thresholdText = vanilla.TextBox("auto", "Negative overkerns beyond", sizeStyle='small', selectable=True)
+		self.w.threshold = SteppingEditText("auto", "40", callback=self.SavePreferences, sizeStyle='small', formatter=integerFormatter(1))
 		self.w.thresholdPercent = vanilla.TextBox("auto", "%", sizeStyle='small', selectable=True)
 		self.w.thresholdText.setToolTip(tooltipText)
 		self.w.threshold.setToolTip(tooltipText)
-
-		self.w.descriptionText2 = vanilla.TextBox("auto", "(Max percentage of widths that may be kerned.)", sizeStyle='small', selectable=True)
-		self.w.descriptionText2.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.thresholdPercent.setToolTip(tooltipText)
 
 		tooltipText = "When fixing overkerns, kerning values are rounded to a multiple of this value."
-		self.w.roundingText = vanilla.TextBox("auto", "When fixing, round kerning values by:", sizeStyle='small', selectable=True)
+		self.w.roundingText = vanilla.TextBox("auto", "Round new pairs by", sizeStyle='small', selectable=True)
 		self.w.rounding = SteppingEditText("auto", "5", callback=self.SavePreferences, sizeStyle='small', formatter=integerFormatter(1))
 		self.w.roundingText.setToolTip(tooltipText)
 		self.w.rounding.setToolTip(tooltipText)
@@ -69,8 +73,12 @@ class NewTabwithOverkernedPairs(mekkaObject):
 		tooltipText = "Glyphs and kerning groups whose names contain any of these comma-separated particles are ignored."
 		self.w.ignoreText = vanilla.TextBox("auto", "Ignore glyphs containing:", sizeStyle="small", selectable=True)
 		self.w.ignore = vanilla.EditText("auto", "fraction, .percent", callback=self.SavePreferences, sizeStyle="small")
+		self.w.ignoreUpdateButton = UpdateButton("auto", callback=self.resetIgnore)
 		self.w.ignoreText.setToolTip(tooltipText)
 		self.w.ignore.setToolTip(tooltipText)
+		self.w.ignoreUpdateButton.setToolTip(
+			"Resets the list to the default particles, and adds the names of all glyphs of case ‘minor’ in the frontmost font that the default particles do not cover yet."
+		)
 
 		tooltipText = "Which masters of which fonts to look at."
 		self.w.scopeText = vanilla.TextBox("auto", "Apply to:", sizeStyle="small", selectable=True)
@@ -78,12 +86,14 @@ class NewTabwithOverkernedPairs(mekkaObject):
 		self.w.scopeText.setToolTip(tooltipText)
 		self.w.scope.setToolTip(tooltipText)
 
-		# Buttons:
-		self.w.fixButton = vanilla.Button("auto", "Fix", callback=self.NewTabwithOverkernedPairsMain)
+		# Status line and buttons:
+		self.w.statusText = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small", selectable=True)
+		self.w.statusText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.reportButton = vanilla.Button("auto", "Report", callback=self.FixOverkernsMain)
+		self.w.reportButton.setToolTip("Opens a tab with the overkerned pairs, without changing any kerning.")
+		self.w.fixButton = vanilla.Button("auto", "Fix", callback=self.FixOverkernsMain)
 		self.w.fixButton.setToolTip("Rounds overkerned pairs down to the maximum allowed value and opens a tab with the affected pairs.")
-		self.w.runButton = vanilla.Button("auto", "Report", callback=self.NewTabwithOverkernedPairsMain)
-		self.w.runButton.setToolTip("Opens a tab with the overkerned pairs, without changing any kerning.")
-		self.w.setDefaultButton(self.w.runButton)
+		self.w.setDefaultButton(self.w.fixButton)
 
 		# labels: right-aligned, same width
 		labelNames = ("thresholdText", "roundingText", "ignoreText", "scopeText")
@@ -105,20 +115,21 @@ class NewTabwithOverkernedPairs(mekkaObject):
 		self.w.addAutoPosSizeRules(
 			[
 				"H:|-inset-[thresholdText]-gap-[threshold(50)]-gap-[thresholdPercent]-(>=inset)-|",
-				"H:|-inset-[descriptionText2]-inset-|",
 				"H:|-inset-[roundingText]-gap-[rounding(50)]-(>=inset)-|",
 				"H:|-inset-[limitToExportingGlyphs]-gap-[verbose]-(>=inset)-|",
-				"H:|-inset-[ignoreText]-gap-[ignore]-inset-|",
+				"H:|-inset-[ignoreText]-gap-[ignore]-gap-[ignoreUpdateButton]-inset-|",
 				"H:|-inset-[scopeText]-gap-[scope]-inset-|",
-				"H:|-(>=inset)-[fixButton(>=70)]-gap-[runButton(>=70)]-inset-|",
-				"V:|-gap-[threshold]-row-[descriptionText2]-row-[rounding]-row-[limitToExportingGlyphs]-row-[ignore]-row-[scope]-inset-[runButton]-inset-|",
-				"V:[fixButton]-inset-|",
+				"H:|-inset-[statusText]-(>=gap)-[reportButton(>=70)]-gap-[fixButton(>=70)]-inset-|",
+				"V:|-gap-[threshold]-row-[rounding]-row-[limitToExportingGlyphs]-row-[ignore]-row-[scope]-inset-[fixButton]-inset-|",
+				"V:[reportButton]-inset-|",
 				{"view1": self.w.thresholdText, "attribute1": "centerY", "view2": self.w.threshold, "attribute2": "centerY"},
 				{"view1": self.w.thresholdPercent, "attribute1": "centerY", "view2": self.w.threshold, "attribute2": "centerY"},
 				{"view1": self.w.roundingText, "attribute1": "centerY", "view2": self.w.rounding, "attribute2": "centerY"},
 				{"view1": self.w.verbose, "attribute1": "centerY", "view2": self.w.limitToExportingGlyphs, "attribute2": "centerY"},
 				{"view1": self.w.ignoreText, "attribute1": "centerY", "view2": self.w.ignore, "attribute2": "centerY"},
+				{"view1": self.w.ignoreUpdateButton, "attribute1": "centerY", "view2": self.w.ignore, "attribute2": "centerY"},
 				{"view1": self.w.scopeText, "attribute1": "centerY", "view2": self.w.scope, "attribute2": "centerY"},
+				{"view1": self.w.statusText, "attribute1": "centerY", "view2": self.w.fixButton, "attribute2": "centerY"},
 			] + widthRules,
 			metrics={"inset": inset, "gap": 8, "row": 6},
 		)
@@ -130,7 +141,32 @@ class NewTabwithOverkernedPairs(mekkaObject):
 		self.w.open()
 		self.w.makeKey()
 
-	def NewTabwithOverkernedPairsMain(self, sender=None):
+		# Resizable in width only. Vanilla's minSize/maxSize would count the title bar twice,
+		# so set the limits on the NSWindow, in content sizes, with the height Auto Layout asks for:
+		nsWindow = self.w.getNSWindow()
+		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
+		contentHeight = nsWindow.contentView().fittingSize().height
+		nsWindow.setContentMinSize_(NSSize(windowWidth, contentHeight))
+		nsWindow.setContentMaxSize_(NSSize(windowWidth + windowWidthResize, contentHeight))
+
+	def setStatus(self, text):
+		"""Sets the status line and redraws it right away, so it shows while the script is busy."""
+		self.w.statusText.set(text)
+		self.w.statusText.getNSTextField().display()
+
+	def resetIgnore(self, sender=None):
+		"""Default particles, plus the names of all ‘minor’ glyphs of the frontmost font that are not covered by them."""
+		defaultParticles = [particle.strip() for particle in self.prefDict["ignore"].split(",") if particle.strip()]
+		entries = list(defaultParticles)
+		thisFont = Glyphs.font
+		if thisFont:
+			for thisGlyph in thisFont.glyphs:
+				if thisGlyph.case == caseDict["Minor"] and not any(particle in thisGlyph.name for particle in defaultParticles):
+					entries.append(thisGlyph.name)
+		self.w.ignore.set(", ".join(entries))
+		self.SavePreferences()
+
+	def FixOverkernsMain(self, sender=None):
 		try:
 			def glyphNameContainsIgnoredParticle(glyphName, ignoredParticles):
 				for particle in ignoredParticles:
@@ -147,20 +183,17 @@ class NewTabwithOverkernedPairs(mekkaObject):
 
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
+				self.setStatus("❌ No font open.")
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 				return
+			self.setStatus("🛠️ Looking for overkerns…")
 
 			if self.pref("scope") < 2:
 				theseFonts = (thisFont, )
 			else:
 				theseFonts = Glyphs.fonts
 
-			thresholdFactor = None
-			try:
-				thresholdFactor = self.prefFloat("threshold") / 100.0
-			except:
-				Message(title="Value Error", message="The threshold value you entered is invalid", OKButton="Oops")
-				return
+			thresholdFactor = self.prefInt("threshold") / 100.0
 
 			verbose = bool(self.pref("verbose"))
 			ignores = [particle.strip() for particle in self.pref("ignore").split(",") if len(particle.strip()) > 0]
@@ -323,33 +356,26 @@ class NewTabwithOverkernedPairs(mekkaObject):
 
 			message = ""
 			if overKernCount > 0:
-				message = "%s %i overkerns in %i font%s." % (
+				message = "%s %i overkern%s in %i font%s." % (
 					"Fixed" if shouldFix else "Found",
 					overKernCount,
+					"" if overKernCount == 1 else "s",
 					len(theseFonts),
 					"" if len(theseFonts) == 1 else "s",
 				)
-				Message(
-					title="Found Overkerns",
-					message=message,
-					OKButton=None,
-				)
 			else:
-				message = "Could not find any kern pairs beyond the threshold."
-				Message(
-					title="No Overkerns Found",
-					message=message,
-					OKButton="🫶Phew!",
-				)
+				message = "No kern pairs beyond the threshold."
 
+			self.setStatus(f"✅ {message}")
 			print(f"✅ Done. {message}")
 
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
-			print(f"New Tab with Overkerned Pairs Error: {e}")
+			self.setStatus("❌ Error. Details in Macro Window.")
+			print(f"Fix Overkerns Error: {e}")
 			import traceback
 			print(traceback.format_exc())
 
 
-NewTabwithOverkernedPairs()
+FixOverkerns()
