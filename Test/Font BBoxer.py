@@ -1,4 +1,4 @@
-# MenuTitle: Report Highest and Lowest Glyphs
+# MenuTitle: Font BBoxer
 __doc__ = """
 Overlays the highest, lowest, leftmost and rightmost glyphs in a resizable window, with the measurements in the canvas and a text report underneath. Ties are shown on top of each other. Optionally shows all glyphs of the scope as faint outlines.
 """
@@ -9,9 +9,9 @@ import vanilla
 from mekkablue import mekkaObject, UpdateButton
 from GlyphsApp import Glyphs, Message, GSMetricsTypeItalicAngle
 from AppKit import (
-	NSAffineTransform, NSAttributedString, NSBezierPath, NSBitmapImageFileTypePNG, NSColor, NSFont,
+	NSAffineTransform, NSAlternateKeyMask, NSAttributedString, NSEvent, NSEventMaskFlagsChanged, NSBezierPath, NSBitmapImageFileTypePNG, NSColor, NSFont,
 	NSFontAttributeName, NSForegroundColorAttributeName, NSGraphicsContext, NSImage, NSPasteboard,
-	NSPasteboardTypePNG, NSRectFill, NSView,
+	NSPasteboardTypePNG, NSPasteboardTypePDF, NSRectFill, NSView,
 	NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical,
 	NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut,
 )
@@ -239,7 +239,7 @@ class ReportHighestAndLowestGlyphs(mekkaObject):
 		windowHeight = 540
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
-			"Highest and Lowest Glyphs",
+			"Font BBoxer",
 			minSize=(300, 440),
 			autosaveName=self.domain("mainwindow"),  # stores last window position and size
 		)
@@ -297,8 +297,8 @@ class ReportHighestAndLowestGlyphs(mekkaObject):
 		self.w.showNumbers = vanilla.CheckBox("auto", "Show numbers", callback=self.SavePreferences, sizeStyle="small")
 		self.w.showNumbers.setToolTip("Show the values of the measurements and the vertical metrics in the canvas. Design metrics never show numbers.")
 
-		self.w.copyPNGButton = vanilla.Button("auto", "Copy PNG", callback=self.copyPNG)
-		self.w.copyPNGButton.setToolTip("Copies the canvas at its current size as a PNG with transparent background.")
+		self.w.copyPNGButton = vanilla.Button("auto", "Copy PNG", callback=self.copyImage)
+		self.w.copyPNGButton.setToolTip("Copies the canvas at its current size as a PNG with transparent background. Hold down the Option key to copy a PDF instead, with the background of the current appearance (dark in Dark Mode).")
 		self.w.openTabButton = vanilla.Button("auto", "Open Tab", callback=self.openTab)
 		self.w.openTabButton.setToolTip("Opens a tab with all currently shown glyphs in the fonts of the scope.")
 		self.w.setDefaultButton(self.w.openTabButton)
@@ -338,6 +338,9 @@ class ReportHighestAndLowestGlyphs(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8, "row": 8, "checkRow": 5, "buttonGap": 4},
 		)
+
+		self.optionKeyMonitor = NSEvent.addLocalMonitorForEventsMatchingMask_handler_(NSEventMaskFlagsChanged, self.optionKeyChanged)
+		self.w.bind("close", self.removeMonitor)
 
 		self.LoadPreferences()
 		self.w.open()
@@ -530,17 +533,36 @@ class ReportHighestAndLowestGlyphs(mekkaObject):
 		self.cachedScope = None
 		self.updateUI()
 
-	def copyPNG(self, sender=None):
+	def optionKeyChanged(self, event):
+		optionDown = bool(event.modifierFlags() & NSAlternateKeyMask)
+		self.w.copyPNGButton.setTitle("Copy PDF" if optionDown else "Copy PNG")
+		return event
+
+	def removeMonitor(self, sender=None):
+		if self.optionKeyMonitor is not None:
+			NSEvent.removeMonitor_(self.optionKeyMonitor)
+			self.optionKeyMonitor = None
+
+	def copyImage(self, sender=None):
 		view = self.w.preview.getNSView()
-		view.transparent = True
-		bitmap = view.bitmapImageRepForCachingDisplayInRect_(view.bounds())
-		view.cacheDisplayInRect_toBitmapImageRep_(view.bounds(), bitmap)
-		view.transparent = False
-		pngData = bitmap.representationUsingType_properties_(NSBitmapImageFileTypePNG, {})
 		pasteboard = NSPasteboard.generalPasteboard()
-		pasteboard.clearContents()
-		pasteboard.setData_forType_(pngData, NSPasteboardTypePNG)
-		Glyphs.showNotification("Highest and Lowest Glyphs", "PNG copied to the clipboard.")
+		if NSEvent.modifierFlags() & NSAlternateKeyMask:
+			# PDF keeps the background of the current appearance, i.e. dark in Dark Mode
+			view.transparent = False
+			pdfData = view.dataWithPDFInsideRect_(view.bounds())
+			pasteboard.clearContents()
+			pasteboard.setData_forType_(pdfData, NSPasteboardTypePDF)
+			message = "PDF copied to the clipboard."
+		else:
+			view.transparent = True
+			bitmap = view.bitmapImageRepForCachingDisplayInRect_(view.bounds())
+			view.cacheDisplayInRect_toBitmapImageRep_(view.bounds(), bitmap)
+			view.transparent = False
+			pngData = bitmap.representationUsingType_properties_(NSBitmapImageFileTypePNG, {})
+			pasteboard.clearContents()
+			pasteboard.setData_forType_(pngData, NSPasteboardTypePNG)
+			message = "PNG copied to the clipboard."
+		Glyphs.showNotification("Font BBoxer", message)
 
 	def openTab(self, sender=None):
 		layersByFont = {}

@@ -464,13 +464,13 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 ## Test
 
-*Most important: the Test HTML scripts. If you have unusually high or low text selection highlights in Adobe or Apple apps, run Report Highest and Lowest Glyphs to find the glyph causing it. Language Report is just for beefing up your specimen, and will not give you authoritative information.*
+*Most important: the Test HTML scripts. If you have unusually high or low text selection highlights in Adobe or Apple apps, run Font BBoxer to find the glyph causing it. Language Report is just for beefing up your specimen, and will not give you authoritative information.*
 
 * **Copy InDesign Test Text:** Copies a test text for InDesign into the clipboard.
 * **Copy Word Test Text:** Copies a test text for MS Word into the clipboard.
 * **Language Report:** Tries to give you a preliminary idea about how many and which languages are supported with your Latin characters. Based on Underware’s Latin-Plus list, with modifications.
 * **Pangram Helper:** Helps you write a pangram, which you can copy into the clipboard, or put into a new tab.
-* **Report Highest and Lowest Glyphs:** Reports glyphs with highest and lowest bounding boxes for all masters.
+* **Font BBoxer:** Reports glyphs with highest and lowest bounding boxes for all masters.
 * **Variable Font Test HTML:** Create a Test HTML for the current font inside the current Variation Font Export folder.
 * **Webfont Test HTML:** Creates a Test HTML for the current font inside the current Webfont Export folder, or for the current Glyphs Project in the project’s export path.
 
