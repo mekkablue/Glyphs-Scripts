@@ -160,7 +160,7 @@ class NewTabWithAnchor(mekkaObject):
 		extraNames = sorted(anchorNames.difference(basicAnchors))
 		foundBasicNames = [name for name in basicAnchors if name in anchorNames]
 		self.w.anchorName.setItems(foundBasicNames + extraNames)
-		self.setStatus(f"✅ Found {len(anchorNames)} anchors in the font.")
+		self.setStatus(f"📃 Updated Find with {len(anchorNames)} anchor{'' if len(anchorNames) == 1 else 's'}.")
 
 	def layerContainsAnchor(self, thisLayer, anchorName, verbose=True):
 		for anchor in thisLayer.anchors:

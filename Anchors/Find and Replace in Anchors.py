@@ -48,7 +48,7 @@ class SearchAndReplaceInAnchors(mekkaObject):
 
 		# UI elements:
 		inset = 15
-		self.w.textSearch = vanilla.TextBox("auto", "Search")
+		self.w.textSearch = vanilla.TextBox("auto", "Find")
 		self.w.searchFor = vanilla.ComboBox("auto", list(basicAnchors), callback=self.SavePreferences)
 		self.w.searchFor.getNSComboBox().setNumberOfVisibleItems_(20)
 		tooltip = "The text to look for in anchor names. Pick one from the list or type a text."
@@ -176,7 +176,7 @@ class SearchAndReplaceInAnchors(mekkaObject):
 		extraNames = sorted(anchorNames.difference(basicAnchors))
 		foundBasicNames = [name for name in basicAnchors if name in anchorNames]
 		self.w.searchFor.setItems(foundBasicNames + extraNames)
-		self.setStatus(f"✅ Found {len(anchorNames)} anchors in the font.")
+		self.setStatus(f"📃 Updated Find with {len(anchorNames)} anchor{'' if len(anchorNames) == 1 else 's'}.")
 
 	def fontsInScope(self):
 		if self.prefInt("scope") == 2:
