@@ -1,6 +1,4 @@
 # MenuTitle: Activate Next Glyph
-# -*- coding: utf-8 -*-
-from __future__ import division, print_function, unicode_literals
 __doc__ = """
 Will activate the next glyph in Edit view.
 """

@@ -1,5 +1,4 @@
 # MenuTitle: Print Window
-from __future__ import print_function
 __doc__ = """
 Print the frontmost window.
 """
