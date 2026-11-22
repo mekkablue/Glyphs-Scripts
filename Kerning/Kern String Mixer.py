@@ -6,7 +6,7 @@ Intersect two sets of glyphs with each other in order to get all possible glyph 
 import math
 import vanilla
 from kernanalysis import stringToListOfGlyphsForFont, listOfNamesForCategories, categoryList, splitString
-from mekkablue import mekkaObject, reportFontName, UpdateButton
+from mekkablue import mekkaObject, reportFontName, UpdateButton, makeWindowResizable
 from GlyphsApp import Glyphs, GSFeature, Message
 from AppKit import (
 	NSLayoutAttributeHeight,
@@ -20,9 +20,7 @@ from AppKit import (
 	NSLayoutPriorityWindowSizeStayPut,
 	NSLayoutRelationEqual,
 	NSTextAlignmentRight,
-	NSWindowStyleMaskResizable,
 )
-from Foundation import NSSize
 
 defaultTokens = (
 	"$[category like 'Letter' and case in {upper,lower}]  # UPPERCASE AND LOWERCASE LETTERS",
@@ -69,11 +67,12 @@ class KernStringMixer(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 420
+		self.minimumWidth = windowWidth  # the user may widen the window, but not narrow it below this
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Kern String Mixer",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -272,9 +271,7 @@ class KernStringMixer(mekkaObject):
 		self.w.open()
 		self.w.makeKey()
 
-		# make the window horizontally resizable, but keep the height that Auto Layout determined.
-		nsWindow = self.w.getNSWindow()
-		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
+		# resizable horizontally; the height follows the open tab:
 		self.fitTabsToContent()
 
 	# --- preferences and UI ---
@@ -314,11 +311,9 @@ class KernStringMixer(mekkaObject):
 		contentView = nsWindow.contentView()
 		width = contentView.frame().size.width
 		height = math.ceil(contentView.fittingSize().height)
-		nsWindow.setContentMinSize_(NSSize(width, 1))
-		nsWindow.setContentMaxSize_(NSSize(width + 1000, 10000))
+		makeWindowResizable(self.w, vertical=True, minSize=(self.minimumWidth, 1))  # unlocks the height for the resize
 		self.w.resize(width, height, animate=False)
-		nsWindow.setContentMinSize_(NSSize(width, height))
-		nsWindow.setContentMaxSize_(NSSize(width + 1000, height))
+		makeWindowResizable(self.w, minSize=(self.minimumWidth, 0))  # locks the height to the content again
 
 	def uiElement(self, prefName):
 		# the controls in the tabs are not attributes of the window:
