@@ -12,9 +12,11 @@ from AppKit import (
 	NSLayoutConstraintOrientationHorizontal,
 	NSLayoutConstraintOrientationVertical,
 	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityDefaultLow,
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
 	NSTextAlignmentRight,
+	NSWindowStyleMaskResizable,
 )
 
 
@@ -104,7 +106,7 @@ class PositionClicker(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Position Clicker",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -157,6 +159,12 @@ class PositionClicker(mekkaObject):
 		self.w.runButton.setToolTip("Run the check and open a tab with all non-clicking combinations.")
 		self.w.setDefaultButton(self.w.runButton)
 
+		# the status line takes the leftover width, the button stays as wide as its title needs:
+		self.w.status.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton.getNSButton().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
 		# labels: right-aligned, same width
 		labelNames = ("referenceText", "clickCountText", "ignoreGlyphsText")
 		widestLabel = "ignoreGlyphsText"  # the label with the longest text
@@ -198,6 +206,14 @@ class PositionClicker(mekkaObject):
 			] + widthRules + centerRules,
 			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
 		)
+
+		# resizable horizontally only: the height stays what the content needs
+		# (set on the NSWindow, because vanilla's minSize/maxSize are frame sizes and would count the title bar twice)
+		nsWindow = self.w.getNSWindow()
+		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
+		contentHeight = nsWindow.contentView().fittingSize().height
+		nsWindow.setContentMinSize_((windowWidth, contentHeight))
+		nsWindow.setContentMaxSize_((2000, contentHeight))
 
 		# Load Settings:
 		self.LoadPreferences()
