@@ -424,8 +424,13 @@ labels that are meant to stretch across the full width.
 **Horizontal resizing is a priority.** Every window with a control that can usefully stretch — an `EditText`,
 `ComboBox`, `PopUpButton`, `TextEditor` or `List`, or a long status line — is resizable horizontally, so long
 glyph names, suffix lists, feature code and the like stay readable. A window with only checkboxes and buttons may stay
-fixed-size. Windows whose main content is a `List` or `TextEditor` are resizable vertically too; for all others the
-height stays what the content needs.
+fixed-size.
+
+**Vertical resizing:** if the window has a text area or list that can stretch — a `TextEditor` or a `List`, as in
+Style Renamer (preview) or Find in Features (result) — it is resizable vertically too (`vertical=True`), and the
+stretching control takes the extra height. Give that control a lower vertical hugging priority than the rest, so
+the other controls keep their height. If there is no such control, the height stays what the content needs, because
+extra height would only add empty space.
 
 Never pass `minSize`/`maxSize` to vanilla. Call `makeWindowResizable()` from `mekkablue` after the rules are added and
 before `LoadPreferences()` and `open()`. It sets the limits on the `NSWindow` in content sizes:
@@ -434,7 +439,7 @@ before `LoadPreferences()` and `open()`. It sets the limits on the `NSWindow` in
 from mekkablue import mekkaObject, makeWindowResizable
 
 makeWindowResizable(self.w)  # width only: the height stays what the content needs
-makeWindowResizable(self.w, vertical=True)  # width and height, for a List or TextEditor
+makeWindowResizable(self.w, vertical=True)  # width and height: the window has a stretchable TextEditor or List
 makeWindowResizable(self.w, vertical=True, minSize=(250, 150))  # smaller than the starting size
 ```
 
