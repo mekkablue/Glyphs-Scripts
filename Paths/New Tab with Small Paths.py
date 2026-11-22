@@ -1,12 +1,12 @@
 # MenuTitle: New Tab with Small Paths
 __doc__ = """
-Finds small paths (smaller tahn a user-definable threshold) in glyphs and open a new tab with affected glyphs.
+Finds small paths (smaller than a user-definable threshold) in glyphs and open a new tab with affected glyphs.
 """
 
 import vanilla
-from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
+from AppKit import NSColor, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, SteppingEditText, integerFormatter, fontFileName
+from mekkablue import mekkaObject, SteppingEditText, integerFormatter, fontFileName, makeWindowResizable
 
 
 def glyphShouldBeIgnored(glyphname):
@@ -29,12 +29,12 @@ class FindSmallPaths(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 330
+		windowWidth = 360
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"New Tab with Small Paths",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -42,8 +42,10 @@ class FindSmallPaths(mekkaObject):
 
 		self.w.text_1 = vanilla.TextBox("auto", "Open new tab with glyphs that contain paths with an area smaller than:", sizeStyle='small')
 		self.w.text_1.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.text_1.setToolTip("Glyphs with paths smaller than the area set by the slider below are collected in a new tab.")
 
 		self.w.minArea = vanilla.TextBox("auto", "1000 square units", sizeStyle='small', alignment="center")
+		self.w.minArea.setToolTip("The current area threshold in square units, or a hint if the minimum and maximum are invalid.")
 
 		formatter = integerFormatter(1)
 		self.w.sliderMin = SteppingEditText("auto", "10", sizeStyle='small', callback=self.SliderUpdate, formatter=formatter)
@@ -63,10 +65,21 @@ class FindSmallPaths(mekkaObject):
 		self.w.progress = vanilla.ProgressBar("auto")
 		self.w.progress.set(0)  # set progress indicator to zero
 
+		# Status line:
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows what the script is doing and the result.")
+		nsStatus = self.w.status.getNSTextField()
+		nsStatus.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		nsStatus.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Open Tab", callback=self.FindSmallPathsMain)
 		self.w.runButton.setToolTip("Finds paths below the area threshold and opens a tab with the affected glyphs.")
 		self.w.setDefaultButton(self.w.runButton)
+		nsRunButton = self.w.runButton.getNSButton()
+		nsRunButton.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		nsRunButton.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window ends up exactly as tall as the content
 		for view in self.w.getNSWindow().contentView().subviews():
@@ -81,13 +94,17 @@ class FindSmallPaths(mekkaObject):
 				"H:|-inset-[afterOverlapRemoval]-(>=inset)-|",
 				"H:|-inset-[allFonts]-(>=inset)-|",
 				"H:|-inset-[progress]-inset-|",
-				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"H:|-inset-[status]-gap-[runButton(>=70)]-inset-|",
 				"V:|-inset-[text_1(30)]-row-[minArea]-row-[sliderMin]-row-[deleteThemRightAway]-checkRow-[afterOverlapRemoval]-checkRow-[allFonts]-row-[progress(16)]-inset-[runButton]-inset-|",
+					{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 				{"view1": self.w.areaSlider, "attribute1": "centerY", "view2": self.w.sliderMin, "attribute2": "centerY"},
 				{"view1": self.w.sliderMax, "attribute1": "centerY", "view2": self.w.sliderMin, "attribute2": "centerY"},
 			],
 			metrics={"inset": inset, "gap": 8, "row": 8, "checkRow": 5},
 		)
+
+		# horizontally resizable: the slider, the progress bar and the texts stretch
+		makeWindowResizable(self.w)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -184,6 +201,7 @@ class FindSmallPaths(mekkaObject):
 		return minArea
 
 	def FindSmallPathsMain(self, sender):
+		lastItem = "start"
 		try:
 			self.SavePreferences()
 
@@ -205,6 +223,7 @@ class FindSmallPaths(mekkaObject):
 					fontsToLookAt = (Glyphs.font, )
 
 				Glyphs.clearLog()
+				self.setStatus("🛠️ Processing %i font%s…" % (len(fontsToLookAt), "" if len(fontsToLookAt) == 1 else "s"))
 
 				print("Looking for paths smaller than %0.1f square units..." % minArea)
 
@@ -228,6 +247,8 @@ class FindSmallPaths(mekkaObject):
 
 						for thisLayer in thisGlyph.layers:
 							if thisLayer.paths and (thisLayer.isMasterLayer or thisLayer.isSpecialLayer):
+								lastItem = "%s, layer '%s'" % (thisGlyph.name, thisLayer.name)
+								self.setStatus("🔠 %s" % lastItem)
 								if overlapsShouldBeRemovedFirst:
 									checkLayer = thisLayer.copyDecomposedLayer()
 									checkLayer.removeOverlap()
@@ -271,6 +292,16 @@ class FindSmallPaths(mekkaObject):
 							OKButton="Cool",
 						)
 
+				if totalCountOfAffectedGlyphs:
+					self.setStatus("✅ Found %i glyph%s in %i font%s with small paths." % (
+						totalCountOfAffectedGlyphs,
+						"" if totalCountOfAffectedGlyphs == 1 else "s",
+						totalCountOfAffectedFonts,
+						"" if totalCountOfAffectedFonts == 1 else "s",
+					))
+				else:
+					self.setStatus("⚠️ Nothing found.")
+
 				if len(fontsToLookAt) > 1:
 					Message(
 						title="Multi-Font Report",
@@ -285,6 +316,7 @@ class FindSmallPaths(mekkaObject):
 
 			self.w.close()  # delete if you want window to stay open
 		except Exception as e:
+			self.setStatus("❌ Error at %s. Details in Macro Window." % lastItem)
 			self.errorReport(e)
 
 	def errorReport(self, e):
