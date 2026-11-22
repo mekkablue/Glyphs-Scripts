@@ -7,7 +7,7 @@ from fnmatch import fnmatchcase
 import vanilla
 from AppKit import NSFont, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultLow, NSFontFeatureSettingsAttribute, NSFontFeatureTypeIdentifierKey, NSFontFeatureSelectorIdentifierKey
 from GlyphsApp import Glyphs
-from mekkablue import mekkaObject, UpdateButton, getLegibleFont
+from mekkablue import mekkaObject, UpdateButton, getLegibleFont, makeWindowResizable
 
 
 class FindInFeatures(mekkaObject):
@@ -16,11 +16,10 @@ class FindInFeatures(mekkaObject):
 		# Window 'self.w':
 		windowWidth = 180
 		windowHeight = 200
-		# the result list is the main content, so the window stays resizable (hence minSize):
+		# the result list is the main content, so the window stays resizable:
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Find in Features",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
@@ -47,6 +46,8 @@ class FindInFeatures(mekkaObject):
 			],
 			metrics={"inset": 5, "gap": 5},
 		)
+
+		makeWindowResizable(self.w, vertical=True)  # resizable, limits in content sizes
 
 		# Open window and focus on it:
 		self.w.open()

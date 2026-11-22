@@ -6,7 +6,7 @@ Batch-add a name particle to your style names, or batch-remove it from them. Use
 import vanilla
 from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, INSTANCETYPESINGLE, Message
-from mekkablue import mekkaObject, UpdateButton, fontFileName
+from mekkablue import mekkaObject, UpdateButton, fontFileName, makeWindowResizable
 
 
 particleDefault = "Italic"
@@ -31,13 +31,9 @@ class StyleRenamer(mekkaObject):
 		# Window 'self.w':
 		windowWidth = 340
 		windowHeight = 300
-		windowWidthResize = 200  # user can resize width by this value
-		windowHeightResize = 800  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Style Renamer",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing): the preview list may be enlarged
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
@@ -109,6 +105,8 @@ class StyleRenamer(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8, "row": 8},
 		)
+
+		makeWindowResizable(self.w, vertical=True)  # resizable, limits in content sizes
 
 		# Load Settings:
 		self.LoadPreferences()

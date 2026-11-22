@@ -4,7 +4,7 @@ Compares open fonts and builds a lits of differing glyph info, including Unicode
 """
 
 import vanilla
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, makeWindowResizable
 from GlyphsApp import Glyphs
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 
@@ -71,7 +71,6 @@ class CompareGlyphInfo(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Compare Glyph Info",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
@@ -106,6 +105,8 @@ class CompareGlyphInfo(mekkaObject):
 		)
 
 		self.Reload()
+
+		makeWindowResizable(self.w, vertical=True)  # resizable, limits in content sizes
 
 		# Open window and focus on it:
 		self.w.open()

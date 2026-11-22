@@ -6,7 +6,7 @@ Will add smart axes and additional smart layers to selected glyphs.
 from copy import copy
 
 import vanilla
-from mekkablue import mekkaObject, getLegibleFont, reportFontName
+from mekkablue import mekkaObject, getLegibleFont, reportFontName, makeWindowResizable
 from GlyphsApp import Glyphs, Message, GSSmartComponentAxis
 from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 
@@ -27,14 +27,10 @@ class BatchAddSmartAxes(mekkaObject):
 		# Window 'self.w':
 		windowWidth = 370
 		windowHeight = 260
-		windowWidthResize = 1000  # user can resize width by this value
-		windowHeightResize = 1000  # user can resize height by this value
 		# the window stays resizable, so the user can enlarge the recipe editor:
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Batch-Add Smart Axes",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
@@ -82,6 +78,8 @@ class BatchAddSmartAxes(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8},
 		)
+
+		makeWindowResizable(self.w, vertical=True)  # resizable, limits in content sizes
 
 		# Load Settings:
 		self.LoadPreferences()

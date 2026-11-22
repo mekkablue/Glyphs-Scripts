@@ -116,8 +116,8 @@ before it. Bail out with an `if` block, as above, and keep `return` for function
 __doc__ = """Description."""
 
 import vanilla
-from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut, NSWindowStyleMaskResizable
-from mekkablue import mekkaObject
+from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
+from mekkablue import mekkaObject, makeWindowResizable
 
 
 class MyScript(mekkaObject):
@@ -130,8 +130,7 @@ class MyScript(mekkaObject):
 		windowWidth = 330
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		# no minSize/maxSize: vanilla's frame sizes fight Auto Layout. A window with stretchable
-		# fields is made horizontally resizable on the NSWindow instead, see below
-		# (“Horizontal resizing”)
+		# fields is made resizable with makeWindowResizable() instead, see “Resizing” below
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"My Script",
@@ -161,12 +160,8 @@ class MyScript(mekkaObject):
 			metrics={"inset": inset, "gap": 8},
 		)
 
-		# horizontally resizable, because the window has a stretchable field (see “Horizontal resizing”)
-		nsWindow = self.w.getNSWindow()
-		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
-		contentHeight = nsWindow.contentView().fittingSize().height
-		nsWindow.setContentMinSize_((windowWidth, contentHeight))
-		nsWindow.setContentMaxSize_((2000, contentHeight))
+		# horizontally resizable, because the window has a stretchable field (see “Resizing”)
+		makeWindowResizable(self.w)
 
 		self.LoadPreferences()
 		self.w.open()
@@ -205,7 +200,7 @@ MyScript()
 | `self.uiElement(name)` | Returns UI element for a given pref name (supports dot notation for nested elements) |
 | `self.LoadPreferences()` | Populates all UI elements from prefs; calls `updateUI()` if defined |
 | `self.SavePreferences(sender)` | Saves all UI element values to prefs; calls `updateUI()` if defined |
-| `self.resizeWindowToMinimum()` | Clamps the window to `contentMinSize`/`contentMaxSize`, per axis. `LoadPreferences()` wraps `open()` so it runs once the autosaved frame is restored. A no-op for windows without content size limits. Set them on the `NSWindow` (see “Horizontal resizing”); for windows created with vanilla's `minSize`/`maxSize` it currently shrinks the window by the title bar height, because vanilla stores those as frame sizes while this compares content sizes |
+| `self.resizeWindowToMinimum()` | Clamps the window to `contentMinSize`/`contentMaxSize`, per axis. `LoadPreferences()` wraps `open()` so it runs once the autosaved frame is restored. A no-op for windows without content size limits. Use `makeWindowResizable()` (see “Resizing”); for windows created with vanilla's `minSize`/`maxSize` it currently shrinks the window by the title bar height, because vanilla stores those as frame sizes while this compares content sizes |
 
 Both `LoadPreferences()` and `SavePreferences()` automatically call `self.updateUI()` if that method exists — use `updateUI()` to cascade enable/disable state across dependent UI elements.
 
@@ -372,8 +367,8 @@ Rules for rows with a label, learned from converting `Kerning/KernCrasher.py`:
 - **`ProgressBar` needs a height in the rule:** `[bar(16)]`.
 - **Bottom buttons:** the main chain ends with `[runButton]-inset-|`. A second button in that row gets its own
   `"V:[nextButton]-inset-|"` and joins the row horizontally: `|-(>=inset)-[nextButton(>=70)]-gap-[runButton(>=70)]-inset-|`.
-- **Drop the old resize code:** remove `windowHeightResize`, `minSize` and `maxSize`, and re-add width resizing as
-  described under “Horizontal resizing”. Say “stores last window position and width” next to `autosaveName` if the
+- **Drop the old resize code:** remove `windowHeightResize`, `minSize` and `maxSize`, and re-add resizing as
+  described under “Resizing”. Say “stores last window position and width” next to `autosaveName` if the
   window is resizable, “stores last window position” if it is not.
 - **Give the label and its field the same tooltip** (one `tooltipText` variable, set on both).
 - **Example input as a placeholder:** `field.getNSTextField().setPlaceholderString_("200:300, 400:370")`.
@@ -395,13 +390,13 @@ demanding one long line.
 
 ### Letting Auto Layout size the window
 
-Pass **no** `minSize`/`maxSize` to vanilla. (To make the window wider or narrower, see “Horizontal resizing”
+Pass **no** `minSize`/`maxSize` to vanilla. (To make the window wider or narrower, see “Resizing”
 below; it is done on the `NSWindow`, not through vanilla.) Vanilla adds `NSResizableWindowMask` only when one of them is
 given, and only then calls `setMinSize_`/`setMaxSize_` — which take *frame* sizes, while
 `getPosSize()` and `resizeWindowToMinimum()` work in *content* sizes, so the title bar gets
 counted twice and the window opens shorter than declared. Without them the window stays
 fixed-size, `resizeWindowToMinimum()` becomes a no-op, and AppKit restores only the position
-from the autosaved frame, not the size. Windows made resizable through the `NSWindow` (below) are different: they
+from the autosaved frame, not the size. Windows made resizable with `makeWindowResizable()` (see “Resizing”) are different: they
 carry `contentMinSize`/`contentMaxSize` in content sizes, so `resizeWindowToMinimum()` clamps them correctly.
 
 For the window to take its height from the content, two things must hold:
@@ -424,27 +419,29 @@ and the window comes out full-screen tall. Widths are still taken from `windowWi
 horizontally at the same level would shrink each window to its widest row and collapse the
 labels that are meant to stretch across the full width.
 
-### Horizontal resizing
+### Resizing
 
 **Horizontal resizing is a priority.** Every window with a control that can usefully stretch — an `EditText`,
 `ComboBox`, `PopUpButton`, `TextEditor` or `List`, or a long status line — is resizable horizontally, so long
 glyph names, suffix lists, feature code and the like stay readable. A window with only checkboxes and buttons may stay
-fixed-size. The height is never resizable: it stays what the content needs.
+fixed-size. Windows whose main content is a `List` or `TextEditor` are resizable vertically too; for all others the
+height stays what the content needs.
 
-Do it on the `NSWindow`, not through vanilla's `minSize`/`maxSize`, and before `LoadPreferences()`:
+Never pass `minSize`/`maxSize` to vanilla. Call `makeWindowResizable()` from `mekkablue` after the rules are added and
+before `LoadPreferences()` and `open()`. It sets the limits on the `NSWindow` in content sizes:
 
 ```python
-from AppKit import NSWindowStyleMaskResizable
+from mekkablue import mekkaObject, makeWindowResizable
 
-nsWindow = self.w.getNSWindow()
-nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
-contentHeight = nsWindow.contentView().fittingSize().height  # the height the content needs
-nsWindow.setContentMinSize_((windowWidth, contentHeight))  # never narrower than at the start
-nsWindow.setContentMaxSize_((2000, contentHeight))  # as wide as you like, but locked in height
+makeWindowResizable(self.w)  # width only: the height stays what the content needs
+makeWindowResizable(self.w, vertical=True)  # width and height, for a List or TextEditor
+makeWindowResizable(self.w, vertical=True, minSize=(250, 150))  # smaller than the starting size
 ```
 
-`windowWidth` is the minimum width, so choose it large enough for the widest row. The rules must let the right
-controls take the extra width:
+The smallest size is the size the window is created with (`minSize` overrides it), so choose `windowWidth` — and, for
+`vertical=True`, `windowHeight` — large enough for the widest row and the smallest useful editor. The largest size is
+`maxSize`, 2000 × 2000 by default. Do not limit a window to a few pixels more than its starting size. The rules must
+let the right controls take the extra width:
 
 - **Stretching controls run to the right edge:** end their row with `-inset-|`, not `-(>=inset)-|`, and do not give
   them a fixed width. A fixed-width numeric field, a checkbox or a button stays `(50)`, `(>=70)` and so on and ends
@@ -458,8 +455,6 @@ controls take the extra width:
 - **Equal-width columns scale along:** cells tied with `width` rules grow together, which is what you want.
 - **Wrapping text** needs the fixed height and lowered compression resistance described above, otherwise its
   intrinsic one-line width becomes the minimum width.
-
-If the same code turns up in many scripts, move it into one wrapper in `__init__.py` rather than copying it.
 
 ### Frame-based layout (existing scripts)
 
@@ -491,6 +486,7 @@ Read it to understand existing scripts. Never use it for a new window, and conve
 | `layerGroupsOf(glyph)` | Returns the interpolation-compatible layer ID groups of a `GSGlyph` as tuples; use instead of `layerGroups_masters_error_()`, which groups by instances — not the default in Glyphs 3/4 — and instead of `glyph.layerGroups()`, which does not exist in Glyphs 3.1 |
 | `newAnchorWithName(anchorName, position=None)` | Returns a new `GSAnchor`; use instead of `GSAnchor(name, position)` (raises a `TypeError` in Glyphs 4) or `GSAnchor.alloc().initWithName_position_()` (missing in Glyphs 3) |
 | `fontFileName(font, fullPath=False)` | File name (or full path) of a `GSFont` for reports; `f"{font.familyName} (unsaved)"` if the font has no file. Use instead of hand-written `filepath` checks |
+| `makeWindowResizable(window, vertical=False, minSize=None, maxSize=(2000, 2000))` | Makes a vanilla window resizable with limits in content sizes, width only or, with `vertical=True`, height too; use instead of vanilla's `minSize`/`maxSize`, see “Resizing” |
 | `numberFormatter(minimum, maximum, integersOnly, fractionDigits)`, `integerFormatter(minimum, maximum)`, `decimalFormatter(minimum, maximum, fractionDigits)` | `NSNumberFormatter` for numeric fields |
 | `SteppingEditText` | `vanilla.EditText` with arrow-key stepping, see “Integer fields” |
 | `updatedCode(oldCode, beginSig, endSig, newCode)` | Replaces text in `oldCode`, but only between the two signatures |

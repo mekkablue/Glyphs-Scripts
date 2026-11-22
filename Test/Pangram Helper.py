@@ -10,7 +10,7 @@ from AppKit import (
 	NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 )
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, makeWindowResizable
 
 nonJoiner = "\u200c"
 
@@ -217,13 +217,9 @@ class PangramHelper(mekkaObject):
 		# Window 'self.w':
 		windowWidth = 300
 		windowHeight = 176  # 20% less than before
-		windowWidthResize = 500  # user can resize width by this value
-		windowHeightResize = 500  # user can resize height by this value
 		self.w = vanilla.Window(
 			(windowWidth, windowHeight),  # default window size
 			self.title,  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
@@ -270,6 +266,8 @@ class PangramHelper(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8, "row": 8},
 		)
+
+		makeWindowResizable(self.w, vertical=True)  # resizable, limits in content sizes
 
 		# Load Settings:
 		self.LoadPreferences()

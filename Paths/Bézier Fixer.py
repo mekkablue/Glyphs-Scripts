@@ -547,8 +547,6 @@ class BezierFixer(mekkaObject):
 		self.w.preview.show(self.settingsExpanded)
 		self.w.backup.show(self.settingsExpanded)
 		newHeight = self.expandedWindowHeight if self.settingsExpanded else self.collapsedWindowHeight
-		# self.w.minSize = (self.windowWidth, newHeight)
-		# self.w.maxSize = (self.windowWidth, newHeight)
 		self.clamp(newHeight=newHeight)
 
 	def clamp(self, sender=None, newHeight=None):

@@ -7,7 +7,7 @@ import codecs
 import vanilla
 from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, GSComponent, Message, GetSaveFile, GetOpenFile
-from mekkablue import mekkaObject, getLegibleFont, newGlyphWithName, fontFileName
+from mekkablue import mekkaObject, getLegibleFont, newGlyphWithName, fontFileName, makeWindowResizable
 
 AXtDefault = """
 Syntax:
@@ -375,7 +375,6 @@ class EncodingConverter(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Encoding Converter",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
@@ -430,6 +429,8 @@ class EncodingConverter(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8, "row": 8},
 		)
+
+		makeWindowResizable(self.w, vertical=True)  # resizable, limits in content sizes
 
 		# Load Settings:
 		self.LoadPreferences()

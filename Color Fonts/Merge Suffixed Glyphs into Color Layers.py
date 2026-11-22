@@ -5,7 +5,7 @@ Takes the master layer of suffixed glyphs (e.g., x.shadow, x.body, x.front) and 
 
 from copy import copy
 import vanilla
-from mekkablue import mekkaObject, getLegibleFont
+from mekkablue import mekkaObject, getLegibleFont, makeWindowResizable
 from GlyphsApp import Glyphs, Message
 from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 
@@ -26,7 +26,6 @@ class MergeSuffixedGlyphsIntoColorLayers(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Merge Suffixed Glyphs into Color Layers",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
@@ -82,6 +81,8 @@ class MergeSuffixedGlyphsIntoColorLayers(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8, "checkRow": 5},
 		)
+
+		makeWindowResizable(self.w, vertical=True)  # resizable, limits in content sizes
 
 		# Load Settings:
 		self.LoadPreferences()

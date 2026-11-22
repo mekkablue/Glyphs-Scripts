@@ -7,7 +7,7 @@ from collections import OrderedDict
 
 import vanilla
 from axisMethods import extremeMasterValuesNative, coefficient, valueForCoefficient, masterValueForAxisTag, extremeStyleValuesNative, styleValueForAxisTag
-from mekkablue import mekkaObject, getLegibleFont, UpdateButton, SteppingEditText
+from mekkablue import mekkaObject, getLegibleFont, UpdateButton, SteppingEditText, makeWindowResizable
 from GlyphsApp import Glyphs, Message
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from Foundation import NSMutableDictionary, NSNumberFormatter
@@ -126,14 +126,10 @@ class AxisMapper(mekkaObject):
 		# Window 'self.w':
 		windowWidth = 550
 		windowHeight = 260
-		windowWidthResize = 500  # user can resize width by this value
-		windowHeightResize = 800  # user can resize height by this value
 		# the window stays resizable, so the user can enlarge the recipe editor:
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Axis Mapper",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
-			maxSize=(windowWidth + windowWidthResize, windowHeight + windowHeightResize),  # maximum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
@@ -214,6 +210,8 @@ class AxisMapper(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8, "sectionGap": 14},
 		)
+
+		makeWindowResizable(self.w, vertical=True)  # resizable, limits in content sizes
 
 		# Load Settings:
 		self.LoadPreferences()

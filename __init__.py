@@ -1,7 +1,7 @@
 
 from typing import Any
 import objc
-from AppKit import NSUserDefaults, NSFont, NSImage, NSImageLeading, NSPasteboard, NSStringPboardType, NSLineBreakByClipping
+from AppKit import NSUserDefaults, NSFont, NSImage, NSImageLeading, NSPasteboard, NSStringPboardType, NSLineBreakByClipping, NSWindowStyleMaskResizable
 from Foundation import NSPoint, NSClassFromString, NSMutableSet, NSHeight, NSNumberFormatter
 from GlyphsApp import Glyphs, GSAnchor, GSFeature, GSClass, GSControlLayer, GSGlyph
 from vanilla import Button, EditText
@@ -554,6 +554,29 @@ def createOTClass(className="@default", classGlyphNames=None, targetFont=None, a
 		returnText = returnText.rstrip(".") + " (automated)."
 
 	return returnText
+
+
+def makeWindowResizable(window, vertical=False, minSize=None, maxSize=(2000, 2000)):
+	"""
+	Makes a vanilla window resizable, with limits in content sizes, as Auto Layout windows need.
+	Use this instead of the minSize/maxSize arguments of vanilla.Window, which are frame sizes,
+	count the title bar twice and would make the window open shorter than declared.
+	Call it after the controls and rules are set, and before LoadPreferences() and open().
+	window: the vanilla window,
+	vertical: if False, only the width is resizable and the height stays what the content needs (fittingSize),
+	          if True, the height is resizable too (for windows with a List or TextEditor),
+	minSize: (width, height) of the smallest content size, defaults to the size the window is created with,
+	maxSize: (width, height) of the largest content size; the height is ignored if vertical is False.
+	"""
+	nsWindow = window.getNSWindow()
+	nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
+	currentSize = nsWindow.contentRectForFrameRect_(nsWindow.frame()).size
+	minWidth, minHeight = minSize if minSize else (currentSize.width, currentSize.height)
+	maxWidth, maxHeight = maxSize
+	if not vertical:
+		minHeight = maxHeight = nsWindow.contentView().fittingSize().height
+	nsWindow.setContentMinSize_((minWidth, minHeight))
+	nsWindow.setContentMaxSize_((maxWidth, maxHeight))
 
 
 def numberFormatter(minimum=None, maximum=None, integersOnly=False, fractionDigits=None):

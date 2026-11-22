@@ -6,7 +6,7 @@ Edit Filter custom parameters as plain text, one filter value string per line, i
 import re
 import vanilla
 from AppKit import NSMakeSize, NSDictionary, NSArray
-from mekkablue import mekkaObject, getClipboard, setClipboard, getLegibleFont
+from mekkablue import mekkaObject, getClipboard, setClipboard, getLegibleFont, makeWindowResizable
 
 parameterName = "Filter"
 disabledPrefix = "#"
@@ -49,8 +49,6 @@ class FilterManager(mekkaObject):
 		self.w = vanilla.Window(
 			(windowWidth, windowHeight),
 			"Filter Manager",
-			minSize=(250, 150),
-			maxSize=(2000, 2000),
 			autosaveName=self.domain("mainwindow"),  # persists window position and size
 		)
 
@@ -96,6 +94,8 @@ class FilterManager(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8},
 		)
+
+		makeWindowResizable(self.w, vertical=True, minSize=(250, 150))  # resizable, limits in content sizes
 
 		self.LoadPreferences()
 		self.w.open()

@@ -4,7 +4,7 @@ Lists some Font Info values for all opened fonts.
 """
 
 import vanilla
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, makeWindowResizable
 from GlyphsApp import Glyphs
 from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultLow
 
@@ -30,11 +30,10 @@ class FontInfoOverview(mekkaObject):
 		# Window 'self.w':
 		windowWidth = 600
 		windowHeight = 200
-		# the list is the main content, so the window stays resizable (hence minSize):
+		# the list is the main content, so the window stays resizable:
 		self.w = vanilla.Window(
 			(windowWidth, windowHeight),  # default window size
 			"Font Info Overview",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			autosaveName=self.domain("mainwindow"),  # stores last window position and size
 		)
 
@@ -79,6 +78,8 @@ class FontInfoOverview(mekkaObject):
 		)
 
 		self.updateCounter()
+
+		makeWindowResizable(self.w, vertical=True)  # resizable, limits in content sizes
 
 		# open the window
 		self.w.open()

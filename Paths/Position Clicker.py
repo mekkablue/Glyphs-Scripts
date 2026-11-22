@@ -4,7 +4,7 @@ Finds all combinations of positional shapes that do not click well. Clicking mea
 """
 
 import vanilla
-from mekkablue import mekkaObject, newLineControlLayer, UpdateButton, SteppingEditText, integerFormatter, fontFileName
+from mekkablue import mekkaObject, newLineControlLayer, UpdateButton, SteppingEditText, integerFormatter, fontFileName, makeWindowResizable
 from GlyphsApp import Glyphs, GSOFFCURVE, Message
 from AppKit import (
 	NSColor,
@@ -16,7 +16,6 @@ from AppKit import (
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
 	NSTextAlignmentRight,
-	NSWindowStyleMaskResizable,
 )
 
 
@@ -207,13 +206,7 @@ class PositionClicker(mekkaObject):
 			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
 		)
 
-		# resizable horizontally only: the height stays what the content needs
-		# (set on the NSWindow, because vanilla's minSize/maxSize are frame sizes and would count the title bar twice)
-		nsWindow = self.w.getNSWindow()
-		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
-		contentHeight = nsWindow.contentView().fittingSize().height
-		nsWindow.setContentMinSize_((windowWidth, contentHeight))
-		nsWindow.setContentMaxSize_((2000, contentHeight))
+		makeWindowResizable(self.w)  # resizable horizontally only, the height stays what the content needs
 
 		# Load Settings:
 		self.LoadPreferences()

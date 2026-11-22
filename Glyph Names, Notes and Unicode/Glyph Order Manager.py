@@ -5,7 +5,7 @@ UI for managing glyphOrder parameters.
 
 import codecs
 import vanilla
-from mekkablue import mekkaObject, getLegibleFont, reportFontName
+from mekkablue import mekkaObject, getLegibleFont, reportFontName, makeWindowResizable
 from GlyphsApp import Glyphs, Message
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 
@@ -42,7 +42,6 @@ class GlyphOrderManager(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Glyph Order Manager",  # window title
-			minSize=(windowWidth, windowHeight),  # minimum size (for resizing)
 			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
@@ -105,6 +104,8 @@ class GlyphOrderManager(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8},
 		)
+
+		makeWindowResizable(self.w, vertical=True)  # resizable, limits in content sizes
 
 		# Load Settings:
 		self.LoadPreferences()

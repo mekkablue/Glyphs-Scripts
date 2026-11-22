@@ -6,7 +6,7 @@ Overlays the highest, lowest, leftmost and rightmost glyphs in a resizable windo
 from time import time_ns
 
 import vanilla
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, makeWindowResizable
 from GlyphsApp import Glyphs, Message, GSMetricsTypeItalicAngle
 from AppKit import (
 	NSAffineTransform, NSAlternateKeyMask, NSAttributedString, NSEvent, NSEventMaskFlagsChanged, NSBezierPath, NSBitmapImageFileTypePNG, NSColor, NSFont,
@@ -240,7 +240,6 @@ class ReportHighestAndLowestGlyphs(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Font BBoxer",
-			minSize=(300, 440),
 			autosaveName=self.domain("mainwindow"),  # stores last window position and size
 		)
 
@@ -341,6 +340,8 @@ class ReportHighestAndLowestGlyphs(mekkaObject):
 
 		self.optionKeyMonitor = NSEvent.addLocalMonitorForEventsMatchingMask_handler_(NSEventMaskFlagsChanged, self.optionKeyChanged)
 		self.w.bind("close", self.removeMonitor)
+
+		makeWindowResizable(self.w, vertical=True, minSize=(300, 440))  # resizable, limits in content sizes
 
 		self.LoadPreferences()
 		self.w.open()
