@@ -80,6 +80,9 @@ class RemoveComponentfromSelectedGlyphs(mekkaObject):
 		nsStatus = self.w.status.getNSTextField()
 		nsStatus.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 		nsStatus.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		# the run button stays as wide as its title needs:
+		self.w.runButton.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton.getNSButton().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 
 		# the label hugs its text, so the combo box takes the leftover width:
 		nsLabel = self.w.textDescription.getNSTextField()
@@ -94,9 +97,9 @@ class RemoveComponentfromSelectedGlyphs(mekkaObject):
 			[
 				"H:|-inset-[textDescription]-gap-[componentName]-gap-[updateButton]-inset-|",
 				"H:|-inset-[fromWhere]-(>=inset)-|",
-				"H:|-inset-[runButton]-inset-|",
-				"H:|-inset-[status]-inset-|",
-				"V:|-inset-[componentName]-row-[fromWhere(radioHeight)]-row-[runButton]-row-[status]-inset-|",
+				"H:|-inset-[status]-gap-[runButton(>=70)]-inset-|",
+				"V:|-inset-[componentName]-row-[fromWhere(radioHeight)]-row-[runButton]-inset-|",
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 				{"view1": self.w.textDescription, "attribute1": "centerY", "view2": self.w.componentName, "attribute2": "centerY"},
 				{"view1": self.w.updateButton, "attribute1": "centerY", "view2": self.w.componentName, "attribute2": "centerY"},
 			],

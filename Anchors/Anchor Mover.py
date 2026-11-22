@@ -159,6 +159,12 @@ class AnchorMover2(mekkaObject):
 		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
 		self.w.status.setToolTip("Shows the progress and the result of the run.")
 
+		# the status line takes the leftover width, the button stays as wide as its title needs:
+		self.w.status.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.moveButton.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.moveButton.getNSButton().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
 		# checkboxes stretch vertically by default; hug so the window is as tall as the content
 		for view in self.w.getNSWindow().contentView().subviews():
 			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
@@ -181,9 +187,9 @@ class AnchorMover2(mekkaObject):
 				"H:|-inset-[italic]-(>=inset)-|",
 				"H:|-inset-[allMasters]-(>=inset)-|",
 				"H:|-inset-[verbose]-(>=inset)-|",
-				"H:|-(>=inset)-[moveButton(>=70)]-inset-|",
-				"H:|-inset-[status]-inset-|",
-				"V:|-gap-[anchorName]-row-[hTarget]-row-[vTarget]-row-[italic]-checkRow-[allMasters]-checkRow-[verbose]-inset-[moveButton]-gap-[status]-inset-|",
+				"H:|-inset-[status]-gap-[moveButton(>=70)]-inset-|",
+				"V:|-gap-[anchorName]-row-[hTarget]-row-[vTarget]-row-[italic]-checkRow-[allMasters]-checkRow-[verbose]-inset-[moveButton]-inset-|",
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.moveButton, "attribute2": "centerY"},
 				{"view1": self.w.text_1, "attribute1": "centerY", "view2": self.w.anchorName, "attribute2": "centerY"},
 				{"view1": self.w.button, "attribute1": "centerY", "view2": self.w.anchorName, "attribute2": "centerY"},
 				{"view1": self.w.text_2, "attribute1": "centerY", "view2": self.w.anchorName, "attribute2": "centerY"},

@@ -127,11 +127,6 @@ class ColorPaletteMultiplier(mekkaObject):
 		self.w.runButton.setToolTip("Builds the target color layers in the processed glyphs.")
 		self.w.setDefaultButton(self.w.runButton)
 
-		# the status line takes the leftover width, the button stays as wide as its title needs:
-		self.w.status.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
-		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
-		self.w.runButton.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
-		self.w.runButton.getNSButton().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 
 		# label hugs its text, so the popup takes the leftover width
 		nsLabel = self.w.deriveText.getNSTextField()
@@ -152,12 +147,12 @@ class ColorPaletteMultiplier(mekkaObject):
 				"H:|-inset-[overwrite]-(>=inset)-|",
 				"H:|-inset-[descriptionText]-inset-|",
 				"H:|-inset-[build]-inset-|",
-				"H:|-inset-[ActionButton(40)]-gap-[status]-gap-[runButton(>=70)]-inset-|",
-				"V:|-gap-[derive]-row-[allGlyphs]-checkRow-[overwrite]-row-[descriptionText]-row-[build(>=200)]-inset-[runButton]-inset-|",
+				"H:|-inset-[status]-inset-|",
+				"H:|-inset-[ActionButton(40)]-(>=gap)-[runButton(>=70)]-inset-|",
+				"V:|-gap-[derive]-row-[allGlyphs]-checkRow-[overwrite]-row-[descriptionText]-row-[build(>=200)]-inset-[status]-gap-[runButton]-inset-|",
 				"V:[ActionButton]-inset-|",
 				{"view1": self.w.deriveText, "attribute1": "centerY", "view2": self.w.derive, "attribute2": "centerY"},
 				{"view1": self.w.deriveUpdate, "attribute1": "centerY", "view2": self.w.derive, "attribute2": "centerY"},
-				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 			],
 			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
 		)

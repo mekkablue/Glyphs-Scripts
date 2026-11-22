@@ -4,7 +4,7 @@ Removes corner components that are not linked to a node from all (selected) glyp
 """
 
 import vanilla
-from AppKit import NSColor, NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
+from AppKit import NSColor, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, CORNER
 from mekkablue import mekkaObject
 
@@ -68,6 +68,12 @@ class RemoveDetachedCorners(mekkaObject):
 		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
 		self.w.status.setToolTip("Shows the progress and the result of the run.")
 
+		# the status line takes the leftover width, the button stays as wide as its title needs:
+		self.w.status.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton.getNSButton().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
 		# checkboxes stretch vertically by default; hugging makes the window as tall as the content
 		for view in self.w.getNSWindow().contentView().subviews():
 			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
@@ -78,9 +84,9 @@ class RemoveDetachedCorners(mekkaObject):
 				"H:|-inset-[backgroundLayersChBox]-(>=inset)-|",
 				"H:|-inset-[allMastersChBox]-(>=inset)-|",
 				"H:|-inset-[fromWhereText]-gap-[fromWhere]-(>=inset)-|",
-				"H:|-inset-[runButton]-inset-|",
-				"H:|-inset-[status]-inset-|",
-				"V:|-inset-[descriptionText]-row-[backgroundLayersChBox]-[allMastersChBox]-row-[fromWhere(radioHeight)]-row-[runButton]-row-[status]-inset-|",
+				"H:|-inset-[status]-gap-[runButton(>=70)]-inset-|",
+				"V:|-inset-[descriptionText]-row-[backgroundLayersChBox]-[allMastersChBox]-row-[fromWhere(radioHeight)]-row-[runButton]-inset-|",
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 				# the label sits next to the first radio button:
 				{"view1": self.w.fromWhereText, "attribute1": "top", "view2": self.w.fromWhere, "attribute2": "top"},
 			],

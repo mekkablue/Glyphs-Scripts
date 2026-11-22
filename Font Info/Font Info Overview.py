@@ -82,7 +82,7 @@ class FontInfoOverview(mekkaObject):
 				"H:|[List]|",
 				"H:|-inset-[changeCounter]-(>=gap)-[reloadButton(>=70)]-gap-[applyButton(>=70)]-inset-|",
 				"H:|-inset-[status]-inset-|",
-				"V:|[List(>=100)]-inset-[applyButton]-gap-[status]-inset-|",
+				"V:|[List(>=100)]-inset-[status]-gap-[applyButton]-inset-|",
 				{"view1": self.w.reloadButton, "attribute1": "centerY", "view2": self.w.applyButton, "attribute2": "centerY"},
 				{"view1": self.w.changeCounter, "attribute1": "centerY", "view2": self.w.applyButton, "attribute2": "centerY"},
 			],

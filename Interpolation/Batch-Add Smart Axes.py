@@ -80,8 +80,8 @@ class BatchAddSmartAxes(mekkaObject):
 				"H:|-1-[recipe]-1-|",
 				"H:|-inset-[resetButton(>=70)]-(>=gap)-[runButton(>=100)]-inset-|",
 				"H:|-inset-[status]-inset-|",
-				"V:|-inset-[descriptionText]-gap-[recipe(>=120)]-inset-[runButton]-gap-[status]-inset-|",
-				"V:[resetButton]-gap-[status]",
+				"V:|-inset-[descriptionText]-gap-[recipe(>=120)]-inset-[status]-gap-[runButton]-inset-|",
+				"V:[resetButton]-inset-|",
 			],
 			metrics={"inset": inset, "gap": 8},
 		)

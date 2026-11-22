@@ -56,7 +56,7 @@ class ChangeMetricsbyPercentage(mekkaObject):
 			[
 				"H:|-inset-[text_1]-gap-[LSB]-gap-[RSB]-gap-[changeValue(55)]-3-[text_3]-(>=gap)-[revertButton(>=60)]-gap-[runButton(>=60)]-inset-|",
 				"H:|-inset-[status]-inset-|",
-				"V:|-inset-[changeValue]-gap-[status]-inset-|",
+				"V:|-inset-[status]-gap-[changeValue]-inset-|",
 			] + [
 				{"view1": view, "attribute1": "centerY", "view2": self.w.changeValue, "attribute2": "centerY"}
 				for view in rowViews

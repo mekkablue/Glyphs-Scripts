@@ -120,7 +120,7 @@ class AutoStems(mekkaObject):
 			"H:|-inset-[overwriteExisting]-(>=inset)-|",
 			"H:|-inset-[allFonts]-(>=gap)-[runButton(>=70)]-inset-|",
 			"H:|-inset-[status]-inset-|",
-			"V:|-gap-[descriptionText]-row-[vStemGlyph]-row-[hStemGlyph]-row-[overwriteExisting]-row-[runButton]-gap-[status]-inset-|",
+			"V:|-gap-[descriptionText]-row-[vStemGlyph]-row-[hStemGlyph]-row-[overwriteExisting]-row-[status]-gap-[runButton]-inset-|",
 			{"view1": self.w.allFonts, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 			{"view1": self.w.hText1, "attribute1": "width", "view2": self.w.vText1, "attribute2": "width"},
 			{"view1": self.w.hMeasure, "attribute1": "width", "view2": self.w.vMeasure, "attribute2": "width"},

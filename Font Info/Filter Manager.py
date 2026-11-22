@@ -93,7 +93,7 @@ class FilterManager(mekkaObject):
 				"H:|-inset-[filters]-inset-|",
 				"H:|-inset-[pasteButton(>=70)]-gap-[pasteAddButton(>=70)]-(>=inset)-[copyButton(>=120)]-inset-|",
 				"H:|-inset-[status]-inset-|",
-				"V:|-inset-[filters]-inset-[pasteButton]-gap-[status]-inset-|",
+				"V:|-inset-[filters]-inset-[status]-gap-[pasteButton]-inset-|",
 				{"view1": self.w.pasteAddButton, "attribute1": "centerY", "view2": self.w.pasteButton, "attribute2": "centerY"},
 				{"view1": self.w.copyButton, "attribute1": "centerY", "view2": self.w.pasteButton, "attribute2": "centerY"},
 			],

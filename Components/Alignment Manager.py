@@ -67,7 +67,7 @@ class AutoAlignmentManager(mekkaObject):
 		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
 		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
 		self.w.status.setToolTip("Shows the progress and the result of the run.")
-		# the status line takes the full width of its own row:
+		# the status line takes the full width of its own row above the buttons:
 		self.w.status.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
@@ -90,10 +90,10 @@ class AutoAlignmentManager(mekkaObject):
 				"H:|-inset-[alignVertical(20)]-gap-[alignFull(20)]-gap-[alignmentTypeText]-inset-|",
 				"H:|-inset-[rotateButton(>=70)]-(>=gap)-[disableButton(>=70)]-gap-[enableButton(>=70)]-inset-|",
 				"H:|-inset-[status]-inset-|",
-				"V:|-gap-[descriptionText]-line-[includeAllGlyphs]-line-[includeAllLayers]-line-[differentiation]-line-[alignVertical(18)]-inset-[enableButton]-gap-[status]-inset-|",
+				"V:|-gap-[descriptionText]-line-[includeAllGlyphs]-line-[includeAllLayers]-line-[differentiation]-line-[alignVertical(18)]-inset-[status]-gap-[enableButton]-inset-|",
 				"V:[alignFull(18)]",
-				"V:[rotateButton]-gap-[status]",
-				"V:[disableButton]-gap-[status]",
+				"V:[rotateButton]-inset-|",
+				"V:[disableButton]-inset-|",
 				# labels ride along with the control they belong to:
 				{"view1": self.w.differentiationText, "attribute1": "centerY", "view2": self.w.differentiation, "attribute2": "centerY"},
 				{"view1": self.w.alignFull, "attribute1": "centerY", "view2": self.w.alignVertical, "attribute2": "centerY"},
