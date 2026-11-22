@@ -6,7 +6,15 @@ Takes all CPAL/COLR layers and puts copies of their shapes into the master layer
 import vanilla
 from mekkablue import mekkaObject, reportFontName, SteppingEditText, integerFormatter, makeWindowResizable
 from GlyphsApp import Glyphs, Message
-from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityWindowSizeStayPut
+from AppKit import (
+	NSColor,
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityDefaultLow,
+	NSLayoutPriorityRequired,
+	NSLayoutPriorityWindowSizeStayPut,
+)
 
 
 allOptions = (
@@ -65,10 +73,19 @@ class MergeCPALLayersIntoMasterLayer(mekkaObject):
 		self.w.verbose = vanilla.CheckBox("auto", "Verbose reporting in Macro window (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.verbose.setToolTip("Prints a line for every glyph and master, including skipped ones. Can be slow in large fonts.")
 
-		# Run Button:
+		# Status line and Run Button:
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
 		self.w.runButton = vanilla.Button("auto", "Merge", callback=self.MergeCPALLayersIntoMasterLayerMain)
 		self.w.runButton.setToolTip("Merges the color layers into the master layers.")
 		self.w.setDefaultButton(self.w.runButton)
+
+		# the status line takes the leftover width, the button stays as wide as its title needs:
+		self.w.status.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton.getNSButton().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 
 		# checkboxes stretch vertically by default; with everything hugging,
 		# the window ends up exactly as tall as the content
@@ -86,12 +103,13 @@ class MergeCPALLayersIntoMasterLayer(mekkaObject):
 				"H:|-inset-[removeSmallItems]-gap-[removeSmallItemsThreshold(50)]-gap-[removeSmallItemsText]-(>=inset)-|",
 				"H:|-inset-[overwrite]-(>=inset)-|",
 				"H:|-inset-[verbose]-(>=inset)-|",
-				"H:|-(>=inset)-[runButton(>=90)]-inset-|",
+				"H:|-inset-[status]-gap-[runButton(>=90)]-inset-|",
 				# the stack has one checkbox with a field behind it, so all rows take the wider gap:
 				"V:|-gap-[descriptionText]-row-[all]-stackRow-[removeOverlap]-stackRow-[removeSmallItems]-stackRow-[overwrite]-stackRow-[verbose]-inset-[runButton]-inset-|",
 				{"view1": self.w.allText, "attribute1": "centerY", "view2": self.w.all, "attribute2": "centerY"},
 				{"view1": self.w.removeSmallItemsThreshold, "attribute1": "centerY", "view2": self.w.removeSmallItems, "attribute2": "centerY"},
 				{"view1": self.w.removeSmallItemsText, "attribute1": "centerY", "view2": self.w.removeSmallItems, "attribute2": "centerY"},
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 			],
 			metrics={"inset": inset, "gap": 8, "row": 6, "stackRow": 8},
 		)
@@ -109,6 +127,7 @@ class MergeCPALLayersIntoMasterLayer(mekkaObject):
 		self.w.removeSmallItemsThreshold.enable(bool(self.w.removeSmallItems.get()))
 
 	def MergeCPALLayersIntoMasterLayerMain(self, sender=None):
+		currentItemName = None
 		try:
 			# clear macro window log:
 			Glyphs.clearLog()
@@ -117,8 +136,10 @@ class MergeCPALLayersIntoMasterLayer(mekkaObject):
 			self.SavePreferences()
 
 			if not Glyphs.font:
+				self.setStatus("⚠️ No font open.")
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
+				self.setStatus("🛠️ Processing…")
 				countGlyphs = 0
 				if self.pref("all") > 1:  # 0, 1 = current font; 2 = all fonts
 					theseFonts = Glyphs.fonts
@@ -137,6 +158,8 @@ class MergeCPALLayersIntoMasterLayer(mekkaObject):
 
 					for thisGlyph in theseGlyphs:
 						for m in thisFont.masters:
+							currentItemName = f"{thisGlyph.name} ({m.name})"
+							self.setStatus(f"🔠 {currentItemName}")
 							# collect shapes from color layers
 							collectedShapes = []
 							for colorLayer in thisGlyph.layers:
@@ -174,9 +197,11 @@ class MergeCPALLayersIntoMasterLayer(mekkaObject):
 							countGlyphs += 1
 					print()
 
+				self.setStatus(f"✅ Merged {countGlyphs} glyph{'' if countGlyphs == 1 else 's'}." if countGlyphs else "⚠️ No color layers found to merge.")
 				print(f"✅ Done. Merged {countGlyphs} glyph{'' if countGlyphs == 1 else 's'} in {len(theseFonts)} font{'' if len(theseFonts) == 1 else 's'}.")
 
 		except Exception as e:
+			self.setStatus(f"❌ Error at {currentItemName}. Details in Macro Window." if currentItemName else "❌ Error. Details in Macro Window.")
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print(f"Merge CPAL Layers into Master Layer Error: {e}")
