@@ -642,6 +642,18 @@ Glyphs.showNotification("My Script", "Brief summary. Details in Macro Window.")
 - Use emojis (`⚠️ ✅ ❌ ☑️ 💾 ↔️ 🔠`) and indentation for scannability.
 - **Do not** open the Macro Window automatically unless reporting is the script's entire purpose.
 - Notify the user via `Glyphs.showNotification()` for completion messages.
+- **Every script that changes the font has feedback on how it ended.** The user must be able to tell that the script is
+  done, and, after a crash, what it was working on:
+  - **A window with an action button has a status line** (`self.w.status`, a small `TextBox` that starts with
+    `🤖 Ready.`), in the bottom row to the left of the run button, see “Resizing”. The run method sets it to
+    `🛠️`, then to `🔠 glyphName` (or the master or instance name, or a master and glyph) for every item it works on,
+    redrawn at once with `self.w.status.getNSTextField().displayIfNeeded()`, and finally to `✅` plus a statistic (or
+    `⚠️`/`❌`). Put the processing in a `try`/`except` or `try`/`finally`, so that a crash leaves the last item in the
+    status line and the traceback in the Macro Window. A script that only opens a tab or a window with its result, or
+    that only reads, still gets a status line for the crash case, but may skip the `✅`.
+  - **A script without a window** ends with `Glyphs.showNotification()` (or opens a tab with the result) after it has
+    changed the font, and prints the item it is working on to the Macro Window, so that a crash can be located.
+  - **A window that only toggles one setting or runs instantly** (e.g. a one-click switch) does not need a status line.
 - **Status line conventions.** The status line in a script window starts with an emoji that tells the state:
   - `🤖 Ready.` — the script is waiting for the user.
   - `⚠️` prefixes a warning.
