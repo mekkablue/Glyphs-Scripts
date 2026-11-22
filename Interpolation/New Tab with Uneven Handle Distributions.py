@@ -8,9 +8,12 @@ from mekkablue import mekkaObject, SteppingEditText, decimalFormatter
 from mekkablue.geometry import intersectionLineLinePoints, bezierWithPoints
 from GlyphsApp import Glyphs, CURVE, Message, distance
 from AppKit import (
+	NSColor,
 	NSLayoutConstraintOrientationHorizontal,
 	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
 	NSLayoutPriorityDefaultLow,
+	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
 )
 
@@ -25,7 +28,7 @@ class NewTabWithUnevenHandleDistributions(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 350
+		windowWidth = 380
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
@@ -53,10 +56,19 @@ class NewTabWithUnevenHandleDistributions(mekkaObject):
 		self.w.markInFirstMaster.enable(False)
 		self.w.markInFirstMaster.setToolTip("Not implemented yet. Sorry.")
 
-		# Run Button:
+		# Status line and Run Button:
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows what the script is doing, and the result when it is done.")
 		self.w.runButton = vanilla.Button("auto", "Open Tab", callback=self.NewTabWithUnevenHandleDistributionsMain)
 		self.w.runButton.setToolTip("Opens a new tab with the glyphs in which the handle distributions change too much.")
 		self.w.setDefaultButton(self.w.runButton)
+
+		# the status line takes the leftover width, the button stays as wide as its title needs:
+		self.w.status.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton.getNSButton().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window
 		# ends up exactly as tall as the content
@@ -69,9 +81,10 @@ class NewTabWithUnevenHandleDistributions(mekkaObject):
 				"H:|-inset-[factorChange]-gap-[factorChangeEntry(60)]-(>=inset)-|",
 				"H:|-inset-[anyMaxToNotMax]-(>=inset)-|",
 				"H:|-inset-[markInFirstMaster]-(>=inset)-|",
-				"H:|-(>=inset)-[runButton(>=100)]-inset-|",
+				"H:|-inset-[status]-gap-[runButton(>=100)]-inset-|",
 				# the first checkbox has a field behind it, so the whole stack gets the wider gap:
 				"V:|-gap-[descriptionText(28)]-headlineGap-[factorChange]-stackRow-[anyMaxToNotMax]-stackRow-[markInFirstMaster]-inset-[runButton]-inset-|",
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 				{"view1": self.w.factorChangeEntry, "attribute1": "centerY", "view2": self.w.factorChange, "attribute2": "centerY"},
 			],
 			metrics={"inset": inset, "gap": 8, "stackRow": 8, "headlineGap": 10},
@@ -142,6 +155,7 @@ class NewTabWithUnevenHandleDistributions(mekkaObject):
 		pass
 
 	def NewTabWithUnevenHandleDistributionsMain(self, sender):
+		currentItem = "start"
 		try:
 			# update settings to the latest user input:
 			self.SavePreferences()
@@ -149,6 +163,7 @@ class NewTabWithUnevenHandleDistributions(mekkaObject):
 			thisFont = Glyphs.font  # frontmost font
 
 			if not thisFont or not len(thisFont.masters) > 1:
+				self.setStatus("⚠️ Needs a font with more than one master.")
 				Message(
 					title="Uneven Handle Distribution Error",
 					message="This script requires a multiple-master font, because it measures the difference between BCP distributions of a curve segment in one master to the same curve in other masters.",
@@ -156,6 +171,7 @@ class NewTabWithUnevenHandleDistributions(mekkaObject):
 				)
 			else:
 				Glyphs.clearLog()
+				self.setStatus("🛠️ Processing…")
 				print("New Tab with Uneven Handle Distributions\nReport for %s" % thisFont.familyName)
 				if thisFont.filepath:
 					print(f"📄 {thisFont.filepath}")
@@ -178,6 +194,8 @@ class NewTabWithUnevenHandleDistributions(mekkaObject):
 
 				affectedGlyphs = []
 				for thisGlyph in glyphs:
+					currentItem = thisGlyph.name
+					self.setStatus("🔠 %s" % currentItem)
 					firstLayer = thisGlyph.layers[0]
 					if firstLayer.paths:
 						otherLayers = [
@@ -218,11 +236,13 @@ class NewTabWithUnevenHandleDistributions(mekkaObject):
 													else:
 														break
 				if affectedGlyphs:
+					self.setStatus("✅ Found %i glyph%s with uneven handle distributions." % (len(affectedGlyphs), "" if len(affectedGlyphs) == 1 else "s"))
 					tabString = "/" + "/".join(affectedGlyphs)
 					# opens new Edit tab:
 					thisFont.newTab(tabString)
 					print("Affected glyphs:\n%s" % tabString)
 				else:
+					self.setStatus("⚠️ Nothing found.")
 					# Floating notification:
 					Glyphs.showNotification(
 						"Handle Distribution %s" % (thisFont.familyName),
@@ -231,6 +251,7 @@ class NewTabWithUnevenHandleDistributions(mekkaObject):
 
 				self.w.close()  # delete if you want window to stay open
 		except Exception as e:
+			self.setStatus("❌ Error at %s. Details in Macro Window." % currentItem)
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print("New Tab with Uneven Handle Distributions Error: %s" % e)
