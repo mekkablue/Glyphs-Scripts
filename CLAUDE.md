@@ -116,7 +116,7 @@ before it. Bail out with an `if` block, as above, and keep `return` for function
 __doc__ = """Description."""
 
 import vanilla
-from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
+from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut, NSWindowStyleMaskResizable
 from mekkablue import mekkaObject
 
 
@@ -129,8 +129,9 @@ class MyScript(mekkaObject):
 	def __init__(self):
 		windowWidth = 330
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
-		# no minSize/maxSize: that keeps the window unresizable and the size limits out of
-		# Auto Layout's way (see “Window layout” below)
+		# no minSize/maxSize: vanilla's frame sizes fight Auto Layout. A window with stretchable
+		# fields is made horizontally resizable on the NSWindow instead, see below
+		# (“Horizontal resizing”)
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"My Script",
@@ -159,6 +160,13 @@ class MyScript(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8},
 		)
+
+		# horizontally resizable, because the window has a stretchable field (see “Horizontal resizing”)
+		nsWindow = self.w.getNSWindow()
+		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
+		contentHeight = nsWindow.contentView().fittingSize().height
+		nsWindow.setContentMinSize_((windowWidth, contentHeight))
+		nsWindow.setContentMaxSize_((2000, contentHeight))
 
 		self.LoadPreferences()
 		self.w.open()
@@ -197,7 +205,7 @@ MyScript()
 | `self.uiElement(name)` | Returns UI element for a given pref name (supports dot notation for nested elements) |
 | `self.LoadPreferences()` | Populates all UI elements from prefs; calls `updateUI()` if defined |
 | `self.SavePreferences(sender)` | Saves all UI element values to prefs; calls `updateUI()` if defined |
-| `self.resizeWindowToMinimum()` | Clamps the window to `contentMinSize`/`contentMaxSize`, per axis. `LoadPreferences()` wraps `open()` so it runs once the autosaved frame is restored. A no-op for windows created without `minSize`/`maxSize`; for windows created **with** them it currently shrinks the window by the title bar height, because vanilla stores those as frame sizes while this compares content sizes |
+| `self.resizeWindowToMinimum()` | Clamps the window to `contentMinSize`/`contentMaxSize`, per axis. `LoadPreferences()` wraps `open()` so it runs once the autosaved frame is restored. A no-op for windows without content size limits. Set them on the `NSWindow` (see “Horizontal resizing”); for windows created with vanilla's `minSize`/`maxSize` it currently shrinks the window by the title bar height, because vanilla stores those as frame sizes while this compares content sizes |
 
 Both `LoadPreferences()` and `SavePreferences()` automatically call `self.updateUI()` if that method exists — use `updateUI()` to cascade enable/disable state across dependent UI elements.
 
@@ -364,8 +372,9 @@ Rules for rows with a label, learned from converting `Kerning/KernCrasher.py`:
 - **`ProgressBar` needs a height in the rule:** `[bar(16)]`.
 - **Bottom buttons:** the main chain ends with `[runButton]-inset-|`. A second button in that row gets its own
   `"V:[nextButton]-inset-|"` and joins the row horizontally: `|-(>=inset)-[nextButton(>=70)]-gap-[runButton(>=70)]-inset-|`.
-- **Window position only:** drop `windowHeightResize`, `minSize` and `maxSize`, and say “stores last window position”
-  (not “and size”) next to `autosaveName`.
+- **Drop the old resize code:** remove `windowHeightResize`, `minSize` and `maxSize`, and re-add width resizing as
+  described under “Horizontal resizing”. Say “stores last window position and width” next to `autosaveName` if the
+  window is resizable, “stores last window position” if it is not.
 - **Give the label and its field the same tooltip** (one `tooltipText` variable, set on both).
 - **Example input as a placeholder:** `field.getNSTextField().setPlaceholderString_("200:300, 400:370")`.
 - **Secondary info text** takes a semantic color, `NSColor.tertiaryLabelColor()`, never hard-coded RGBA, so it
@@ -386,12 +395,14 @@ demanding one long line.
 
 ### Letting Auto Layout size the window
 
-Pass **no** `minSize`/`maxSize`. Vanilla adds `NSResizableWindowMask` only when one of them is
+Pass **no** `minSize`/`maxSize` to vanilla. (To make the window wider or narrower, see “Horizontal resizing”
+below; it is done on the `NSWindow`, not through vanilla.) Vanilla adds `NSResizableWindowMask` only when one of them is
 given, and only then calls `setMinSize_`/`setMaxSize_` — which take *frame* sizes, while
 `getPosSize()` and `resizeWindowToMinimum()` work in *content* sizes, so the title bar gets
 counted twice and the window opens shorter than declared. Without them the window stays
 fixed-size, `resizeWindowToMinimum()` becomes a no-op, and AppKit restores only the position
-from the autosaved frame, not the size.
+from the autosaved frame, not the size. Windows made resizable through the `NSWindow` (below) are different: they
+carry `contentMinSize`/`contentMaxSize` in content sizes, so `resizeWindowToMinimum()` clamps them correctly.
 
 For the window to take its height from the content, two things must hold:
 
@@ -412,6 +423,43 @@ more and shrinks it when it needs less. Use `1`, not `0`: vanilla treats a zero 
 and the window comes out full-screen tall. Widths are still taken from `windowWidth`; hugging
 horizontally at the same level would shrink each window to its widest row and collapse the
 labels that are meant to stretch across the full width.
+
+### Horizontal resizing
+
+**Horizontal resizing is a priority.** Every window with a control that can usefully stretch — an `EditText`,
+`ComboBox`, `PopUpButton`, `TextEditor` or `List`, or a long status line — is resizable horizontally, so long
+glyph names, suffix lists, feature code and the like stay readable. A window with only checkboxes and buttons may stay
+fixed-size. The height is never resizable: it stays what the content needs.
+
+Do it on the `NSWindow`, not through vanilla's `minSize`/`maxSize`, and before `LoadPreferences()`:
+
+```python
+from AppKit import NSWindowStyleMaskResizable
+
+nsWindow = self.w.getNSWindow()
+nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
+contentHeight = nsWindow.contentView().fittingSize().height  # the height the content needs
+nsWindow.setContentMinSize_((windowWidth, contentHeight))  # never narrower than at the start
+nsWindow.setContentMaxSize_((2000, contentHeight))  # as wide as you like, but locked in height
+```
+
+`windowWidth` is the minimum width, so choose it large enough for the widest row. The rules must let the right
+controls take the extra width:
+
+- **Stretching controls run to the right edge:** end their row with `-inset-|`, not `-(>=inset)-|`, and do not give
+  them a fixed width. A fixed-width numeric field, a checkbox or a button stays `(50)`, `(>=70)` and so on and ends
+  its row with `-(>=inset)-|`.
+- **Hugging decides who stretches.** The control that should stretch gets a *lower* horizontal hugging priority
+  (`NSLayoutPriorityDefaultLow`) than its neighbors; labels, buttons and fixed-width fields get `DefaultHigh`. Without
+  this, AppKit may stretch the wrong one. A push button next to a status line is the usual victim: it stretches across
+  the row and leaves the status line no room. Set the status line to `DefaultLow` hugging and compression
+  resistance, and the button to `DefaultHigh` hugging and `Required` compression resistance, so the status line takes
+  the leftover width and the button stays as wide as its title needs.
+- **Equal-width columns scale along:** cells tied with `width` rules grow together, which is what you want.
+- **Wrapping text** needs the fixed height and lowered compression resistance described above, otherwise its
+  intrinsic one-line width becomes the minimum width.
+
+If the same code turns up in many scripts, move it into one wrapper in `__init__.py` rather than copying it.
 
 ### Frame-based layout (existing scripts)
 
