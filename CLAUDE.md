@@ -469,7 +469,8 @@ let the right controls take the extra width:
   slider), give each of its buttons horizontal hugging `NSLayoutPriorityDefaultHigh` and compression resistance
   `NSLayoutPriorityRequired` (`getNSButton()`), so that the other element takes the leftover width. Without this, a
   push button (default hugging 250) loses against a label (251) and fills the row. Only a button that is alone in its
-  row, or a pair of equal-width buttons that deliberately fill the row, may stretch.
+  row, a pair of equal-width buttons that deliberately fill the row, or buttons that deliberately share one size (like
+  the column of action buttons in `Color Fonts/CPAL Manager.py`) may stretch.
 - **Equal-width columns scale along:** cells tied with `width` rules grow together, which is what you want.
 - **Wrapping text** needs the fixed height and lowered compression resistance described above, otherwise its
   intrinsic one-line width becomes the minimum width.
