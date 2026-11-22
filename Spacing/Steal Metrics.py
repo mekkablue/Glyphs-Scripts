@@ -6,7 +6,7 @@ Copy sidebearings, widths and/or metric keys (both on layer and glyph) from one 
 import traceback
 
 import vanilla
-from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
+from AppKit import NSColor, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, makeWindowResizable
 from mekkablue.geometry import transform
@@ -86,6 +86,14 @@ class MetricsCopy(mekkaObject):
 		self.w.copybutton.setToolTip("Transfers the metrics to the selected glyphs in the target font.")
 		self.w.setDefaultButton(self.w.copybutton)
 
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
+		self.w.status.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.copybutton.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.copybutton.getNSButton().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
 		# checkboxes stretch vertically by default; with everything hugging,
 		# the window ends up exactly as tall as the content
 		for view in self.w.getNSWindow().contentView().subviews():
@@ -118,8 +126,9 @@ class MetricsCopy(mekkaObject):
 				"H:|-inset-[preferMetricKeys]-(>=inset)-|",
 				"H:|-indent-[onlyMetricsKeys]-(>=inset)-|",
 				"H:|-inset-[ignoreSuffixes]-gap-[suffixToBeIgnored(>=50)]-inset-|",
-				"H:|-(>=inset)-[copybutton(>=70)]-inset-|",
+				"H:|-inset-[status]-gap-[copybutton(>=70)]-inset-|",
 				"V:|-gap-[descriptionText]-headlineGap-[from_font]-row-[to_font]-headlineGap-[lsb]-stackRow-[updateMetrics]-stackRow-[preferMetricKeys]-stackRow-[onlyMetricsKeys]-stackRow-[ignoreSuffixes]-inset-[copybutton]-inset-|",
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.copybutton, "attribute2": "centerY"},
 				{"view1": self.w.text_anchor, "attribute1": "centerY", "view2": self.w.from_font, "attribute2": "centerY"},
 				{"view1": self.w.text_value, "attribute1": "centerY", "view2": self.w.to_font, "attribute2": "centerY"},
 				{"view1": self.w.rsb, "attribute1": "centerY", "view2": self.w.lsb, "attribute2": "centerY"},
@@ -236,10 +245,16 @@ class MetricsCopy(mekkaObject):
 		)
 
 		targetLayers = [targetFont.glyphs[layer.parent.name].layers[targetMasterID] for layer in selectedTargetLayers if targetFont.glyphs[layer.parent.name]]
+		if not targetLayers:
+			self.setStatus("⚠️ No glyphs selected in the target font.")
+			return
+
+		self.setStatus(f"🛠️ Processing {len(targetLayers)} glyphs…")
 		for targetLayer in targetLayers:
 			try:
 				targetGlyph = targetLayer.parent
 				targetGlyphName = targetGlyph.name
+				self.setStatus(f"🔠 {targetGlyphName}")
 				sourceGlyphName = targetGlyphName
 
 				if ignoreSuffixes:
@@ -317,11 +332,14 @@ class MetricsCopy(mekkaObject):
 			except Exception as e:
 				self.outputError(e)
 				print(traceback.format_exc())
+				self.setStatus(f"❌ Error at {targetGlyphName}. Details in Macro Window.")
 
 		# update metrics keys:
 		if preferMetricKeys:
 			for targetLayer in targetLayers:
 				targetLayer.updateMetrics()
+
+		self.setStatus(f"✅ Transferred metrics to {len(targetLayers)} glyphs.")
 
 
 MetricsCopy()
