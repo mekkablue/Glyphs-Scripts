@@ -1,7 +1,7 @@
 
 from typing import Any
 import objc
-from AppKit import NSUserDefaults, NSFont, NSImage, NSImageLeading, NSPasteboard, NSStringPboardType, NSLineBreakByClipping, NSWindowStyleMaskResizable
+from AppKit import NSUserDefaults, NSFont, NSImage, NSImageLeading, NSPasteboard, NSStringPboardType, NSLineBreakByClipping, NSWindowStyleMaskResizable, NSLineBreakByTruncatingTail
 from Foundation import NSPoint, NSClassFromString, NSMutableSet, NSHeight, NSNumberFormatter
 from GlyphsApp import Glyphs, GSAnchor, GSFeature, GSClass, GSControlLayer, GSGlyph
 from vanilla import Button, EditText
@@ -692,6 +692,10 @@ class mekkaObject:
 					nsField.cell().setLineBreakMode_(NSLineBreakByClipping)
 					if hasattr(nsField, "setContentType_"):
 						nsField.setContentType_(None)
+			# the status line never wraps into a second line: a text that is too long for the row is cut off at its end
+			for statusName in ("status", "statusText"):
+				if self.w is not None and hasattr(self.w, statusName) and hasattr(getattr(self.w, statusName), "getNSTextField"):
+					getattr(self.w, statusName).getNSTextField().cell().setLineBreakMode_(NSLineBreakByTruncatingTail)
 			if hasattr(self, "updateUI"):
 				self.updateUI()
 			if self.w is not None:
