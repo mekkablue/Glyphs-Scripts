@@ -6,7 +6,7 @@ Takes existing .tf figures and spaces them tabularly, or creates them from exist
 import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
 from GlyphsApp import Glyphs, GSComponent, Message
-from mekkablue import mekkaObject, newGlyphWithName, UpdateButton, reportFontName
+from mekkablue import mekkaObject, newGlyphWithName, UpdateButton, reportFontName, makeWindowResizable
 
 
 class TabularFigureSpacer(mekkaObject):
@@ -24,7 +24,7 @@ class TabularFigureSpacer(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Tabular Figure Spacer",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -77,6 +77,8 @@ class TabularFigureSpacer(mekkaObject):
 			] + widthRules,
 			metrics={"inset": inset, "gap": 8, "row": 6, "headlineGap": 10},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

@@ -4,7 +4,7 @@ Prefills names for ssXX features with ‘Alternate’ or another chosen text, pl
 """
 
 import vanilla
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, makeWindowResizable
 from GlyphsApp import Glyphs, Message
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 
@@ -51,7 +51,7 @@ class SetSSXXNames(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Set SSXX Names",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -94,6 +94,8 @@ class SetSSXXNames(mekkaObject):
 			],
 			metrics={"inset": 12, "gap": 8, "row": 6, "headlineGap": 10},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

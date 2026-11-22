@@ -6,7 +6,7 @@ Creates a new OT class containing the selected glyphs.
 import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, GSClass, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, makeWindowResizable
 
 
 class OTClassCreator(mekkaObject):
@@ -22,7 +22,7 @@ class OTClassCreator(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Make OT Class from Selected Glyphs",
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and width
 		)
 
 		self.w.classNameLabel = vanilla.TextBox("auto", "OT class name:", sizeStyle="small")
@@ -57,6 +57,8 @@ class OTClassCreator(mekkaObject):
 			],
 			metrics={"inset": 15, "gap": 8, "row": 8, "checkRow": 5},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		self.LoadPreferences()
 		self.w.open()

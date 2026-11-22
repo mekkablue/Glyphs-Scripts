@@ -4,7 +4,7 @@ Batch edit (smart) components across selected glyphs. Change positions, scales a
 """
 
 import vanilla
-from mekkablue import mekkaObject, UpdateButton, match, SteppingEditText
+from mekkablue import mekkaObject, UpdateButton, match, SteppingEditText, makeWindowResizable
 from GlyphsApp import Glyphs, Message
 from AppKit import (
 	NSFont,
@@ -37,7 +37,7 @@ class ComponentMover(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Component Mover",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -139,6 +139,8 @@ class ComponentMover(mekkaObject):
 				"buttonHeight": buttonHeight,
 			},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

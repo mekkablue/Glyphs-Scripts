@@ -5,7 +5,7 @@ Add OpenType feature with pseudorandom GPOS baseline shift for all glyphs in a c
 
 import vanilla
 from random import randint
-from mekkablue import mekkaObject, UpdateButton, reportFontName, SteppingEditText, integerFormatter, createOTFeature, createOTClass
+from mekkablue import mekkaObject, UpdateButton, reportFontName, SteppingEditText, integerFormatter, createOTFeature, createOTClass, makeWindowResizable
 from GlyphsApp import Glyphs, Message
 from AppKit import (
 	NSLayoutConstraintOrientationHorizontal,
@@ -49,7 +49,7 @@ class BaselineWiggle(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Baseline Wiggle",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -133,6 +133,8 @@ class BaselineWiggle(mekkaObject):
 			] + widthRules + centerRules,
 			metrics={"inset": inset, "gap": 8, "row": 6},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

@@ -4,7 +4,7 @@ Derive one H and one V stem value for all your masters by measuring certain shap
 """
 
 import vanilla
-from mekkablue import mekkaObject, UpdateButton, reportFontName
+from mekkablue import mekkaObject, UpdateButton, reportFontName, makeWindowResizable
 from GlyphsApp import Glyphs, GSMetric, Message
 from AppKit import (
 	NSLayoutConstraintOrientationHorizontal,
@@ -50,7 +50,7 @@ class AutoStems(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Auto Stems",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -126,6 +126,8 @@ class AutoStems(mekkaObject):
 			for suffix in ("Text1", "Measure", "Text2", "Shape", "Text3", "Reset"):
 				rules.append({"view1": getattr(self.w, direction + suffix), "attribute1": "centerY", "view2": combo, "attribute2": "centerY"})
 		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "row": 6})
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

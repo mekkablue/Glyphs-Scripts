@@ -14,7 +14,7 @@ from AppKit import (
 )
 from Foundation import NSAffineTransform, NSPoint
 from GlyphsApp import Glyphs, GSComponent, GSPath, GSNode, LINE, GSMetricsTypeCapHeight, GSMetricsTypeAscender, Message
-from mekkablue import mekkaObject, newAnchorWithName, newGlyphWithName, SteppingEditText, integerFormatter
+from mekkablue import mekkaObject, newAnchorWithName, newGlyphWithName, SteppingEditText, integerFormatter, makeWindowResizable
 
 asteriskName = "asterisk"
 partName = "_part.asterisk"
@@ -136,6 +136,8 @@ class BuildAsterisk(mekkaObject):
 			for other in others:
 				rules.append({"view1": other, "attribute1": "centerY", "view2": field, "attribute2": "centerY"})
 		self.w.addAutoPosSizeRules(rules, metrics={"inset": 15, "gap": 8, "row": 8})
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		self.LoadPreferences()
 

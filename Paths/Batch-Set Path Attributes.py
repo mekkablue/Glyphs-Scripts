@@ -4,7 +4,7 @@ Set path attributes of all paths in selected glyphs, the master, the font, etc.
 """
 
 import vanilla
-from mekkablue import mekkaObject, SteppingEditText, integerFormatter
+from mekkablue import mekkaObject, SteppingEditText, integerFormatter, makeWindowResizable
 from GlyphsApp import Glyphs, Message
 from AppKit import (
 	NSLayoutConstraintOrientationHorizontal,
@@ -95,7 +95,7 @@ class BatchSetPathAttributes(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Batch-Set Path Attributes",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -189,6 +189,8 @@ class BatchSetPathAttributes(mekkaObject):
 		):
 			rules.append({"view1": label, "attribute1": "centerY", "view2": field, "attribute2": "centerY"})
 		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "row": 6, "section": 12})
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

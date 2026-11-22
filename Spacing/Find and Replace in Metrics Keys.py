@@ -6,7 +6,7 @@ Finds and replaces text in the metrics keys of selected glyphs. Leave the Find s
 import traceback
 
 import vanilla
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, makeWindowResizable
 from GlyphsApp import Glyphs, Message
 from AppKit import (
 	NSLayoutConstraintOrientationHorizontal,
@@ -32,7 +32,7 @@ class MetricKeyReplacer(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Find and Replace in Metrics Keys",
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and width
 		)
 
 		inset = 15
@@ -90,6 +90,8 @@ class MetricKeyReplacer(mekkaObject):
 			self.LoadPreferences()
 		except:
 			print("Warning: Could not load preferences.\n%s" % traceback.format_exc())
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		self.w.open()
 		self.w.makeKey()

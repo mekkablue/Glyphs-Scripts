@@ -7,7 +7,7 @@ import vanilla
 from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, setClipboard, createOTFeature, updatedCode
+from mekkablue import mekkaObject, setClipboard, createOTFeature, updatedCode, makeWindowResizable
 from mekkablue.geometry import italicize
 
 
@@ -31,7 +31,7 @@ class ItalicShiftFeature(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Italic Shift Feature",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -77,6 +77,8 @@ class ItalicShiftFeature(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8, "row": 6},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

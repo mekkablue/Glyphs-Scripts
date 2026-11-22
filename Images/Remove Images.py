@@ -8,7 +8,7 @@ import os
 import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs
-from mekkablue import mekkaObject, match
+from mekkablue import mekkaObject, match, makeWindowResizable
 
 
 class RemoveImages(mekkaObject):
@@ -25,7 +25,7 @@ class RemoveImages(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Remove Images",
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and width
 		)
 
 		inset = 15
@@ -99,6 +99,8 @@ class RemoveImages(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8, "row": 10, "stackRow": 8},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		self.LoadPreferences()
 		self.w.open()

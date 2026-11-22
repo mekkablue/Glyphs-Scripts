@@ -6,7 +6,7 @@ Remove glyph-wide (=) and/or layer-specific (==) metrics keys. Optionally filter
 import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, match
+from mekkablue import mekkaObject, match, makeWindowResizable
 
 scopeOptions = (
 	"selected glyphs",
@@ -31,7 +31,7 @@ class RemoveMetricsKeys(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Remove Metrics Keys",
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and width
 		)
 
 		inset = 15
@@ -137,6 +137,8 @@ class RemoveMetricsKeys(mekkaObject):
 			] + widthRules,
 			metrics={"inset": inset, "gap": 8, "row": 6},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		self.LoadPreferences()
 		self.w.open()

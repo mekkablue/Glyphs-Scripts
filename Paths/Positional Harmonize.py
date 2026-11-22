@@ -13,7 +13,7 @@ import vanilla
 from AppKit import NSFont, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, OFFCURVE, Message
-from mekkablue import mekkaObject, UpdateButton, fontFileName
+from mekkablue import mekkaObject, UpdateButton, fontFileName, makeWindowResizable
 
 
 def subPoints(p1, p2):
@@ -338,7 +338,7 @@ class PositionalHarmonize(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Positional Harmonize",
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and width
 		)
 
 		inset = 15
@@ -378,6 +378,8 @@ class PositionalHarmonize(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8, "row": 10},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		self.LoadPreferences()
 		self.w.open()

@@ -4,7 +4,7 @@ Offsets each row of pixels by a percentage. Rhythm of 2 = every other line offse
 """
 
 import vanilla
-from mekkablue import mekkaObject, UpdateButton, match, reportFontName, SteppingEditText, integerFormatter
+from mekkablue import mekkaObject, UpdateButton, match, reportFontName, SteppingEditText, integerFormatter, makeWindowResizable
 from GlyphsApp import Glyphs, Message
 from AppKit import (
 	NSLayoutConstraintOrientationHorizontal,
@@ -34,7 +34,7 @@ class OffsetPixelRows(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Offset Pixel Rows",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -108,6 +108,8 @@ class OffsetPixelRows(mekkaObject):
 		# Load Settings:
 		if not self.LoadPreferences():
 			print("⚠️ ‘Offset Pixel Rows’ could not load preferences. Will resort to defaults.")
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Open window and focus on it:
 		self.w.open()

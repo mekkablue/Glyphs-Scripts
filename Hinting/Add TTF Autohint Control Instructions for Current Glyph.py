@@ -5,7 +5,7 @@ Adds a touch line for a given up/down amount to the Control Instructions of the 
 
 import math
 import vanilla
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, makeWindowResizable
 from GlyphsApp import Glyphs, Message
 from AppKit import (
 	NSClassFromString,
@@ -108,7 +108,7 @@ class AddTTFAutohintControlInstructionsForCurrentGlyph(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Add ttfAutohint Control Instructions for Current Glyph",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -181,6 +181,8 @@ class AddTTFAutohintControlInstructionsForCurrentGlyph(mekkaObject):
 			{"view1": self.w.ppmText, "attribute1": "width", "view2": self.w.sectionToMoveText, "attribute2": "width"},
 		]
 		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "section": 12})
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

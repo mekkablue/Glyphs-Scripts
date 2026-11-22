@@ -11,7 +11,7 @@ import subprocess
 import time
 import vanilla
 from copy import copy
-from mekkablue import mekkaObject, reportTimeInNaturalLanguage, UpdateButton
+from mekkablue import mekkaObject, reportTimeInNaturalLanguage, UpdateButton, makeWindowResizable
 from GlyphsApp import Glyphs, GSInstance, Message
 from AppKit import (
 	NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical,
@@ -171,6 +171,8 @@ class StealKerningFromInDesign(mekkaObject):
 		rules.append({"view1": self.w.exceptionComponents, "attribute1": "left", "view2": self.w.exceptionChars, "attribute2": "left"})
 		inset = 15
 		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "row": 8, "indent": inset + 20, "subindent": inset + 38})
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		self.LoadPreferences()
 		self.w.open()

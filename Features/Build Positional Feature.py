@@ -6,7 +6,7 @@ Create or update OpenType feature code for positional forms (isolated, initial, 
 import vanilla
 from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, UpdateButton, createOTFeature, createOTClass, fontFileName
+from mekkablue import mekkaObject, UpdateButton, createOTFeature, createOTClass, fontFileName, makeWindowResizable
 
 
 class BuildPositionalFeature(mekkaObject):
@@ -29,7 +29,7 @@ class BuildPositionalFeature(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			self.title,  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -120,6 +120,8 @@ class BuildPositionalFeature(mekkaObject):
 			] + rowRules + widthRules,
 			metrics={"inset": inset, "gap": 8, "row": 6, "headlineGap": 10, "checkRow": 5},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

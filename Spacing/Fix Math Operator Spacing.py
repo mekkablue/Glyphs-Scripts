@@ -8,7 +8,7 @@ import math
 import vanilla
 from AppKit import NSAffineTransform, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSMidY, NSTextAlignmentRight
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, fontFileName, enableRadioGroup
+from mekkablue import mekkaObject, fontFileName, enableRadioGroup, makeWindowResizable
 
 mathOperators = "+−×÷=≠±≈¬"
 lessGreater = "><≥≤"
@@ -66,7 +66,7 @@ class FixMathOperatorSpacing(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Fix Math Operator Spacing",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -180,6 +180,8 @@ class FixMathOperatorSpacing(mekkaObject):
 			] + widthRules,
 			metrics={"inset": inset, "indent": inset + 18, "indentRadio": inset + 36, "gap": 8, "row": 6, "headlineGap": 10, "checkRow": 5},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

@@ -7,7 +7,7 @@ import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
 from Foundation import NSDictionary
 from GlyphsApp import Glyphs, GSFontMaster, Message
-from mekkablue import mekkaObject, UpdateButton, fontFileName
+from mekkablue import mekkaObject, UpdateButton, fontFileName, makeWindowResizable
 
 
 def axisLocationEntry(axisName, locationValue):
@@ -31,7 +31,7 @@ class AxisLocationSetter(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Axis Location Setter",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -98,6 +98,8 @@ class AxisLocationSetter(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8, "row": 6, "headlineGap": 8},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

@@ -6,7 +6,7 @@ Creates backup layers for selected glyphs in target font, and fills them with th
 import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
 from GlyphsApp import Glyphs
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, makeWindowResizable
 
 
 class CopyGlyphsIntoBackupLayers(mekkaObject):
@@ -23,7 +23,7 @@ class CopyGlyphsIntoBackupLayers(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Copy glyphs into backup layers",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -72,6 +72,8 @@ class CopyGlyphsIntoBackupLayers(mekkaObject):
 			] + widthRules,
 			metrics={"inset": inset, "gap": 8, "row": 6},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

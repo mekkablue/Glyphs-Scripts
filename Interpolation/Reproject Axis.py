@@ -7,7 +7,7 @@ import re
 import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, makeWindowResizable
 
 INSTANCETYPEPARTICLE = 4  # GSInstance.type for axis particle settings (Glyphs 4+)
 
@@ -43,7 +43,7 @@ class ReprojectAxis(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Reproject Axis",  # window title
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and width
 		)
 
 		# UI elements:
@@ -118,6 +118,8 @@ class ReprojectAxis(mekkaObject):
 			sameAttribute("width", labelName, widestLabel) for labelName in labelNames if labelName != widestLabel
 		]
 		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "row": 6})
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

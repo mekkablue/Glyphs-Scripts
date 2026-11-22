@@ -6,7 +6,7 @@ Build rand (random) feature from .cvXX or another (numbered) suffix.
 import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, GSFeature, Message
-from mekkablue import mekkaObject, UpdateButton, fontFileName
+from mekkablue import mekkaObject, UpdateButton, fontFileName, makeWindowResizable
 
 
 def getRootName(glyphName):
@@ -33,7 +33,7 @@ class BuildRandFeature(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Build rand Feature",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -88,6 +88,8 @@ class BuildRandFeature(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8, "row": 8, "stackRow": 8},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

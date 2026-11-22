@@ -4,7 +4,7 @@ Import many masters at once with the Import Master parameter.
 """
 
 import vanilla
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, makeWindowResizable
 from GlyphsApp import Glyphs, GSCustomParameter, Message
 from AppKit import NSNotificationCenter, NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 
@@ -75,7 +75,7 @@ class BatchImportMasters(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Batch-Import Masters",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -154,6 +154,8 @@ class BatchImportMasters(mekkaObject):
 			] + widthRules,
 			metrics={"inset": 15, "gap": 8, "row": 6, "checkRow": 5, "headlineGap": 10},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings (also fills the menus, see updateUI):
 		self.LoadPreferences()

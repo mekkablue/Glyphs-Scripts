@@ -6,7 +6,7 @@ Adds custom Unicode values to selected glyphs.
 import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, makeWindowResizable
 
 
 class CustomUnicode(mekkaObject):
@@ -23,7 +23,7 @@ class CustomUnicode(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Add Unicode Values to Selected Glyphs",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -73,6 +73,8 @@ class CustomUnicode(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8, "row": 10, "checkRow": 5},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

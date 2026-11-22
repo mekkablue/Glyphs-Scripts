@@ -8,7 +8,7 @@ from collections import OrderedDict
 import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, newLineControlLayer, fontFileName
+from mekkablue import mekkaObject, newLineControlLayer, fontFileName, makeWindowResizable
 
 
 class NewTabsWithGlyphsNotReachingIntoZones(mekkaObject):
@@ -28,7 +28,7 @@ class NewTabsWithGlyphsNotReachingIntoZones(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"New Tabs with Glyphs Not Reaching Into Zones",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -84,6 +84,8 @@ class NewTabsWithGlyphsNotReachingIntoZones(mekkaObject):
 			] + widthRules,
 			metrics={"inset": inset, "gap": 8, "row": 6, "headlineGap": 10, "checkRow": 5},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

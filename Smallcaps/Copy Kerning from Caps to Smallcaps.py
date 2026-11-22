@@ -4,7 +4,7 @@ Looks for cap kerning pairs and reduplicates their kerning for corresponding .sc
 """
 
 import vanilla
-from mekkablue import mekkaObject, SteppingEditText, decimalFormatter
+from mekkablue import mekkaObject, SteppingEditText, decimalFormatter, makeWindowResizable
 from GlyphsApp import Glyphs, Message
 from AppKit import (
 	NSLayoutConstraintOrientationHorizontal,
@@ -139,7 +139,7 @@ class CopyKerningFromCapsToSmallcaps(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Copy Kerning from Caps to Smallcaps",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -214,6 +214,8 @@ class CopyKerningFromCapsToSmallcaps(mekkaObject):
 			] + widthRules,
 			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

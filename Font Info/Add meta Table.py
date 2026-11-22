@@ -5,7 +5,7 @@ Adds a meta table entry for the frontmost font in Font Info > Font > Custom Para
 
 from itertools import combinations
 import vanilla
-from mekkablue import mekkaObject, reportFontName, UpdateButton
+from mekkablue import mekkaObject, reportFontName, UpdateButton, makeWindowResizable
 from GlyphsApp import Glyphs, Message
 from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 
@@ -61,7 +61,7 @@ class AddMetaTable(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Add meta Table",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		if Glyphs.font:
@@ -137,6 +137,8 @@ class AddMetaTable(mekkaObject):
 		tooltip = "Opens the OpenType specification for the meta table in your preferred browser."
 		self.w.helpButton.setToolTip(tooltip)
 		
+		makeWindowResizable(self.w)  # resizable horizontally only
+
 		# Load Settings:
 		self.LoadPreferences()
 		

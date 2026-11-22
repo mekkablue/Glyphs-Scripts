@@ -6,7 +6,7 @@ Covers both general properties (names, designer, etc.) and custom parameters (st
 
 import objc
 import vanilla
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, makeWindowResizable
 from GlyphsApp import Glyphs
 from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 
@@ -34,7 +34,7 @@ class FindAndReplaceInFontInfo(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Find and Replace in Font Info",
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and width
 		)
 
 		# Find row
@@ -113,6 +113,8 @@ class FindAndReplaceInFontInfo(mekkaObject):
 			] + widthRules,
 			metrics={"inset": 15, "gap": 8, "row": 6, "checkRow": 5, "sectionGap": 12},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		self.LoadPreferences()
 		self.w.open()

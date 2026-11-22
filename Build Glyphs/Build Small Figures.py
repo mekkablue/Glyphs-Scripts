@@ -7,7 +7,7 @@ import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSComponent, Message
-from mekkablue import mekkaObject, newGlyphWithName
+from mekkablue import mekkaObject, newGlyphWithName, makeWindowResizable
 from mekkablue.geometry import italicize
 
 
@@ -30,7 +30,7 @@ class smallFigureBuilder(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Build Small Figures",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -97,6 +97,8 @@ class smallFigureBuilder(mekkaObject):
 			],
 			metrics={"inset": 15, "gap": 8, "row": 8},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

@@ -4,7 +4,7 @@ Removes annotations, glyph notes, guides, and node names.
 """
 
 import vanilla
-from mekkablue import mekkaObject, UpdateButton, clearGuides, guidesOf
+from mekkablue import mekkaObject, UpdateButton, clearGuides, guidesOf, makeWindowResizable
 from GlyphsApp import Glyphs
 from AppKit import (
 	NSLayoutConstraintOrientationHorizontal,
@@ -65,7 +65,7 @@ class GarbageCollection(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Garbage Collection",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -199,6 +199,8 @@ class GarbageCollection(mekkaObject):
 			{"view1": self.w.statusText, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 		]
 		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5, "barGap": 12})
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

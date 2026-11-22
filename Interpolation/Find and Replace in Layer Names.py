@@ -6,7 +6,7 @@ Replaces strings in layer names of all selected glyphs. Useful for adjusting lay
 import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, makeWindowResizable
 
 
 class replaceInLayerNames(mekkaObject):
@@ -23,7 +23,7 @@ class replaceInLayerNames(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Find and Replace in Layer Names",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -63,6 +63,8 @@ class replaceInLayerNames(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8, "row": 6},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		self.LoadPreferences()
 

@@ -7,7 +7,7 @@ import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSGuide, Message
-from mekkablue import mekkaObject, reportFontName, SteppingEditText, decimalFormatter
+from mekkablue import mekkaObject, reportFontName, SteppingEditText, decimalFormatter, makeWindowResizable
 from mekkablue.geometry import angle
 
 
@@ -31,7 +31,7 @@ class FindCloseEncounters(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Find Close Encounters of Orthogonal Line Segments",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -81,6 +81,8 @@ class FindCloseEncounters(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8, "row": 8, "stackRow": 8},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

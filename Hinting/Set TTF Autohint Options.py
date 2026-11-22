@@ -6,7 +6,7 @@ Set options for existing 'TTFAutohint options' Custom Parameters.
 import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message, INSTANCETYPEVARIABLE
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, makeWindowResizable
 from ttfautohintoptions import parameterName, valuelessOptions, availableOptionsDict, availableOptions, removeFromAutohintOptions, dictToParameterValue, ttfAutohintDict, glyphInterpolation, idotlessMeasure, writeOptionsToInstance
 
 
@@ -46,7 +46,7 @@ class SetTTFAutohintOptions(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Set in all ttfautohint options",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		inset = 15
@@ -93,6 +93,8 @@ class SetTTFAutohintOptions(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8, "row": 12},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

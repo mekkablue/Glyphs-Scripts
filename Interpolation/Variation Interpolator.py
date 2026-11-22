@@ -7,7 +7,7 @@ import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, setMacroDivider
+from mekkablue import mekkaObject, setMacroDivider, makeWindowResizable
 
 
 def interpolateDicts(dictA, dictB, interpolationFactor=0.5):
@@ -144,7 +144,7 @@ class VariationInterpolator(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Variation Interpolator",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -217,6 +217,8 @@ class VariationInterpolator(mekkaObject):
 			] + widthRules,
 			metrics={"inset": inset, "gap": 8, "row": 8},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

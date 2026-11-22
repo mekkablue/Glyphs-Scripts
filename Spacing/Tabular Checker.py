@@ -6,7 +6,7 @@ Goes through tabular glyphs and checks if they are monospaced. Reports exception
 import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs
-from mekkablue import mekkaObject, fontFileName
+from mekkablue import mekkaObject, fontFileName, makeWindowResizable
 
 
 class TabularChecker(mekkaObject):
@@ -24,7 +24,7 @@ class TabularChecker(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Tabular Checker",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -74,6 +74,8 @@ class TabularChecker(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8, "headlineGap": 10, "checkRow": 5},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

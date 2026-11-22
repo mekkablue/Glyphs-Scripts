@@ -7,7 +7,7 @@ Instead of the tutorial’s @Voc/@Con split, glyphs are grouped by how many alte
 import vanilla
 from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, UpdateButton, reportFontName, createOTFeature, createOTClass
+from mekkablue import mekkaObject, UpdateButton, reportFontName, createOTFeature, createOTClass, makeWindowResizable
 
 
 # The feature-code helpers are defined locally (rather than imported from mekkablue)
@@ -47,7 +47,7 @@ class ContextualCycler(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Contextual Cycler",  # window title
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and width
 		)
 
 		# UI elements:
@@ -124,6 +124,8 @@ class ContextualCycler(mekkaObject):
 			] + widthRules,
 			metrics={"inset": inset, "gap": 8, "row": 6, "headlineGap": 12},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

@@ -6,7 +6,7 @@ Adds a component to all backgrounds of all layers of all selected glyphs. Useful
 import vanilla
 from AppKit import NSEvent, NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, GSComponent, Message
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, makeWindowResizable
 from mekkablue.geometry import transform
 
 
@@ -26,7 +26,7 @@ class PopulateAllBackgroundswithComponent(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Populate Layer Backgrounds with Component",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -81,6 +81,8 @@ class PopulateAllBackgroundswithComponent(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8, "line": 8},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

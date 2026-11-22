@@ -4,7 +4,7 @@ Batch-apply Font Info > Font settings to open fonts: designer, designer URL, man
 """
 import datetime
 import vanilla
-from mekkablue import mekkaObject, SteppingEditText, integerFormatter
+from mekkablue import mekkaObject, SteppingEditText, integerFormatter, makeWindowResizable
 from GlyphsApp import Glyphs, Message
 from AppKit import NSDate, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 
@@ -60,7 +60,7 @@ class FontInfoBatchSetter(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Font Info Batch Setter",  # window title
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and width
 		)
 
 		# UI elements:
@@ -270,6 +270,8 @@ class FontInfoBatchSetter(mekkaObject):
 			] + centerRules + widthRules,
 			metrics={"inset": inset, "gap": 8, "row": 6, "headlineGap": 12, "dot": 4},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

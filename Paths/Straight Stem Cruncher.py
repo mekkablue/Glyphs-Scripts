@@ -4,7 +4,7 @@ Measures in centers of straight segments, and reports deviations in stem thickne
 """
 
 import vanilla
-from mekkablue import mekkaObject, UpdateButton, SteppingEditText, integerFormatter, decimalFormatter
+from mekkablue import mekkaObject, UpdateButton, SteppingEditText, integerFormatter, decimalFormatter, makeWindowResizable
 from GlyphsApp import Glyphs, GSAnnotation, PLUS, Message, distance, subtractPoints, scalePoint, addPoints
 from AppKit import (
 	NSColor,
@@ -61,7 +61,7 @@ class StraightStemCruncher(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Straight Stem Cruncher",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -204,6 +204,8 @@ class StraightStemCruncher(mekkaObject):
 			] + widthRules + centerRules,
 			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

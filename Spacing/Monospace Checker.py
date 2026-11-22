@@ -7,7 +7,7 @@ import vanilla
 from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from Foundation import NSNumberFormatter
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, newLineControlLayer, SteppingEditText, fontFileName
+from mekkablue import mekkaObject, newLineControlLayer, SteppingEditText, fontFileName, makeWindowResizable
 
 
 class MonospaceChecker(mekkaObject):
@@ -26,7 +26,7 @@ class MonospaceChecker(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Monospace Checker",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -90,6 +90,8 @@ class MonospaceChecker(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8, "row": 6, "headlineGap": 8, "sectionGap": 12, "checkRow": 5},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

@@ -9,7 +9,7 @@ from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal
 from Foundation import NSRect, NSUnionRect, NSIsEmptyRect, NSInsetRect, NSStringFromRect, NSAffineTransform, NSAffineTransformStruct
 from kernanalysis import stringToListOfGlyphsForFont, minDistanceBetweenTwoLayers
 from GlyphsApp import Glyphs, GSFeature, GSLayer, GSPath, Message
-from mekkablue import mekkaObject, UpdateButton, SteppingEditText, integerFormatter, createOTFeature
+from mekkablue import mekkaObject, UpdateButton, SteppingEditText, integerFormatter, createOTFeature, makeWindowResizable
 
 
 def straightenedLayer(layer):
@@ -175,7 +175,7 @@ class BBoxBumperKerning(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"BBox Bumper Kerning as Feature Code",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -344,6 +344,8 @@ class BBoxBumperKerning(mekkaObject):
 			] + centerRules + widthRules,
 			metrics={"inset": inset, "gap": 8, "row": 6, "headlineGap": 12, "sectionGap": 14, "sectionRow": 8, "checkRow": 5},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

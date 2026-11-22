@@ -6,7 +6,7 @@ Rotate selected glyphs (or selected paths and components) around a 'rotate' anch
 from math import isfinite
 
 import vanilla
-from mekkablue import mekkaObject, newAnchorWithName, UpdateButton, SteppingEditText, integerFormatter
+from mekkablue import mekkaObject, newAnchorWithName, UpdateButton, SteppingEditText, integerFormatter, makeWindowResizable
 from mekkablue.geometry import centerOfRect
 from GlyphsApp import Glyphs
 from AppKit import (
@@ -37,7 +37,7 @@ class Rotator(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Rotate Around Anchor",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		self.w.anchor_text = vanilla.TextBox("auto", "Set 'rotate' anchor", sizeStyle='small')
@@ -99,6 +99,8 @@ class Rotator(mekkaObject):
 			for other in others:
 				rules.append({"view1": other, "attribute1": "centerY", "view2": field, "attribute2": "centerY"})
 		self.w.addAutoPosSizeRules(rules, metrics={"inset": 15, "gap": 8, "row": 6})
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		self.LoadPreferences()
 

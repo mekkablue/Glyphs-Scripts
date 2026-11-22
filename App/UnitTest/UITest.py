@@ -26,7 +26,7 @@ from AppKit import (
 )
 from Foundation import NSObject, NSRunLoop, NSRunLoopCommonModes, NSTimer
 from GlyphsApp import Glyphs
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, SteppingEditText, decimalFormatter, makeWindowResizable
 
 
 repositoryRoot = Path(__file__).resolve().parents[2]
@@ -148,7 +148,7 @@ class UISmokeTest(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"UI Smoke Test",
-			autosaveName=self.domain("mainwindow"),
+			autosaveName=self.domain("mainwindow"),  # stores last window position and width
 		)
 		self.w.descriptionText = vanilla.TextBox(
 			"auto",
@@ -157,7 +157,7 @@ class UISmokeTest(mekkaObject):
 			sizeStyle="small",
 		)
 		self.w.delayLabel = vanilla.TextBox("auto", "Seconds per dialog:", sizeStyle="small")
-		self.w.delay = vanilla.EditText("auto", "0.25", sizeStyle="small")
+		self.w.delay = SteppingEditText("auto", "0.25", sizeStyle="small", formatter=decimalFormatter(0.05, 5.0, 2))
 		self.w.progress = vanilla.ProgressBar("auto", maxValue=max(1, len(self.scriptPaths)))
 		self.w.status = vanilla.TextBox(
 			"auto",
@@ -202,6 +202,7 @@ class UISmokeTest(mekkaObject):
 			],
 			metrics={"inset": 15, "gap": 8, "row": 8},
 		)
+		makeWindowResizable(self.w)  # resizable horizontally only, the log path and status can be long
 		self.w.open()
 		self.w.makeKey()
 
@@ -233,11 +234,8 @@ class UISmokeTest(mekkaObject):
 
 	def start(self, sender=None):
 		try:
-			delay = float(self.w.delay.get())
+			delay = float(self.w.delay.get())  # the formatter keeps it between 0.05 and 5.0
 		except (TypeError, ValueError):
-			self.w.status.set("Enter a number of seconds between 0.05 and 5.0.")
-			return
-		if not 0.05 <= delay <= 5.0:
 			self.w.status.set("Enter a number of seconds between 0.05 and 5.0.")
 			return
 

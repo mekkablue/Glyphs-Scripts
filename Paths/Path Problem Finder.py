@@ -13,7 +13,7 @@ from GlyphsApp import Glyphs, GSPath, GSShapeTypePath, GSLINE, GSCURVE, CURVE, G
 import importlib
 import mekkablue
 importlib.reload(mekkablue)
-from mekkablue import mekkaObject, newLineControlLayer, reportTimeInNaturalLanguage, SteppingEditText, decimalFormatter
+from mekkablue import mekkaObject, newLineControlLayer, reportTimeInNaturalLanguage, SteppingEditText, decimalFormatter, makeWindowResizable
 
 
 canHaveOpenOutlines = (
@@ -519,7 +519,7 @@ class PathProblemFinder(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			self.title,  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -755,6 +755,8 @@ class PathProblemFinder(mekkaObject):
 			] + columnRules + followerRules + partnerRules,
 			metrics={"inset": inset, "indent": inset + 16, "gap": 8, "row": 8, "stackRow": 8, "section": 12, "barGap": 12},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

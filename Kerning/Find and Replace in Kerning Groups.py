@@ -4,7 +4,7 @@ Finds and replaces text in the metrics keys of selected glyphs. Leave the Find s
 """
 
 import vanilla
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, makeWindowResizable
 from GlyphsApp import Glyphs, Message
 from AppKit import (
 	NSLayoutConstraintOrientationHorizontal,
@@ -30,7 +30,7 @@ class KerningGroupReplacer(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Find and Replace in Kerning Groups",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		inset = 12
@@ -86,6 +86,8 @@ class KerningGroupReplacer(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8, "row": 6, "headGap": 4},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		self.LoadPreferences()
 
