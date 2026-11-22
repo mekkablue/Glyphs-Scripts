@@ -9,6 +9,7 @@ from mekkablue import mekkaObject, UpdateButton, reportFontName, makeWindowResiz
 from GlyphsApp import Glyphs, GSLayer, GSCustomParameter, Message
 from Foundation import NSString
 from AppKit import (
+	NSColor,
 	NSFont,
 	NSLayoutConstraintOrientationHorizontal,
 	NSLayoutConstraintOrientationVertical,
@@ -118,10 +119,19 @@ class ColorPaletteMultiplier(mekkaObject):
 		self.w.ActionButton = vanilla.ActionButton("auto", actionItems, sizeStyle="regular")
 		self.w.ActionButton.setToolTip("Adds a filter line to the list of filter parameters.")
 
-		# Run Button:
+		# Status line and Run Button:
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
 		self.w.runButton = vanilla.Button("auto", "Build", sizeStyle="regular", callback=self.ColorPaletteMultiplierMain)
 		self.w.runButton.setToolTip("Builds the target color layers in the processed glyphs.")
 		self.w.setDefaultButton(self.w.runButton)
+
+		# the status line takes the leftover width, the button stays as wide as its title needs:
+		self.w.status.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton.getNSButton().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 
 		# label hugs its text, so the popup takes the leftover width
 		nsLabel = self.w.deriveText.getNSTextField()
@@ -142,11 +152,12 @@ class ColorPaletteMultiplier(mekkaObject):
 				"H:|-inset-[overwrite]-(>=inset)-|",
 				"H:|-inset-[descriptionText]-inset-|",
 				"H:|-inset-[build]-inset-|",
-				"H:|-inset-[ActionButton(40)]-(>=gap)-[runButton(>=70)]-inset-|",
+				"H:|-inset-[ActionButton(40)]-gap-[status]-gap-[runButton(>=70)]-inset-|",
 				"V:|-gap-[derive]-row-[allGlyphs]-checkRow-[overwrite]-row-[descriptionText]-row-[build(>=200)]-inset-[runButton]-inset-|",
 				"V:[ActionButton]-inset-|",
 				{"view1": self.w.deriveText, "attribute1": "centerY", "view2": self.w.derive, "attribute2": "centerY"},
 				{"view1": self.w.deriveUpdate, "attribute1": "centerY", "view2": self.w.derive, "attribute2": "centerY"},
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 			],
 			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
 		)
@@ -210,6 +221,7 @@ class ColorPaletteMultiplier(mekkaObject):
 		self.w.derive.setItems(self.currentColors())
 
 	def ColorPaletteMultiplierMain(self, sender=None):
+		currentGlyphName = None
 		try:
 			# clear macro window log:
 			Glyphs.clearLog()
@@ -244,6 +256,7 @@ class ColorPaletteMultiplier(mekkaObject):
 						buildOrder.append(customParameter)
 
 			if not buildOrder:
+				self.setStatus("⚠️ Could not parse the input.")
 				Message(
 					title="Input Error",
 					message="Could not parse the input. Try ‘# Color 1:’ for the target layers and filter parameter strings split into lines below.",
@@ -254,8 +267,10 @@ class ColorPaletteMultiplier(mekkaObject):
 			targetColors = set([i for i in buildOrder if isinstance(i, int)])
 			print("targetColors", targetColors)
 
+			builtCount = 0
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
+				self.setStatus("⚠️ No font open.")
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
 				reportName = reportFontName(thisFont)
@@ -268,7 +283,10 @@ class ColorPaletteMultiplier(mekkaObject):
 					theseGlyphs = [l.parent for l in thisFont.selectedLayers if isinstance(l, GSLayer)]
 
 				derive = int(self.pref("derive"))
+				self.setStatus(f"🛠️ Processing {len(theseGlyphs)} glyph{'' if len(theseGlyphs) == 1 else 's'}…")
 				for thisGlyph in theseGlyphs:
+					currentGlyphName = thisGlyph.name
+					self.setStatus(f"🔠 {thisGlyph.name}")
 					layerCount = 0
 					for layerIndex in range(len(thisGlyph.layers)-1, -1, -1):
 						thisLayer = thisGlyph.layers[layerIndex]
@@ -308,11 +326,18 @@ class ColorPaletteMultiplier(mekkaObject):
 								else:
 									newLayer.applyCustomParameters_callbacks_font_error_([step], None, thisFont, None)
 
+					builtCount += layerCount
 					print(f"🔡 {thisGlyph.name}: {layerCount} layer{'' if layerCount==1 else 's'} built.")
 
 			print("\n✅ Done.")
+			if thisFont is not None:
+				if builtCount:
+					self.setStatus(f"✅ Built {builtCount} layer{'' if builtCount == 1 else 's'}.")
+				else:
+					self.setStatus("⚠️ No layers built.")
 
 		except Exception as e:
+			self.setStatus(f"❌ Error at {currentGlyphName}. Details in Macro Window." if currentGlyphName else "❌ Error. Details in Macro Window.")
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print(f"Color Palette Multiplier Error: {e}")

@@ -7,9 +7,11 @@ import vanilla
 from mekkablue import mekkaObject, reportFontName, SteppingEditText, decimalFormatter, makeWindowResizable
 from GlyphsApp import Glyphs, Message
 from AppKit import (
+	NSColor,
 	NSLayoutConstraintOrientationHorizontal,
 	NSLayoutConstraintOrientationVertical,
 	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityDefaultLow,
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
 	NSTextAlignmentRight,
@@ -85,10 +87,18 @@ class AdjustSpacing(mekkaObject):
 		self.w.applyToAllGlyphs = vanilla.CheckBox("auto", "Include ⚠️ ALL glyphs (otherwise selected only)", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.applyToAllGlyphs.setToolTip("Adjusts all glyphs of the font. If off, only the selected glyphs are processed.")
 
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
+		self.w.status.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Adjust", callback=self.AdjustSpacingMain)
 		self.w.runButton.setToolTip("Applies the adjustment to the sidebearings of the chosen glyphs.")
 		self.w.setDefaultButton(self.w.runButton)
+		self.w.runButton.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton.getNSButton().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window
 		# ends up exactly as tall as the content
@@ -111,13 +121,14 @@ class AdjustSpacing(mekkaObject):
 				"H:|-inset-[updateMetricsKeys]-(>=inset)-|",
 				"H:|-inset-[applyToAllMasters]-(>=inset)-|",
 				"H:|-inset-[applyToAllGlyphs]-(>=inset)-|",
-				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"H:|-inset-[status]-gap-[runButton(>=70)]-inset-|",
 				"V:|-gap-[descriptionText]-row-[choice]-gap-[treatPositiveSBs]-row-[negativeChoice]-row-[updateMetricsKeys]-checkRow-[applyToAllMasters]-checkRow-[applyToAllGlyphs]-inset-[runButton]-inset-|",
 				{"view1": self.w.value, "attribute1": "centerY", "view2": self.w.choice, "attribute2": "centerY"},
 				{"view1": self.w.treatSBsText1, "attribute1": "centerY", "view2": self.w.treatPositiveSBs, "attribute2": "centerY"},
 				{"view1": self.w.treatNegativeSBs, "attribute1": "centerY", "view2": self.w.treatPositiveSBs, "attribute2": "centerY"},
 				{"view1": self.w.treatSBsText2, "attribute1": "centerY", "view2": self.w.negativeChoice, "attribute2": "centerY"},
 				{"view1": self.w.treatSBsText1, "attribute1": "width", "view2": self.w.treatSBsText2, "attribute2": "width"},
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 			],
 			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
 		)
@@ -171,7 +182,9 @@ class AdjustSpacing(mekkaObject):
 		return SB
 
 	def AdjustSpacingMain(self, sender=None):
+		lastItem = "start"
 		try:
+			self.setStatus("🛠️ Processing …")
 			# clear macro window log:
 			Glyphs.clearLog()
 
@@ -190,9 +203,11 @@ class AdjustSpacing(mekkaObject):
 
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
+				self.setStatus("⚠️ No font open.")
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			elif value == 0 and (choice == 2 or (choice == 0 and negativeChoice != 0)):
 				# rounding by zero, or the reciprocal of a zero factor, would divide by zero
+				self.setStatus("⚠️ Invalid value.")
 				Message(title="Invalid Value", message=f"‘{choices[choice]}’ does not work with a value of 0. Please enter a different value.", OKButton=None)
 			else:
 				reportName = reportFontName(thisFont)
@@ -217,7 +232,11 @@ class AdjustSpacing(mekkaObject):
 						negativeValue = -value / 2
 
 				currentMasterID = thisFont.selectedFontMaster.id
+				changedCount = 0
+				self.setStatus(f"🛠️ Processing {len(glyphs)} glyphs …")
 				for thisGlyph in glyphs:
+					lastItem = thisGlyph.name
+					self.setStatus(f"🔠 {thisGlyph.name}")
 					for thisLayer in thisGlyph.layers:
 						oldSBs = (thisLayer.LSB, thisLayer.RSB)
 
@@ -232,10 +251,13 @@ class AdjustSpacing(mekkaObject):
 						thisLayer.RSB = self.treatSB(choice, thisLayer.RSB, value, negativeValue, treatPositiveSBs, treatNegativeSBs)
 						newSBs = (thisLayer.LSB, thisLayer.RSB)
 						if oldSBs != newSBs:
+							changedCount += 1
 							print(f"🔡 {thisGlyph.name} ({thisLayer.name}): \tLSB {int(oldSBs[0])}→{int(newSBs[0])} \tRSB {int(oldSBs[1])}→{int(newSBs[1])}")
 
 				if updateMetricsKeys:
 					for thisGlyph in glyphs:
+						lastItem = thisGlyph.name
+						self.setStatus(f"🔠 {thisGlyph.name}")
 						for thisLayer in thisGlyph.layers:
 							if not (thisLayer.isMasterLayer or thisLayer.isSpecialLayer):
 								continue
@@ -245,6 +267,10 @@ class AdjustSpacing(mekkaObject):
 							thisLayer.doAlignWidth()
 							thisLayer.syncMetrics()
 
+				if changedCount:
+					self.setStatus(f"✅ Adjusted {changedCount} layers.")
+				else:
+					self.setStatus("⚠️ No sidebearings changed.")
 				# self.w.close()  # delete if you want window to stay open
 
 			print("\nDone.")
@@ -252,6 +278,7 @@ class AdjustSpacing(mekkaObject):
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
+			self.setStatus(f"❌ Error at {lastItem}. Details in Macro Window.")
 			print(f"Adjust Spacing Error: {e}")
 			import traceback
 			print(traceback.format_exc())
