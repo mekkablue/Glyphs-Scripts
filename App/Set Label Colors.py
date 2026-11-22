@@ -87,7 +87,7 @@ class SetLabelColors(mekkaObject):
 		# one vertical chain, with the red column as its backbone:
 		redFields = "-row-".join(f"[red{i:02d}]" for i in range(1, 13))
 		rules += [
-			"H:|-(>=inset)-[resetButton(>=70)]-gap-[runButton(>=70)]-inset-|",
+			"H:|-inset-[resetButton(>=70)]-(>=gap)-[runButton(>=70)]-inset-|",
 			f"V:|-gap-[redText]-headerGap-{redFields}-allGap-[rAll]-inset-[runButton]-inset-|",
 			"V:[resetButton]-inset-|",
 		]
