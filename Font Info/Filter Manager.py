@@ -5,7 +5,7 @@ Edit Filter custom parameters as plain text, one filter value string per line, i
 
 import re
 import vanilla
-from AppKit import NSMakeSize, NSDictionary, NSArray
+from AppKit import NSArray, NSColor, NSDictionary, NSMakeSize
 from mekkablue import mekkaObject, getClipboard, setClipboard, getLegibleFont, makeWindowResizable
 
 parameterName = "Filter"
@@ -84,13 +84,18 @@ class FilterManager(mekkaObject):
 		self.w.copyButton.setToolTip("Puts the lines on the clipboard, ready to paste into Font Info.")
 		self.w.setDefaultButton(self.w.copyButton)
 
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
+
 		self.w.addAutoPosSizeRules(
 			[
 				"H:|-inset-[filters]-inset-|",
 				"H:|-inset-[pasteButton(>=70)]-gap-[pasteAddButton(>=70)]-(>=inset)-[copyButton(>=120)]-inset-|",
-				"V:|-inset-[filters]-inset-[pasteButton]-inset-|",
-				"V:[pasteAddButton]-inset-|",
-				"V:[copyButton]-inset-|",
+				"H:|-inset-[status]-inset-|",
+				"V:|-inset-[filters]-inset-[pasteButton]-gap-[status]-inset-|",
+				{"view1": self.w.pasteAddButton, "attribute1": "centerY", "view2": self.w.pasteButton, "attribute2": "centerY"},
+				{"view1": self.w.copyButton, "attribute1": "centerY", "view2": self.w.pasteButton, "attribute2": "centerY"},
 			],
 			metrics={"inset": inset, "gap": 8},
 		)
@@ -108,9 +113,11 @@ class FilterManager(mekkaObject):
 		self.pasteFromClipboard(append=True)
 
 	def pasteFromClipboard(self, append=False):
+		self.setStatus("🛠️ Reading the clipboard…")
 		clipboard = getClipboard()
 		parameters = parseParameters(clipboard) if clipboard else None
 		if parameters is None:
+			self.setStatus("⚠️ The clipboard does not contain parameters.")
 			print("⚠️ Filter Manager: the clipboard does not contain parameters. Copy them from Custom Parameters in Font Info.")
 			return
 
@@ -131,8 +138,13 @@ class FilterManager(mekkaObject):
 			lines.insert(0, existingText)
 		self.w.filters.set("\n".join(lines))
 		self.SavePreferences()
+		if lines:
+			self.setStatus(f"✅ Pasted {len(lines)} filter{'' if len(lines) == 1 else 's'}.")
+		else:
+			self.setStatus("⚠️ No filters found in the clipboard.")
 
 	def copyParameters(self, sender=None):
+		self.setStatus("🛠️ Building parameters…")
 		entries = []
 		for line in self.w.filters.get().splitlines():
 			line = line.strip()
@@ -147,10 +159,14 @@ class FilterManager(mekkaObject):
 			entries.append(f"{entry}name = {parameterName};\nvalue = {quoted(line)};\n}},\n")
 
 		if not entries:
+			self.setStatus("⚠️ No filters to copy.")
 			return
 		plist = "{\n.formatVersion = 4;\ncustomParameters = (\n" + "".join(entries) + ");\n}"
 		if not setClipboard(plist):
+			self.setStatus("❌ Could not write to the clipboard.")
 			print("⚠️ Filter Manager: could not write to the clipboard.")
+		else:
+			self.setStatus(f"✅ Copied {len(entries)} filter{'' if len(entries) == 1 else 's'} to the clipboard.")
 
 
 FilterManager()

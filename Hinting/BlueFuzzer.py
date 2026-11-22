@@ -7,9 +7,11 @@ import vanilla
 from mekkablue import mekkaObject, SteppingEditText, integerFormatter
 from GlyphsApp import Glyphs
 from AppKit import (
+	NSColor,
 	NSLayoutConstraintOrientationHorizontal,
 	NSLayoutConstraintOrientationVertical,
 	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityDefaultLow,
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
 )
@@ -48,6 +50,17 @@ class BlueFuzzer(mekkaObject):
 		self.w.runButton.setToolTip("Extend the alignment zones and open Font Info > Masters.")
 		self.w.setDefaultButton(self.w.runButton)
 
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
+
+		nsStatus = self.w.status.getNSTextField()
+		nsStatus.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		nsStatus.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		nsRunButton = self.w.runButton.getNSButton()
+		nsRunButton.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		nsRunButton.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
 		nsLabel = self.w.fuzzValueText.getNSTextField()
 		nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
 		nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
@@ -60,9 +73,10 @@ class BlueFuzzer(mekkaObject):
 			[
 				"H:|-inset-[fuzzValueText]-gap-[fuzzValue(60)]-(>=inset)-|",
 				"H:|-inset-[allMasters]-(>=inset)-|",
-				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"H:|-inset-[status]-gap-[runButton(>=70)]-inset-|",
 				"V:|-gap-[fuzzValue]-row-[allMasters]-inset-[runButton]-inset-|",
 				{"view1": self.w.fuzzValueText, "attribute1": "centerY", "view2": self.w.fuzzValue, "attribute2": "centerY"},
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 			],
 			metrics={"inset": inset, "gap": 12, "row": 6},
 		)
@@ -75,6 +89,7 @@ class BlueFuzzer(mekkaObject):
 		try:
 			Font = Glyphs.font
 			if Font is None:
+				self.setStatus("⚠️ No font open.")
 				return
 
 			self.SavePreferences()
@@ -86,7 +101,9 @@ class BlueFuzzer(mekkaObject):
 			else:
 				masterList = [Font.selectedFontMaster]
 
+			self.setStatus(f"🛠️ Processing {len(masterList)} master{'' if len(masterList) == 1 else 's'}…")
 			for m in masterList:
+				self.setStatus(f"🔠 {m.name}")
 				numOfZones = len(m.alignmentZones)
 				for i in range(numOfZones):
 					thisZone = m.alignmentZones[i]
@@ -99,6 +116,7 @@ class BlueFuzzer(mekkaObject):
 						thisZone.setPosition_(thisZone.position - fuzzValue * factor)
 						thisZone.setSize_(thisZone.size + (fuzzValue * 2) * factor)
 
+			self.setStatus(f"✅ Fuzzed the zones of {len(masterList)} master{'' if len(masterList) == 1 else 's'}.")
 			self.w.close()
 			Font.parent.windowController().showFontInfoWindowWithTabSelected_(1)  # master tab index
 		except Exception as e:
