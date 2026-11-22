@@ -253,6 +253,11 @@ the stored pref are numbers, not strings: read them with `self.prefInt()` or `se
 
 ### Tooltips
 
+**Every UI element gets a concise tooltip** — checkboxes, fields, popups, combo boxes, buttons, lists, text editors,
+and the status line if it predicts or reports something. One short sentence (or two) on what the control does and,
+where it is not obvious, what value it expects. Do not repeat the label word for word. A label and its field share one
+tooltip (see below), and purely decorative elements (dividers, progress bars, the description text) need none.
+
 Use vanilla's `.setToolTip()` directly on the element — this is the preferred modern approach:
 
 ```python
@@ -461,18 +466,10 @@ let the right controls take the extra width:
 - **Wrapping text** needs the fixed height and lowered compression resistance described above, otherwise its
   intrinsic one-line width becomes the minimum width.
 
-### Frame-based layout (existing scripts)
+### Frame-based layout
 
-Most scripts still place controls with `posSize` tuples and a running `linePos`:
-
-```python
-linePos, inset, lineHeight = 12, 15, 22
-self.w.someElement = vanilla.TextBox((inset, linePos + 2, -inset, 14), "Text", sizeStyle="small")
-linePos += lineHeight
-```
-
-Negative coordinates are measured from the right/bottom edge (`-inset` = inset from right).
-Read it to understand existing scripts. Never use it for a new window, and convert a window to Auto Layout when you rework it.
+No script places controls with `posSize` tuples and a running `linePos` any more. If you meet one (an old script, or
+one contributed from elsewhere), convert the window to Auto Layout as described above; do not extend it.
 
 ## Shared Utility Functions (`__init__.py`)
 
