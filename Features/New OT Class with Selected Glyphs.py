@@ -11,7 +11,7 @@ from mekkablue import mekkaObject
 
 class OTClassCreator(mekkaObject):
 	prefDict = {
-		"className": "xxxx",
+		"otClassName": "xxxx",
 		"overwrite": True,
 		"keepOpen": True,
 	}
@@ -26,7 +26,7 @@ class OTClassCreator(mekkaObject):
 		)
 
 		self.w.classNameLabel = vanilla.TextBox("auto", "OT class name:", sizeStyle="small")
-		self.w.className = vanilla.EditText("auto", "xxxx", sizeStyle="small", callback=self.SavePreferences)
+		self.w.otClassName = vanilla.EditText("auto", "xxxx", sizeStyle="small", callback=self.SavePreferences)
 		self.w.overwrite = vanilla.CheckBox("auto", "Overwrite existing class", sizeStyle="small", callback=self.SavePreferences, value=True)
 		self.w.keepOpen = vanilla.CheckBox("auto", "Keep this window open", sizeStyle="small", callback=self.SavePreferences, value=True)
 		self.w.classNameCheck = vanilla.TextBox("auto", "Class name appears to be ok.", sizeStyle="small")
@@ -45,15 +45,15 @@ class OTClassCreator(mekkaObject):
 
 		self.w.addAutoPosSizeRules(
 			[
-				"H:|-inset-[classNameLabel]-gap-[className]-gap-[runButton(>=65)]-inset-|",
+				"H:|-inset-[classNameLabel]-gap-[otClassName]-gap-[runButton(>=65)]-inset-|",
 				"H:[overwrite]-(>=inset)-|",
 				"H:[keepOpen]-(>=inset)-|",
 				"H:|-inset-[classNameCheck]-inset-|",
-				"V:|-inset-[className]-row-[overwrite]-checkRow-[keepOpen]-row-[classNameCheck]-inset-|",
-				{"view1": self.w.classNameLabel, "attribute1": "centerY", "view2": self.w.className, "attribute2": "centerY"},
-				{"view1": self.w.runButton, "attribute1": "centerY", "view2": self.w.className, "attribute2": "centerY"},
-				{"view1": self.w.overwrite, "attribute1": "left", "view2": self.w.className, "attribute2": "left"},
-				{"view1": self.w.keepOpen, "attribute1": "left", "view2": self.w.className, "attribute2": "left"},
+				"V:|-inset-[otClassName]-row-[overwrite]-checkRow-[keepOpen]-row-[classNameCheck]-inset-|",
+				{"view1": self.w.classNameLabel, "attribute1": "centerY", "view2": self.w.otClassName, "attribute2": "centerY"},
+				{"view1": self.w.runButton, "attribute1": "centerY", "view2": self.w.otClassName, "attribute2": "centerY"},
+				{"view1": self.w.overwrite, "attribute1": "left", "view2": self.w.otClassName, "attribute2": "left"},
+				{"view1": self.w.keepOpen, "attribute1": "left", "view2": self.w.otClassName, "attribute2": "left"},
 			],
 			metrics={"inset": 15, "gap": 8, "row": 8, "checkRow": 5},
 		)
@@ -64,7 +64,7 @@ class OTClassCreator(mekkaObject):
 
 	def updateUI(self, sender=None):
 		# validates the class name and enables the button accordingly
-		myClassName = self.w.className.get()
+		myClassName = self.w.otClassName.get()
 		font = Glyphs.font
 		existingClasses = [c.name for c in font.classes] if font else []
 
@@ -109,7 +109,7 @@ class OTClassCreator(mekkaObject):
 		glyphNames = [x.parent.name for x in font.selectedLayers]
 		classNames = [c.name for c in font.classes]
 
-		newClassName = self.w.className.get()
+		newClassName = self.w.otClassName.get()
 		classCode = " ".join(glyphNames)
 
 		if newClassName in classNames:
