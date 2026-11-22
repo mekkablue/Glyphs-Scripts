@@ -5,7 +5,7 @@ Add Grade axis and/or Grade master, based on your Weight and Width axes.
 """
 
 import vanilla
-from AppKit import NSAffineTransform, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSPoint, NSTextAlignmentRight
+from AppKit import NSAffineTransform, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSColor, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSPoint, NSTextAlignmentRight
 from copy import copy
 from GlyphsApp import Glyphs, GSInstance, GSUppercase, GSSmallcaps, GSSMOOTH, GSOFFCURVE, GSAxis, GSCustomParameter, Message
 from mekkablue import mekkaObject, UpdateButton, reportFontName, makeWindowResizable
@@ -41,7 +41,7 @@ def hScaleLayer(layer, hFactor=1.0):
 	layer.applyTransform(xScale.transformStruct())
 
 
-def anisotropicAdjust(font, master, originMaster, scope=()):
+def anisotropicAdjust(font, master, originMaster, scope=(), setStatus=None):
 	font = Glyphs.font
 
 	wghtAxisIndex = axisIdForTag(font, "wght")
@@ -60,6 +60,8 @@ def anisotropicAdjust(font, master, originMaster, scope=()):
 	for glyph in font.glyphs:
 		if glyph.name not in scope:
 			continue
+		if setStatus:
+			setStatus(f"🔠 {glyph.name} ({master.name})")
 		layer = glyph.layers[master.id]
 		originLayer = glyph.layers[originMaster.id]
 
@@ -116,7 +118,7 @@ def fitSidebearings(layer, targetWidth, left=0.5):
 		layer.width = targetWidth
 
 
-def wdthAdjust(font, gradeMaster, baseMaster, scope=()):
+def wdthAdjust(font, gradeMaster, baseMaster, scope=(), setStatus=None):
 	wdthAxisIndex = axisIdForTag(font, "wdth")
 	if wdthAxisIndex is None:
 		print("⚠️ No wdth axis found. Widths not fitted.")
@@ -151,6 +153,8 @@ def wdthAdjust(font, gradeMaster, baseMaster, scope=()):
 	for glyph in font.glyphs:
 		if glyph.name not in scope:
 			continue
+		if setStatus:
+			setStatus(f"🔠 {glyph.name} ({gradeMaster.name})")
 		gradeLayer = glyph.layers[gradeMaster.id]
 		baseLayer = glyph.layers[baseMaster.id]
 		if gradeLayer.width == baseLayer.width:
@@ -323,10 +327,18 @@ class AddGrade(mekkaObject):
 		self.w.limitToSelectedGlyphs = vanilla.CheckBox("auto", "Limit to selected glyphs", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.limitToSelectedGlyphs.setToolTip("If checked, only the selected glyphs are processed; other glyphs are left as they are.")
 
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
+		self.w.status.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Add Master", callback=self.AddGradeMain)
 		self.w.runButton.setToolTip("Adds the Grade master (and the Grade axis if needed) to the frontmost font.")
 		self.w.setDefaultButton(self.w.runButton)
+		self.w.runButton.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton.getNSButton().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 
 		# labels: right-aligned, one shared width per column
 		for labelName in ("baseMasterText", "weightText", "gradeText", "fittingMethodText", "axisTagText"):
@@ -351,7 +363,7 @@ class AddGrade(mekkaObject):
 			"H:|-inset-[fittingMethodText]-gap-[fittingMethod]-inset-|",
 			"H:[addSyncMetricCustomParameter]-(>=inset)-|",
 			"H:|-inset-[limitToSelectedGlyphs]-(>=inset)-|",
-			"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+			"H:|-inset-[status]-gap-[runButton(>=70)]-inset-|",
 			"V:|-inset-[descriptionText]-row-[baseMaster]-row-[weight]-row-[grade]-section-[fittingMethod]-checkRow-[addSyncMetricCustomParameter]-checkRow-[limitToSelectedGlyphs]-inset-[runButton]-inset-|",
 			sameAttribute("left", "addSyncMetricCustomParameter", "fittingMethod"),
 			sameAttribute("width", "weightText", "baseMasterText"),
@@ -367,6 +379,7 @@ class AddGrade(mekkaObject):
 			sameAttribute("centerY", "axisName", "grade"),
 			sameAttribute("centerY", "axisReset", "grade"),
 			sameAttribute("centerY", "fittingMethodText", "fittingMethod"),
+			sameAttribute("centerY", "status", "runButton"),
 		]
 		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5, "section": 12})
 
@@ -426,6 +439,7 @@ class AddGrade(mekkaObject):
 		self.SavePreferences()
 
 	def AddGradeMain(self, sender=None):
+		glyphNameForStatus = "start"
 		try:
 			# clear macro window log:
 			Glyphs.clearLog()
@@ -433,11 +447,13 @@ class AddGrade(mekkaObject):
 			# update settings to the latest user input:
 			self.SavePreferences()
 
+			self.setStatus("🛠️ Processing …")
 			fittingMethod = self.prefInt("fittingMethod")
 			limitToSelectedGlyphs = self.prefBool("limitToSelectedGlyphs")
 
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
+				self.setStatus("⚠️ No font open.")
 				Message(
 					title="No Font Open",
 					message="The script requires a font with a weight axis. Open a font and run the script again.",
@@ -449,6 +465,7 @@ class AddGrade(mekkaObject):
 				else:
 					glyphNames = [g.name for g in thisFont.glyphs]
 
+				self.setStatus(f"🛠️ Processing {len(glyphNames)} glyphs …")
 				reportName = reportFontName(thisFont)
 				print(f"Add Grade Report for {reportName}")
 				print()
@@ -529,6 +546,8 @@ class AddGrade(mekkaObject):
 				# interpolate the grade:
 				gradeFont = gradeInstance.interpolatedFont
 				for glyphName in glyphNames:
+					glyphNameForStatus = glyphName
+					self.setStatus(f"🔠 {glyphName} ({gradeMaster.name})")
 					weightedGlyph = gradeFont.glyphs[glyphName]
 					weightedLayer = weightedGlyph.layers[0]
 					weightedWidth = weightedLayer.width
@@ -560,13 +579,13 @@ class AddGrade(mekkaObject):
 					print(
 						f"↔️ Fitting {len(glyphNames)} glyph{'' if len(glyphNames) == 1 else 's'} anisotropically..."
 					)
-					anisotropicAdjust(thisFont, gradeMaster, baseMaster, scope=glyphNames)
+					anisotropicAdjust(thisFont, gradeMaster, baseMaster, scope=glyphNames, setStatus=self.setStatus)
 				elif fittingMethod == 3:
 					# adjust width with wdth axis:
 					print(
 						f"↔️ Fitting {len(glyphNames)} glyph{'' if len(glyphNames) == 1 else 's'} through the width axis..."
 					)
-					wdthAdjust(thisFont, gradeMaster, baseMaster, scope=glyphNames)
+					wdthAdjust(thisFont, gradeMaster, baseMaster, scope=glyphNames, setStatus=self.setStatus)
 
 				# add missing axis locations if base master has axis locations:
 				if Glyphs.versionNumber < 4:
@@ -612,6 +631,7 @@ class AddGrade(mekkaObject):
 								)
 							parameter.value = axLoc
 
+				self.setStatus(f"✅ Added master ‘{gradeMaster.name}’ with {len(glyphNames)} glyphs.")
 				self.w.close()  # delete if you want window to stay open
 
 			print("\n✅ Done.")
@@ -619,6 +639,7 @@ class AddGrade(mekkaObject):
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
+			self.setStatus(f"❌ Error at {glyphNameForStatus}. Details in Macro Window.")
 			print(f"Add Grade Error: {e}")
 			import traceback
 

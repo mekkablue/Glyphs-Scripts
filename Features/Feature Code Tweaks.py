@@ -4,7 +4,15 @@ Adds tweaks to OT feature code. Reports in Macro window.
 """
 
 import vanilla
-from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
+from AppKit import (
+	NSColor,
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityDefaultLow,
+	NSLayoutPriorityRequired,
+	NSLayoutPriorityWindowSizeStayPut,
+)
 from GlyphsApp import Glyphs, GSFeature, GSClass, GSFeaturePrefix, Message
 from mekkablue import mekkaObject, createOTFeature, fontFileName
 
@@ -264,6 +272,16 @@ class FeatureCodeTweaks(mekkaObject):
 		self.w.runButton.setToolTip("Applies the checked tweaks to the feature code of the frontmost font.")
 		self.w.setDefaultButton(self.w.runButton)
 
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
+		nsStatus = self.w.status.getNSTextField()
+		nsStatus.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		nsStatus.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		nsRunButton = self.w.runButton.getNSButton()
+		nsRunButton.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		nsRunButton.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
 		# checkboxes stretch vertically by default; with everything hugging, the window ends up exactly as tall as the content
 		for view in self.w.getNSWindow().contentView().subviews():
 			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
@@ -285,10 +303,11 @@ class FeatureCodeTweaks(mekkaObject):
 				"H:|-inset-[fShortSubstitution]-(>=inset)-|",
 				"H:|-inset-[magistra]-(>=inset)-|",
 				"H:|-inset-[ssXX2salt]-(>=inset)-|",
-				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"H:|-inset-[status]-gap-[runButton(>=70)]-inset-|",
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 				"V:|-inset-[descriptionText]-row-[scFeatureFix]-stackRow-[addArrowLigs]-stackRow-[germanLocalization]-stackRow-[dutchLocalization]-stackRow-[decomposePresentationForms]-stackRow-[includeLdot]-stackRow-[includeBalkan]-stackRow-[includeIJ]-stackRow-[disableLiga]-stackRow-[repeatDecompositionInSC]-stackRow-[repeatDecompositionInOtherAffectedFeatures]-stackRow-[fShortSubstitution]-stackRow-[magistra]-stackRow-[ssXX2salt]-inset-[runButton]-inset-|",
 			],
-			metrics={"inset": inset, "subInset": inset + 24, "row": 8, "stackRow": 5},
+			metrics={"inset": inset, "subInset": inset + 24, "gap": 8, "row": 8, "stackRow": 5},
 		)
 
 		# Load Settings:
@@ -1009,50 +1028,69 @@ class FeatureCodeTweaks(mekkaObject):
 
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
+				self.setStatus("⚠️ No font open.")
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 				return
 
+			self.setStatus("🛠️ Processing tweaks…")
+			tweakCount = 0
 			print(f"Feature Code Tweaks for {thisFont.familyName}")
 			fileName = fontFileName(thisFont)
 			print(f"📄 {fileName}")
 
 			# ccmp fi, fl, etc.
 			if self.pref("scFeatureFix"):
+				self.setStatus("🔠 SC Feature Fix")
+				tweakCount += 1
 				print("\n- SC Feature Fix")
 				self.scFeatureFix()
 
 			# arrows
 			if self.pref("addArrowLigs"):
+				self.setStatus("🔠 Add Arrow Ligs")
+				tweakCount += 1
 				print("\n- Add Arrow Ligs")
 				self.addArrowLigs()
 
 			# locl DEU: calt G/germandbls
 			if self.pref("germanLocalization"):
+				self.setStatus("🔠 German Localization")
+				tweakCount += 1
 				print("\n- German Localization")
 				self.germanLocalization()
 
 			# locl NLD
 			if self.pref("dutchLocalization"):
+				self.setStatus("🔠 Dutch Localization")
+				tweakCount += 1
 				print("\n- Dutch Localization")
 				self.dutchLocalization()
 
 			# SC additions (i/jdotless)
 			if self.pref("decomposePresentationForms"):
+				self.setStatus("🔠 Decompose Presentation Forms")
+				tweakCount += 1
 				print("\n- Decompose Presentation Forms")
 				self.decomposePresentationForms()
 
 			# short f substitution
 			if self.pref("fShortSubstitution"):
+				self.setStatus("🔠 Add f.short substitutions")
+				tweakCount += 1
 				print("\n- Add f.short substitutions")
 				self.fShortSubstitution()
 
 			# Mag.a
 			if self.pref("magistra"):
+				self.setStatus("🔠 Add Mag.a substitutions")
+				tweakCount += 1
 				print("\n- Add Mag.a substitutions")
 				self.magistraSubstitution()
 
 			# ssXX to salt
 			if self.pref("ssXX2salt"):
+				self.setStatus("🔠 Add salt feature with ssXX lookups")
+				tweakCount += 1
 				print("\n- Add salt feature with ssXX lookups")
 				self.ssXX2salt()
 
@@ -1060,11 +1098,16 @@ class FeatureCodeTweaks(mekkaObject):
 			tweakNames = ("scFeatureFix", "addArrowLigs", "germanLocalization", "dutchLocalization", "decomposePresentationForms", "fShortSubstitution", "magistra", "ssXX2salt")
 			if any(self.pref(tweakName) for tweakName in tweakNames):
 				print("\n🫱🏾‍🫲🏻 Recompiling features...")
+				self.setStatus("🛠️ Recompiling features…")
 				thisFont.compileFeatures()
+				self.setStatus(f"✅ Applied {tweakCount} tweak{'' if tweakCount == 1 else 's'}.")
+			else:
+				self.setStatus("⚠️ No tweak checked, nothing changed.")
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print(f"❌ Feature Code Tweaks Error: {e}")
+			self.setStatus("❌ Error in tweak. Details in Macro Window.")
 			import traceback
 			print(traceback.format_exc())
 

@@ -7,6 +7,7 @@ import vanilla
 from mekkablue import mekkaObject, UpdateButton, reportFontName, makeWindowResizable
 from GlyphsApp import Glyphs, GSMetric, Message
 from AppKit import (
+	NSColor,
 	NSLayoutConstraintOrientationHorizontal,
 	NSLayoutConstraintOrientationVertical,
 	NSLayoutPriorityDefaultHigh,
@@ -89,7 +90,10 @@ class AutoStems(mekkaObject):
 		self.w.allFonts = vanilla.CheckBox("auto", "Process ⚠️ ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.allFonts.setToolTip("If checked, will process all fonts currently opened in Glyphs. Otherwise just the frontmost font.")
 
-		# Run Button:
+		# Status line and Run Button:
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
 		self.w.runButton = vanilla.Button("auto", "Add Stems", callback=self.AutoStemsMain)
 		self.w.runButton.setToolTip("Measures the chosen glyphs and adds the stem values to the font masters.")
 		self.w.setDefaultButton(self.w.runButton)
@@ -115,7 +119,8 @@ class AutoStems(mekkaObject):
 			"H:|-inset-[hText1]-gap-[hMeasure]-gap-[hText2]-gap-[hShape]-gap-[hText3]-gap-[hStemGlyph(>=100)]-gap-[hReset]-inset-|",
 			"H:|-inset-[overwriteExisting]-(>=inset)-|",
 			"H:|-inset-[allFonts]-(>=gap)-[runButton(>=70)]-inset-|",
-			"V:|-gap-[descriptionText]-row-[vStemGlyph]-row-[hStemGlyph]-row-[overwriteExisting]-row-[runButton]-inset-|",
+			"H:|-inset-[status]-inset-|",
+			"V:|-gap-[descriptionText]-row-[vStemGlyph]-row-[hStemGlyph]-row-[overwriteExisting]-row-[runButton]-gap-[status]-inset-|",
 			{"view1": self.w.allFonts, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 			{"view1": self.w.hText1, "attribute1": "width", "view2": self.w.vText1, "attribute2": "width"},
 			{"view1": self.w.hMeasure, "attribute1": "width", "view2": self.w.vMeasure, "attribute2": "width"},
@@ -220,9 +225,13 @@ class AutoStems(mekkaObject):
 				fonts = (Glyphs.font, ) if Glyphs.font else ()
 
 			if not fonts:
+				self.setStatus("⚠️ No font open.")
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 				return
 
+			self.setStatus(f"🛠️ Processing {len(fonts)} font(s)…")
+			currentItem = None
+			measuredCount = 0
 			for f in fonts:
 				reportName = reportFontName(f)
 				print(f"Auto Stems Report for {reportName}")
@@ -231,6 +240,7 @@ class AutoStems(mekkaObject):
 				# check for the glyphs first, before the stems of the font are touched:
 				missingGlyphNames = [glyphName for glyphName in (vStemGlyph, hStemGlyph) if not f.glyphs[glyphName]]
 				if missingGlyphNames:
+					self.setStatus(f"⚠️ Missing in {f.familyName}: {', '.join(missingGlyphNames)}.")
 					print(f"❌ Missing in this font, cannot measure: {', '.join(missingGlyphNames)}. Skipping font.\n")
 					Message(title="Auto Stems: Glyph Missing", message=f"Cannot measure stems in {f.familyName}, because the font has no glyph named {' or '.join(missingGlyphNames)}.", OKButton=None)
 					continue
@@ -257,6 +267,8 @@ class AutoStems(mekkaObject):
 
 				for m in f.masters:
 					mID = m.id
+					currentItem = m.name
+					self.setStatus(f"🔠 {m.name}")
 
 					# measure idotless
 					vStem = self.measureLayer(vGlyph.layers[mID], vMeasure, vShape, v=True)
@@ -268,8 +280,14 @@ class AutoStems(mekkaObject):
 					print(f"V {vStem} H {hStem}: {m.name}")
 					m.stems[vID] = vStem
 					m.stems[hID] = hStem
+					measuredCount += 1
 
 				print()
+
+			if measuredCount:
+				self.setStatus(f"✅ Set stems in {measuredCount} master(s).")
+			else:
+				self.setStatus("⚠️ No stems set.")
 
 			if not allFonts and f is not None:
 				f.parent.windowController().showFontInfoWindowWithTabSelected_(1) # master tab index
@@ -278,6 +296,7 @@ class AutoStems(mekkaObject):
 			print("\nDone.")
 
 		except Exception as e:
+			self.setStatus(f"❌ Error at {currentItem or 'start'}. Details in Macro Window.")
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print(f"Auto Stems Error: {e}")

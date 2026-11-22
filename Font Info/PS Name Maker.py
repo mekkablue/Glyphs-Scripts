@@ -4,7 +4,7 @@ Creates postscriptFontName entries (Name ID 6) for all instances with options to
 """
 
 import vanilla
-from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
+from AppKit import NSColor, NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 from string import ascii_letters, digits
 from GlyphsApp import Glyphs, GSDocument, GSProjectDocument, INSTANCETYPESINGLE, Message
 from mekkablue import mekkaObject
@@ -137,7 +137,10 @@ class PSNameMaker(mekkaObject):
 		self.w.removeButton = vanilla.Button("auto", "Remove", callback=self.PSNameMakerMain)
 		self.w.removeButton.setToolTip("Removes the PS names from the instances instead of adding them.")
 
-		# Run Button:
+		# Status line and Run Button:
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
 		self.w.runButton = vanilla.Button("auto", "Add", callback=self.PSNameMakerMain)
 		self.w.runButton.setToolTip("Calculates and adds PS names to the instances.")
 		self.w.setDefaultButton(self.w.runButton)
@@ -155,8 +158,9 @@ class PSNameMaker(mekkaObject):
 				"H:|-inset-[allFonts]-(>=inset)-|",
 				"H:|-inset-[includeInactiveInstances]-(>=inset)-|",
 				"H:|-inset-[removeButton(>=70)]-(>=gap)-[runButton(>=70)]-inset-|",
-				"V:|-inset-[descriptionText]-headlineGap-[addAsNameEntryParameter]-stackRow-[shortenStyleNames]-stackRow-[allFonts]-stackRow-[includeInactiveInstances]-inset-[runButton]-inset-|",
-				"V:[removeButton]-inset-|",
+				"H:|-inset-[status]-inset-|",
+				"V:|-inset-[descriptionText]-headlineGap-[addAsNameEntryParameter]-stackRow-[shortenStyleNames]-stackRow-[allFonts]-stackRow-[includeInactiveInstances]-inset-[runButton]-gap-[status]-inset-|",
+				"V:[removeButton]-gap-[status]",
 				{"view1": self.w.helpButton, "attribute1": "centerY", "view2": self.w.shortenStyleNames, "attribute2": "centerY"},
 			],
 			metrics={"inset": inset, "gap": 8, "headlineGap": 10, "stackRow": 8},
@@ -189,11 +193,15 @@ class PSNameMaker(mekkaObject):
 			addAsNameEntryParameter = self.pref("addAsNameEntryParameter")
 
 			theseDocs = Glyphs.orderedDocuments()
+			thisInstance = None
+			instanceCount = 0
 			if not theseDocs:
+				self.setStatus("⚠️ No font open.")
 				Message(title="No Font Open", message="The script requires a font or project document. Open a font and run the script again.", OKButton=None)
 			else:
 				if not self.pref("allFonts"):
 					theseDocs = (theseDocs[0], )
+				self.setStatus(f"🛠️ Processing {len(theseDocs)} document(s)…")
 
 				for thisDoc in theseDocs:
 					if isinstance(thisDoc, GSProjectDocument):
@@ -216,6 +224,8 @@ class PSNameMaker(mekkaObject):
 					for thisInstance in instances:
 						if thisInstance.type == INSTANCETYPESINGLE:
 							if includeInactiveInstances or thisInstance.active:
+								self.setStatus(f"🔠 {thisInstance.name}")
+								instanceCount += 1
 								if remove:
 									removePSNameFromInstance(thisInstance)
 									print(f"⌦ ‘{thisInstance.name}’ cleared of PS Names.")
@@ -225,9 +235,16 @@ class PSNameMaker(mekkaObject):
 								print(f"⏭️ ‘{thisInstance.name}’ is inactive: skipping.")
 					print()
 
+				if instanceCount:
+					verb = "Cleared" if remove else "Set PS names of"
+					self.setStatus(f"✅ {verb} {instanceCount} instance(s).")
+				else:
+					self.setStatus("⚠️ No instances found.")
+
 			print("Done.")
 
 		except Exception as e:
+			self.setStatus(f"❌ Error at {thisInstance.name if thisInstance else 'start'}. Details in Macro Window.")
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print(f"PS Name Maker Error: {e}")

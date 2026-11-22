@@ -5,9 +5,11 @@ Insert an anchor in all selected glyphs, on all layers, and pick the approximate
 
 import vanilla
 from AppKit import (
+	NSColor,
 	NSLayoutConstraintOrientationHorizontal,
 	NSLayoutConstraintOrientationVertical,
 	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityDefaultLow,
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
 	NSTextAlignmentRight,
@@ -71,10 +73,19 @@ class BatchInsertAnchor(mekkaObject):
 			"If enabled, will delete anchors that have the same name of the one you are adding, before it is added again at the specified spot. If disabled, the script will skip layers that already have an anchor of the same name."
 		)
 
-		# Run Button:
+		# Status line and Run Button:
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
 		self.w.runButton = vanilla.Button("auto", "Insert", callback=self.BatchInsertAnchorMain)
 		self.w.runButton.setToolTip("Insert the anchor in the selected glyphs.")
 		self.w.setDefaultButton(self.w.runButton)
+
+		# the status line takes the leftover width, the button stays as wide as its title needs:
+		self.w.status.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton.getNSButton().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 
 		# labels: right-aligned, same width, hugging their text
 		labelNames = ("anchorNameText", "xPosText", "yPosText")
@@ -106,8 +117,9 @@ class BatchInsertAnchor(mekkaObject):
 				"H:|-inset-[xPosText]-gap-[xPos]-inset-|",
 				"H:|-inset-[yPosText]-gap-[yPos]-inset-|",
 				"H:|-inset-[replaceExisting]-(>=inset)-|",
-				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"H:|-inset-[status]-gap-[runButton(>=70)]-inset-|",
 				"V:|-gap-[descriptionText]-row-[anchorName]-row-[xPos]-row-[yPos]-row-[replaceExisting]-inset-[runButton]-inset-|",
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 			] + widthRules + centerRules,
 			metrics={"inset": inset, "gap": 8, "row": 6},
 		)
@@ -122,12 +134,14 @@ class BatchInsertAnchor(mekkaObject):
 		self.w.makeKey()
 
 	def BatchInsertAnchorMain(self, sender):
+		currentGlyphName = None
 		try:
 			# update settings to the latest user input:
 			self.SavePreferences()
 
 			thisFont = Glyphs.font  # frontmost font
 			if not thisFont:
+				self.setStatus("⚠️ No font open.")
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 				return
 			print("Batch Insert Anchor Report for %s" % thisFont.familyName)
@@ -149,7 +163,11 @@ class BatchInsertAnchor(mekkaObject):
 				len(selectedGlyphNames),
 			))
 
+			self.setStatus(f"🛠️ Processing {len(selectedGlyphNames)} glyph{'' if len(selectedGlyphNames) == 1 else 's'}…")
+			insertedCount = 0
 			for glyphName in selectedGlyphNames:
+				currentGlyphName = glyphName
+				self.setStatus(f"🔠 {glyphName}")
 				print("🔠 %s" % glyphName)
 				glyph = thisFont.glyphs[glyphName]
 				if not glyph:
@@ -199,8 +217,15 @@ class BatchInsertAnchor(mekkaObject):
 							anchor.name = anchorName
 							anchor.position = NSPoint(x, y)
 							thisLayer.anchors.append(anchor)
+							insertedCount += 1
+
+			if insertedCount:
+				self.setStatus(f"✅ Inserted {insertedCount} anchor{'' if insertedCount == 1 else 's'}.")
+			else:
+				self.setStatus("⚠️ No anchors inserted.")
 
 		except Exception as e:
+			self.setStatus(f"❌ Error at {currentGlyphName}. Details in Macro Window." if currentGlyphName else "❌ Error. Details in Macro Window.")
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print(f"Batch Insert Anchor Error: {e}")

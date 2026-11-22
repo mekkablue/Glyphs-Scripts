@@ -9,9 +9,11 @@ import vanilla
 from mekkablue import mekkaObject, makeWindowResizable
 from GlyphsApp import Glyphs, Message
 from AppKit import (
+	NSColor,
 	NSLayoutConstraintOrientationHorizontal,
 	NSLayoutConstraintOrientationVertical,
 	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityDefaultLow,
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
 	NSTextAlignmentRight,
@@ -55,6 +57,10 @@ class MetricKeyReplacer(mekkaObject):
 		self.w.runButton.setToolTip("Replaces the text in the metrics keys of the selected glyphs.")
 		self.w.setDefaultButton(self.w.runButton)
 
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
+
 		# with everything hugging, the window ends up exactly as tall as the content
 		for view in self.w.getNSWindow().contentView().subviews():
 			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
@@ -66,12 +72,19 @@ class MetricKeyReplacer(mekkaObject):
 			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
 			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 
+		nsStatus = self.w.status.getNSTextField()
+		nsStatus.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		nsStatus.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		nsRunButton = self.w.runButton.getNSButton()
+		nsRunButton.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		nsRunButton.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
 		self.w.addAutoPosSizeRules(
 			[
 				"H:|-inset-[text_Find]-gap-[leftSearchFor(>=100)]-gap-[rightSearchFor]-inset-|",
 				"H:|-inset-[text_Replace]-gap-[leftReplaceBy]-gap-[rightReplaceBy]-inset-|",
 				"H:[text_right]-(>=inset)-|",
-				"H:|-(>=inset)-[runButton(>=95)]-inset-|",
+				"H:|-inset-[status]-gap-[runButton(>=95)]-inset-|",
 				"V:|-gap-[text_left]-headGap-[leftSearchFor]-row-[leftReplaceBy]-inset-[runButton]-inset-|",
 				# both labels and all four fields share their widths:
 				{"view1": self.w.text_Find, "attribute1": "width", "view2": self.w.text_Replace, "attribute2": "width"},
@@ -82,6 +95,7 @@ class MetricKeyReplacer(mekkaObject):
 				{"view1": self.w.text_left, "attribute1": "left", "view2": self.w.leftSearchFor, "attribute2": "left"},
 				{"view1": self.w.text_right, "attribute1": "left", "view2": self.w.rightSearchFor, "attribute2": "left"},
 				{"view1": self.w.text_right, "attribute1": "centerY", "view2": self.w.text_left, "attribute2": "centerY"},
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 				# one baseline per row:
 				{"view1": self.w.text_Find, "attribute1": "centerY", "view2": self.w.leftSearchFor, "attribute2": "centerY"},
 				{"view1": self.w.rightSearchFor, "attribute1": "centerY", "view2": self.w.leftSearchFor, "attribute2": "centerY"},
@@ -104,10 +118,12 @@ class MetricKeyReplacer(mekkaObject):
 	def MetricKeyReplaceMain(self, sender):
 		Font = Glyphs.font
 		if Font is None:
+			self.setStatus("⚠️ No font open.")
 			Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			return
 
 		Font.disableUpdateInterface()
+		g = None
 		try:
 			self.SavePreferences()
 
@@ -119,9 +135,11 @@ class MetricKeyReplacer(mekkaObject):
 			RsearchFor = self.w.rightSearchFor.get()
 			RreplaceBy = self.w.rightReplaceBy.get()
 
+			self.setStatus(f"🛠️ Processing {len(currentLayers)} glyphs…")
 			for layer in currentLayers:
 				try:
 					g = layer.parent
+					self.setStatus(f"🔠 {g.name}")
 					# g.beginUndo()  # undo grouping causes crashes
 
 					# Left Metrics Key:
@@ -167,9 +185,11 @@ class MetricKeyReplacer(mekkaObject):
 
 					# g.endUndo()  # undo grouping causes crashes
 
+			self.setStatus(f"✅ Processed {len(currentLayers)} glyphs.")
 			self.w.close()
 
 		except Exception as e:
+			self.setStatus(f"❌ Error at {g.name if g is not None else 'start'}. Details in Macro Window.")
 			Glyphs.showMacroWindow()
 			print("\n⚠️ Script Error:\n")
 			print(traceback.format_exc())

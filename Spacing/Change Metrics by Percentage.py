@@ -6,7 +6,7 @@ Increase sidebearings of selected glyphs by a percentage value.
 import vanilla
 from mekkablue import mekkaObject, SteppingEditText, decimalFormatter
 from GlyphsApp import Glyphs, Message
-from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
+from AppKit import NSColor, NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 
 
 class ChangeMetricsbyPercentage(mekkaObject):
@@ -42,6 +42,10 @@ class ChangeMetricsbyPercentage(mekkaObject):
 
 		self.w.setDefaultButton(self.w.runButton)
 
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
+
 		# checkboxes stretch vertically by default; with everything hugging, the window
 		# ends up exactly as tall as the content
 		for view in self.w.getNSWindow().contentView().subviews():
@@ -51,7 +55,8 @@ class ChangeMetricsbyPercentage(mekkaObject):
 		self.w.addAutoPosSizeRules(
 			[
 				"H:|-inset-[text_1]-gap-[LSB]-gap-[RSB]-gap-[changeValue(55)]-3-[text_3]-(>=gap)-[revertButton(>=60)]-gap-[runButton(>=60)]-inset-|",
-				"V:|-inset-[changeValue]-inset-|",
+				"H:|-inset-[status]-inset-|",
+				"V:|-inset-[changeValue]-gap-[status]-inset-|",
 			] + [
 				{"view1": view, "attribute1": "centerY", "view2": self.w.changeValue, "attribute2": "centerY"}
 				for view in rowViews
@@ -73,9 +78,11 @@ class ChangeMetricsbyPercentage(mekkaObject):
 		return glyphs
 
 	def ChangeMetricsbyPercentageMain(self, sender):
+		thisLayer = None
 		try:
 			Font = Glyphs.font
 			if Font is None:
+				self.setStatus("⚠️ No font open.")
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 				return
 			selectedLayers = Font.selectedLayers
@@ -89,14 +96,19 @@ class ChangeMetricsbyPercentage(mekkaObject):
 
 			if sender == self.w.revertButton:
 				if change == 0:
+					self.setStatus("⚠️ Cannot revert a change of −100%.")
 					Message(title="Cannot Revert", message="A change of −100% sets the sidebearings to zero and cannot be reverted.", OKButton=None)
 					return
 				change = 1.0 / change
 
+			self.setStatus(f"🛠️ Processing {len(selectedLayers)} layers…")
+			changedCount = 0
 			for thisLayer in selectedLayers:
+				self.setStatus(f"🔠 {thisLayer.parent.name}")
 
 				layer_id = thisLayer.layerId
 				if len(thisLayer.paths) > 0 or len(thisLayer.components) > 0:
+					changedCount += 1
 					if changeLSB:
 
 						LSB_change = (thisLayer.LSB * change) - thisLayer.LSB
@@ -123,8 +135,14 @@ class ChangeMetricsbyPercentage(mekkaObject):
 					if changeRSB:
 						thisLayer.RSB *= change
 
+			if changedCount:
+				self.setStatus(f"✅ Changed {changedCount} layers.")
+			else:
+				self.setStatus("⚠️ No selected layers with outlines or components.")
 			# self.w.close()
 		except Exception as e:
+			lastName = thisLayer.parent.name if thisLayer is not None else "start"
+			self.setStatus(f"❌ Error at {lastName}. Details in Macro Window.")
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print("Change Metrics by Percentage Error: %s" % e)

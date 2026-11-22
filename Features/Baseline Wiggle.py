@@ -8,9 +8,11 @@ from random import randint
 from mekkablue import mekkaObject, UpdateButton, reportFontName, SteppingEditText, integerFormatter, createOTFeature, createOTClass, makeWindowResizable
 from GlyphsApp import Glyphs, Message
 from AppKit import (
+	NSColor,
 	NSLayoutConstraintOrientationHorizontal,
 	NSLayoutConstraintOrientationVertical,
 	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityDefaultLow,
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
 	NSTextAlignmentRight,
@@ -98,6 +100,16 @@ class BaselineWiggle(mekkaObject):
 		self.w.runButton.setToolTip("Create the class and feature code in the frontmost font.")
 		self.w.setDefaultButton(self.w.runButton)
 
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
+		nsStatus = self.w.status.getNSTextField()
+		nsStatus.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		nsStatus.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		nsRunButton = self.w.runButton.getNSButton()
+		nsRunButton.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		nsRunButton.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
 		# labels: right-aligned, same width
 		labelNames = ("otClassText", "otFeatureText", "wiggleMinText", "wiggleMaxText", "lineLengthText")
 		widestLabel = "lineLengthText"  # the label with the longest text
@@ -127,9 +139,10 @@ class BaselineWiggle(mekkaObject):
 				"H:|-inset-[wiggleMinText]-gap-[wiggleMin(60)]-(>=inset)-|",
 				"H:|-inset-[wiggleMaxText]-gap-[wiggleMax(60)]-(>=inset)-|",
 				"H:|-inset-[lineLengthText]-gap-[lineLength(60)]-(>=inset)-|",
-				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"H:|-inset-[status]-gap-[runButton(>=70)]-inset-|",
 				"V:|-gap-[descriptionText]-row-[otClass]-row-[otFeature]-row-[wiggleMin]-row-[wiggleMax]-row-[lineLength]-inset-[runButton]-inset-|",
 				{"view1": self.w.otClassUpdate, "attribute1": "centerY", "view2": self.w.otClass, "attribute2": "centerY"},
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 			] + widthRules + centerRules,
 			metrics={"inset": inset, "gap": 8, "row": 6},
 		)
@@ -167,12 +180,14 @@ class BaselineWiggle(mekkaObject):
 
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
+				self.setStatus("⚠️ No font open.")
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
 				report = reportFontName(thisFont)
 				print(f"Baseline Wiggle Report for {report}")
 				print()
 
+				self.setStatus("🛠️ Processing %s…" % otFeature)
 				if otClass and otFeature:
 					# remove leading at signs:
 					while otClass[0] == "@":
@@ -184,6 +199,7 @@ class BaselineWiggle(mekkaObject):
 						featuretext += newline
 
 					if otClass not in [c.name for c in thisFont.classes]:
+						self.setStatus(f"🔠 @{otClass}")
 						report = createOTClass(
 							className=otClass,
 							classGlyphNames=[g.name for g in thisFont.glyphs if g.export],
@@ -191,12 +207,16 @@ class BaselineWiggle(mekkaObject):
 						)
 						print(report)
 
+					self.setStatus(f"🔠 {otFeature}")
 					report = createOTFeature(
 						featureName=otFeature,
 						featureCode=featuretext,
 						codeSig="BASELINE-WIGGLE",
 					)
 					print(report)
+					self.setStatus(f"✅ Wiggled @{otClass} in feature {otFeature}.")
+				else:
+					self.setStatus("⚠️ Class or feature name is empty.")
 
 			print("\nDone.")
 
@@ -204,6 +224,7 @@ class BaselineWiggle(mekkaObject):
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print(f"Baseline Wiggle Error: {e}")
+			self.setStatus("❌ Error. Details in Macro Window.")
 			import traceback
 			print(traceback.format_exc())
 

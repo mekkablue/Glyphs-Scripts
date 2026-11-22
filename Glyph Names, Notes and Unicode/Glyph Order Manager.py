@@ -7,7 +7,7 @@ import codecs
 import vanilla
 from mekkablue import mekkaObject, getLegibleFont, reportFontName, makeWindowResizable
 from GlyphsApp import Glyphs, Message
-from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
+from AppKit import NSColor, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 
 
 def saveFileInLocation(content="", filePath="~/Desktop/test.txt"):
@@ -79,7 +79,10 @@ class GlyphOrderManager(mekkaObject):
 		self.w.scopeText.setToolTip(tooltipText)
 		self.w.scope.setToolTip(tooltipText)
 
-		# Run Button:
+		# Status line and Run Buttons:
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
 		self.w.extractButton = vanilla.Button("auto", "Extract", callback=self.extractFromFrontmostFont)
 		self.w.extractButton.setToolTip("Copies the glyphOrder parameter of the frontmost font into the text field.")
 		self.w.cleanButton = vanilla.Button("auto", "Clean", callback=self.cleanForScope)
@@ -103,10 +106,11 @@ class GlyphOrderManager(mekkaObject):
 				"H:|-0-[glyphOrderText]-0-|",
 				"H:|-inset-[scopeText]-gap-[scope]-inset-|",
 				"H:|-inset-[extractButton(>=70)]-gap-[cleanButton(>=70)]-gap-[addMissingButton(>=70)]-(>=gap)-[runButton(>=70)]-inset-|",
-				"V:|-gap-[descriptionText]-gap-[glyphOrderText(>=100)]-gap-[scope]-inset-[runButton]-inset-|",
-				"V:[extractButton]-inset-|",
-				"V:[cleanButton]-inset-|",
-				"V:[addMissingButton]-inset-|",
+				"H:|-inset-[status]-inset-|",
+				"V:|-gap-[descriptionText]-gap-[glyphOrderText(>=100)]-gap-[scope]-inset-[runButton]-gap-[status]-inset-|",
+				"V:[extractButton]-gap-[status]",
+				"V:[cleanButton]-gap-[status]",
+				"V:[addMissingButton]-gap-[status]",
 				{"view1": self.w.scopeText, "attribute1": "centerY", "view2": self.w.scope, "attribute2": "centerY"},
 			],
 			metrics={"inset": inset, "gap": 8},
@@ -134,12 +138,16 @@ class GlyphOrderManager(mekkaObject):
 	def extractFromFrontmostFont(self, sender=None):
 		font = Glyphs.font
 		if not font:
+			self.setStatus("⚠️ No font open.")
 			return
+		self.setStatus(f"🛠️ Extracting glyphOrder from {font.familyName}…")
 		glyphOrder = font.customParameters["glyphOrder"]
 		if glyphOrder:
 			Glyphs.defaults[self.domain("glyphOrderText")] = "\n".join(glyphOrder)
 			self.LoadPreferences()
+			self.setStatus(f"✅ Extracted {len(glyphOrder)} glyph names.")
 		else:
+			self.setStatus("⚠️ The font has no glyphOrder parameter.")
 			Message(
 				title="No glyphOrder",
 				message=f"The frontmost font, {font.familyName}, has no glyphOrder parameter.",
@@ -148,27 +156,46 @@ class GlyphOrderManager(mekkaObject):
 
 	def cleanForScope(self, sender=None):
 		fonts = self.requestedFonts()
-		if fonts:
+		if not fonts:
+			self.setStatus("⚠️ No font open.")
+		else:
 			currentText = self.pref("glyphOrderText")
 			currentGlyphs = currentText.strip().splitlines()
+			self.setStatus(f"🛠️ Cleaning {len(currentGlyphs)} glyph names…")
 			relevantGlyphs = []
 			for currentGlyph in currentGlyphs:
+				self.setStatus(f"🔠 {currentGlyph}")
 				if any([f.glyphs[currentGlyph] is not None for f in fonts]):
 					relevantGlyphs.append(currentGlyph)
 			Glyphs.defaults[self.domain("glyphOrderText")] = "\n".join(relevantGlyphs)
 			self.LoadPreferences()
+			removedCount = len(currentGlyphs) - len(relevantGlyphs)
+			if removedCount:
+				self.setStatus(f"✅ Removed {removedCount} glyph names.")
+			else:
+				self.setStatus("⚠️ Nothing to remove.")
 
 	def addMissingForScope(self, sender=None):
 		fonts = self.requestedFonts()
-		if fonts:
+		if not fonts:
+			self.setStatus("⚠️ No font open.")
+		else:
 			currentText = self.pref("glyphOrderText")
 			glyphs = currentText.strip().splitlines()
+			previousCount = len(glyphs)
+			self.setStatus(f"🛠️ Processing {len(fonts)} font(s)…")
 			for font in fonts:
 				for g in font.glyphs:
+					self.setStatus(f"🔠 {g.name}")
 					if g.name not in glyphs:
 						glyphs.append(g.name)
 			Glyphs.defaults[self.domain("glyphOrderText")] = "\n".join(glyphs)
 			self.LoadPreferences()
+			addedCount = len(glyphs) - previousCount
+			if addedCount:
+				self.setStatus(f"✅ Added {addedCount} glyph names.")
+			else:
+				self.setStatus("⚠️ No missing glyphs.")
 
 	def GlyphOrderManagerMain(self, sender=None):
 		try:
@@ -183,20 +210,26 @@ class GlyphOrderManager(mekkaObject):
 			glyphOrder = list([n.strip() for n in glyphOrderText.splitlines() if n.strip()])
 
 			fonts = self.requestedFonts()  # frontmost font
+			thisFont = None
 			if fonts is None:
+				self.setStatus("⚠️ No font open.")
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
+				self.setStatus(f"🛠️ Processing {len(fonts)} font(s)…")
 				for thisFont in fonts:
 					reportName = reportFontName(thisFont)
+					self.setStatus(f"🔠 {reportName}")
 					print(f"🔢 Setting glyphOrder for {reportName}")
 					print()
 					thisFont.disableUpdateInterface()
 					thisFont.customParameters["glyphOrder"] = glyphOrder
 					thisFont.enableUpdateInterface()
+				self.setStatus(f"✅ Set glyphOrder in {len(fonts)} font(s).")
 
 			print("\nDone.")
 
 		except Exception as e:
+			self.setStatus(f"❌ Error at {reportFontName(thisFont) if thisFont else 'start'}. Details in Macro Window.")
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print(f"Glyph Order Manager Error: {e}")

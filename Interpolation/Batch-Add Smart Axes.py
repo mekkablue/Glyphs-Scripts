@@ -8,7 +8,7 @@ from copy import copy
 import vanilla
 from mekkablue import mekkaObject, getLegibleFont, reportFontName, makeWindowResizable
 from GlyphsApp import Glyphs, Message, GSSmartComponentAxis
-from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
+from AppKit import NSColor, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 
 defaultRecipe = """
 Height: Low: 0
@@ -65,6 +65,10 @@ class BatchAddSmartAxes(mekkaObject):
 		self.w.runButton.setToolTip("Adds the smart axes and smart layers from the recipe to the selected glyphs.")
 		self.w.setDefaultButton(self.w.runButton)
 
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
+
 		# everything but the recipe editor hugs vertically, so the editor takes all the leftover height:
 		for view in self.w.getNSWindow().contentView().subviews():
 			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
@@ -75,8 +79,9 @@ class BatchAddSmartAxes(mekkaObject):
 				"H:|-inset-[descriptionText]-inset-|",
 				"H:|-1-[recipe]-1-|",
 				"H:|-inset-[resetButton(>=70)]-(>=gap)-[runButton(>=100)]-inset-|",
-				"V:|-inset-[descriptionText]-gap-[recipe(>=120)]-inset-[runButton]-inset-|",
-				"V:[resetButton]-inset-|",
+				"H:|-inset-[status]-inset-|",
+				"V:|-inset-[descriptionText]-gap-[recipe(>=120)]-inset-[runButton]-gap-[status]-inset-|",
+				"V:[resetButton]-gap-[status]",
 			],
 			metrics={"inset": inset, "gap": 8},
 		)
@@ -95,6 +100,7 @@ class BatchAddSmartAxes(mekkaObject):
 		self.SavePreferences()
 
 	def BatchAddSmartAxesMain(self, sender=None):
+		glyphNameForStatus = "start"
 		try:
 			# clear macro window log:
 			Glyphs.clearLog()
@@ -104,8 +110,11 @@ class BatchAddSmartAxes(mekkaObject):
 
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
+				self.setStatus("⚠️ No font open.")
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
+				selectedLayers = thisFont.selectedLayers
+				self.setStatus(f"🛠️ Processing {len(selectedLayers)} glyphs …")
 				report = reportFontName(thisFont)
 				print(f"Batch-Add Smart Axes Report for {report}:")
 				print()
@@ -129,8 +138,10 @@ class BatchAddSmartAxes(mekkaObject):
 				print("\n".join(axisInput))
 				print()
 
-				for selectedLayer in thisFont.selectedLayers:
+				for selectedLayer in selectedLayers:
 					thisGlyph = selectedLayer.parent
+					glyphNameForStatus = thisGlyph.name
+					self.setStatus(f"🔠 {thisGlyph.name}")
 					print(f"🔡 {thisGlyph.name}...")
 					existingAxes = []
 					if thisGlyph.smartComponentAxes:
@@ -188,11 +199,17 @@ class BatchAddSmartAxes(mekkaObject):
 								smartLayer.associatedMasterId = mID
 								thisGlyph.layers.append(smartLayer)
 
+				if selectedLayers:
+					self.setStatus(f"✅ Processed {len(selectedLayers)} glyphs.")
+				else:
+					self.setStatus("⚠️ No glyphs selected.")
+
 			print("\nDone.")
 
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
+			self.setStatus(f"❌ Error at {glyphNameForStatus}. Details in Macro Window.")
 			print(f"Batch-Add Smart Axes Error: {e}")
 			import traceback
 			print(traceback.format_exc())
