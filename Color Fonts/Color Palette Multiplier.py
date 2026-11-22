@@ -5,7 +5,7 @@ Apply a list of filter parameters to copies of CPAL/COLR layers. This way you ca
 
 import vanilla
 import sys
-from mekkablue import mekkaObject, UpdateButton, reportFontName
+from mekkablue import mekkaObject, UpdateButton, reportFontName, makeWindowResizable
 from GlyphsApp import Glyphs, GSLayer, GSCustomParameter, Message
 from Foundation import NSString
 from AppKit import (
@@ -13,6 +13,7 @@ from AppKit import (
 	NSLayoutConstraintOrientationHorizontal,
 	NSLayoutConstraintOrientationVertical,
 	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityDefaultLow,
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
 )
@@ -78,7 +79,7 @@ class ColorPaletteMultiplier(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Color Palette Multiplier",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -124,6 +125,9 @@ class ColorPaletteMultiplier(mekkaObject):
 		for view in self.w.getNSWindow().contentView().subviews():
 			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
 
+		# the text editor takes the extra height when the window is resized:
+		self.w.build.getNSScrollView().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationVertical)
+
 		self.w.addAutoPosSizeRules(
 			[
 				"H:|-inset-[deriveText]-gap-[derive]-gap-[deriveUpdate(20)]-inset-|",
@@ -132,13 +136,15 @@ class ColorPaletteMultiplier(mekkaObject):
 				"H:|-inset-[descriptionText]-inset-|",
 				"H:|-inset-[build]-inset-|",
 				"H:|-inset-[ActionButton(40)]-(>=gap)-[runButton(>=70)]-inset-|",
-				"V:|-gap-[derive]-row-[allGlyphs]-checkRow-[overwrite]-row-[descriptionText]-row-[build(200)]-inset-[runButton]-inset-|",
+				"V:|-gap-[derive]-row-[allGlyphs]-checkRow-[overwrite]-row-[descriptionText]-row-[build(>=200)]-inset-[runButton]-inset-|",
 				"V:[ActionButton]-inset-|",
 				{"view1": self.w.deriveText, "attribute1": "centerY", "view2": self.w.derive, "attribute2": "centerY"},
 				{"view1": self.w.deriveUpdate, "attribute1": "centerY", "view2": self.w.derive, "attribute2": "centerY"},
 			],
 			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
 		)
+
+		makeWindowResizable(self.w, vertical=True)  # the text editor takes the extra height
 
 		# Load Settings:
 		self.LoadPreferences()

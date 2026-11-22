@@ -5,9 +5,9 @@ Turn font masters into brace layers of certain glyphs. A.k.a. Sparsify.
 
 from copy import copy as copy
 import vanilla
-from AppKit import NSFont, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
+from AppKit import NSFont, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, reportFontName, UpdateButton, SteppingEditText, integerFormatter
+from mekkablue import mekkaObject, reportFontName, UpdateButton, SteppingEditText, integerFormatter, makeWindowResizable
 
 
 def braceLayerAndAxisDictForGlyphAndMaster(glyph, master):
@@ -103,7 +103,7 @@ class Bracify(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Bracify",  # window title
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and size
 		)
 
 		# UI elements:
@@ -172,7 +172,7 @@ class Bracify(mekkaObject):
 			"H:|-inset-[braceGlyphsText]-inset-|",
 			"H:|-inset-[braceGlyphs]-inset-|",
 			"H:|-inset-[guessButton(>=70)]-gap-[openTabButton(>=70)]-(>=gap)-[runButton(>=70)]-inset-|",
-			"V:|-inset-[masterToRemove]-row-[associateMaster]-row-[threshold]-section-[braceGlyphsText]-gap-[braceGlyphs(140)]-inset-[runButton]-inset-|",
+			"V:|-inset-[masterToRemove]-row-[associateMaster]-row-[threshold]-section-[braceGlyphsText]-gap-[braceGlyphs(>=140)]-inset-[runButton]-inset-|",
 			"V:[guessButton]-inset-|",
 			"V:[openTabButton]-inset-|",
 			sameAttribute("centerY", "masterToRemoveText", "masterToRemove"),
@@ -182,7 +182,12 @@ class Bracify(mekkaObject):
 		] + [
 			sameAttribute("width", labelName, widestLabel) for labelName in labelNames if labelName != widestLabel
 		]
+		# the text editor takes the extra height when the window is resized:
+		self.w.braceGlyphs.getNSScrollView().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationVertical)
+
 		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "row": 6, "section": 12})
+
+		makeWindowResizable(self.w, vertical=True)  # the text editor takes the extra height
 
 		# Load Settings:
 		self.LoadPreferences()

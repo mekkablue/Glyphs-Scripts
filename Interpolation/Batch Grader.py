@@ -9,9 +9,9 @@ import datetime
 from copy import copy
 import vanilla
 from Foundation import NSPoint, NSAutoreleasePool
-from AppKit import NSFont, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
+from AppKit import NSFont, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
 from GlyphsApp import Glyphs, GSLayer, GSAxis, GSInstance, GSCustomParameter, GSSMOOTH, GSOFFCURVE, Message
-from mekkablue import mekkaObject, UpdateButton, reportFontName, SteppingEditText, integerFormatter
+from mekkablue import mekkaObject, UpdateButton, reportFontName, SteppingEditText, integerFormatter, makeWindowResizable
 
 
 def biggestSubstringInStrings(strings):
@@ -237,7 +237,7 @@ class BatchGrader(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Batch Grader",  # window title
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and size
 		)
 
 		# UI elements:
@@ -345,7 +345,7 @@ class BatchGrader(mekkaObject):
 			"H:|-inset-[descriptionText]-inset-|",
 			"H:|-inset-[graderCode]-inset-|",
 			"H:|-inset-[resetButton(>=70)]-gap-[helpButton]-(>=gap)-[runButton(>=70)]-inset-|",
-			"V:|-inset-[grade]-row-[searchFor]-row-[excludeFromInterpolation]-row-[addGradedBraceLayers]-checkRow-[addSyncMetricCustomParameter]-checkRow-[keepCenteredThreshold]-checkRow-[onlyCurrentGlyph]-section-[descriptionText]-gap-[graderCode(140)]-inset-[runButton]-inset-|",
+			"V:|-inset-[grade]-row-[searchFor]-row-[excludeFromInterpolation]-row-[addGradedBraceLayers]-checkRow-[addSyncMetricCustomParameter]-checkRow-[keepCenteredThreshold]-checkRow-[onlyCurrentGlyph]-section-[descriptionText]-gap-[graderCode(>=140)]-inset-[runButton]-inset-|",
 			"V:[resetButton]-inset-|",
 			sameAttribute("width", "searchFor", "grade"),
 			sameAttribute("width", "searchForText", "gradeText"),
@@ -365,7 +365,12 @@ class BatchGrader(mekkaObject):
 			sameAttribute("centerY", "keepCenteredGlyphsCentered", "keepCenteredThreshold"),
 			sameAttribute("centerY", "helpButton", "resetButton"),
 		]
+		# the text editor takes the extra height when the window is resized:
+		self.w.graderCode.getNSScrollView().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationVertical)
+
 		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5, "section": 12})
+
+		makeWindowResizable(self.w, vertical=True)  # the text editor takes the extra height
 
 		# Load Settings:
 		self.LoadPreferences()

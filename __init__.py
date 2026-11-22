@@ -565,7 +565,8 @@ def makeWindowResizable(window, vertical=False, minSize=None, maxSize=(2000, 200
 	window: the vanilla window,
 	vertical: if False, only the width is resizable and the height stays what the content needs (fittingSize),
 	          if True, the height is resizable too (for windows with a List or TextEditor),
-	minSize: (width, height) of the smallest content size, defaults to the size the window is created with,
+	minSize: (width, height) of the smallest content size, defaults to the size the window is created with
+	         or to what the content needs, whichever is larger,
 	maxSize: (width, height) of the largest content size; the height is ignored if vertical is False.
 	"""
 	nsWindow = window.getNSWindow()
@@ -573,8 +574,11 @@ def makeWindowResizable(window, vertical=False, minSize=None, maxSize=(2000, 200
 	currentSize = nsWindow.contentRectForFrameRect_(nsWindow.frame()).size
 	minWidth, minHeight = minSize if minSize else (currentSize.width, currentSize.height)
 	maxWidth, maxHeight = maxSize
+	fittingHeight = nsWindow.contentView().fittingSize().height
 	if not vertical:
-		minHeight = maxHeight = nsWindow.contentView().fittingSize().height
+		minHeight = maxHeight = fittingHeight
+	elif not minSize:
+		minHeight = max(minHeight, fittingHeight)  # windows created 1 pt high grow to what the content needs
 	nsWindow.setContentMinSize_((minWidth, minHeight))
 	nsWindow.setContentMaxSize_((maxWidth, maxHeight))
 
