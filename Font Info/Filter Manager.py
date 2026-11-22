@@ -166,7 +166,7 @@ class FilterManager(mekkaObject):
 			self.setStatus("❌ Could not write to the clipboard.")
 			print("⚠️ Filter Manager: could not write to the clipboard.")
 		else:
-			self.setStatus(f"✅ Copied {len(entries)} filter{'' if len(entries) == 1 else 's'} to the clipboard.")
+			self.setStatus(f"✅ Copied {len(entries)} filter{'' if len(entries) == 1 else 's'} to the clipboard. Ready for pasting in Font Info.")
 
 
 FilterManager()
