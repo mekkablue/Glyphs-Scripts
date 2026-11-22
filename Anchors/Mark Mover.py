@@ -4,10 +4,10 @@ Move marks to their respective heights, e.g. *comb.case to cap height, *comb to 
 """
 
 import vanilla
-from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
+from AppKit import NSColor, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, makeWindowResizable
 from mekkablue.geometry import transform, italicize
 
 
@@ -129,7 +129,7 @@ class MarkMover(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Mark Mover",
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and width
 		)
 
 		# UI elements:
@@ -167,9 +167,27 @@ class MarkMover(mekkaObject):
 		self.w.runButton.setToolTip("Move the marks.")
 		self.w.setDefaultButton(self.w.runButton)
 
+		# Status line:
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
+
+		# the status line takes the leftover width, the button stays as wide as its title needs:
+		nsStatus = self.w.status.getNSTextField()
+		nsStatus.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		nsStatus.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		nsRunButton = self.w.runButton.getNSButton()
+		nsRunButton.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		nsRunButton.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
 		# checkboxes stretch vertically by default; hug so the window is as tall as the content
 		for view in self.w.getNSWindow().contentView().subviews():
 			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# the checkbox in front of the fields hugs its text, so the two fields take the leftover width:
+		nsCheckBox = self.w.setMetricsKeys.getNSButton()
+		nsCheckBox.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		nsCheckBox.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 
 		# the RSB label hugs its text
 		nsLabel = self.w.rightMetricsKeyText.getNSTextField()
@@ -183,18 +201,23 @@ class MarkMover(mekkaObject):
 				"H:|-inset-[lowercaseMarks]-(>=inset)-|",
 				"H:|-inset-[uppercaseMarks]-(>=inset)-|",
 				"H:|-inset-[smallcapMarks]-(>=inset)-|",
-				"H:|-inset-[setMetricsKeys]-gap-[leftMetricsKey(55)]-gap-[rightMetricsKeyText]-gap-[rightMetricsKey(55)]-(>=inset)-|",
+				"H:|-inset-[setMetricsKeys]-gap-[leftMetricsKey(>=55)]-gap-[rightMetricsKeyText]-gap-[rightMetricsKey(>=55)]-inset-|",
 				"H:|-inset-[includeAllGlyphs]-(>=inset)-|",
 				"H:|-inset-[newTab]-gap-[reuseTab]-(>=inset)-|",
-				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"H:|-inset-[status]-gap-[runButton(>=70)]-inset-|",
 				"V:|-gap-[descriptionText]-row-[arabicMarks]-checkRow-[lowercaseMarks]-checkRow-[uppercaseMarks]-checkRow-[smallcapMarks]-row-[leftMetricsKey]-row-[includeAllGlyphs]-checkRow-[newTab]-inset-[runButton]-inset-|",
 				{"view1": self.w.setMetricsKeys, "attribute1": "centerY", "view2": self.w.leftMetricsKey, "attribute2": "centerY"},
 				{"view1": self.w.rightMetricsKeyText, "attribute1": "centerY", "view2": self.w.leftMetricsKey, "attribute2": "centerY"},
 				{"view1": self.w.rightMetricsKey, "attribute1": "centerY", "view2": self.w.leftMetricsKey, "attribute2": "centerY"},
 				{"view1": self.w.reuseTab, "attribute1": "centerY", "view2": self.w.newTab, "attribute2": "centerY"},
+				{"view1": self.w.rightMetricsKey, "attribute1": "width", "view2": self.w.leftMetricsKey, "attribute2": "width"},
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 			],
 			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
 		)
+
+		# both metrics key fields stretch, so the window is resizable horizontally:
+		makeWindowResizable(self.w)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -212,6 +235,7 @@ class MarkMover(mekkaObject):
 		self.w.rightMetricsKey.enable(onOff)
 
 	def MarkMoverMain(self, sender=None):
+		lastName = "start"
 		try:
 			# clear macro window log:
 			Glyphs.clearLog()
@@ -221,6 +245,7 @@ class MarkMover(mekkaObject):
 
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
+				self.setStatus("⚠️ No font open.")
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 				return
 			else:
@@ -248,6 +273,7 @@ class MarkMover(mekkaObject):
 
 				glyphNames = []
 				movedMarks = 0
+				self.setStatus("🛠️ Processing…")
 				for glyph in glyphs:
 					glyphParts = glyph.name.split(".")
 					if glyphParts[0].endswith("comb") or (glyph.category == "Mark" and glyph.subCategory == "Nonspacing"):
@@ -255,6 +281,8 @@ class MarkMover(mekkaObject):
 							glyph.leftMetricsKey = leftMetricsKey
 							glyph.rightMetricsKey = rightMetricsKey
 						glyphNames.append(glyph.name)
+						lastName = glyph.name
+						self.setStatus(f"🔠 {glyph.name}")
 						if arabicMarks and glyph.script == "arabic":
 							movedMarks += moveGlyphToAlefHeight(glyph)
 						elif smallcapMarks and ("sc" in glyphParts or "smcp" in glyphParts or "c2sc" in glyphParts or "small" in glyphParts):
@@ -276,6 +304,10 @@ class MarkMover(mekkaObject):
 			)
 
 			print("\nDone.")
+			if glyphNames:
+				self.setStatus(f"✅ Shifted {movedMarks} layer{'' if movedMarks == 1 else 's'} in {len(glyphNames)} mark{'' if len(glyphNames) == 1 else 's'}.")
+			else:
+				self.setStatus("⚠️ No marks found.")
 
 			if newTab and glyphNames:
 				if reuseTab and thisFont.currentTab:
@@ -286,6 +318,7 @@ class MarkMover(mekkaObject):
 
 		except Exception as e:
 			# brings macro window to front and reports error:
+			self.setStatus(f"❌ Error at {lastName}. Details in Macro Window.")
 			Glyphs.showMacroWindow()
 			print(f"Mark Mover Error: {e}")
 			import traceback
