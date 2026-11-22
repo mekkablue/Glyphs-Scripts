@@ -49,7 +49,7 @@ class FontInfoBatchSetter(mekkaObject):
 
 		"setVersion": True,
 		"versionMajor": "1",
-		"versionMinor": "005",
+		"versionMinor": 5,
 	}
 	placeholderFamilyName = "###familyName###"
 
@@ -144,7 +144,9 @@ class FontInfoBatchSetter(mekkaObject):
 		versionFormatter = integerFormatter(0, 65535)
 		self.w.versionMajor = SteppingEditText("auto", "1", callback=self.SavePreferences, sizeStyle="small", formatter=versionFormatter)
 		self.w.versionDot = vanilla.TextBox("auto", ".", sizeStyle="small", selectable=True)
-		self.w.versionMinor = vanilla.EditText("auto", "005", callback=self.SavePreferences, sizeStyle="small")
+		minorFormatter = integerFormatter(0, 999)
+		minorFormatter.setMinimumIntegerDigits_(3)  # shows 5 as 005
+		self.w.versionMinor = SteppingEditText("auto", "5", callback=self.SavePreferences, sizeStyle="small", formatter=minorFormatter)
 		tooltipText = "Version, used for building name ID 5: Version string. Should begin with the pattern “Version <number>.<number>” (upper case, lower case, or mixed, with a space between “Version” and the number). The string must contain a version number of the following form: one or more digits (0-9) of value less than 65,535, followed by a period, followed by one or more digits of value less than 65,535. Any character other than a digit will terminate the minor number."
 		self.w.setVersion.setToolTip(tooltipText)
 		self.w.versionMajor.setToolTip(tooltipText)
@@ -287,7 +289,7 @@ class FontInfoBatchSetter(mekkaObject):
 			currentValue += 1
 			if currentValue > 999:
 				currentValue = 999
-		valueField.set("%03i" % currentValue)
+		valueField.set(currentValue)
 		self.SavePreferences()
 
 	def updateUI(self, sender=None):
@@ -343,7 +345,7 @@ class FontInfoBatchSetter(mekkaObject):
 
 	def setVersion1005(self, sender=None):
 		self.w.versionMajor.set("1")
-		self.w.versionMinor.set("005")
+		self.w.versionMinor.set(5)
 
 	def ExtractFontInfoFromFrontmostFont(self, sender=None):
 		# clear macro window log:
@@ -357,7 +359,7 @@ class FontInfoBatchSetter(mekkaObject):
 
 			# update prefs:
 			self.w.datePicker.set(thisFont.date)
-			Glyphs.defaults[self.domain("versionMinor")] = f"{thisFont.versionMinor:03}"
+			Glyphs.defaults[self.domain("versionMinor")] = thisFont.versionMinor
 			Glyphs.defaults[self.domain("versionMajor")] = str(thisFont.versionMajor)
 			Glyphs.defaults[self.domain("copyright")] = thisFont.copyright
 			if thisFont.trademark:

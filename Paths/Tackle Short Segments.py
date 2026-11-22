@@ -4,7 +4,7 @@ Finds short segments (measuring between the on-curve nodes, ignoring handles) an
 """
 
 import vanilla
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, SteppingEditText, decimalFormatter
 from GlyphsApp import Glyphs, GSLINE, GSOFFCURVE
 from AppKit import (
 	NSLayoutConstraintOrientationHorizontal,
@@ -41,7 +41,7 @@ class TackleShortSegments(mekkaObject):
 		# threshold line:
 		tooltipText = "Segments whose horizontal and vertical extents (measured between the surrounding on-curve nodes) are both at or below this many units count as short."
 		self.w.thresholdText = vanilla.TextBox("auto", "Short segments up to:", selectable=True, sizeStyle="small")
-		self.w.threshold = vanilla.EditText("auto", "1", callback=self.SavePreferences, sizeStyle="small")
+		self.w.threshold = SteppingEditText("auto", "1", callback=self.SavePreferences, sizeStyle="small", formatter=decimalFormatter(0))
 		self.w.thresholdText.setToolTip(tooltipText)
 		self.w.threshold.setToolTip(tooltipText)
 
@@ -61,7 +61,7 @@ class TackleShortSegments(mekkaObject):
 		# factor field:
 		tooltipText = "Factor by which the length of a short line segment gets multiplied (e.g. 2 doubles it)."
 		self.w.factorText = vanilla.TextBox("auto", "Multiply by:", selectable=True, sizeStyle="small")
-		self.w.factor = vanilla.EditText("auto", "2", callback=self.SavePreferences, sizeStyle="small")
+		self.w.factor = SteppingEditText("auto", "2", callback=self.SavePreferences, sizeStyle="small", formatter=decimalFormatter(0))
 		self.w.factorText.setToolTip(tooltipText)
 		self.w.factor.setToolTip(tooltipText)
 

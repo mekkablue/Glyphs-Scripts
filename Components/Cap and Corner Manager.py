@@ -4,7 +4,7 @@ Batch-edit settings for cap, corner, brush or segment components throughout all 
 """
 
 import vanilla
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, SteppingEditText, decimalFormatter
 from GlyphsApp import Glyphs, Message, CORNER, CAP
 from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 
@@ -93,9 +93,10 @@ class CapAndCornerManager(mekkaObject):
 
 		self.w.shouldScale = vanilla.CheckBox("auto", "Scale", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.shouldScale.setToolTip("Sets the scale of the components. Horizontal scale is ignored for fitted caps. Off leaves the scale as is.")
-		self.w.scaleH = vanilla.EditText("auto", "100", callback=self.SavePreferences, sizeStyle="small")
+		scaleFormatter = decimalFormatter(1, 10000)  # percent
+		self.w.scaleH = SteppingEditText("auto", "100", callback=self.SavePreferences, sizeStyle="small", formatter=scaleFormatter)
 		self.w.scaleH.setToolTip("Horizontal scale for components in percent. 100 means unscaled.")
-		self.w.scaleV = vanilla.EditText("auto", "100", callback=self.SavePreferences, sizeStyle="small")
+		self.w.scaleV = SteppingEditText("auto", "100", callback=self.SavePreferences, sizeStyle="small", formatter=scaleFormatter)
 		self.w.scaleV.setToolTip("Vertical scale for components in percent. 100 means unscaled.")
 		self.w.resetScale = UpdateButton("auto", callback=self.updateUI)
 		self.w.resetScale.setToolTip("Resets the scale to 100% horizontal, 100% vertical.")
@@ -147,7 +148,7 @@ class CapAndCornerManager(mekkaObject):
 		if sender == self.w.resetScale:
 			for orientation in "HV":
 				prefName = f"scale{orientation}"
-				Glyphs.defaults[self.domain(prefName)] = "100"
+				Glyphs.defaults[self.domain(prefName)] = 100
 				self.LoadPreferences()
 			return
 

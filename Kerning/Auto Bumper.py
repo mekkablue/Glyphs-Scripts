@@ -4,7 +4,7 @@ Specify a minimum distance, left and right glyphs, and Auto Bumper will add the 
 """
 
 import vanilla
-from mekkablue import mekkaObject, reportTimeInNaturalLanguage
+from mekkablue import mekkaObject, reportTimeInNaturalLanguage, SteppingEditText, decimalFormatter
 from timeit import default_timer as timer
 from kernanalysis import intervalList, minDistanceBetweenTwoLayers, sortedIntervalsFromString, stringToListOfGlyphsForFont, effectiveKerning, distanceFromEntry, bubbleLayer
 from AppKit import NSColor, NSTextAlignmentLeft, NSTextAlignmentRight, NSWindowStyleMaskResizable, NSSize, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
@@ -156,7 +156,7 @@ class Bumper(mekkaObject):
 		self.w.text_maxDistance.setToolTip(tooltipText)
 		self.w.maxDistance.setToolTip(tooltipText)
 		self.w.text_roundFactor = vanilla.TextBox("auto", "Round by", sizeStyle='small')
-		self.w.roundFactor = vanilla.EditText("auto", "10", sizeStyle='small', callback=self.SavePreferences)
+		self.w.roundFactor = SteppingEditText("auto", "10", sizeStyle='small', callback=self.SavePreferences, formatter=decimalFormatter(1))
 		self.w.roundFactor.getNSTextField().setPlaceholderString_("10")
 		tooltipText = "Rounds calculated kerning. Leave blank or set to zero to ignore."
 		self.w.text_roundFactor.setToolTip(tooltipText)

@@ -4,7 +4,7 @@ Measures in centers of straight segments, and reports deviations in stem thickne
 """
 
 import vanilla
-from mekkablue import mekkaObject, UpdateButton, SteppingEditText, integerFormatter
+from mekkablue import mekkaObject, UpdateButton, SteppingEditText, integerFormatter, decimalFormatter
 from GlyphsApp import Glyphs, GSAnnotation, PLUS, Message, distance, subtractPoints, scalePoint, addPoints
 from AppKit import (
 	NSColor,
@@ -77,9 +77,10 @@ class StraightStemCruncher(mekkaObject):
 		self.w.stemUpdate.setToolTip("Populate the stems with the stems of the current master.")
 
 		self.w.stemFindText = vanilla.TextBox("auto", "Find deviating stems, min/max", sizeStyle="small", selectable=True)
-		self.w.deviationMin = vanilla.EditText("auto", "0.4", callback=self.SavePreferences, sizeStyle="small")
+		deviationFormatter = decimalFormatter(0, 1000)
+		self.w.deviationMin = SteppingEditText("auto", "0.4", callback=self.SavePreferences, sizeStyle="small", formatter=deviationFormatter)
 		self.w.deviationMin.setToolTip("Deviations up to this value will be tolerated. Half a unit is a good idea to avoid false positives from rounding errors.")
-		self.w.deviationMax = vanilla.EditText("auto", "3.1", callback=self.SavePreferences, sizeStyle="small")
+		self.w.deviationMax = SteppingEditText("auto", "3.1", callback=self.SavePreferences, sizeStyle="small", formatter=deviationFormatter)
 		self.w.deviationMax.setToolTip("Deviations up to this value will be reported. Do not exaggerate value, otherwise you get false positives from cases where the opposing segment is not the other side of the stem.")
 
 		tooltipText = "Looks for straight-line segments with at least this length and measures from their center to the opposing segment. Half x-height is a good idea."
