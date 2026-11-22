@@ -127,7 +127,7 @@ class FindReplaceComponents(mekkaObject):
 		self.w.showPrediction.setToolTip("Counts how many components will be changed with the current settings, and shows it here. Turn off for large fonts, if it slows you down.")
 
 		# Status line and run button at bottom
-		self.w.statusLine = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small", selectable=True)
+		self.w.statusLine = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small", selectable=True)
 		self.w.statusLine.setToolTip("How many components were changed in the last run.")
 		self.w.statusLine.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 		self.w.runButton = vanilla.Button("auto", "Replace", callback=self.run)

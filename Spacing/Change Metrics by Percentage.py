@@ -71,7 +71,7 @@ class ChangeMetricsbyPercentage(mekkaObject):
 		self.w.onlyPathBased = vanilla.CheckBox("auto", "Only change path-based glyphs", value=False, callback=self.SavePreferences)
 		self.w.onlyPathBased.setToolTip("Skips glyphs without paths of their own, i.e., glyphs that consist only of components. Layers with auto-aligned components are always skipped.")
 
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
 		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
 		self.w.status.setToolTip("Shows the progress and the result of the run.")
 		self.w.revertButton = vanilla.Button("auto", "Reverse", callback=self.ChangeMetricsbyPercentageMain)

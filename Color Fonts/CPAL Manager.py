@@ -107,7 +107,7 @@ class CPALManager(mekkaObject):
 		self.w.applyFontWide.setToolTip("Process all glyphs in the font. Unchecked: only process selected glyphs.")
 
 		# Status line
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle='small')
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle='small')
 		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
 		self.w.status.setToolTip("Shows the result of the last action.")
 

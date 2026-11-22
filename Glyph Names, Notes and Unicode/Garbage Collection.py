@@ -139,7 +139,7 @@ class GarbageCollection(mekkaObject):
 		self.w.progress = vanilla.ProgressBar("auto")
 		self.w.progress.set(0)  # set progress indicator to zero
 
-		self.w.statusText = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle='small', selectable=False)
+		self.w.statusText = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle='small', selectable=False)
 		self.w.statusText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# Run Button:

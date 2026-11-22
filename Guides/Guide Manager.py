@@ -57,7 +57,7 @@ class GuideManager(mekkaObject):
 			"Such guides never show anywhere, because their rules are too strict. Guides without a filter are never touched. Needs ‘Global guides’."
 		)
 
-		self.w.statusText = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small", selectable=True)
+		self.w.statusText = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small", selectable=True)
 		self.w.statusText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		self.w.undoButton = vanilla.Button("auto", "Undo", callback=self.undoRemoval)
@@ -160,7 +160,7 @@ class GuideManager(mekkaObject):
 		if font is None:
 			self.setStatus("❌ No font open.")
 		elif not (localOn or globalOn):
-			self.setStatus("🤖 Ready.")
+			self.setStatus("🤖 Ready. 💬 See tooltips for help.")
 		else:
 			self.setStatus(self.predictionText(font, localOn, globalOn))
 

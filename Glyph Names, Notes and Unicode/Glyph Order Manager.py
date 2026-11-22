@@ -80,7 +80,7 @@ class GlyphOrderManager(mekkaObject):
 		self.w.scope.setToolTip(tooltipText)
 
 		# Status line and Run Buttons:
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
 		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
 		self.w.status.setToolTip("Shows the progress and the result of the run.")
 		self.w.extractButton = vanilla.Button("auto", "Extract", callback=self.extractFromFrontmostFont)

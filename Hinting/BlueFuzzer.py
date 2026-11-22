@@ -50,7 +50,7 @@ class BlueFuzzer(mekkaObject):
 		self.w.runButton.setToolTip("Extend the alignment zones and open Font Info > Masters.")
 		self.w.setDefaultButton(self.w.runButton)
 
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
 		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
 		self.w.status.setToolTip("Shows the progress and the result of the run.")
 

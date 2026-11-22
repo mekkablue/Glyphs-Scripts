@@ -77,7 +77,7 @@ class FillUpEmptyMasters(mekkaObject):
 		self.w.overwriteExisting.setToolTip("Also replaces layers that already contain shapes. The existing outlines in those layers are lost.")
 
 		# Status:
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small", selectable=True)
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small", selectable=True)
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Fill Up", callback=self.FillUpEmptyMastersMain)

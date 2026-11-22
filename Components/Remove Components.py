@@ -95,7 +95,7 @@ class RemoveComponentfromSelectedGlyphs(mekkaObject):
 		self.w.runButton.setToolTip("Removes the component from the chosen glyphs.")
 		self.w.setDefaultButton(self.w.runButton)
 
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
 		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
 		self.w.status.setToolTip("Predicts how many components will be removed, then shows the progress and the result of the run.")
 		nsStatus = self.w.status.getNSTextField()
@@ -184,7 +184,7 @@ class RemoveComponentfromSelectedGlyphs(mekkaObject):
 			return "⚠️ No font open."
 		componentName = self.pref("componentName")
 		if not componentName:
-			return "🤖 Ready."
+			return "🤖 Ready. 💬 See tooltips for help."
 		componentCount = 0
 		glyphCount = 0
 		for font in fonts:

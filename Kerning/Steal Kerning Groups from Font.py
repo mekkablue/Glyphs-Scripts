@@ -70,7 +70,7 @@ class StealKerningGroupsfromFont(mekkaObject):
 		self.w.verbose = vanilla.CheckBox("auto", "Verbose reporting in Macro window (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.verbose.setToolTip("Will report progress per glyph in Window > Macro Panel. Useful for debugging.")
 
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small", selectable=True)
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small", selectable=True)
 		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# Run Button:

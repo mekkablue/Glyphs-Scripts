@@ -35,7 +35,7 @@ class OTClassCreator(mekkaObject):
 		self.w.keepOpen = vanilla.CheckBox("auto", "Keep this window open", sizeStyle="small", callback=self.SavePreferences, value=True)
 		self.w.keepOpen.setToolTip("Keeps this window open after the class is created, so you can create more classes.")
 		self.w.classNameCheck = vanilla.TextBox("auto", "Class name appears to be ok.", sizeStyle="small")
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
 		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
 		self.w.status.setToolTip("Shows the progress and the result of the run.")
 		self.w.runButton = vanilla.Button("auto", "Create", sizeStyle="small", callback=self.createClass)

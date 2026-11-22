@@ -34,7 +34,7 @@ class FindInFeatures(mekkaObject):
 		self.w.result.getNSTextView().setFont_(self.legibleTabularFont())
 		self.w.result.getNSTextView().setToolTip_("Search results: OT classes, prefixes, and features that contain the searched name.")
 
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
 		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
 		self.w.status.setToolTip("Shows the number of matches.")
 		nsStatus = self.w.status.getNSTextField()

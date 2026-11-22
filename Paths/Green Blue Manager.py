@@ -171,7 +171,7 @@ class GreenBlueManager(mekkaObject):
 		self.w.progress.set(0)  # set progress indicator to zero
 		self.w.progress.setToolTip("Progress of the run.")
 
-		self.w.processingText = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle='small', selectable=True)
+		self.w.processingText = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle='small', selectable=True)
 		self.w.processingText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# Run Button:

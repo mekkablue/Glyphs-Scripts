@@ -64,7 +64,7 @@ class CompositeVariabler(mekkaObject):
 		self.w.progress = vanilla.ProgressBar("auto")
 		self.w.progress.set(0)  # set progress indicator to zero
 
-		self.w.processedGlyph = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle='small', selectable=True)
+		self.w.processedGlyph = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle='small', selectable=True)
 		self.w.processedGlyph.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# Run Button:

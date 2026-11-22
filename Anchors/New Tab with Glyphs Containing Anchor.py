@@ -66,7 +66,7 @@ class NewTabWithAnchor(mekkaObject):
 		self.w.predict.setToolTip("Count the matching glyphs as you change the anchor name or scope, and show the number after this checkbox. Can be slow in big fonts and with many open fonts.")
 		self.w.predictionText = vanilla.TextBox("auto", "Will find – glyphs.", sizeStyle="small")
 		self.w.predictionText.getNSTextField().setTextColor_(NSColor.secondaryLabelColor())
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
 		self.w.status.getNSTextField().setTextColor_(NSColor.secondaryLabelColor())
 
 		# Run Button:

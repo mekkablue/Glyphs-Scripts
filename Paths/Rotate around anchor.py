@@ -77,7 +77,7 @@ class Rotator(mekkaObject):
 		self.w.stepAndRepeat_cw = vanilla.Button("auto", u"↻+ cw", sizeStyle='small', callback=self.rotate)
 		self.w.stepAndRepeat_cw.setToolTip("Adds clockwise rotated copies of the selection around the anchor, each rotated further by the angle.")
 
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
 		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
 		self.w.status.setToolTip("Shows the progress and the result of the run.")
 

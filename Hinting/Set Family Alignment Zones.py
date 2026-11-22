@@ -57,7 +57,7 @@ class SetFamilyAlignmentZones(mekkaObject):
 		self.w.helpTutorialPS.setToolTip("Will open the glyphsapp.com tutorial about PS Hinting, at the section that explains Family Alignment Zones.")
 
 		# Status line and Run Button:
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
 		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
 		self.w.status.setToolTip("Shows the progress and the result of the run.")
 		self.w.runButton = vanilla.Button("auto", "Insert FAZ", callback=self.SetFamilyAlignmentZonesMain)

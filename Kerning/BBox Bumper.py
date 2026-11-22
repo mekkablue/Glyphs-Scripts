@@ -259,7 +259,7 @@ class BBoxBumperKerning(mekkaObject):
 		self.w.bar = vanilla.ProgressBar("auto")
 
 		# Status line and buttons:
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
 		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 		self.w.openFeaturesButton = vanilla.Button("auto", "Open Features", callback=self.openFeatures)
 		self.w.openFeaturesButton.setToolTip("Opens Font Info > Features so you can inspect the inserted kern feature code.")

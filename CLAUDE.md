@@ -651,7 +651,7 @@ Glyphs.showNotification("My Script", "Brief summary. Details in Macro Window.")
 - **Every script that changes the font has feedback on how it ended.** The user must be able to tell that the script is
   done, and, after a crash, what it was working on:
   - **A window with an action button has a status line** (`self.w.status`, a `TextBox` that is always `sizeStyle="small"`, even when the rest of the window uses regular size, and that starts with
-    `🤖 Ready.`), in the bottom row to the left of the run button, see “Resizing”. The run method sets it to
+    `🤖 Ready. 💬 See tooltips for help.`), in the bottom row to the left of the run button, see “Resizing”. The run method sets it to
     `🛠️`, then to `🔠 glyphName` (or the master or instance name, or a master and glyph) for every item it works on,
     redrawn at once with `self.setStatus(text)`, and finally to `✅` plus a statistic (or
     `⚠️`/`❌`). Put the processing in a `try`/`except` or `try`/`finally`, so that a crash leaves the last item in the
@@ -669,7 +669,8 @@ Glyphs.showNotification("My Script", "Brief summary. Details in Macro Window.")
     changed the font, and prints the item it is working on to the Macro Window, so that a crash can be located.
   - **A window that only toggles one setting or runs instantly** (e.g. a one-click switch) does not need a status line.
 - **Status line conventions.** The status line in a script window starts with an emoji that tells the state:
-  - `🤖 Ready.` — the script is waiting for the user.
+  - `🤖 Ready. 💬 See tooltips for help.` — the script is waiting for the user. Every control has a tooltip, so the
+    status line says where to find help.
   - `⚠️` prefixes a warning.
   - `❌` prefixes an error.
   - `✅` plus a statistic means the script is finished, e.g. `✅ Replaced 3 components.`

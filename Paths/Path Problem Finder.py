@@ -650,7 +650,7 @@ class PathProblemFinder(mekkaObject):
 		# Progress Bar and Status text:
 		self.w.progress = vanilla.ProgressBar("auto")
 		self.w.progress.set(0)  # set progress indicator to zero
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle='small', selectable=True)
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle='small', selectable=True)
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Report", callback=self.PathProblemFinderMain)

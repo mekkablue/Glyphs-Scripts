@@ -137,7 +137,7 @@ class StraightStemCruncher(mekkaObject):
 		self.w.progress.set(0)  # set progress indicator to zero
 
 		# Status message:
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small", selectable=True)
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small", selectable=True)
 		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
 		# the status takes the leftover width, and a long message does not widen the window:
 		self.w.status.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)

@@ -44,7 +44,7 @@ class CustomUnicode(mekkaObject):
 		self.w.includeNonExportingGlyphs.setToolTip("If disabled, will skip all glyphs that are set to not export. If enabled, will treat all selected glyphs, including non-exporting glyphs.")
 
 		# Status Message:
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", selectable=True, sizeStyle="small")
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", selectable=True, sizeStyle="small")
 		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# Run Button:
@@ -98,7 +98,7 @@ class CustomUnicode(mekkaObject):
 		self.SavePreferences(sender)
 
 	def updateUI(self, sender=None):
-		self.w.status.set("🤖 Ready.")
+		self.w.status.set("🤖 Ready. 💬 See tooltips for help.")
 
 	def update(self, sender=None):
 		self.setPref("unicode", self.lastPUAofCurrentFont())

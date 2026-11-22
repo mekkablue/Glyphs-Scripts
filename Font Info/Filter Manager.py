@@ -84,7 +84,7 @@ class FilterManager(mekkaObject):
 		self.w.copyButton.setToolTip("Puts the lines on the clipboard, ready to paste into Font Info.")
 		self.w.setDefaultButton(self.w.copyButton)
 
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
 		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
 		self.w.status.setToolTip("Shows the progress and the result of the run.")
 

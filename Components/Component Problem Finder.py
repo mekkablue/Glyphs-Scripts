@@ -134,7 +134,7 @@ class ComponentProblemFinder(mekkaObject):
 		# Progress Bar and Status text:
 		self.w.progress = vanilla.ProgressBar("auto")
 		self.w.progress.set(0)  # set progress indicator to zero
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle='small', selectable=True)
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle='small', selectable=True)
 		self.w.status.setToolTip("Progress and result of the last run.")
 		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 

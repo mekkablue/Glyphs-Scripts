@@ -123,7 +123,7 @@ class CompressGlyph(mekkaObject):
 		self.w.progress = vanilla.ProgressBar("auto")
 		self.w.progress.set(0)
 
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small", selectable=True)
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small", selectable=True)
 
 		# Buttons:
 		self.w.undoButton = vanilla.Button("auto", "Undo", callback=self.undo)
@@ -180,7 +180,7 @@ class CompressGlyph(mekkaObject):
 		neitherSide = not self.w.compressLeft.get() and not self.w.compressRight.get()
 		self.w.compressOtherSide.setTitle("Only compress the other side of the pair" if neitherSide else "Also compress the other side of the pair")
 		self.w.runButton.enable(not neitherSide or bool(self.w.compressOtherSide.get()))
-		self.w.status.set("🤖 Ready.")
+		self.w.status.set("🤖 Ready. 💬 See tooltips for help.")
 
 	def update(self, sender=None):
 		font = Glyphs.font

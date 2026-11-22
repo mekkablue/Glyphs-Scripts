@@ -47,7 +47,7 @@ class TabularChecker(mekkaObject):
 		self.w.allFonts = vanilla.CheckBox("auto", "Search in ⚠️ ALL fonts", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.allFonts.setToolTip("If enabled, checks all open fonts. Otherwise only the frontmost font.")
 
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle='small')
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle='small')
 		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# Run Button:

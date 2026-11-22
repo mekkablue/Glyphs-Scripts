@@ -232,7 +232,7 @@ class VerticalMetricsManager(mekkaObject):
 		self.w.helpButton = vanilla.HelpButton("auto", callback=self.openURL)
 		self.w.helpButton.setToolTip("Opens the Vertical Metrics tutorial (highly recommended) in your web browser.")
 
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
 		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
 		self.w.status.setToolTip("Shows the progress and the result of the run.")
 

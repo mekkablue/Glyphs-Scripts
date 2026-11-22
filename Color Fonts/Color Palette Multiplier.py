@@ -120,7 +120,7 @@ class ColorPaletteMultiplier(mekkaObject):
 		self.w.ActionButton.setToolTip("Adds a filter line to the list of filter parameters.")
 
 		# Status line and Run Button:
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
 		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
 		self.w.status.setToolTip("Shows the progress and the result of the run.")
 		self.w.runButton = vanilla.Button("auto", "Build", sizeStyle="regular", callback=self.ColorPaletteMultiplierMain)

@@ -76,7 +76,7 @@ class ConvertCapToSegmentComponent(mekkaObject):
 		self.w.reuseTab.setToolTip("Replaces the text of the current tab instead of opening a new one. Needs ‘Open tab’.")
 
 		# Status line (bottom, left of run button)
-		self.w.statusText = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.statusText = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
 		self.w.statusText.setToolTip("Progress and result of the last run.")
 		self.w.statusText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 

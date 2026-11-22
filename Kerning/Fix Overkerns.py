@@ -84,7 +84,7 @@ class FixOverkerns(mekkaObject):
 		self.w.scope.setToolTip(tooltipText)
 
 		# Status line and buttons:
-		self.w.statusText = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small", selectable=True)
+		self.w.statusText = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small", selectable=True)
 		self.w.statusText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 		self.w.reportButton = vanilla.Button("auto", "Report", callback=self.FixOverkernsMain)
 		self.w.reportButton.setToolTip("Opens a tab with the overkerned pairs, without changing any kerning.")

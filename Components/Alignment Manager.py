@@ -64,7 +64,7 @@ class AutoAlignmentManager(mekkaObject):
 		self.w.rotateButton.setToolTip("Moves the last component into first place. Useful if you quickly want to fix component order without leaving the script UI.")
 
 		# Status line:
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
 		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
 		self.w.status.setToolTip("Shows the progress and the result of the run.")
 		# the status line takes the full width of its own row above the buttons:

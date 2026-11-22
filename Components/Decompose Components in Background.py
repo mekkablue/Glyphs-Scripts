@@ -67,7 +67,7 @@ class Decompose_Components_in_Background(mekkaObject):
 		# ## Progress bar and status line
 		self.w.bar = vanilla.ProgressBar("auto")
 		self.w.bar.set(0)
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
 
 		# ## Action button
 		self.w.decomposeButton = vanilla.Button("auto", "Decompose", callback=self.decomposeButtonCallback)

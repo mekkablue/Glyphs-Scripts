@@ -71,7 +71,7 @@ class RemoveImages(mekkaObject):
 		self.w.nameFilter.setToolTip("Comma-separated glyph name particles. Each particle is matched as a substring unless it contains wildcards. Wildcards * (any string) and ? (any single character) are supported. Example: 'A, *comb, ?.sc'")
 
 		# Status line and Run button
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
 		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 		self.w.runButton = vanilla.Button("auto", "Remove", callback=self.run)
 		self.w.runButton.setToolTip("Removes the images in the chosen scope.")

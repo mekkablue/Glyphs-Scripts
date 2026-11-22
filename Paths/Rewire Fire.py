@@ -91,7 +91,7 @@ class RewireFire(mekkaObject):
 		self.w.progress = vanilla.ProgressBar("auto")
 		self.w.progress.set(0)  # set progress indicator to zero
 
-		self.w.statusText = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle='small', selectable=True)
+		self.w.statusText = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle='small', selectable=True)
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Fire", callback=self.RewireFireMain)

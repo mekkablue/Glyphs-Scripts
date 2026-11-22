@@ -377,7 +377,7 @@ class Bumper(mekkaObject):
 		# prediction in the status line:
 		pairCount = self.predictedPairCount()
 		if pairCount is None:
-			self.w.status.set("🤖 Ready.")
+			self.w.status.set("🤖 Ready. 💬 See tooltips for help.")
 		else:
 			self.w.status.set(f"🔮 Will bump up to {pairCount:,} pair{'' if pairCount == 1 else 's'}.")
 

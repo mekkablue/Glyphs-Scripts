@@ -152,7 +152,7 @@ class PositionClicker(mekkaObject):
 		self.w.limitToSelection.setToolTip("Only check glyphs that are currently selected in the font window or edit tab, instead of all glyphs in the font.")
 
 		# Status line and Run Button:
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
 		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
 		self.w.runButton = vanilla.Button("auto", "Open Tab", callback=self.PositionClickerMain)
 		self.w.runButton.setToolTip("Run the check and open a tab with all non-clicking combinations.")

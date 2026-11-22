@@ -327,7 +327,7 @@ class AddGrade(mekkaObject):
 		self.w.limitToSelectedGlyphs = vanilla.CheckBox("auto", "Limit to selected glyphs", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.limitToSelectedGlyphs.setToolTip("If checked, only the selected glyphs are processed; other glyphs are left as they are.")
 
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
 		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
 		self.w.status.setToolTip("Shows the progress and the result of the run.")
 		self.w.status.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)

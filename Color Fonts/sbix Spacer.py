@@ -72,7 +72,7 @@ class sbixSpacer(mekkaObject):
 		self.w.help = vanilla.HelpButton("auto", callback=self.openURL)
 		self.w.help.setToolTip("Opens the tutorial on creating an Apple color font in your browser.")
 
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
 		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
 		self.w.status.setToolTip("Shows the progress and the result of the run.")
 

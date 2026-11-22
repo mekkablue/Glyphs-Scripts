@@ -65,7 +65,7 @@ class BatchAddSmartAxes(mekkaObject):
 		self.w.runButton.setToolTip("Adds the smart axes and smart layers from the recipe to the selected glyphs.")
 		self.w.setDefaultButton(self.w.runButton)
 
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
 		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
 		self.w.status.setToolTip("Shows the progress and the result of the run.")
 

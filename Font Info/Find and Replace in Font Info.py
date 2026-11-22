@@ -67,7 +67,7 @@ class FindAndReplaceInFontInfo(mekkaObject):
 		self.w.contentCustomParameters.setToolTip("Search and replace in the string values of custom parameters at the Font, Master, and Instance levels.")
 
 		# Status line, left of run button
-		self.w.statusText = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.statusText = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
 		self.w.statusText.setToolTip("Number of replacements made in the last run.")
 		self.w.statusText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 

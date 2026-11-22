@@ -857,7 +857,7 @@ class BuildMathOperators(mekkaObject):
 		self.w.scope = vanilla.PopUpButton("auto", scopeChoices, callback=self.SavePreferences, sizeStyle="small")
 		self.w.scope.setToolTip(tooltipText)
 
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
 
 		self.w.editMinusButton = vanilla.Button("auto", "Edit minus", callback=self.editMinus, sizeStyle="small")
 		self.w.deriveValuesButton = vanilla.Button("auto", "Derive values", callback=self.deriveValues, sizeStyle="small")

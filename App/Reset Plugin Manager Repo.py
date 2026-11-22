@@ -84,7 +84,7 @@ class ResetPluginManagerRepo(mekkaObject):
 		self.w.repositoryUpdate.setToolTip("Click to reload the contents of the Repositories folder. Useful if you made manual changes and the contents of the pop-up menu do not yet reflect the state of the Repositories folder.")
 
 		# Status line, on the height of the Run button:
-		self.w.statusText = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.statusText = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
 		nsStatus = self.w.statusText.getNSTextField()
 		nsStatus.setTextColor_(NSColor.tertiaryLabelColor())
 		nsStatus.setLineBreakMode_(NSLineBreakByTruncatingTail)

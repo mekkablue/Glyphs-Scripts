@@ -47,7 +47,7 @@ class CopyGlyphsIntoBackupLayers(mekkaObject):
 		self.w.suffix = vanilla.EditText("auto", "Backup", sizeStyle='small')
 		self.w.suffix.setToolTip(tooltipText)
 
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
 		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
 		self.w.status.setToolTip("Shows the progress and the result of the run.")
 		self.w.status.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)

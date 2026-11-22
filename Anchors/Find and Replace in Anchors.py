@@ -82,7 +82,7 @@ class SearchAndReplaceInAnchors(mekkaObject):
 		self.w.openTab = vanilla.CheckBox("auto", "Open tab", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.openTab.setToolTip("After replacing, open a tab with the glyphs whose anchors were renamed (one tab per font).")
 
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
 		self.w.status.getNSTextField().setTextColor_(NSColor.secondaryLabelColor())
 		self.w.replaceButton = vanilla.Button("auto", "Replace", callback=self.SearchAndReplaceInAnchorsMain)
 		self.w.replaceButton.setToolTip("Replace in the anchor names of the chosen glyphs, on all layers.")

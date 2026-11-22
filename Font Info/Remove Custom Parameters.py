@@ -49,7 +49,7 @@ class RemoveCustomParameters(mekkaObject):
 		self.w.removeInText.setToolTip(tooltipText)
 		self.w.removeIn.setToolTip(tooltipText)
 
-		self.w.statusText = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small", selectable=True)
+		self.w.statusText = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small", selectable=True)
 		self.w.statusText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		self.removals = []  # (font, container, index, parameter, description) of the most recent removal, for Undo
@@ -149,7 +149,7 @@ class RemoveCustomParameters(mekkaObject):
 		if not Glyphs.font:
 			self.setStatus("❌ No font open.")
 		elif not buttonOnOff:
-			self.setStatus("🤖 Ready.")
+			self.setStatus("🤖 Ready. 💬 See tooltips for help.")
 		else:
 			count = self.parameterCount()
 			self.setStatus(f"🔮 Will remove {count} parameter{'' if count == 1 else 's'}.")

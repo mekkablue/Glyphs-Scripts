@@ -106,7 +106,7 @@ class FindShapeshiftingGlyphs(mekkaObject):
 		self.w.runButton.setToolTip("Finds glyphs that change the number of clockwise and counterclockwise paths in interpolation.")
 		self.w.setDefaultButton(self.w.runButton)
 
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle='small', selectable=False)
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle='small', selectable=False)
 		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window
@@ -219,7 +219,7 @@ class FindShapeshiftingGlyphs(mekkaObject):
 
 			if not Glyphs.font:
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
-				self.w.status.set("🤖 Ready.")
+				self.w.status.set("🤖 Ready. 💬 See tooltips for help.")
 				return
 
 			if allFonts:

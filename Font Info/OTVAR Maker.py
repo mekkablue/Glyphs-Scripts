@@ -134,7 +134,7 @@ class OTVARMaker(mekkaObject):
 		self.w.allFonts.setToolTip("Adds Variable Font Settings to all fonts currently open in Glyphs.")
 
 		# Status line and Run Button:
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
 		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
 		self.w.status.setToolTip("Shows the progress and the result of the run.")
 		self.w.runButton = vanilla.Button("auto", "Add", callback=self.OTVARMakerMain)

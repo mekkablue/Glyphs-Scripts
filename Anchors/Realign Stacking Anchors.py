@@ -67,7 +67,7 @@ class RealignStackingAnchors(mekkaObject):
 		self.w.allFonts.setToolTip("If checked, will apply to ALL fonts currently open in Glyphs. You have been warned.")
 
 		# Status line and Run Button:
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
 		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
 		self.w.status.setToolTip("Shows the progress and the result of the run.")
 		self.w.runButton = vanilla.Button("auto", "Realign", callback=self.RealignStackingAnchorsMain)

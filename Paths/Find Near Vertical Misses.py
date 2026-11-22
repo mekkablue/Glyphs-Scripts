@@ -81,7 +81,7 @@ class FindNearVerticalMisses(mekkaObject):
 		self.w.runButton.setToolTip("Finds on-curve nodes that are close to, but not exactly on, a vertical metric.")
 		self.w.setDefaultButton(self.w.runButton)
 
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small", selectable=True)
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small", selectable=True)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window
 		# ends up exactly as tall as the content

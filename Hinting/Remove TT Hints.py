@@ -99,7 +99,7 @@ class RemoveTTHints(mekkaObject):
 		self.w.progress = vanilla.ProgressBar("auto")
 		self.w.progress.set(0)  # set progress indicator to zero
 
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small", selectable=True)
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small", selectable=True)
 		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# Run Button:
@@ -191,7 +191,7 @@ class RemoveTTHints(mekkaObject):
 
 	def updateUI(self, sender=None):
 		self.w.runButton.enable(self.checkedTypeCount() > 0)
-		self.w.status.set("🤖 Ready.")
+		self.w.status.set("🤖 Ready. 💬 See tooltips for help.")
 
 	def setProgress(self, percent, text):
 		"""Sets progress bar and status line, and redraws them right away, so they show while the script is busy."""

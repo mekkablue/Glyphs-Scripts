@@ -99,7 +99,7 @@ class RemoveMetricsKeys(mekkaObject):
 		self.w.scope.setToolTip(scopeTooltip)
 
 		# Status + button, side by side at the bottom
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
 		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 		self.w.runButton = vanilla.Button("auto", "Remove", callback=self.run)
 		self.w.runButton.setToolTip("Removes the chosen metrics keys in the chosen scope.")
