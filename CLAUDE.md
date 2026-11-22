@@ -465,6 +465,11 @@ let the right controls take the extra width:
   the row and leaves the status line no room. Set the status line to `DefaultLow` hugging and compression
   resistance, and the button to `DefaultHigh` hugging and `Required` compression resistance, so the status line takes
   the leftover width and the button stays as wide as its title needs.
+- **A button in a row with other elements never stretches.** Whatever else is in the row (status line, field, popup,
+  slider), give each of its buttons horizontal hugging `NSLayoutPriorityDefaultHigh` and compression resistance
+  `NSLayoutPriorityRequired` (`getNSButton()`), so that the other element takes the leftover width. Without this, a
+  push button (default hugging 250) loses against a label (251) and fills the row. Only a button that is alone in its
+  row, or a pair of equal-width buttons that deliberately fill the row, may stretch.
 - **Equal-width columns scale along:** cells tied with `width` rules grow together, which is what you want.
 - **Wrapping text** needs the fixed height and lowered compression resistance described above, otherwise its
   intrinsic one-line width becomes the minimum width.
