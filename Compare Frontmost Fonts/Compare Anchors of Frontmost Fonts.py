@@ -4,9 +4,17 @@ Compares anchor structure and anchor heights between the two frontmost fonts.
 """
 
 import vanilla
-from mekkablue import mekkaObject, SteppingEditText, decimalFormatter, fontFileName
+from mekkablue import mekkaObject, SteppingEditText, decimalFormatter, fontFileName, makeWindowResizable
 from GlyphsApp import Glyphs, Message
-from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
+from AppKit import (
+	NSColor,
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityDefaultLow,
+	NSLayoutPriorityRequired,
+	NSLayoutPriorityWindowSizeStayPut,
+)
 
 
 class CompareAnchorsOfFrontmostFonts(mekkaObject):
@@ -22,12 +30,12 @@ class CompareAnchorsOfFrontmostFonts(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 360
+		windowWidth = 380
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Compare Anchors of Frontmost Fonts",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -65,10 +73,19 @@ class CompareAnchorsOfFrontmostFonts(mekkaObject):
 		self.w.progress = vanilla.ProgressBar("auto")
 		self.w.progress.set(0)  # set progress indicator to zero
 
-		# Run Button:
+		# Status line and Run Button:
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows what the script is doing, and the result when it is done.")
 		self.w.runButton = vanilla.Button("auto", "Compare", callback=self.CompareAnchorsOfFrontmostFontsMain)
 		self.w.runButton.setToolTip("Compares the anchors of the two frontmost fonts and reports in the Macro window.")
 		self.w.setDefaultButton(self.w.runButton)
+
+		# the status line takes the leftover width, the button stays as wide as its title needs:
+		self.w.status.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton.getNSButton().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 
 		# checkboxes stretch vertically by default; with everything hugging,
 		# the window ends up exactly as tall as the content
@@ -86,12 +103,15 @@ class CompareAnchorsOfFrontmostFonts(mekkaObject):
 				"H:|-inset-[includeNonExporting]-(>=inset)-|",
 				"H:|-inset-[openTabAndSelectAnchors]-(>=inset)-|",
 				"H:|-inset-[progress]-inset-|",
-				"H:|-(>=inset)-[runButton(>=120)]-inset-|",
+				"H:|-inset-[status]-gap-[runButton(>=120)]-inset-|",
 				"V:|-gap-[descriptionText(28)]-row-[reportAnchorHeights]-checkRow-[anchorHeightTolerance]-row-[ignoreExitEntry]-checkRow-[ignoreHashtaggedAnchors]-checkRow-[reportOnlyTopBottomCenter]-checkRow-[includeNonExporting]-checkRow-[openTabAndSelectAnchors]-barGap-[progress(16)]-inset-[runButton]-inset-|",
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 				{"view1": self.w.anchorHeightToleranceText, "attribute1": "centerY", "view2": self.w.anchorHeightTolerance, "attribute2": "centerY"},
 			],
 			metrics={"inset": inset, "indent": inset + 18, "gap": 8, "row": 6, "checkRow": 5, "barGap": 12},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only, the height stays what the content needs
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -122,6 +142,7 @@ class CompareAnchorsOfFrontmostFonts(mekkaObject):
 					thisAnchor.selected = True
 
 	def CompareAnchorsOfFrontmostFontsMain(self, sender):
+		currentItem = "start"
 		try:
 			# update settings to the latest user input:
 			self.SavePreferences()
@@ -133,11 +154,13 @@ class CompareAnchorsOfFrontmostFonts(mekkaObject):
 			reportAnchorHeights = self.pref("reportAnchorHeights")
 
 			if len(Glyphs.fonts) < 2:
+				self.setStatus("⚠️ Open at least two fonts.")
 				Message(title="Compare Error", message="You need to have at least two fonts open for comparing.", OKButton="Ooops")
 			else:
 				# brings macro window to front and clears its log:
 				Glyphs.clearLog()
 				# Glyphs.showMacroWindow()
+				self.setStatus("🛠️ Processing %i glyphs…" % len(Glyphs.font.glyphs))
 
 				thisFont = Glyphs.font  # frontmost font
 				otherFont = Glyphs.fonts[1]  # second font
@@ -178,6 +201,8 @@ class CompareAnchorsOfFrontmostFonts(mekkaObject):
 				affectedGlyphNames = []
 				for i, thisGlyph in enumerate(thisFont.glyphs):
 					self.w.progress.set(100 * i / len(thisFont.glyphs))
+					currentItem = thisGlyph.name
+					self.setStatus("🔠 %s" % currentItem)
 					otherGlyph = otherFont.glyphs[thisGlyph.name]
 					if not otherGlyph:
 						print("⚠️ Glyph %s missing in (2) %s" % (thisGlyph.name, otherFileName))
@@ -296,12 +321,18 @@ class CompareAnchorsOfFrontmostFonts(mekkaObject):
 						# brings macro window to front:
 						Glyphs.showMacroWindow()
 
+				if affectedGlyphNames:
+					self.setStatus("✅ Found %i affected glyph%s." % (len(affectedGlyphNames), "" if len(affectedGlyphNames) == 1 else "s"))
+				else:
+					self.setStatus("✅ No differences found.")
+
 				if skippedGlyphNames:
 					print("\nSkipped %i glyphs:\n%s" % (len(skippedGlyphNames), ", ".join(skippedGlyphNames)))
 
 				self.w.progress.set(100)
 
 		except Exception as e:
+			self.setStatus("❌ Error at %s. Details in Macro Window." % currentItem)
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print("Compare Anchors of Frontmost Fonts Error: %s" % e)
