@@ -715,6 +715,15 @@ class mekkaObject:
 			print(f"⚠️ ‘{self.__class__.__name__}’ could not load preferences. Will resort to defaults.")
 			return False
 
+	def setStatus(self, text):
+		"""
+		Sets the status line of the window (self.w.status, or self.w.statusText) and redraws it right away,
+		so it shows while the script is busy, and the last item stays visible if the script crashes.
+		"""
+		statusLine = self.w.status if hasattr(self.w, "status") else self.w.statusText
+		statusLine.set(text)
+		statusLine.getNSTextField().displayIfNeeded()
+
 	def resizeWindowToMinimum(self):
 		"""
 		Clamps the window size to its min/max constraints, per axis independently.

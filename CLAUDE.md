@@ -200,6 +200,7 @@ MyScript()
 | `self.uiElement(name)` | Returns UI element for a given pref name (supports dot notation for nested elements) |
 | `self.LoadPreferences()` | Populates all UI elements from prefs; calls `updateUI()` if defined |
 | `self.SavePreferences(sender)` | Saves all UI element values to prefs; calls `updateUI()` if defined |
+| `self.setStatus(text)` | Sets the status line (`self.w.status`, or `self.w.statusText`) and redraws it at once, so it shows while the script is busy. Call it for every glyph or master, see “Status line conventions” |
 | `self.resizeWindowToMinimum()` | Clamps the window to `contentMinSize`/`contentMaxSize`, per axis. `LoadPreferences()` wraps `open()` so it runs once the autosaved frame is restored. A no-op for windows without content size limits. Use `makeWindowResizable()` (see “Resizing”); for windows created with vanilla's `minSize`/`maxSize` it currently shrinks the window by the title bar height, because vanilla stores those as frame sizes while this compares content sizes |
 
 Both `LoadPreferences()` and `SavePreferences()` automatically call `self.updateUI()` if that method exists — use `updateUI()` to cascade enable/disable state across dependent UI elements.
@@ -647,7 +648,7 @@ Glyphs.showNotification("My Script", "Brief summary. Details in Macro Window.")
   - **A window with an action button has a status line** (`self.w.status`, a small `TextBox` that starts with
     `🤖 Ready.`), in the bottom row to the left of the run button, see “Resizing”. The run method sets it to
     `🛠️`, then to `🔠 glyphName` (or the master or instance name, or a master and glyph) for every item it works on,
-    redrawn at once with `self.w.status.getNSTextField().displayIfNeeded()`, and finally to `✅` plus a statistic (or
+    redrawn at once with `self.setStatus(text)`, and finally to `✅` plus a statistic (or
     `⚠️`/`❌`). Put the processing in a `try`/`except` or `try`/`finally`, so that a crash leaves the last item in the
     status line and the traceback in the Macro Window. A script that only opens a tab or a window with its result, or
     that only reads, still gets a status line for the crash case, but may skip the `✅`.
