@@ -3,6 +3,7 @@ __doc__ = """
 Finds small paths (smaller than a user-definable threshold) in glyphs and open a new tab with affected glyphs.
 """
 
+import math
 import vanilla
 from AppKit import NSColor, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message
@@ -45,7 +46,7 @@ class FindSmallPaths(mekkaObject):
 		self.w.text_1.setToolTip("Glyphs with paths smaller than the area set by the slider below are collected in a new tab.")
 
 		self.w.minArea = vanilla.TextBox("auto", "1000 square units", sizeStyle='small', alignment="center")
-		self.w.minArea.setToolTip("The current area threshold in square units, or a hint if the minimum and maximum are invalid.")
+		self.w.minArea.setToolTip("The current area threshold in square units, with the side of a square of that size in parentheses (= if exact, ≈ if rounded to full units), or a hint if the minimum and maximum are invalid.")
 
 		formatter = integerFormatter(1)
 		self.w.sliderMin = SteppingEditText("auto", "10", sizeStyle='small', callback=self.SliderUpdate, formatter=formatter)
@@ -197,7 +198,11 @@ class FindSmallPaths(mekkaObject):
 		maximum = self.prefFloat("sliderMax")
 		sliderPos = self.prefFloat("areaSlider")
 		minArea = minimum + sliderPos * (maximum - minimum)
-		self.w.minArea.set("%i square units" % minArea)
+		# the side of a square with that area, rounded to full units: ≈ if it is rounded, = if it is exact
+		area = int(minArea)
+		side = int(round(math.sqrt(area)))
+		sign = "=" if side * side == area else "≈"
+		self.w.minArea.set("%i square units (%s%i×%i units)" % (area, sign, side, side))
 		return minArea
 
 	def FindSmallPathsMain(self, sender):
