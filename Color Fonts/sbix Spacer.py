@@ -17,6 +17,7 @@ from AppKit import (
 	NSLayoutPriorityWindowSizeStayPut,
 	NSRect,
 	NSSize,
+	NSTextAlignmentRight,
 )
 from Foundation import NSPoint
 
@@ -91,8 +92,14 @@ class sbixSpacer(mekkaObject):
 			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
 
 		nsLabel = self.w.preferredSizeForWidthText.getNSTextField()
+		nsLabel.setAlignment_(NSTextAlignmentRight)
 		nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
 		nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		# the checkbox in front of a field and the help button hug their content
+		for nsControl in (self.w.verticalShift.getNSButton(), self.w.help.getNSButton()):
+			nsControl.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsControl.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 
 		self.w.addAutoPosSizeRules(
 			[
@@ -103,7 +110,7 @@ class sbixSpacer(mekkaObject):
 				"H:|-inset-[allGlyphs]-(>=inset)-|",
 				"H:|-inset-[allMasters]-(>=inset)-|",
 				"H:|-inset-[help]-gap-[status]-gap-[runButton(>=70)]-inset-|",
-				"V:|-gap-[insertMarkers]-checkRow-[resetWidths]-row-[preferredSizeForWidth]-row-[verticalShiftValue]-row-[allGlyphs]-checkRow-[allMasters]-inset-[runButton]-inset-|",
+				"V:|-gap-[preferredSizeForWidth]-row-[verticalShiftValue]-row-[insertMarkers]-checkRow-[resetWidths]-checkRow-[allGlyphs]-checkRow-[allMasters]-inset-[runButton]-inset-|",
 				"V:[help]-inset-|",
 				{"view1": self.w.preferredSizeForWidthText, "attribute1": "centerY", "view2": self.w.preferredSizeForWidth, "attribute2": "centerY"},
 				{"view1": self.w.verticalShift, "attribute1": "centerY", "view2": self.w.verticalShiftValue, "attribute2": "centerY"},
