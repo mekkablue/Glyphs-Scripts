@@ -556,29 +556,38 @@ def createOTClass(className="@default", classGlyphNames=None, targetFont=None, a
 	return returnText
 
 
-def makeWindowResizable(window, vertical=False, minSize=None, maxSize=(2000, 2000)):
+def makeWindowResizable(window, vertical=False, minSize=None, maxSize=(2000, 2000), horizontal=True, fitWidth=False):
 	"""
 	Makes a vanilla window resizable, with limits in content sizes, as Auto Layout windows need.
 	Use this instead of the minSize/maxSize arguments of vanilla.Window, which are frame sizes,
 	count the title bar twice and would make the window open shorter than declared.
 	Call it after the controls and rules are set, and before LoadPreferences() and open().
 	window: the vanilla window,
-	vertical: if False, only the width is resizable and the height stays what the content needs (fittingSize),
+	vertical: if False, the height stays what the content needs (fittingSize),
 	          if True, the height is resizable too (for windows with a List or TextEditor),
 	minSize: (width, height) of the smallest content size, defaults to the size the window is created with
 	         or to what the content needs, whichever is larger,
-	maxSize: (width, height) of the largest content size; the height is ignored if vertical is False.
+	maxSize: (width, height) of the largest content size; the height is ignored if vertical is False,
+	horizontal: if False, the width is fixed at its minimum (for a window that is only resizable vertically),
+	fitWidth: if True, the minimum width is the narrowest width at which every row still fits,
+	          and the window grows to it if it was created narrower.
 	"""
 	nsWindow = window.getNSWindow()
 	nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
 	currentSize = nsWindow.contentRectForFrameRect_(nsWindow.frame()).size
 	minWidth, minHeight = minSize if minSize else (currentSize.width, currentSize.height)
 	maxWidth, maxHeight = maxSize
-	fittingHeight = nsWindow.contentView().fittingSize().height
+	fittingSize = nsWindow.contentView().fittingSize()
+	if fitWidth and fittingSize.width > minWidth:
+		minWidth = fittingSize.width
+	if fitWidth and currentSize.width < minWidth:
+		nsWindow.setContentSize_((minWidth, currentSize.height))
+	if not horizontal:
+		maxWidth = minWidth
 	if not vertical:
-		minHeight = maxHeight = fittingHeight
+		minHeight = maxHeight = fittingSize.height
 	elif not minSize:
-		minHeight = max(minHeight, fittingHeight)  # windows created 1 pt high grow to what the content needs
+		minHeight = max(minHeight, fittingSize.height)  # windows created 1 pt high grow to what the content needs
 	nsWindow.setContentMinSize_((minWidth, minHeight))
 	nsWindow.setContentMaxSize_((maxWidth, maxHeight))
 

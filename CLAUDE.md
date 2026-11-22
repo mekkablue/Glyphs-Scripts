@@ -446,6 +446,8 @@ from mekkablue import mekkaObject, makeWindowResizable
 makeWindowResizable(self.w)  # width only: the height stays what the content needs
 makeWindowResizable(self.w, vertical=True)  # width and height: the window has a stretchable TextEditor or List
 makeWindowResizable(self.w, vertical=True, minSize=(250, 150))  # smaller than the starting size
+makeWindowResizable(self.w, fitWidth=True)  # minimum width: the narrowest at which every row fits; grows if narrower
+makeWindowResizable(self.w, vertical=True, horizontal=False)  # height only
 ```
 
 The smallest size is the size the window is created with (`minSize` overrides it), so choose `windowWidth` — and, for
@@ -488,7 +490,7 @@ one contributed from elsewhere), convert the window to Auto Layout as described 
 | `layerGroupsOf(glyph)` | Returns the interpolation-compatible layer ID groups of a `GSGlyph` as tuples; use instead of `layerGroups_masters_error_()`, which groups by instances — not the default in Glyphs 3/4 — and instead of `glyph.layerGroups()`, which does not exist in Glyphs 3.1 |
 | `newAnchorWithName(anchorName, position=None)` | Returns a new `GSAnchor`; use instead of `GSAnchor(name, position)` (raises a `TypeError` in Glyphs 4) or `GSAnchor.alloc().initWithName_position_()` (missing in Glyphs 3) |
 | `fontFileName(font, fullPath=False)` | File name (or full path) of a `GSFont` for reports; `f"{font.familyName} (unsaved)"` if the font has no file. Use instead of hand-written `filepath` checks |
-| `makeWindowResizable(window, vertical=False, minSize=None, maxSize=(2000, 2000))` | Makes a vanilla window resizable with limits in content sizes, width only or, with `vertical=True`, height too; use instead of vanilla's `minSize`/`maxSize`, see “Resizing” |
+| `makeWindowResizable(window, vertical=False, minSize=None, maxSize=(2000, 2000), horizontal=True, fitWidth=False)` | Makes a vanilla window resizable with limits in content sizes, width only or, with `vertical=True`, height too (`horizontal=False` for vertical only); use instead of vanilla's `minSize`/`maxSize`, see “Resizing” |
 | `numberFormatter(minimum, maximum, integersOnly, fractionDigits)`, `integerFormatter(minimum, maximum)`, `decimalFormatter(minimum, maximum, fractionDigits)` | `NSNumberFormatter` for numeric fields |
 | `SteppingEditText` | `vanilla.EditText` with arrow-key stepping, see “Integer fields” |
 | `updatedCode(oldCode, beginSig, endSig, newCode)` | Replaces text in `oldCode`, but only between the two signatures |
