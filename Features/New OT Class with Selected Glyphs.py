@@ -4,7 +4,7 @@ Creates a new OT class containing the selected glyphs.
 """
 
 import vanilla
-from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
+from AppKit import NSColor, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, GSClass, Message
 from mekkablue import mekkaObject, makeWindowResizable
 
@@ -35,6 +35,9 @@ class OTClassCreator(mekkaObject):
 		self.w.keepOpen = vanilla.CheckBox("auto", "Keep this window open", sizeStyle="small", callback=self.SavePreferences, value=True)
 		self.w.keepOpen.setToolTip("Keeps this window open after the class is created, so you can create more classes.")
 		self.w.classNameCheck = vanilla.TextBox("auto", "Class name appears to be ok.", sizeStyle="small")
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
 		self.w.runButton = vanilla.Button("auto", "Create", sizeStyle="small", callback=self.createClass)
 		self.w.runButton.setToolTip("Creates the OT class with the selected glyphs.")
 		self.w.setDefaultButton(self.w.runButton)
@@ -55,7 +58,8 @@ class OTClassCreator(mekkaObject):
 				"H:[overwrite]-(>=inset)-|",
 				"H:[keepOpen]-(>=inset)-|",
 				"H:|-inset-[classNameCheck]-inset-|",
-				"V:|-inset-[otClassName]-row-[overwrite]-checkRow-[keepOpen]-row-[classNameCheck]-inset-|",
+				"H:|-inset-[status]-inset-|",
+				"V:|-inset-[otClassName]-row-[overwrite]-checkRow-[keepOpen]-row-[classNameCheck]-checkRow-[status]-inset-|",
 				{"view1": self.w.classNameLabel, "attribute1": "centerY", "view2": self.w.otClassName, "attribute2": "centerY"},
 				{"view1": self.w.runButton, "attribute1": "centerY", "view2": self.w.otClassName, "attribute2": "centerY"},
 				{"view1": self.w.overwrite, "attribute1": "left", "view2": self.w.otClassName, "attribute2": "left"},
@@ -112,6 +116,7 @@ class OTClassCreator(mekkaObject):
 		font = Glyphs.font
 		if not font:
 			Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+			self.setStatus("⚠️ No font open.")
 			return
 
 		glyphNames = [x.parent.name for x in font.selectedLayers]
@@ -119,10 +124,12 @@ class OTClassCreator(mekkaObject):
 
 		newClassName = self.w.otClassName.get()
 		classCode = " ".join(glyphNames)
+		self.setStatus(f"🛠️ Processing {len(glyphNames)} glyphs…")
 
 		if newClassName in classNames:
 			print("Changing class", newClassName, "to these glyphs:", classCode)
 			font.classes[newClassName].code = classCode
+			self.setStatus(f"✅ Updated class @{newClassName} with {len(glyphNames)} glyphs.")
 
 		else:
 			print("Creating class", newClassName, "with these glyphs:", classCode)
@@ -130,6 +137,7 @@ class OTClassCreator(mekkaObject):
 			newClass.name = newClassName
 			newClass.code = classCode
 			font.classes.append(newClass)
+			self.setStatus(f"✅ Created class @{newClassName} with {len(glyphNames)} glyphs.")
 
 		if not self.w.keepOpen.get():
 			self.w.close()

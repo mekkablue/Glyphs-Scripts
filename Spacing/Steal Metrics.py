@@ -250,6 +250,7 @@ class MetricsCopy(mekkaObject):
 			return
 
 		self.setStatus(f"🛠️ Processing {len(targetLayers)} glyphs…")
+		errorGlyphName = None
 		for targetLayer in targetLayers:
 			try:
 				targetGlyph = targetLayer.parent
@@ -332,6 +333,7 @@ class MetricsCopy(mekkaObject):
 			except Exception as e:
 				self.outputError(e)
 				print(traceback.format_exc())
+				errorGlyphName = targetGlyphName
 				self.setStatus(f"❌ Error at {targetGlyphName}. Details in Macro Window.")
 
 		# update metrics keys:
@@ -339,7 +341,10 @@ class MetricsCopy(mekkaObject):
 			for targetLayer in targetLayers:
 				targetLayer.updateMetrics()
 
-		self.setStatus(f"✅ Transferred metrics to {len(targetLayers)} glyphs.")
+		if errorGlyphName is None:
+			self.setStatus(f"✅ Transferred metrics to {len(targetLayers)} glyphs.")
+		else:
+			self.setStatus(f"❌ Error at {errorGlyphName}. Details in Macro Window.")
 
 
 MetricsCopy()

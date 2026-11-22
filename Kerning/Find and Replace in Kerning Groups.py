@@ -7,9 +7,11 @@ import vanilla
 from mekkablue import mekkaObject, makeWindowResizable
 from GlyphsApp import Glyphs, Message
 from AppKit import (
+	NSColor,
 	NSLayoutConstraintOrientationHorizontal,
 	NSLayoutConstraintOrientationVertical,
 	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityDefaultLow,
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
 	NSTextAlignmentRight,
@@ -56,6 +58,14 @@ class KerningGroupReplacer(mekkaObject):
 		self.w.runButton.setToolTip("Replaces the text in the kerning group names of the selected glyphs.")
 		self.w.setDefaultButton(self.w.runButton)
 
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
+		self.w.status.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton.getNSButton().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
 		# with everything hugging, the window ends up exactly as tall as the content
 		for view in self.w.getNSWindow().contentView().subviews():
 			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
@@ -72,8 +82,9 @@ class KerningGroupReplacer(mekkaObject):
 				"H:|-inset-[descriptionText]-inset-|",
 				"H:|-inset-[text_Find]-gap-[leftSearchFor]-gap-[rightSearchFor]-inset-|",
 				"H:|-inset-[text_Replace]-gap-[leftReplaceBy]-gap-[rightReplaceBy]-inset-|",
-				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"H:|-inset-[status]-gap-[runButton(>=70)]-inset-|",
 				"V:|-gap-[descriptionText]-gap-[text_left]-headGap-[leftSearchFor]-row-[leftReplaceBy]-inset-[runButton]-inset-|",
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 				{"view1": self.w.text_right, "attribute1": "centerY", "view2": self.w.text_left, "attribute2": "centerY"},
 				{"view1": self.w.rightSearchFor, "attribute1": "centerY", "view2": self.w.leftSearchFor, "attribute2": "centerY"},
 				{"view1": self.w.rightReplaceBy, "attribute1": "centerY", "view2": self.w.leftReplaceBy, "attribute2": "centerY"},
@@ -147,6 +158,7 @@ class KerningGroupReplacer(mekkaObject):
 		Font = Glyphs.font
 		if Font is None:
 			Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
+			self.setStatus("⚠️ No font open.")
 			return
 
 		Font.disableUpdateInterface()
@@ -161,14 +173,25 @@ class KerningGroupReplacer(mekkaObject):
 			RsearchFor = self.pref("rightSearchFor")
 			RreplaceBy = self.pref("rightReplaceBy")
 
+			self.setStatus(f"🛠️ Processing {len(currentLayers)} glyphs…")
+			errorGlyphName = None
 			for thisLayer in currentLayers:
 				thisGlyph = thisLayer.parent
+				self.setStatus(f"🔠 {thisGlyph.name}")
 				try:
 					self.replaceInGroups(thisGlyph, LsearchFor, LreplaceBy, RsearchFor, RreplaceBy)
 				except Exception as e:
 					print("Error while processing glyph %s:" % thisGlyph.name)
 					print(e)
+					errorGlyphName = thisGlyph.name
+					self.setStatus(f"❌ Error at {thisGlyph.name}. Details in Macro Window.")
 
+			if errorGlyphName is not None:
+				self.setStatus(f"❌ Error at {errorGlyphName}. Details in Macro Window.")
+			elif currentLayers:
+				self.setStatus(f"✅ Processed {len(currentLayers)} glyphs.")
+			else:
+				self.setStatus("⚠️ No glyphs selected.")
 			self.w.close()
 
 		except Exception as e:

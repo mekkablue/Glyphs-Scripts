@@ -5,7 +5,7 @@ Batch-process anchor positions in selected glyphs (GUI).
 
 import vanilla
 import math
-from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
+from AppKit import NSColor, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSOFFCURVE, Message, GSMetricsTypexHeight, GSMetricsTypeItalicAngle, GSMetricsTypeAscender, GSMetricsTypeCapHeight, GSMetricsTypeDescender, GSMetricsTypeMidHeight, GSMetricsTypeBodyHeight, GSMetricsTypeSlantHeight, GSMetricsTypeBaseline
 from mekkablue import mekkaObject, UpdateButton, SteppingEditText, makeWindowResizable
@@ -155,6 +155,10 @@ class AnchorMover2(mekkaObject):
 		self.w.moveButton.setToolTip("Move the anchors in the selected glyphs.")
 		self.w.setDefaultButton(self.w.moveButton)
 
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
+
 		# checkboxes stretch vertically by default; hug so the window is as tall as the content
 		for view in self.w.getNSWindow().contentView().subviews():
 			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
@@ -178,7 +182,8 @@ class AnchorMover2(mekkaObject):
 				"H:|-inset-[allMasters]-(>=inset)-|",
 				"H:|-inset-[verbose]-(>=inset)-|",
 				"H:|-(>=inset)-[moveButton(>=70)]-inset-|",
-				"V:|-gap-[anchorName]-row-[hTarget]-row-[vTarget]-row-[italic]-checkRow-[allMasters]-checkRow-[verbose]-inset-[moveButton]-inset-|",
+				"H:|-inset-[status]-inset-|",
+				"V:|-gap-[anchorName]-row-[hTarget]-row-[vTarget]-row-[italic]-checkRow-[allMasters]-checkRow-[verbose]-inset-[moveButton]-gap-[status]-inset-|",
 				{"view1": self.w.text_1, "attribute1": "centerY", "view2": self.w.anchorName, "attribute2": "centerY"},
 				{"view1": self.w.button, "attribute1": "centerY", "view2": self.w.anchorName, "attribute2": "centerY"},
 				{"view1": self.w.text_2, "attribute1": "centerY", "view2": self.w.anchorName, "attribute2": "centerY"},
@@ -208,6 +213,7 @@ class AnchorMover2(mekkaObject):
 
 		thisFont = Glyphs.font
 		if not thisFont:
+			self.setStatus("⚠️ No font open.")
 			Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			return
 		selectedLayers = thisFont.selectedLayers
@@ -226,8 +232,11 @@ class AnchorMover2(mekkaObject):
 		if not selectedLayers:
 			if verbose:
 				print("No glyphs selected.")
+			self.setStatus("⚠️ No glyphs selected.")
 			Message(title="No Glyphs Selected", message="Could not move anchors. No glyphs were selected.", OKButton=None)
 		else:
+			self.setStatus(f"🛠️ Processing {len(selectedLayers)} glyph{'' if len(selectedLayers) == 1 else 's'}…")
+			errorCount = 0
 			if verbose:
 				print("Processing %i glyph%s..." % (
 					len(selectedLayers),
@@ -239,6 +248,7 @@ class AnchorMover2(mekkaObject):
 					selectedGlyph = selectedLayer.glyph()
 					if not selectedGlyph:
 						continue
+					self.setStatus(f"🔠 {selectedGlyph.name}")
 					if verbose:
 						print(f"\n🔠 {selectedGlyph.name}")
 					if allMasters:
@@ -247,6 +257,7 @@ class AnchorMover2(mekkaObject):
 						originalLayers = (selectedLayer, )
 
 					for originalLayer in originalLayers:
+						self.setStatus(f"🔠 {selectedGlyph.name} ({originalLayer.name})")
 						selectedAscender = originalLayer.metricForType_(GSMetricsTypeAscender)
 						selectedCapheight = originalLayer.metricForType_(GSMetricsTypeCapHeight)
 						selectedDescender = originalLayer.metricForType_(GSMetricsTypeDescender)
@@ -313,15 +324,22 @@ class AnchorMover2(mekkaObject):
 									print(f"⚓️ {anchorName} anchor unchanged in {originalLayer.name}.")
 
 						except Exception as e:
+							errorCount += 1
+							self.setStatus(f"❌ Error at {thisGlyph.name}. Details in Macro Window.")
 							print(f"ERROR: Failed to move anchor in {thisGlyph.name}.")
 							print(e)
 							import traceback
 							print(traceback.format_exc())
 
 			except Exception as e:
+				self.setStatus("❌ Error. Details in Macro Window.")
 				raise e
 			finally:
 				thisFont.enableUpdateInterface()
+			if errorCount:
+				self.setStatus(f"⚠️ Errors in {errorCount} layer{'' if errorCount == 1 else 's'}. Details in Macro Window.")
+			else:
+				self.setStatus(f"✅ Processed {len(selectedLayers)} glyph{'' if len(selectedLayers) == 1 else 's'}.")
 		print("Done.")
 
 	def GetAnchorNames(self):
