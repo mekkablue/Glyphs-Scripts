@@ -4,7 +4,7 @@ Creates a variable font setting in Font Info > Exports.
 """
 
 import vanilla
-from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
+from AppKit import NSColor, NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from string import ascii_letters, digits
 from GlyphsApp import Glyphs, GSInstance, INSTANCETYPESINGLE, INSTANCETYPEVARIABLE, Message
 
@@ -133,10 +133,19 @@ class OTVARMaker(mekkaObject):
 		self.w.allFonts = vanilla.CheckBox("auto", "Apply to ⚠️ ALL open fonts", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.allFonts.setToolTip("Adds Variable Font Settings to all fonts currently open in Glyphs.")
 
-		# Run Button:
+		# Status line and Run Button:
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
 		self.w.runButton = vanilla.Button("auto", "Add", callback=self.OTVARMakerMain)
 		self.w.runButton.setToolTip("Adds a variable font setting to Font Info > Exports of the chosen fonts.")
 		self.w.setDefaultButton(self.w.runButton)
+
+		# the status line takes the leftover width, the button stays as wide as its title needs:
+		self.w.status.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton.getNSButton().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window
 		# ends up exactly as tall as the content
@@ -158,8 +167,9 @@ class OTVARMaker(mekkaObject):
 				"H:|-inset-[addFileName]-(>=inset)-|",
 				"H:|-inset-[deletePrevious]-(>=inset)-|",
 				"H:|-inset-[allFonts]-(>=inset)-|",
-				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"H:|-inset-[status]-gap-[runButton(>=70)]-inset-|",
 				"V:|-inset-[descriptionText]-headlineGap-[suffix]-row-[psSuffix]-sectionGap-[addFileName]-checkRow-[deletePrevious]-checkRow-[allFonts]-inset-[runButton]-inset-|",
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 				{"view1": self.w.suffixText, "attribute1": "centerY", "view2": self.w.suffix, "attribute2": "centerY"},
 				{"view1": self.w.psSuffixText, "attribute1": "centerY", "view2": self.w.psSuffix, "attribute2": "centerY"},
 				{"view1": self.w.psSuffixText, "attribute1": "width", "view2": self.w.suffixText, "attribute2": "width"},
@@ -196,6 +206,7 @@ class OTVARMaker(mekkaObject):
 			addFileName = self.pref("addFileName")
 
 			if Glyphs.font is None:
+				self.setStatus("⚠️ No font open.")
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 				return
 
@@ -204,8 +215,11 @@ class OTVARMaker(mekkaObject):
 			else:
 				theseFonts = (Glyphs.font, )
 
+			self.setStatus(f"🛠️ Processing {len(theseFonts)} font(s)…")
+			thisFont = None
 			for thisFont in theseFonts:
 				reportName = reportFontName(thisFont)
+				self.setStatus(f"🔠 {reportName}")
 				print(f"OTVAR Maker Report for {reportName}")
 				print()
 
@@ -259,9 +273,11 @@ class OTVARMaker(mekkaObject):
 				thisFont.instances.insert(0, otvarInstance)
 				thisFont.parent.windowController().showFontInfoWindowWithTabSelected_(2)
 
+			self.setStatus(f"✅ Added variable font settings to {len(theseFonts)} font(s).")
 			print("\nDone.")
 
 		except Exception as e:
+			self.setStatus(f"❌ Error at {reportFontName(thisFont) if thisFont else 'start'}. Details in Macro Window.")
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print(f"OTVAR Maker Error: {e}")

@@ -4,7 +4,7 @@ Removes corner components that are not linked to a node from all (selected) glyp
 """
 
 import vanilla
-from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
+from AppKit import NSColor, NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, CORNER
 from mekkablue import mekkaObject
 
@@ -64,6 +64,10 @@ class RemoveDetachedCorners(mekkaObject):
 		self.w.runButton.setToolTip("Removes the detached corner components from the chosen glyphs.")
 		self.w.setDefaultButton(self.w.runButton)
 
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
+
 		# checkboxes stretch vertically by default; hugging makes the window as tall as the content
 		for view in self.w.getNSWindow().contentView().subviews():
 			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
@@ -75,7 +79,8 @@ class RemoveDetachedCorners(mekkaObject):
 				"H:|-inset-[allMastersChBox]-(>=inset)-|",
 				"H:|-inset-[fromWhereText]-gap-[fromWhere]-(>=inset)-|",
 				"H:|-inset-[runButton]-inset-|",
-				"V:|-inset-[descriptionText]-row-[backgroundLayersChBox]-[allMastersChBox]-row-[fromWhere(radioHeight)]-row-[runButton]-inset-|",
+				"H:|-inset-[status]-inset-|",
+				"V:|-inset-[descriptionText]-row-[backgroundLayersChBox]-[allMastersChBox]-row-[fromWhere(radioHeight)]-row-[runButton]-row-[status]-inset-|",
 				# the label sits next to the first radio button:
 				{"view1": self.w.fromWhereText, "attribute1": "top", "view2": self.w.fromWhere, "attribute2": "top"},
 			],
@@ -117,22 +122,30 @@ class RemoveDetachedCorners(mekkaObject):
 			self.removeDetachedCornersLayer(thisLayer)
 
 	def removeDetachedCornersMain(self, sender):
+		thisGlyph = None
 		try:
 			thisFont = Glyphs.font  # frontmost font
+			if not thisFont:
+				self.setStatus("⚠️ No font open.")
+				return
 			listOfGlyphs = thisFont.glyphs
 
 			if self.pref("fromWhere") == 0:
 				listOfGlyphs = [layer.parent for layer in thisFont.selectedLayers]  # active layers of currently selected glyphs
 
+			self.setStatus("🛠️ Processing %i glyph%s…" % (len(listOfGlyphs), "" if len(listOfGlyphs) == 1 else "s"))
 			for thisGlyph in listOfGlyphs:
+				self.setStatus("🔠 %s" % thisGlyph.name)
 				self.removeDetachedCornersGlyph(thisGlyph)
 
 			self.SavePreferences()
+			self.setStatus("✅ Processed %i glyph%s." % (len(listOfGlyphs), "" if len(listOfGlyphs) == 1 else "s"))
 
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print("Remove Detached Corners Error: %s" % e)
+			self.setStatus("❌ Error at %s. Details in Macro Window." % (thisGlyph.name if thisGlyph else "start"))
 
 
 RemoveDetachedCorners()

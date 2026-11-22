@@ -4,9 +4,11 @@ Removes the specified component from all (selected) glyphs.
 """
 import vanilla
 from AppKit import (
+	NSColor,
 	NSLayoutConstraintOrientationHorizontal,
 	NSLayoutConstraintOrientationVertical,
 	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityDefaultLow,
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
 )
@@ -72,6 +74,13 @@ class RemoveComponentfromSelectedGlyphs(mekkaObject):
 		self.w.runButton.setToolTip("Removes the component from the chosen glyphs.")
 		self.w.setDefaultButton(self.w.runButton)
 
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
+		nsStatus = self.w.status.getNSTextField()
+		nsStatus.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		nsStatus.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
 		# the label hugs its text, so the combo box takes the leftover width:
 		nsLabel = self.w.textDescription.getNSTextField()
 		nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
@@ -86,7 +95,8 @@ class RemoveComponentfromSelectedGlyphs(mekkaObject):
 				"H:|-inset-[textDescription]-gap-[componentName]-gap-[updateButton]-inset-|",
 				"H:|-inset-[fromWhere]-(>=inset)-|",
 				"H:|-inset-[runButton]-inset-|",
-				"V:|-inset-[componentName]-row-[fromWhere(radioHeight)]-row-[runButton]-inset-|",
+				"H:|-inset-[status]-inset-|",
+				"V:|-inset-[componentName]-row-[fromWhere(radioHeight)]-row-[runButton]-row-[status]-inset-|",
 				{"view1": self.w.textDescription, "attribute1": "centerY", "view2": self.w.componentName, "attribute2": "centerY"},
 				{"view1": self.w.updateButton, "attribute1": "centerY", "view2": self.w.componentName, "attribute2": "centerY"},
 			],
@@ -173,8 +183,12 @@ class RemoveComponentfromSelectedGlyphs(mekkaObject):
 		# brings macro window to front and clears its log:
 		Glyphs.clearLog()
 
+		thisGlyph = None
 		try:
 			thisFont = Glyphs.font  # frontmost font
+			if not thisFont:
+				self.setStatus("⚠️ No font open.")
+				return
 			componentName = self.pref("componentName")
 			print("Removing component %s from font ‘%s’:" % (componentName, thisFont.familyName))
 
@@ -183,15 +197,19 @@ class RemoveComponentfromSelectedGlyphs(mekkaObject):
 			else:
 				listOfGlyphs = thisFont.glyphs
 
+			self.setStatus("🛠️ Processing %i glyph%s…" % (len(listOfGlyphs), "" if len(listOfGlyphs) == 1 else "s"))
 			for thisGlyph in listOfGlyphs:
+				self.setStatus("🔠 %s" % thisGlyph.name)
 				self.removeComponentFromGlyph(componentName, thisGlyph)
 
 			self.SavePreferences()
+			self.setStatus("✅ Processed %i glyph%s." % (len(listOfGlyphs), "" if len(listOfGlyphs) == 1 else "s"))
 
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print("Remove Component Error: %s" % e)
+			self.setStatus("❌ Error at %s. Details in Macro Window." % (thisGlyph.name if thisGlyph else "start"))
 
 
 RemoveComponentfromSelectedGlyphs()
