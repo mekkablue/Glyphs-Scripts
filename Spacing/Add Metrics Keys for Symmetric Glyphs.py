@@ -4,9 +4,9 @@ Will add RSB =| if the RSB is the same as the LSB in all masters.
 """
 
 import vanilla
-from mekkablue import mekkaObject, SteppingEditText, decimalFormatter
+from mekkablue import mekkaObject, SteppingEditText, decimalFormatter, makeWindowResizable
 from GlyphsApp import Glyphs, Message
-from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
+from AppKit import NSColor, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 
 
 class AddMetricsKeysforSymmetricGlyphs(mekkaObject):
@@ -23,7 +23,7 @@ class AddMetricsKeysforSymmetricGlyphs(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Add Metrics Keys for Symmetric Shapes",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -50,6 +50,25 @@ class AddMetricsKeysforSymmetricGlyphs(mekkaObject):
 		self.w.runButton.setToolTip("Inserts ‘=|’ as RSB metrics key in glyphs whose LSB and RSB match on all layers.")
 		self.w.setDefaultButton(self.w.runButton)
 
+		# Status line:
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
+
+		# the status line takes the leftover width, the button stays as wide as its title needs:
+		nsStatus = self.w.status.getNSTextField()
+		nsStatus.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		nsStatus.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		nsRunButton = self.w.runButton.getNSButton()
+		nsRunButton.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		nsRunButton.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
+		# the labels hug their text, so the tolerance field takes the leftover width:
+		for label in (self.w.toleranceText, self.w.toleranceUnitsText):
+			nsLabel = label.getNSTextField()
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
 		# checkboxes stretch vertically by default; with everything hugging, the window
 		# ends up exactly as tall as the content
 		for view in self.w.getNSWindow().contentView().subviews():
@@ -58,16 +77,20 @@ class AddMetricsKeysforSymmetricGlyphs(mekkaObject):
 		self.w.addAutoPosSizeRules(
 			[
 				"H:|-inset-[descriptionText]-inset-|",
-				"H:|-inset-[toleranceText]-gap-[tolerance(50)]-gap-[toleranceUnitsText]-(>=inset)-|",
+				"H:|-inset-[toleranceText]-gap-[tolerance(>=50)]-gap-[toleranceUnitsText]-inset-|",
 				"H:|-inset-[updateMetrics]-(>=inset)-|",
 				"H:|-inset-[allGlyphs]-(>=inset)-|",
-				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"H:|-inset-[status]-gap-[runButton(>=70)]-inset-|",
 				"V:|-gap-[descriptionText]-row-[tolerance]-row-[updateMetrics]-checkRow-[allGlyphs]-inset-[runButton]-inset-|",
 				{"view1": self.w.toleranceText, "attribute1": "centerY", "view2": self.w.tolerance, "attribute2": "centerY"},
 				{"view1": self.w.toleranceUnitsText, "attribute1": "centerY", "view2": self.w.tolerance, "attribute2": "centerY"},
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 			],
 			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
 		)
+
+		# the tolerance field stretches, so the window is resizable horizontally:
+		makeWindowResizable(self.w)
 
 		# Load Settings:
 		self.LoadPreferences()
@@ -99,6 +122,7 @@ class AddMetricsKeysforSymmetricGlyphs(mekkaObject):
 		return False
 
 	def AddMetricsKeysforSymmetricGlyphsMain(self, sender=None):
+		lastName = "start"
 		try:
 			# clear macro window log:
 			Glyphs.clearLog()
@@ -110,6 +134,7 @@ class AddMetricsKeysforSymmetricGlyphs(mekkaObject):
 
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
+				self.setStatus("⚠️ No font open.")
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
 				print("Add Metrics Keys for Symmetric Shapes Report for %s" % thisFont.familyName)
@@ -128,7 +153,10 @@ class AddMetricsKeysforSymmetricGlyphs(mekkaObject):
 				else:
 					glyphs = [layer.parent for layer in thisFont.selectedLayers]
 
+				self.setStatus("🛠️ Processing…")
 				for thisGlyph in glyphs:
+					lastName = thisGlyph.name
+					self.setStatus(f"🔠 {thisGlyph.name}")
 					if thisGlyph.leftMetricsKey == "=|":
 						print("🔠 %s: skipped because LSB is ‘=|’" % thisGlyph.name)
 					elif thisGlyph.rightMetricsKey == "=|":
@@ -150,6 +178,10 @@ class AddMetricsKeysforSymmetricGlyphs(mekkaObject):
 										thisLayer.syncMetrics()
 							print("✅ RSB=|%s: %s" % (reportAddition, thisGlyph.name))
 
+				if count:
+					self.setStatus(f"✅ Added RSB=| in {count} glyph{'' if count == 1 else 's'}.")
+				else:
+					self.setStatus("⚠️ No symmetric glyphs found.")
 				self.w.close()  # delete if you want window to stay open
 
 				# Final report:
@@ -166,6 +198,7 @@ class AddMetricsKeysforSymmetricGlyphs(mekkaObject):
 
 		except Exception as e:
 			# brings macro window to front and reports error:
+			self.setStatus(f"❌ Error at {lastName}. Details in Macro Window.")
 			Glyphs.showMacroWindow()
 			print("Add Metrics Keys for Symmetric Shapes Error: %s" % e)
 			import traceback
