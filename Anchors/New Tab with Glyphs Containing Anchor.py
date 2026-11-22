@@ -12,11 +12,9 @@ from AppKit import (
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
 	NSTextAlignmentRight,
-	NSWindowStyleMaskResizable,
 )
-from Foundation import NSSize
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, UpdateButton, fontFileName, match
+from mekkablue import mekkaObject, UpdateButton, fontFileName, match, makeWindowResizable
 
 
 basicAnchors = (
@@ -36,11 +34,10 @@ class NewTabWithAnchor(mekkaObject):
 		# Window 'self.w':
 		windowWidth = 370
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
-		windowWidthResize = 1000  # user can make the window this much wider
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"New Tab with Anchor",
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and width
 		)
 
 		# UI elements:
@@ -110,20 +107,14 @@ class NewTabWithAnchor(mekkaObject):
 			metrics={"inset": inset, "gap": 8, "row": 6},
 		)
 
+		makeWindowResizable(self.w)  # resizable horizontally only
+
 		# Load Settings:
 		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-		# Resizable in width only. Vanilla's minSize/maxSize would count the title bar twice,
-		# so set the limits on the NSWindow, in content sizes, with the height Auto Layout asks for:
-		nsWindow = self.w.getNSWindow()
-		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
-		contentHeight = nsWindow.contentView().fittingSize().height
-		nsWindow.setContentMinSize_(NSSize(windowWidth, contentHeight))
-		nsWindow.setContentMaxSize_(NSSize(windowWidth + windowWidthResize, contentHeight))
 
 	def updateUI(self, sender=None):
 		self.w.runButton.setTitle("Open Tabs" if self.prefInt("scope") == 2 else "Open Tab")

@@ -4,10 +4,9 @@ Remove anchors from glyphs: by anchor name, from suffixed glyphs, or strip non-s
 """
 
 import vanilla
-from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight, NSWindowStyleMaskResizable
-from Foundation import NSSize
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, UpdateButton, match
+from mekkablue import mekkaObject, UpdateButton, match, makeWindowResizable
 
 allAnchors = "All Anchors"
 
@@ -32,7 +31,7 @@ class AnchorRemover(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Anchor Remover",
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and width
 		)
 
 		inset = 15
@@ -153,19 +152,13 @@ class AnchorRemover(mekkaObject):
 			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5, "section": 12},
 		)
 
+		makeWindowResizable(self.w)  # resizable horizontally only
+
 		self.LoadPreferences()
 		self.updateAnchorList(None)
 
 		self.w.open()
 		self.w.makeKey()
-
-		# resizable horizontally only: lock the content height Auto Layout arrived at
-		nsWindow = self.w.getNSWindow()
-		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
-		nsWindow.layoutIfNeeded()
-		contentHeight = nsWindow.contentView().frame().size.height
-		nsWindow.setContentMinSize_(NSSize(windowWidth, contentHeight))
-		nsWindow.setContentMaxSize_(NSSize(windowWidth + 1000, contentHeight))
 
 	# -------------------------------------------------------------------------
 

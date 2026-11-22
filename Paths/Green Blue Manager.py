@@ -7,10 +7,10 @@ from math import sqrt
 
 import objc
 import vanilla
-from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSWindowStyleMaskResizable
-from Foundation import NSPoint, NSSize
+from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
+from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSControlLayer, GSOFFCURVE, GSSMOOTH, GSSHARP, Message
-from mekkablue import mekkaObject, reportFontName, SteppingEditText, decimalFormatter, UpdateButton
+from mekkablue import mekkaObject, reportFontName, SteppingEditText, decimalFormatter, UpdateButton, makeWindowResizable
 from mekkablue.geometry import angle
 
 GlyphsPathPlugin = objc.lookUpClass("GlyphsPathPlugin")
@@ -98,7 +98,7 @@ class GreenBlueManager(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Green Blue Manager",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -236,6 +236,8 @@ class GreenBlueManager(mekkaObject):
 
 		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "degreeGap": 2, "row": 8, "dividerAbove": 14, "dividerBelow": 11, "stackRow": 8, "barGap": 12})
 
+		makeWindowResizable(self.w)  # resizable horizontally only
+
 		# Load Settings:
 		self.LoadPreferences()
 
@@ -244,15 +246,6 @@ class GreenBlueManager(mekkaObject):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-		# make the window horizontally resizable, but keep the height that Auto Layout determined.
-		# (Content sizes set directly on the NSWindow, so the title bar is not counted twice.)
-		nsWindow = self.w.getNSWindow()
-		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
-		nsWindow.layoutIfNeeded()  # make sure the content has its final size before we read it
-		contentSize = nsWindow.contentView().frame().size
-		nsWindow.setContentMinSize_(NSSize(contentSize.width, contentSize.height))
-		nsWindow.setContentMaxSize_(NSSize(contentSize.width + 1000, contentSize.height))
 
 	def resetToDefaults(self, sender=None):
 		for prefName, defaultValue in self.prefDict.items():

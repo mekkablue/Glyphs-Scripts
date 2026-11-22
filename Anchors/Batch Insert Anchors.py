@@ -11,11 +11,10 @@ from AppKit import (
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
 	NSTextAlignmentRight,
-	NSWindowStyleMaskResizable,
 )
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSAnchor, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, makeWindowResizable
 
 xPositions = ("Center of width", "LSB", "RSB", "Bbox left edge", "Bbox horizontal center", "Bbox right edge")
 yPositions = ("Baseline", "x-height", "Smallcap height", "Cap height", "Ascender", "Shoulder height", "Descender", "Bbox top", "Bbox center", "Bbox bottom")
@@ -40,7 +39,7 @@ class BatchInsertAnchor(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Batch Insert Anchor",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -113,19 +112,14 @@ class BatchInsertAnchor(mekkaObject):
 			metrics={"inset": inset, "gap": 8, "row": 6},
 		)
 
+		makeWindowResizable(self.w)  # resizable horizontally only
+
 		# Load Settings:
 		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-		# resizable horizontally only: content height stays fixed
-		nsWindow = self.w.getNSWindow()
-		contentHeight = nsWindow.contentRectForFrameRect_(nsWindow.frame()).size.height
-		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
-		nsWindow.setContentMinSize_((windowWidth, contentHeight))
-		nsWindow.setContentMaxSize_((10000, contentHeight))
 
 	def BatchInsertAnchorMain(self, sender):
 		try:

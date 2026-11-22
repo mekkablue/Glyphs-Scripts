@@ -5,7 +5,7 @@ Opens a new tab with kerning combos that have large gaps in the current fontmast
 
 from timeit import default_timer as timer
 import vanilla
-from mekkablue import mekkaObject, caseDict
+from mekkablue import mekkaObject, caseDict, makeWindowResizable
 from kernanalysis import distanceFromEntry
 from GlyphsApp import Glyphs, Message
 from AppKit import (
@@ -15,9 +15,8 @@ from AppKit import (
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
 	NSTextAlignmentRight,
-	NSWindowStyleMaskResizable,
 )
-from Foundation import NSNotFound, NSSize
+from Foundation import NSNotFound
 
 
 intervalList = (1, 3, 5, 10, 20)
@@ -56,7 +55,7 @@ class GapFinder(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"GapFinder",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -151,21 +150,14 @@ class GapFinder(mekkaObject):
 			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5, "barGap": 10},
 		)
 
+		makeWindowResizable(self.w)  # resizable horizontally only
+
 		# Load Settings:
 		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-		# make the window horizontally resizable, but keep the height that Auto Layout determined.
-		# (Content sizes set directly on the NSWindow, so the title bar is not counted twice.)
-		nsWindow = self.w.getNSWindow()
-		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
-		nsWindow.layoutIfNeeded()  # make sure the content has its final size before we read it
-		contentSize = nsWindow.contentView().frame().size
-		nsWindow.setContentMinSize_(NSSize(contentSize.width, contentSize.height))
-		nsWindow.setContentMaxSize_(NSSize(contentSize.width + 1000, contentSize.height))
 
 	def updateGUI(self, sender=None):
 		self.SavePreferences()

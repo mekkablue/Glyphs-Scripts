@@ -9,11 +9,9 @@ from AppKit import (
 	NSLayoutPriorityDefaultHigh,
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
-	NSWindowStyleMaskResizable,
 )
-from Foundation import NSSize
 from GlyphsApp import Glyphs
-from mekkablue import mekkaObject, match, UpdateButton
+from mekkablue import mekkaObject, match, UpdateButton, makeWindowResizable
 
 
 def deleteCornerComponent(componentName, thisLayer):
@@ -51,7 +49,7 @@ class RemoveComponentfromSelectedGlyphs(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Remove Components",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position and size
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -93,18 +91,14 @@ class RemoveComponentfromSelectedGlyphs(mekkaObject):
 			metrics={"inset": inset, "gap": 8, "row": 8, "radioHeight": self.w.fromWhere.getFittingHeight()},
 		)
 
+		makeWindowResizable(self.w, minSize=(windowMinWidth, 0))  # resizable horizontally only
+
 		# Load Settings:
 		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
 
-		# resizable horizontally only: the height is dictated by the content
-		window = self.w.getNSWindow()
-		window.setStyleMask_(window.styleMask() | NSWindowStyleMaskResizable)
-		contentSize = window.contentView().frame().size
-		window.setContentMinSize_(NSSize(windowMinWidth, contentSize.height))
-		window.setContentMaxSize_(NSSize(windowWidth + 500, contentSize.height))
 		self.w.makeKey()
 
 	def updateUI(self, sender=None):

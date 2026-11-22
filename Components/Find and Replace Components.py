@@ -19,13 +19,11 @@ from AppKit import (
 	NSLayoutPriorityDefaultLow,
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
-	NSSize,
 	NSTextAlignmentRight,
-	NSWindowStyleMaskResizable,
 )
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, UpdateButton, SteppingEditText, integerFormatter, fontFileName
+from mekkablue import mekkaObject, UpdateButton, SteppingEditText, integerFormatter, fontFileName, makeWindowResizable
 
 
 SPECIAL_PREFIXES = ("_cap.", "_corner.", "_segment.", "_brush.", "_head.")
@@ -75,7 +73,7 @@ class FindReplaceComponents(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Find and Replace Components",
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and width
 		)
 
 		inset = 15
@@ -183,18 +181,11 @@ class FindReplaceComponents(mekkaObject):
 			metrics={"inset": inset, "gap": 8, "row": 6, "checkGap": 10, "stackRow": 8},
 		)
 
+		makeWindowResizable(self.w)  # resizable horizontally only
+
 		self.LoadPreferences()
 		self.w.open()
 		self.w.makeKey()
-
-		# make the window horizontally resizable, but keep the height that Auto Layout determined.
-		# (Content sizes set directly on the NSWindow, so the title bar is not counted twice.)
-		nsWindow = self.w.getNSWindow()
-		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
-		nsWindow.layoutIfNeeded()
-		contentSize = nsWindow.contentView().frame().size
-		nsWindow.setContentMinSize_(NSSize(contentSize.width, contentSize.height))
-		nsWindow.setContentMaxSize_(NSSize(contentSize.width + 1000, contentSize.height))
 
 	# -----------------------------------------------------------------------
 

@@ -5,10 +5,10 @@ Batch-process anchor positions in selected glyphs (GUI).
 
 import vanilla
 import math
-from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSWindowStyleMaskResizable
-from Foundation import NSPoint, NSSize
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
+from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSOFFCURVE, Message, GSMetricsTypexHeight, GSMetricsTypeItalicAngle, GSMetricsTypeAscender, GSMetricsTypeCapHeight, GSMetricsTypeDescender, GSMetricsTypeMidHeight, GSMetricsTypeBodyHeight, GSMetricsTypeSlantHeight, GSMetricsTypeBaseline
-from mekkablue import mekkaObject, UpdateButton, SteppingEditText
+from mekkablue import mekkaObject, UpdateButton, SteppingEditText, makeWindowResizable
 from mekkablue.geometry import transform, italicize
 
 
@@ -111,7 +111,7 @@ class AnchorMover2(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Anchor Mover",
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and width
 		)
 
 		inset = 15
@@ -195,18 +195,12 @@ class AnchorMover2(mekkaObject):
 			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
 		)
 
+		makeWindowResizable(self.w, minSize=(220, 0))  # resizable horizontally only
+
 		self.LoadPreferences()
 
 		self.w.open()
 		self.w.makeKey()
-
-		# resizable horizontally only: lock the content height Auto Layout arrived at
-		nsWindow = self.w.getNSWindow()
-		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
-		nsWindow.layoutIfNeeded()
-		contentHeight = nsWindow.contentView().frame().size.height
-		nsWindow.setContentMinSize_(NSSize(220, contentHeight))
-		nsWindow.setContentMaxSize_(NSSize(900, contentHeight))
 
 	def MoveCallback(self, sender):
 		# brings macro window to front and clears its log:

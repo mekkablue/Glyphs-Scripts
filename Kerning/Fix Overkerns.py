@@ -4,9 +4,8 @@ Finds negative kern pairs going beyond a percentage of the glyph widths, and ope
 """
 
 import vanilla
-from mekkablue import mekkaObject, newLineControlLayer, reportFontName, SteppingEditText, integerFormatter, UpdateButton, caseDict
+from mekkablue import mekkaObject, newLineControlLayer, reportFontName, SteppingEditText, integerFormatter, UpdateButton, caseDict, makeWindowResizable
 from GlyphsApp import Glyphs, Message
-from Foundation import NSSize
 from AppKit import (
 	NSLayoutConstraintOrientationHorizontal,
 	NSLayoutConstraintOrientationVertical,
@@ -15,7 +14,6 @@ from AppKit import (
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
 	NSTextAlignmentRight,
-	NSWindowStyleMaskResizable,
 )
 
 
@@ -37,12 +35,11 @@ class FixOverkerns(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 460
-		windowWidthResize = 600  # user can resize the width by this much
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Fix Overkerns",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -134,20 +131,14 @@ class FixOverkerns(mekkaObject):
 			metrics={"inset": inset, "gap": 8, "row": 6},
 		)
 
+		makeWindowResizable(self.w)  # resizable horizontally only
+
 		# Load Settings:
 		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-		# Resizable in width only. Vanilla's minSize/maxSize would count the title bar twice,
-		# so set the limits on the NSWindow, in content sizes, with the height Auto Layout asks for:
-		nsWindow = self.w.getNSWindow()
-		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
-		contentHeight = nsWindow.contentView().fittingSize().height
-		nsWindow.setContentMinSize_(NSSize(windowWidth, contentHeight))
-		nsWindow.setContentMaxSize_(NSSize(windowWidth + windowWidthResize, contentHeight))
 
 	def setStatus(self, text):
 		"""Sets the status line and redraws it right away, so it shows while the script is busy."""

@@ -4,10 +4,9 @@ Removes all parameters of one kind from Font Info > Font, Masters, Instances. Us
 """
 
 import vanilla
-from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSWindowStyleMaskResizable
-from Foundation import NSSize
+from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, UpdateButton, fontFileName
+from mekkablue import mekkaObject, UpdateButton, fontFileName, makeWindowResizable
 
 
 class RemoveCustomParameters(mekkaObject):
@@ -21,12 +20,11 @@ class RemoveCustomParameters(mekkaObject):
 	def __init__(self):
 		# Window 'self.w':
 		windowWidth = 380
-		windowWidthResize = 400  # user can resize the width by this much
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Remove Custom Parameters",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -104,6 +102,8 @@ class RemoveCustomParameters(mekkaObject):
 			metrics={"inset": inset, "gap": 8, "row": 8, "checkGap": 6},
 		)
 
+		makeWindowResizable(self.w, minSize=(windowWidth * 0.86, 0))  # resizable horizontally only
+
 		# Load Settings:
 		self.LoadPreferences()
 
@@ -111,15 +111,6 @@ class RemoveCustomParameters(mekkaObject):
 		self.updateUI()
 		self.w.open()
 		self.w.makeKey()
-
-		# Resizable in width only. Vanilla's minSize/maxSize would count the title bar twice,
-		# so set the limits on the NSWindow, in content sizes, with the size Auto Layout asks for:
-		nsWindow = self.w.getNSWindow()
-		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
-		fittingSize = nsWindow.contentView().fittingSize()
-		minWidth = windowWidth * 0.86  # Auto Layout still keeps the window from getting too narrow for its content
-		nsWindow.setContentMinSize_(NSSize(minWidth, fittingSize.height))
-		nsWindow.setContentMaxSize_(NSSize(windowWidth + windowWidthResize, fittingSize.height))
 
 	def setStatus(self, text):
 		"""Sets the status line and redraws it right away."""

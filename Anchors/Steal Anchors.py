@@ -12,11 +12,10 @@ from AppKit import (
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
 	NSTextAlignmentRight,
-	NSWindowStyleMaskResizable,
 )
-from Foundation import NSPoint, NSSize
+from Foundation import NSPoint
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, newAnchorWithName, UpdateButton
+from mekkablue import mekkaObject, newAnchorWithName, UpdateButton, makeWindowResizable
 from mekkablue.geometry import italicize
 
 
@@ -40,12 +39,11 @@ class StealAnchors(mekkaObject):
 
 		# Window 'self.w':
 		windowWidth = 540
-		windowWidthResize = 500  # user can widen the window by this value
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Steal Anchors",
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and width
 		)
 
 		# UI elements:
@@ -150,20 +148,14 @@ class StealAnchors(mekkaObject):
 			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
 		)
 
+		makeWindowResizable(self.w)  # resizable horizontally only
+
 		# Load Settings:
 		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-		# Resizable in width only. Vanilla's minSize/maxSize would count the title bar twice,
-		# so set the limits on the NSWindow, in content sizes, with the height Auto Layout asks for:
-		nsWindow = self.w.getNSWindow()
-		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
-		contentHeight = nsWindow.contentView().fittingSize().height
-		nsWindow.setContentMinSize_(NSSize(windowWidth, contentHeight))
-		nsWindow.setContentMaxSize_(NSSize(windowWidth + windowWidthResize, contentHeight))
 
 	def availableFonts(self, sender=None):
 		return [f"{i}: {f.familyName}" for i, f in enumerate(Glyphs.fonts)]

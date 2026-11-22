@@ -4,10 +4,9 @@ Batch-add anchors to selected glyphs. Specify a source glyph to replicate the an
 """
 
 import vanilla
-from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSWindowStyleMaskResizable
-from Foundation import NSSize
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, reportFontName
+from mekkablue import mekkaObject, reportFontName, makeWindowResizable
 
 
 class ReplicateAnchors(mekkaObject):
@@ -26,7 +25,7 @@ class ReplicateAnchors(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Replicate Anchors",
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and width
 		)
 
 		# UI elements:
@@ -76,20 +75,14 @@ class ReplicateAnchors(mekkaObject):
 			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
 		)
 
+		makeWindowResizable(self.w, minSize=(windowWidth * 0.9, 0))  # resizable horizontally only
+
 		# Load Settings:
 		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-		# resizable horizontally only: lock the content height Auto Layout arrived at
-		nsWindow = self.w.getNSWindow()
-		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
-		nsWindow.layoutIfNeeded()
-		contentHeight = nsWindow.contentView().frame().size.height
-		nsWindow.setContentMinSize_(NSSize(windowWidth * 0.9, contentHeight))
-		nsWindow.setContentMaxSize_(NSSize(windowWidth + 1000, contentHeight))
 
 	def updateUI(self, sender=None):
 		self.w.overwriteExistingAnchors.enable(not self.w.deleteAllExistingAnchors.get())

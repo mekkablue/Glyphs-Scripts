@@ -4,9 +4,9 @@ Goes through all glyphs of the frontmost font (or all open fonts), and checks fo
 """
 
 import vanilla
-from AppKit import NSTextAlignmentRight, NSWindowStyleMaskResizable, NSSize, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
+from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message, GSGlyph, GSComponent
-from mekkablue import mekkaObject, UpdateButton, setMacroDivider, fontFileName
+from mekkablue import mekkaObject, UpdateButton, setMacroDivider, fontFileName, makeWindowResizable
 
 defaultSuffixes = ".dnom, .numr, .subs, .sups, .sinf, .alt, .case, .tf, .tosf, .osf"
 
@@ -36,7 +36,7 @@ class CompositeConsistencer(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Composite Consistencer",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -111,21 +111,14 @@ class CompositeConsistencer(mekkaObject):
 			metrics={"inset": inset, "gap": 8, "headlineGap": 10, "checkRow": 5, "barGap": 14},
 		)
 
+		makeWindowResizable(self.w)  # resizable horizontally only
+
 		# Load Settings:
 		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-		# make the window horizontally resizable, but keep the height that Auto Layout determined.
-		# (Content sizes set directly on the NSWindow, so the title bar is not counted twice.)
-		nsWindow = self.w.getNSWindow()
-		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
-		nsWindow.layoutIfNeeded()  # make sure the content has its final size before we read it
-		contentSize = nsWindow.contentView().frame().size
-		nsWindow.setContentMinSize_(NSSize(contentSize.width, contentSize.height))
-		nsWindow.setContentMaxSize_(NSSize(contentSize.width + 1000, contentSize.height))
 
 	def prepareReport(self):
 		"""

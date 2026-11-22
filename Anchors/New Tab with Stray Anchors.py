@@ -5,10 +5,9 @@ Find all anchors that are not where they are supposed to be.
 
 import sys
 import vanilla
-from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight, NSWindowStyleMaskResizable
-from Foundation import NSSize
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, newLineControlLayer, UpdateButton, reportFontName, SteppingEditText, integerFormatter
+from mekkablue import mekkaObject, newLineControlLayer, UpdateButton, reportFontName, SteppingEditText, integerFormatter, makeWindowResizable
 
 horizontals = (
 	"LSB",
@@ -103,7 +102,7 @@ class FindStrayAnchors(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Find Stray Anchors",
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and width
 		)
 
 		# UI elements:
@@ -187,17 +186,11 @@ class FindStrayAnchors(mekkaObject):
 		if not self.LoadPreferences():
 			print("⚠️ ‘Find Stray Anchors’ could not load preferences. Will resort to defaults.")
 
+		makeWindowResizable(self.w)  # resizable horizontally only
+
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-		# resizable horizontally only: lock the content height Auto Layout arrived at
-		nsWindow = self.w.getNSWindow()
-		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
-		nsWindow.layoutIfNeeded()
-		contentHeight = nsWindow.contentView().frame().size.height
-		nsWindow.setContentMinSize_(NSSize(windowWidth, contentHeight))
-		nsWindow.setContentMaxSize_(NSSize(windowWidth + 1000, contentHeight))
 
 	def updateAnchorNames(self, sender=None):
 		anchorText = self.collectAnchors()

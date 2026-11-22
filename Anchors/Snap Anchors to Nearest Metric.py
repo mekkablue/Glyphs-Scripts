@@ -9,10 +9,9 @@ from AppKit import (
 	NSAffineTransform,
 	NSLayoutConstraintOrientationVertical,
 	NSLayoutPriorityWindowSizeStayPut,
-	NSWindowStyleMaskResizable,
 )
 from GlyphsApp import Glyphs, Message, addPoints
-from mekkablue import mekkaObject, match, UpdateButton, reportFontName, SteppingEditText, integerFormatter
+from mekkablue import mekkaObject, match, UpdateButton, reportFontName, SteppingEditText, integerFormatter, makeWindowResizable
 from mekkablue.geometry import italicize
 
 
@@ -45,7 +44,7 @@ class SnapAnchorsToNearestMetric(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Snap Anchors to Nearest Metric",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -102,19 +101,14 @@ class SnapAnchorsToNearestMetric(mekkaObject):
 			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
 		)
 
+		makeWindowResizable(self.w)  # resizable horizontally only
+
 		# Load Settings:
 		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-		# resizable horizontally only: content height stays fixed
-		nsWindow = self.w.getNSWindow()
-		contentHeight = nsWindow.contentRectForFrameRect_(nsWindow.frame()).size.height
-		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
-		nsWindow.setContentMinSize_((windowWidth, contentHeight))
-		nsWindow.setContentMaxSize_((windowWidth + 500, contentHeight))
 
 	def allAnchorNamesInFrontmostFont(self, sender=None):
 		font = Glyphs.font

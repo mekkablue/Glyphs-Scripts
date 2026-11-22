@@ -5,16 +5,14 @@ Batch-insert intermediate layers (‘brace layers’) in selected glyphs. (Glyph
 
 from copy import copy
 from vanilla import FloatingWindow, EditText, TextBox, CheckBox, Button  # type: ignore
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, makeWindowResizable
 from GlyphsApp import Glyphs, GSLayer, Message
 from AppKit import (
 	NSLayoutConstraintOrientationHorizontal,
 	NSLayoutConstraintOrientationVertical,
 	NSLayoutPriorityDefaultHigh,
 	NSLayoutPriorityWindowSizeStayPut,
-	NSWindowStyleMaskResizable,
 )
-from Foundation import NSSize
 
 
 class InsertSpecialLayersV3(mekkaObject):
@@ -29,7 +27,7 @@ class InsertSpecialLayersV3(mekkaObject):
 		self.w = FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Batch-Add Brace Layers",  # window title
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and width
 		)
 
 		# UI elements:
@@ -66,21 +64,14 @@ class InsertSpecialLayersV3(mekkaObject):
 			metrics={"inset": inset, "gap": 8, "row": 6},
 		)
 
+		makeWindowResizable(self.w)  # resizable horizontally only
+
 		# Load Settings:
 		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-		# make the window horizontally resizable, but keep the height that Auto Layout determined.
-		# (Content sizes set directly on the NSWindow, so the title bar is not counted twice.)
-		nsWindow = self.w.getNSWindow()
-		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
-		nsWindow.layoutIfNeeded()  # make sure the content has its final size before we read it
-		contentSize = nsWindow.contentView().frame().size
-		nsWindow.setContentMinSize_(NSSize(contentSize.width, contentSize.height))
-		nsWindow.setContentMaxSize_(NSSize(contentSize.width + 1000, contentSize.height))
 
 	def resetCoordinates(self, sender=None):
 		if not Glyphs.font:
@@ -177,7 +168,7 @@ class InsertSpecialLayers(mekkaObject):
 		self.w = FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Insert Special Layers",  # window title
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and width
 		)
 
 		# UI elements:

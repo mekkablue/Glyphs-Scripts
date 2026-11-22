@@ -9,11 +9,10 @@ from AppKit import (
 	NSLayoutConstraintOrientationVertical,
 	NSLayoutPriorityDefaultLow,
 	NSLayoutPriorityWindowSizeStayPut,
-	NSWindowStyleMaskResizable,
 )
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, makeWindowResizable
 from mekkablue.geometry import italicize
 
 
@@ -30,11 +29,10 @@ class RealignStackingAnchors(mekkaObject):
 		# Window 'self.w':
 		windowWidth = 380
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
-		windowWidthResize = 100  # user can resize width by this value
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Realign Stacking Anchors in Combining Accents",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -89,19 +87,14 @@ class RealignStackingAnchors(mekkaObject):
 			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
 		)
 
+		makeWindowResizable(self.w)  # resizable horizontally only
+
 		# Load Settings:
 		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-		# resizable horizontally only: content height stays fixed
-		nsWindow = self.w.getNSWindow()
-		contentHeight = nsWindow.contentRectForFrameRect_(nsWindow.frame()).size.height
-		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
-		nsWindow.setContentMinSize_((windowWidth, contentHeight))
-		nsWindow.setContentMaxSize_((windowWidth + windowWidthResize, contentHeight))
 
 	def resetAnchorPairs(self, sender=None):
 		self.w.whichAnchorPairs.set(self.prefDict["whichAnchorPairs"])

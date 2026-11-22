@@ -6,10 +6,9 @@ never includes composites. Uses each layer's individual metrics (supports per-la
 """
 
 import vanilla
-from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSWindowStyleMaskResizable
-from Foundation import NSSize
+from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, GSAnnotation, TEXT, GSOFFCURVE, GSUppercase, GSLowercase, GSMetricsTypexHeight, GSMetricsTypeCapHeight, Message
-from mekkablue import mekkaObject, SteppingEditText, decimalFormatter, UpdateButton
+from mekkablue import mekkaObject, SteppingEditText, decimalFormatter, UpdateButton, makeWindowResizable
 
 
 class FindNearVerticalMisses(mekkaObject):
@@ -32,7 +31,7 @@ class FindNearVerticalMisses(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Find Near Vertical Misses",
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and width
 		)
 
 		inset = 15
@@ -116,18 +115,11 @@ class FindNearVerticalMisses(mekkaObject):
 			metrics={"inset": inset, "gap": 8, "row": 8, "stackRow": 8, "section": 12},
 		)
 
+		makeWindowResizable(self.w)  # resizable horizontally only
+
 		self.LoadPreferences()
 		self.w.open()
 		self.w.makeKey()
-
-		# make the window horizontally resizable, but keep the height that Auto Layout determined.
-		# (Content sizes set directly on the NSWindow, so the title bar is not counted twice.)
-		nsWindow = self.w.getNSWindow()
-		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
-		nsWindow.layoutIfNeeded()  # make sure the content has its final size before we read it
-		contentSize = nsWindow.contentView().frame().size
-		nsWindow.setContentMinSize_(NSSize(contentSize.width, contentSize.height))
-		nsWindow.setContentMaxSize_(NSSize(contentSize.width + 1000, contentSize.height))
 
 	def resetToDefaults(self, sender=None):
 		for prefName, defaultValue in self.prefDict.items():

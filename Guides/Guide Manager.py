@@ -4,12 +4,11 @@ Selects or removes local (blue) and global (red) guides, with a scope for each. 
 """
 
 import vanilla
-from mekkablue import mekkaObject, guidesOf, setGuides, fontFileName
+from mekkablue import mekkaObject, guidesOf, setGuides, fontFileName, makeWindowResizable
 from GlyphsApp import Glyphs, Message
-from Foundation import NSSize
 from AppKit import (
 	NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh,
-	NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut, NSWindowStyleMaskResizable,
+	NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut,
 )
 
 localScopes = ("Selected glyphs", "All glyphs in current master", "All glyphs in all masters")
@@ -31,12 +30,11 @@ class GuideManager(mekkaObject):
 
 	def __init__(self):
 		windowWidth = 400
-		windowWidthResize = 400  # user can resize the width by this much
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Guide Manager",
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and width
 		)
 
 		inset = 15
@@ -98,17 +96,11 @@ class GuideManager(mekkaObject):
 			metrics={"inset": inset, "indent": inset + 20, "gap": 8, "row": 8},
 		)
 
+		makeWindowResizable(self.w)  # resizable horizontally only
+
 		self.LoadPreferences()
 		self.w.open()
 		self.w.makeKey()
-
-		# Resizable in width only. Vanilla's minSize/maxSize would count the title bar twice,
-		# so set the limits on the NSWindow, in content sizes, with the size Auto Layout asks for:
-		nsWindow = self.w.getNSWindow()
-		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
-		fittingSize = nsWindow.contentView().fittingSize()
-		nsWindow.setContentMinSize_(NSSize(min(fittingSize.width, windowWidth), fittingSize.height))
-		nsWindow.setContentMaxSize_(NSSize(windowWidth + windowWidthResize, fittingSize.height))
 
 	def setStatus(self, text):
 		"""Sets the status line and redraws it right away, so it shows while the script is busy."""

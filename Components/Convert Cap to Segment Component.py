@@ -10,9 +10,9 @@ import math
 import re
 
 import vanilla
-from AppKit import NSAffineTransform, NSPoint, NSTextAlignmentRight, NSWindowStyleMaskResizable, NSSize, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
+from AppKit import NSAffineTransform, NSPoint, NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import CAP, SEGMENT, GSAnchor, GSHint, GSLayer, Glyphs, Message
-from mekkablue import UpdateButton, mekkaObject, newGlyphWithName, clearGuides
+from mekkablue import UpdateButton, mekkaObject, newGlyphWithName, clearGuides, makeWindowResizable
 
 
 def sanitizeSuffix(text):
@@ -43,7 +43,7 @@ class ConvertCapToSegmentComponent(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Convert Cap to Segment Component",
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and width
 		)
 
 		inset = 15
@@ -122,19 +122,12 @@ class ConvertCapToSegmentComponent(mekkaObject):
 			metrics={"inset": inset, "gap": 8, "row": 6, "checkGap": 10, "checkRow": 5},
 		)
 
+		makeWindowResizable(self.w, minSize=(windowWidth * 0.75, 0))  # resizable horizontally only
+
 		self.LoadPreferences()
 		self.updateCapList()  # reset to first cap if stored name is no longer valid
 		self.w.open()
 		self.w.makeKey()
-
-		# make the window horizontally resizable, but keep the height that Auto Layout determined.
-		# (Content sizes set directly on the NSWindow, so the title bar is not counted twice.)
-		nsWindow = self.w.getNSWindow()
-		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
-		nsWindow.layoutIfNeeded()
-		contentSize = nsWindow.contentView().frame().size
-		nsWindow.setContentMinSize_(NSSize(round(contentSize.width * 0.75), contentSize.height))  # 25% narrower than the initial width
-		nsWindow.setContentMaxSize_(NSSize(contentSize.width + 1000, contentSize.height))
 
 	def allCapGlyphs(self):
 		font = Glyphs.font
