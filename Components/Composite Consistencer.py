@@ -91,6 +91,11 @@ class CompositeConsistencer(mekkaObject):
 		nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
 		nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 
+		# buttons in a row with other elements stay as wide as their titles need:
+		for nsButton in (self.w.createButton.getNSButton(), self.w.runButton.getNSButton()):
+			nsButton.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsButton.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
 		self.w.addAutoPosSizeRules(
 			[
 				"H:|-inset-[descriptionText]-inset-|",
@@ -101,12 +106,12 @@ class CompositeConsistencer(mekkaObject):
 				"H:|-inset-[includeNonExporting]-(>=inset)-|",
 				"H:|-inset-[selectedOnly]-(>=inset)-|",
 				"H:|-inset-[progress]-inset-|",
-				"H:|-inset-[createButton(>=70)]-gap-[status]-(>=gap)-[runButton(>=70)]-inset-|",
-				"V:|-inset-[descriptionText]-headlineGap-[ignore]-headlineGap-[ignoreDuplicateSuffixes]-checkRow-[suffixOrderMatters]-checkRow-[allFonts]-checkRow-[includeNonExporting]-checkRow-[selectedOnly]-barGap-[progress(16)]-inset-[runButton]-inset-|",
+				"H:|-inset-[status]-inset-|",
+				"H:|-inset-[createButton(>=70)]-(>=gap)-[runButton(>=70)]-inset-|",
+				"V:|-inset-[descriptionText]-headlineGap-[ignore]-headlineGap-[ignoreDuplicateSuffixes]-checkRow-[suffixOrderMatters]-checkRow-[allFonts]-checkRow-[includeNonExporting]-checkRow-[selectedOnly]-barGap-[progress(16)]-gap-[status]-inset-[runButton]-inset-|",
 				"V:[createButton]-inset-|",
 				{"view1": self.w.ignoreText, "attribute1": "centerY", "view2": self.w.ignore, "attribute2": "centerY"},
 				{"view1": self.w.updateIgnore, "attribute1": "centerY", "view2": self.w.ignore, "attribute2": "centerY"},
-				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 			],
 			metrics={"inset": inset, "gap": 8, "headlineGap": 10, "checkRow": 5, "barGap": 14},
 		)
@@ -221,7 +226,7 @@ class CompositeConsistencer(mekkaObject):
 
 			self.prepareReport()
 			print("Composite Consistencer Report\n")
-			self.w.status.set("")
+			self.w.status.set("🛠️ Processing…")
 			self.w.progress.set(0)
 
 			totalAffected = 0
@@ -242,7 +247,7 @@ class CompositeConsistencer(mekkaObject):
 
 			self.w.progress.set(100)
 			summary = f"{totalAffected} glyph{'' if totalAffected == 1 else 's'} missing {len(missingNames)} composite{'' if len(missingNames) == 1 else 's'}"
-			self.w.status.set(summary)
+			self.w.status.set(f"{'⚠️' if missingNames else '✅'} {summary}.")
 			print(f"{'⚠️' if missingNames else '✅'} {summary}.")
 			if missingNames:
 				if not suffixOrderMatters:
@@ -278,7 +283,7 @@ class CompositeConsistencer(mekkaObject):
 
 			self.prepareReport()
 			print("Composite Consistencer: Create Report\n")
-			self.w.status.set("")
+			self.w.status.set("🛠️ Processing…")
 			self.w.progress.set(0)
 			totalCreated = 0
 
