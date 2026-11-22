@@ -6,7 +6,7 @@ Overlays the highest, lowest, leftmost and rightmost glyphs in a resizable windo
 from time import time_ns
 
 import vanilla
-from mekkablue import mekkaObject, UpdateButton, makeWindowResizable
+from mekkablue import mekkaObject, UpdateButton, newLineControlLayer, makeWindowResizable
 from GlyphsApp import Glyphs, Message, GSMetricsTypeItalicAngle
 from AppKit import (
 	NSAffineTransform, NSAlternateKeyMask, NSAttributedString, NSEvent, NSEventMaskFlagsChanged, NSBezierPath, NSBitmapImageFileTypePNG, NSColor, NSFont,
@@ -251,6 +251,7 @@ class ReportHighestAndLowestGlyphs(mekkaObject):
 		self.cachedMetricLines = ()
 		self.cachedDesignHeights = ()
 		self.shownEntries = []
+		self.shownLines = [[], [], []]  # entries for the tab: highest, leftmost and rightmost, lowest
 
 		self.w.preview = GlyphOverlayPreview("auto")
 		self.w.preview.setToolTip("Canvas with the overlaid highest, lowest, leftmost and rightmost glyphs.")
@@ -300,7 +301,7 @@ class ReportHighestAndLowestGlyphs(mekkaObject):
 		self.w.copyPNGButton = vanilla.Button("auto", "Copy PNG", callback=self.copyImage)
 		self.w.copyPNGButton.setToolTip("Copies the canvas at its current size as a PNG with transparent background. Hold down the Option key to copy a PDF instead, with the background of the current appearance (dark in Dark Mode).")
 		self.w.openTabButton = vanilla.Button("auto", "Open Tab", callback=self.openTab)
-		self.w.openTabButton.setToolTip("Opens a tab with all currently shown glyphs in the fonts of the scope.")
+		self.w.openTabButton.setToolTip("Opens a tab per font with the currently shown glyphs in three lines: highest, leftmost and rightmost, lowest.")
 		self.w.setDefaultButton(self.w.openTabButton)
 
 		nsScopeLabel = self.w.scopeLabel.getNSTextField()
@@ -464,6 +465,8 @@ class ReportHighestAndLowestGlyphs(mekkaObject):
 		labels = []
 		unionRect = None
 		self.shownEntries = []
+		self.shownLines = [[], [], []]
+		lineIndexes = {"⬆️": 0, "⬅️": 1, "➡️": 1, "⬇️": 2}
 		shownKeys = set()
 		for emoji, valueFunction, useMax, group, color, edge in categories:
 			if not entries:
@@ -480,6 +483,9 @@ class ReportHighestAndLowestGlyphs(mekkaObject):
 				overlays.append((layer.completeBezierPath, color.colorWithAlphaComponent_(alpha)))
 				unionRect = unionOfRects(unionRect, bounds)
 				key = layerKey(entry)
+				lineEntries = self.shownLines[lineIndexes[emoji]]
+				if all(layerKey(other) != key for other in lineEntries):
+					lineEntries.append(entry)
 				if key not in shownKeys:
 					shownKeys.add(key)
 					self.shownEntries.append(entry)
@@ -567,11 +573,18 @@ class ReportHighestAndLowestGlyphs(mekkaObject):
 		Glyphs.showNotification("Font BBoxer", message)
 
 	def openTab(self, sender=None):
+		"""One tab per font, in three lines: highest, leftmost and rightmost, lowest."""
 		layersByFont = {}
 		fonts = {}
-		for fontIndex, font, layer, bounds in self.shownEntries:
-			layersByFont.setdefault(fontIndex, []).append(layer)
-			fonts[fontIndex] = font
+		for lineEntries in self.shownLines:
+			for fontIndex in sorted({entry[0] for entry in lineEntries}):
+				layers = layersByFont.setdefault(fontIndex, [])
+				if layers:
+					layers.append(newLineControlLayer())
+				for entry in lineEntries:
+					if entry[0] == fontIndex:
+						layers.append(entry[2])
+						fonts[fontIndex] = entry[1]
 		for fontIndex, layers in layersByFont.items():
 			fonts[fontIndex].newTab(layers)
 
