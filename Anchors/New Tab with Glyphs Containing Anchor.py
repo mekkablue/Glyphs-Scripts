@@ -90,6 +90,11 @@ class NewTabWithAnchor(mekkaObject):
 			for labelName in labelNames if labelName != widestLabel
 		]
 
+		# buttons in a row with other elements stay as wide as their titles need:
+		for nsButton in (self.w.runButton.getNSButton(),):
+			nsButton.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsButton.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
 		self.w.addAutoPosSizeRules(
 			[
 				"H:|-inset-[text_1]-gap-[anchorName]-gap-[updateButton]-inset-|",

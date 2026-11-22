@@ -5,7 +5,7 @@ Find and report possible issues with components and corner components.
 
 import vanilla
 from timeit import default_timer as timer
-from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired
 from GlyphsApp import Glyphs, Message, CORNER
 from mekkablue import mekkaObject, camelCaseSplit, reportTimeInNaturalLanguage, fontFileName
 
@@ -159,6 +159,11 @@ class ComponentProblemFinder(mekkaObject):
 			verticalChain,
 			{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 		]
+		# buttons in a row with other elements stay as wide as their titles need:
+		for nsButton in (self.w.runButton.getNSButton(),):
+			nsButton.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsButton.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
 		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "headlineGap": 10, "lineGap": 8, "checkRow": 5, "barGap": 14})
 
 		# Load Settings:

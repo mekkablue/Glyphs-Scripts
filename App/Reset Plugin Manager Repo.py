@@ -11,6 +11,8 @@ from AppKit import (
 	NSLayoutPriorityWindowSizeStayPut,
 	NSLineBreakByTruncatingTail,
 	NSColor,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityRequired,
 )
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, UpdateButton, makeWindowResizable
@@ -96,6 +98,11 @@ class ResetPluginManagerRepo(mekkaObject):
 
 		for view in self.w.getNSWindow().contentView().subviews():
 			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# buttons in a row with other elements stay as wide as their titles need:
+		for nsButton in (self.w.runButton.getNSButton(),):
+			nsButton.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsButton.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 
 		self.w.addAutoPosSizeRules(
 			[

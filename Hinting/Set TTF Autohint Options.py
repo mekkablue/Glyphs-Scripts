@@ -4,7 +4,7 @@ Set options for existing 'TTFAutohint options' Custom Parameters.
 """
 
 import vanilla
-from AppKit import NSColor, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
+from AppKit import NSColor, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut, NSLayoutPriorityRequired
 from GlyphsApp import Glyphs, Message, INSTANCETYPEVARIABLE
 from mekkablue import mekkaObject, makeWindowResizable
 from ttfautohintoptions import parameterName, valuelessOptions, availableOptionsDict, availableOptions, removeFromAutohintOptions, dictToParameterValue, ttfAutohintDict, glyphInterpolation, idotlessMeasure, writeOptionsToInstance
@@ -84,6 +84,11 @@ class SetTTFAutohintOptions(mekkaObject):
 
 		self.w.optionValue.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 		self.w.ttfAutohintOption.getNSPopUpButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+
+		# buttons in a row with other elements stay as wide as their titles need:
+		for nsButton in (self.w.runButton.getNSButton(), self.w.delButton.getNSButton()):
+			nsButton.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsButton.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 
 		self.w.addAutoPosSizeRules(
 			[

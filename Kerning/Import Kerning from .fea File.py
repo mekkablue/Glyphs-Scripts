@@ -22,7 +22,7 @@ if Glyphs.versionNumber < 4.0:
 else:
 	from GlyphsApp import GSRTL
 
-from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
+from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationHorizontal, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired
 
 leftSideMarkers = ("MMK_L_", "_1ST", "_first")
 rightSideMarkers = ("MMK_R_", "_2ND", "_second")
@@ -157,6 +157,11 @@ class ImportKerningFromFeaFile(mekkaObject):
 
 		for view in self.w.getNSWindow().contentView().subviews():
 			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# buttons in a row with other elements stay as wide as their titles need:
+		for nsButton in (self.w.chooseButton.getNSButton(),):
+			nsButton.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsButton.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 
 		self.w.addAutoPosSizeRules(
 			[

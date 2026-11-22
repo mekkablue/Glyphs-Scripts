@@ -133,6 +133,11 @@ class AnchorRemover(mekkaObject):
 			)
 		]
 
+		# buttons in a row with other elements stay as wide as their titles need:
+		for nsButton in (self.w.removeAnchorButton.getNSButton(), self.w.removeSuffixButton.getNSButton(), self.w.removeNonStandardButton.getNSButton()):
+			nsButton.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsButton.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
 		self.w.addAutoPosSizeRules(
 			[
 				"H:|-inset-[anchorText]-gap-[anchorName(>=120)]-gap-[updateButton]-gap-[removeAnchorButton(>=70)]-inset-|",

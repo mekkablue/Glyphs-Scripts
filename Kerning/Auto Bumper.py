@@ -272,6 +272,11 @@ class Bumper(mekkaObject):
 		def baseline(viewName, referenceName):
 			return {"view1": getattr(self.w, viewName), "attribute1": "centerY", "view2": getattr(self.w, referenceName), "attribute2": "centerY"}
 
+		# buttons in a row with other elements stay as wide as their titles need:
+		for nsButton in (self.w.swapButton.getNSButton(),):
+			nsButton.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsButton.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
 		self.w.addAutoPosSizeRules(
 			[
 				"H:|-inset-[descriptionText]-inset-|",

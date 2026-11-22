@@ -302,6 +302,11 @@ class VerticalMetricsManager(mekkaObject):
 			for mainView, otherViews in centerRows for otherView in otherViews
 		]
 
+		# buttons in a row with other elements stay as wide as their titles need:
+		for nsButton in (self.w.calculateButton.getNSButton(),):
+			nsButton.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsButton.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
 		self.w.addAutoPosSizeRules(
 			[
 				"H:|-inset-[descriptionText]-inset-|",

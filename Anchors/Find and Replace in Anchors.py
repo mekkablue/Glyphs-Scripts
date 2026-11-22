@@ -104,6 +104,11 @@ class SearchAndReplaceInAnchors(mekkaObject):
 		for view in self.w.getNSWindow().contentView().subviews():
 			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
 
+		# buttons in a row with other elements stay as wide as their titles need:
+		for nsButton in (self.w.replaceButton.getNSButton(),):
+			nsButton.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsButton.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
 		self.w.addAutoPosSizeRules(
 			[
 				"H:|-inset-[textSearch]-gap-[searchFor(>=60)]-gap-[updateButton]-inset-|",

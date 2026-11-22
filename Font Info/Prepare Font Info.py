@@ -4,7 +4,7 @@ Prepare open fonts for a modern font production and git workflow.
 """
 
 import vanilla
-from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityWindowSizeStayPut
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityWindowSizeStayPut, NSLayoutPriorityRequired
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, makeWindowResizable
 
@@ -113,6 +113,11 @@ class PrepareFontforGit(mekkaObject):
 			{"view1": self.w.applyToFontsText, "attribute1": "centerY", "view2": self.w.applyToFonts, "attribute2": "centerY"},
 			{"view1": self.w.runButton, "attribute1": "centerY", "view2": self.w.applyToFonts, "attribute2": "centerY"},
 		]
+		# buttons in a row with other elements stay as wide as their titles need:
+		for nsButton in (self.w.runButton.getNSButton(),):
+			nsButton.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsButton.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
 		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "checkRow": 5})
 
 		makeWindowResizable(self.w)  # resizable horizontally only
