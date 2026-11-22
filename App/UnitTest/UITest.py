@@ -236,7 +236,7 @@ class UISmokeTest(mekkaObject):
 		try:
 			delay = float(self.w.delay.get())  # the formatter keeps it between 0.05 and 5.0
 		except (TypeError, ValueError):
-			self.w.status.set("Enter a number of seconds between 0.05 and 5.0.")
+			self.w.status.set("⚠️ Enter a number of seconds between 0.05 and 5.0.")
 			return
 
 		self.scriptPaths = findUIScripts()
@@ -249,7 +249,7 @@ class UISmokeTest(mekkaObject):
 		resetLog()
 		writeLog("RUN START: %i GUI scripts; %.2f seconds per dialog" % (len(self.scriptPaths), self.delay))
 		if not self.setSkipClearLog(True):
-			self.w.status.set("Could not prevent scripts from clearing the Macro window. See the log.")
+			self.w.status.set("❌ Could not prevent scripts from clearing the Macro window. See the log.")
 			return
 		self.w.progress.set(0)
 		self.w.delay.enable(False)

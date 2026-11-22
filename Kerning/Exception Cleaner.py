@@ -76,7 +76,7 @@ class DeleteExceptionsTooCloseToGroupKerning(mekkaObject):
 		# Prediction:
 		self.w.countPairs = vanilla.CheckBox("auto", "Prediction:", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.countPairs.setToolTip("Count the exceptions that would be removed with the current settings (may be slow in large fonts).")
-		self.w.statusText = vanilla.TextBox("auto", "will remove – pairs.", sizeStyle="small")
+		self.w.statusText = vanilla.TextBox("auto", "🔮 Will remove – pairs.", sizeStyle="small")
 		self.w.statusText.setToolTip("Number of kerning pairs the Clean button would remove right now.")
 
 		# Buttons:
@@ -146,9 +146,9 @@ class DeleteExceptionsTooCloseToGroupKerning(mekkaObject):
 				for font in self.fontsToProcess()
 				for master in self.mastersToProcess(font)
 			)
-			self.w.statusText.set(f"will remove {total} pair{'' if total == 1 else 's'}.")
+			self.w.statusText.set(f"🔮 Will remove {total} pair{'' if total == 1 else 's'}.")
 		else:
-			self.w.statusText.set("will remove – pairs.")
+			self.w.statusText.set("🔮 Will remove – pairs.")
 
 	def fontsToProcess(self):
 		"""The fonts to clean, according to the ‘Remove in’ popup."""

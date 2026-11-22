@@ -654,7 +654,9 @@ Glyphs.showNotification("My Script", "Brief summary. Details in Macro Window.")
     (and redraw the status line, see `setStatus()` in KernCrasher), so that after a crash the status line shows the
     last glyph the script worked on.
 
-  Do not use these seven emojis for anything else in a status line.
+  Do not use these seven emojis for anything else in a status line. Other emojis are fine for states the seven do
+  not cover, e.g. `↩️ Kerning restored.` or `⏱️ Waiting for font activation…`, as long as they do not exactly match
+  the purpose of one of the seven. Then use the matching one: a prediction is `🔮`, not another emoji.
 - **Name unsaved fonts by their family name.** A font without a file path has no file name to report. Print
   `f"{font.familyName} (unsaved)"` instead, never a placeholder like `<UNSAVED DOCUMENT>`:
 

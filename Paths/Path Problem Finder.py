@@ -975,7 +975,7 @@ class PathProblemFinder(mekkaObject):
 						self.w.progress.set(firstStepPerFont + stepsPerFont * (i / glyphCount))
 						progressCounter = 0
 					progressCounter += 1
-					self.w.status.set(f"📄 {fontIndex + 1} 🔠 {thisGlyph.name}")
+					self.w.status.set(f"🔠 {thisGlyph.name} 📄 {fontIndex + 1}")
 					# print(f"{i + 1}. {thisGlyph.name}")
 
 					# step through layers

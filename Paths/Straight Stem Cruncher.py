@@ -400,7 +400,7 @@ class StraightStemCruncher(mekkaObject):
 				glyphExportsOrNonExportingIncluded = thisGlyph.export or self.pref("includeNonExporting")
 
 				if glyphExportsOrNonExportingIncluded and not glyphNameIsExcluded:
-					self.w.status.set("Processing: %s" % thisGlyph.name)
+					self.w.status.set("🔠 %s" % thisGlyph.name)
 					for thisLayer in thisGlyph.layers:
 						if thisLayer.master == thisFont.selectedFontMaster:
 							if thisLayer.isMasterLayer or (thisLayer.isSpecialLayer and self.pref("checkSpecialLayers")):

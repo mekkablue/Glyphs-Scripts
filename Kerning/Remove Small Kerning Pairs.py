@@ -76,7 +76,7 @@ class DeleteSmallKerningPairs(mekkaObject):
 
 		tooltip = "Count the affected pairs (may be slow in large fonts)."
 		self.w.countPairs = vanilla.CheckBox("auto", "Prediction:", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.statusText = vanilla.TextBox("auto", "will remove – pairs.", sizeStyle="small")
+		self.w.statusText = vanilla.TextBox("auto", "🔮 Will remove – pairs.", sizeStyle="small")
 		self.w.countPairs.setToolTip(tooltip)
 		self.w.statusText.setToolTip("Number of pairs the Remove button would delete right now.")
 
@@ -140,9 +140,9 @@ class DeleteSmallKerningPairs(mekkaObject):
 		self.w.statusText.getNSTextField().setEnabled_(countEnabled)
 		if countEnabled and anyValue and anyKind:
 			total = sum(len(self.pairsToRemove(font, master)[0]) for font, master in self.fontsAndMasters())
-			self.w.statusText.set("will remove %i pair%s." % (total, "" if total == 1 else "s"))
+			self.w.statusText.set("🔮 Will remove %i pair%s." % (total, "" if total == 1 else "s"))
 		else:
-			self.w.statusText.set("will remove – pairs.")
+			self.w.statusText.set("🔮 Will remove – pairs.")
 
 	def fontsAndMasters(self):
 		"""Yield (font, master) tuples according to the ‘Remove on’ popup."""

@@ -312,7 +312,7 @@ class CPALManager(mekkaObject):
 					maxIndex = colorPalette
 
 		if maxIndex < 0:
-			self.w.status.set("No color layers found.")
+			self.w.status.set("⚠️ No color layers found.")
 			return
 
 		# Cycle: use negative indices as temporary markers to avoid conflicts
@@ -345,7 +345,7 @@ class CPALManager(mekkaObject):
 					layer.attributes['colorPalette'] = -(colorPalette + 1)
 
 		font.enableUpdateInterface()
-		self.w.status.set(f"Cycled {processedCount} layer(s) in {glyphCount} glyph(s).")
+		self.w.status.set(f"✅ Cycled {processedCount} layer(s) in {glyphCount} glyph(s).")
 
 	def reverseColorIndexes(self, sender=None):
 		"""Reverse color palette indexes: 0↔highest, 1↔second-highest, etc."""
@@ -369,7 +369,7 @@ class CPALManager(mekkaObject):
 					maxIndex = colorPalette
 
 		if maxIndex < 0:
-			self.w.status.set("No color layers found.")
+			self.w.status.set("⚠️ No color layers found.")
 			return
 
 		# Reverse

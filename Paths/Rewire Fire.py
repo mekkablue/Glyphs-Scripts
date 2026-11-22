@@ -269,7 +269,7 @@ class RewireFire(mekkaObject):
 				for i, thisGlyph in enumerate(thisFont.glyphs):
 					fontSector = 100 / len(theseFonts)
 					self.w.progress.set(int(fontIndex * fontSector + i / numGlyphs * fontSector))
-					self.w.statusText.set(f"📄 {fontIndex + 1} 🔠 {thisGlyph.name}")
+					self.w.statusText.set(f"🔠 {thisGlyph.name} 📄 {fontIndex + 1}")
 
 					if thisGlyph.export or includeNonExporting:
 						for thisLayer in thisGlyph.layers:

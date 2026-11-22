@@ -328,7 +328,7 @@ class CompositeConsistencer(mekkaObject):
 				print()
 
 			self.w.progress.set(100)
-			self.w.status.set("Created %i composite%s" % (totalCreated, "" if totalCreated == 1 else "s"))
+			self.w.status.set("✅ Created %i composite%s" % (totalCreated, "" if totalCreated == 1 else "s"))
 			print("✅ Created %i composite%s." % (totalCreated, "" if totalCreated == 1 else "s"))
 			Glyphs.showNotification(
 				"Composite Consistencer",
