@@ -645,7 +645,7 @@ Glyphs.showNotification("My Script", "Brief summary. Details in Macro Window.")
 - Notify the user via `Glyphs.showNotification()` for completion messages.
 - **Every script that changes the font has feedback on how it ended.** The user must be able to tell that the script is
   done, and, after a crash, what it was working on:
-  - **A window with an action button has a status line** (`self.w.status`, a small `TextBox` that starts with
+  - **A window with an action button has a status line** (`self.w.status`, a `TextBox` that is always `sizeStyle="small"`, even when the rest of the window uses regular size, and that starts with
     `🤖 Ready.`), in the bottom row to the left of the run button, see “Resizing”. The run method sets it to
     `🛠️`, then to `🔠 glyphName` (or the master or instance name, or a master and glyph) for every item it works on,
     redrawn at once with `self.setStatus(text)`, and finally to `✅` plus a statistic (or

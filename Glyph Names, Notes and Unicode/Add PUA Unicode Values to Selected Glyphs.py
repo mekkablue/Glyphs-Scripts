@@ -44,7 +44,7 @@ class CustomUnicode(mekkaObject):
 		self.w.includeNonExportingGlyphs.setToolTip("If disabled, will skip all glyphs that are set to not export. If enabled, will treat all selected glyphs, including non-exporting glyphs.")
 
 		# Status Message:
-		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", selectable=True)
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", selectable=True, sizeStyle="small")
 		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# Run Button:
