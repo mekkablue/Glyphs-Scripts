@@ -5,7 +5,7 @@ Builds inverted Spanish punctuation ¡¿ for mixed and upper case. Hold down COM
 
 from AppKit import NSEvent, NSEventModifierFlagShift, NSEventModifierFlagCommand
 from GlyphsApp import Glyphs, GSComponent, Message
-from mekkablue import newGlyphWithName
+from mekkablue import newGlyphWithName, fontFileName
 
 invertedGlyphNames = (
 	"exclamdown",
@@ -42,10 +42,7 @@ if None in theseFonts:
 	raise SystemExit
 
 for thisFont in theseFonts:
-	if thisFont.filepath:
-		print(f"📄 {thisFont.filepath.lastPathComponent().stringByDeletingLastDotSuffix()}")
-	else:
-		print(f"⚠️ unsaved document: {thisFont.familyName}")
+	print(f"📄 {fontFileName(thisFont)}")
 	print()
 
 	thisFont.disableUpdateInterface()  # suppresses UI updates in Font View

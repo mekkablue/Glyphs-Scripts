@@ -4,7 +4,7 @@ Finds all combinations of positional shapes that do not click well. Clicking mea
 """
 
 import vanilla
-from mekkablue import mekkaObject, newLineControlLayer, UpdateButton, SteppingEditText, integerFormatter
+from mekkablue import mekkaObject, newLineControlLayer, UpdateButton, SteppingEditText, integerFormatter, fontFileName
 from GlyphsApp import Glyphs, GSOFFCURVE, Message
 from AppKit import (
 	NSColor,
@@ -345,7 +345,7 @@ class PositionClicker(mekkaObject):
 							comboCount,
 							len(thisFont.masters),
 							"" if len(thisFont.masters) == 1 else "s",
-							thisFont.filepath.lastPathComponent() if thisFont.filepath else thisFont.familyName,
+							fontFileName(thisFont),
 							clickCount,
 						),
 						OKButton="🥂Cool",

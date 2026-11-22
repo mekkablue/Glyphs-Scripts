@@ -6,13 +6,13 @@ Copies kerning groups from one font to another.
 import vanilla
 from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, reportFontName, UpdateButton
+from mekkablue import mekkaObject, reportFontName, fontFileName, UpdateButton
 
 
 def menuForFonts(fonts):
 	menu = []
 	for i, font in enumerate(fonts):
-		menu.append(f"{i + 1}. {font.familyName} ({font.filepath.lastPathComponent() if font.filepath else 'unsaved document'})")
+		menu.append(f"{i + 1}. {font.familyName} ({fontFileName(font)})")
 	return menu
 
 
