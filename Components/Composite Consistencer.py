@@ -69,7 +69,7 @@ class CompositeConsistencer(mekkaObject):
 		self.w.progress = vanilla.ProgressBar("auto")
 		self.w.progress.set(0)
 
-		self.w.status = vanilla.TextBox("auto", "", sizeStyle='small')
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle='small')
 		self.w.status.setToolTip("Result of the last Find or Create run.")
 		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
