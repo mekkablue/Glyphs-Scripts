@@ -7,7 +7,7 @@ import os
 from copy import deepcopy
 
 import vanilla
-from AppKit import NSFont, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
+from AppKit import NSColor, NSFont, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message, TTF, PLAIN, INSTANCETYPEVARIABLE
 from mekkablue import mekkaObject, UpdateButton, makeWindowResizable
 from ttfautohintoptions import parameterName, valuelessOptions, availableOptionsDict, availableOptions, removeFromAutohintOptions, dictToParameterValue, ttfAutohintDict, glyphInterpolation, idotlessMeasure, writeOptionsToInstance
@@ -56,10 +56,19 @@ class SetFamilyAlignmentZones(mekkaObject):
 		self.w.helpTutorialPS = vanilla.HelpButton("auto", callback=self.openURL)
 		self.w.helpTutorialPS.setToolTip("Will open the glyphsapp.com tutorial about PS Hinting, at the section that explains Family Alignment Zones.")
 
-		# Run Button:
+		# Status line and Run Button:
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
 		self.w.runButton = vanilla.Button("auto", "Insert FAZ", callback=self.SetFamilyAlignmentZonesMain)
 		self.w.runButton.setToolTip("Inserts the family alignment zones for the chosen instance into the font.")
 		self.w.setDefaultButton(self.w.runButton)
+
+		# the status line takes the leftover width, the button stays as wide as its title needs:
+		self.w.status.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton.getNSButton().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 
 		# checkboxes stretch vertically by default; with everything hugging,
 		# the window ends up exactly as tall as the content
@@ -73,9 +82,10 @@ class SetFamilyAlignmentZones(mekkaObject):
 				"H:|-inset-[descriptionText]-inset-|",
 				"H:|-inset-[instanceText]-gap-[instancePicker]-gap-[updateButton]-inset-|",
 				"H:|-inset-[addTTReference]-(>=inset)-|",
-				"H:|-inset-[helpTutorialPS]-(>=gap)-[runButton(>=70)]-inset-|",
+				"H:|-inset-[helpTutorialPS]-gap-[status]-gap-[runButton(>=70)]-inset-|",
 				"V:|-gap-[descriptionText(28)]-row-[instancePicker]-row-[addTTReference]-inset-[runButton]-inset-|",
 				"V:[helpTutorialPS]-inset-|",
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 				{"view1": self.w.instanceText, "attribute1": "centerY", "view2": self.w.instancePicker, "attribute2": "centerY"},
 				{"view1": self.w.updateButton, "attribute1": "centerY", "view2": self.w.instancePicker, "attribute2": "centerY"},
 			],
@@ -169,6 +179,7 @@ class SetFamilyAlignmentZones(mekkaObject):
 		for instance in font.instances:
 			if instance.type == INSTANCETYPEVARIABLE:
 				continue
+			self.setStatus(f"🔠 {instance.name}")
 
 			# remove any previous --reference options
 			removeFromAutohintOptions(instance, reference)
@@ -184,19 +195,24 @@ class SetFamilyAlignmentZones(mekkaObject):
 
 
 	def SetFamilyAlignmentZonesMain(self, sender):
+		currentItem = None
 		try:
 			Glyphs.clearLog()  # clears macro window log
 			self.SavePreferences()
 			thisFont = Glyphs.font  # frontmost font
 			if not thisFont:
+				self.setStatus("⚠️ No font open.")
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 				return
 			print(f"👾 Family Alignment Zones Report for {thisFont.familyName}")
 			print(f"📄 {thisFont.filepath}" if thisFont.filepath else f"📄 {thisFont.familyName} (unsaved)")
 
+			self.setStatus("🛠️ Processing the chosen instance…")
 			instanceName = self.w.instancePicker.getItem()
 			instanceIndex = int(instanceName[:instanceName.find(":")])
 			thisInstance = [i for i in thisFont.instances if i.type == 0][instanceIndex]
+			currentItem = thisInstance.name
+			self.setStatus(f"🔠 {thisInstance.name}")
 			
 			print("\n🤖 Adding PS family alignment zones...")
 			if thisInstance.name in instanceName:
@@ -215,7 +231,9 @@ class SetFamilyAlignmentZones(mekkaObject):
 				if self.pref("addTTReference"):
 					print("\n🤖 Adding TT reference font...")
 					self.addInstanceAsReferenceFontToAllTTFautohintOptions(thisInstance)
+				self.setStatus(f"✅ Set family alignment zones from {thisInstance.name}.")
 			else:
+				self.setStatus("❌ The chosen instance is not in the frontmost font.")
 				Message(
 					title="Family Zones Error",
 					message=f"Seems like the instance you picked ({instanceName}) is not in the frontmost font. Please click the update button and choose again.",
@@ -225,6 +243,7 @@ class SetFamilyAlignmentZones(mekkaObject):
 
 			print("\n✅ Done.")
 		except Exception as e:
+			self.setStatus(f"❌ Error at {currentItem or 'start'}. Details in Macro Window.")
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print(f"Set Family Alignment Zones Error: {e}")

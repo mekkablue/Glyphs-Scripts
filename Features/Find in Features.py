@@ -5,7 +5,7 @@ Finds expressions (glyph, lookup or class names) in OT Features, Prefixes and Cl
 
 from fnmatch import fnmatchcase
 import vanilla
-from AppKit import NSFont, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultLow, NSFontFeatureSettingsAttribute, NSFontFeatureTypeIdentifierKey, NSFontFeatureSelectorIdentifierKey
+from AppKit import NSColor, NSFont, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultLow, NSFontFeatureSettingsAttribute, NSFontFeatureTypeIdentifierKey, NSFontFeatureSelectorIdentifierKey
 from GlyphsApp import Glyphs
 from mekkablue import mekkaObject, UpdateButton, getLegibleFont, makeWindowResizable
 
@@ -34,6 +34,13 @@ class FindInFeatures(mekkaObject):
 		self.w.result.getNSTextView().setFont_(self.legibleTabularFont())
 		self.w.result.getNSTextView().setToolTip_("Search results: OT classes, prefixes, and features that contain the searched name.")
 
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the number of matches.")
+		nsStatus = self.w.status.getNSTextField()
+		nsStatus.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		nsStatus.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
 		# the result takes all the height the user gives the window:
 		self.w.result.getNSScrollView().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationVertical)
 
@@ -41,7 +48,8 @@ class FindInFeatures(mekkaObject):
 			[
 				"H:|-inset-[searchFor(>=100)]-gap-[updateButton]-inset-|",
 				"H:|-inset-[result]-inset-|",
-				"V:|-inset-[searchFor]-gap-[result(>=100)]-inset-|",
+				"H:|-inset-[status]-inset-|",
+				"V:|-inset-[searchFor]-gap-[result(>=100)]-gap-[status]-inset-|",
 				{"view1": self.w.updateButton, "attribute1": "centerY", "view2": self.w.searchFor, "attribute2": "centerY"},
 			],
 			metrics={"inset": 5, "gap": 5},
@@ -103,6 +111,7 @@ class FindInFeatures(mekkaObject):
 		try:
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
+				self.setStatus("⚠️ No font open.")
 				return
 
 			searchfor = sender.get()
@@ -175,6 +184,11 @@ class FindInFeatures(mekkaObject):
 			reportText += prefixFeatureReportText
 
 			self.w.result.set(reportText)
+			matchCount = len(classes) + foundInFeaturesCount
+			if matchCount:
+				self.setStatus(f"✅ Found {matchCount} match{'' if matchCount == 1 else 'es'}.")
+			else:
+				self.setStatus("⚠️ Nothing found.")
 
 		except Exception as e:
 			# brings macro window to front and reports error:

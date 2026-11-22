@@ -6,7 +6,7 @@ Lists some Font Info values for all opened fonts.
 import vanilla
 from mekkablue import mekkaObject, makeWindowResizable
 from GlyphsApp import Glyphs
-from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultLow
+from AppKit import NSColor, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultLow
 
 keyList = [
 	["Family Name", "familyName", 160], ["Major", "versionMajor", 40], ["Minor", "versionMinor", 40], ["Grid", "grid", 40], ["Designer", "designer", 200],
@@ -66,6 +66,14 @@ class FontInfoOverview(mekkaObject):
 		# Counter:
 		self.w.changeCounter = vanilla.TextBox("auto", "Changes: -", sizeStyle='small')
 
+		# Status line:
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
+		nsStatus = self.w.status.getNSTextField()
+		nsStatus.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		nsStatus.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
 		# the list takes all the height the user gives the window:
 		self.w.List.getNSScrollView().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationVertical)
 
@@ -73,8 +81,9 @@ class FontInfoOverview(mekkaObject):
 			[
 				"H:|[List]|",
 				"H:|-inset-[changeCounter]-(>=gap)-[reloadButton(>=70)]-gap-[applyButton(>=70)]-inset-|",
-				"V:|[List(>=100)]-inset-[applyButton]-inset-|",
-				"V:[reloadButton]-inset-|",
+				"H:|-inset-[status]-inset-|",
+				"V:|[List(>=100)]-inset-[applyButton]-gap-[status]-inset-|",
+				{"view1": self.w.reloadButton, "attribute1": "centerY", "view2": self.w.applyButton, "attribute2": "centerY"},
 				{"view1": self.w.changeCounter, "attribute1": "centerY", "view2": self.w.applyButton, "attribute2": "centerY"},
 			],
 			metrics={"inset": 15, "gap": 8},
@@ -145,14 +154,22 @@ class FontInfoOverview(mekkaObject):
 
 	def Reload(self, sender):
 		try:
+			self.setStatus("🛠️ Reloading…")
 			self.w.List.set(self.listContent())
 			self.updateCounter()
+			fontCount = len(self.w.List.get())
+			self.setStatus(f"✅ Listed {fontCount} font{'' if fontCount == 1 else 's'}.")
 		except Exception as e:
 			Glyphs.showMacroWindow()
 			print("Reload Error: %s" % e)
+			self.setStatus("❌ Error while reloading. Details in Macro Window.")
 
 	def Apply(self, sender):
+		thisFont = None
 		try:
+			self.setStatus("🛠️ Applying changes…")
+			changedValues = 0
+			changedFonts = 0
 			listOfFontInfos = self.w.List.get()
 			selectedIndexes = self.w.List.getSelection()
 			nothingIsSelected = False
@@ -164,16 +181,27 @@ class FontInfoOverview(mekkaObject):
 				if fontInfoIndex in selectedIndexes or nothingIsSelected:
 					thisFontInfo = listOfFontInfos[fontInfoIndex]
 					thisFont = thisFontInfo["fontObj"]
+					self.setStatus(f"🔠 {thisFont.familyName}")
+					fontChanged = False
 					for thisKey in thisFontInfo.keys():
 						if thisKey != "fontObj":
 							currentFontValue = getattr(thisFont, thisKey)
 							listValue = self.valueForFont(currentFontValue, thisFontInfo[thisKey])
 							if currentFontValue != listValue:
+								changedValues += 1
+								fontChanged = True
 								print("Setting %s to '%s' in %s." % (thisKey, listValue, thisFont))
 								setattr(thisFont, thisKey, listValue)
+					if fontChanged:
+						changedFonts += 1
 			self.updateCounter()
+			if changedValues:
+				self.setStatus(f"✅ Changed {changedValues} value{'' if changedValues == 1 else 's'} in {changedFonts} font{'' if changedFonts == 1 else 's'}.")
+			else:
+				self.setStatus("⚠️ Nothing to change.")
 		except Exception as e:
 			print("Apply Error: %s" % e)
+			self.setStatus(f"❌ Error at {thisFont.familyName if thisFont else 'start'}. Details in Macro Window.")
 
 
 FontInfoOverview()

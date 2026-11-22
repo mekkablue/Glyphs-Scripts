@@ -5,9 +5,12 @@ On all layers in combining marks, top/_top, bottom/_bottom, etc. anchor pairs ar
 
 import vanilla
 from AppKit import (
+	NSColor,
 	NSLayoutConstraintOrientationHorizontal,
 	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
 	NSLayoutPriorityDefaultLow,
+	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
 )
 from Foundation import NSPoint
@@ -63,10 +66,19 @@ class RealignStackingAnchors(mekkaObject):
 		self.w.allFonts = vanilla.CheckBox("auto", "⚠️ Apply to ALL open fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.allFonts.setToolTip("If checked, will apply to ALL fonts currently open in Glyphs. You have been warned.")
 
-		# Run Button:
+		# Status line and Run Button:
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
 		self.w.runButton = vanilla.Button("auto", "Realign", callback=self.RealignStackingAnchorsMain)
 		self.w.runButton.setToolTip("Realign the stacking anchors.")
 		self.w.setDefaultButton(self.w.runButton)
+
+		# the status line takes the leftover width, the button stays as wide as its title needs:
+		self.w.status.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton.getNSButton().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 
 		# checkboxes stretch vertically by default; hug so the window is as tall as its content
 		for view in self.w.getNSWindow().contentView().subviews():
@@ -80,9 +92,10 @@ class RealignStackingAnchors(mekkaObject):
 				"H:|-inset-[limitToCombiningMarks]-(>=inset)-|",
 				"H:|-inset-[includeNonExporting]-(>=inset)-|",
 				"H:|-inset-[allFonts]-(>=inset)-|",
-				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"H:|-inset-[status]-gap-[runButton(>=70)]-inset-|",
 				"V:|-gap-[descriptionText(42)]-row-[whichAnchorPairs]-row-[allGlyphs]-checkRow-[limitToCombiningMarks]-checkRow-[includeNonExporting]-checkRow-[allFonts]-inset-[runButton]-inset-|",
 				{"view1": self.w.resetButton, "attribute1": "centerY", "view2": self.w.whichAnchorPairs, "attribute2": "centerY"},
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 			],
 			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
 		)
@@ -101,6 +114,7 @@ class RealignStackingAnchors(mekkaObject):
 		self.SavePreferences()
 
 	def RealignStackingAnchorsMain(self, sender):
+		currentGlyphName = None
 		try:
 			Glyphs.clearLog()  # clears macro window log
 			print("Realign Stacking Anchors:")
@@ -118,9 +132,11 @@ class RealignStackingAnchors(mekkaObject):
 			glyphCount = 0
 
 			if Glyphs.font is None:
+				self.setStatus("⚠️ No font open.")
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 				return
 
+			self.setStatus("🛠️ Processing…")
 			if allFonts:
 				theseFonts = Glyphs.fonts
 			else:
@@ -153,6 +169,8 @@ class RealignStackingAnchors(mekkaObject):
 				))
 
 				for thisGlyph in glyphs:
+					currentGlyphName = thisGlyph.name
+					self.setStatus(f"🔠 {thisGlyph.name}")
 					for thisLayer in thisGlyph.layers:
 						if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
 
@@ -195,6 +213,11 @@ class RealignStackingAnchors(mekkaObject):
 											print("↔️ Moved %s in 🔠 %s, layer ‘%s’" % (defaultAnchorName, thisGlyph.name, thisLayer.name))
 											movedAnchorCount += 1
 
+			if movedAnchorCount:
+				self.setStatus(f"✅ Moved {movedAnchorCount} anchor{'' if movedAnchorCount == 1 else 's'}.")
+			else:
+				self.setStatus("⚠️ No anchors moved.")
+
 			self.w.close()  # delete if you want window to stay open
 
 			# wrap up and report:
@@ -213,6 +236,7 @@ class RealignStackingAnchors(mekkaObject):
 			)
 
 		except Exception as e:
+			self.setStatus(f"❌ Error at {currentGlyphName}. Details in Macro Window." if currentGlyphName else "❌ Error. Details in Macro Window.")
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print("Realign Stacking Anchors in Combining Accents Error: %s" % e)

@@ -13,7 +13,7 @@ Copies one layer to another layer across selected glyphs:
 import vanilla
 from mekkablue import mekkaObject, newGlyphWithName, UpdateButton, colorCountOfFirstPalette, makeWindowResizable
 from GlyphsApp import Glyphs, Message, GSLayer
-from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
+from AppKit import NSColor, NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 
 
 def isColorLayer(layer):
@@ -121,10 +121,18 @@ class CopyLayerToLayer(mekkaObject):
 		self.w.applyFontWide = vanilla.CheckBox("auto", "Apply font-wide (all glyphs in source font)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.applyFontWide.setToolTip("Processes all glyphs in the source font instead of only selected glyphs in the target font. If not selected, will process only selected glyphs.")
 
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
+		self.w.status.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Copy Layers", sizeStyle='regular', callback=self.CopyLayerToLayerMain)
 		self.w.runButton.setToolTip("Copies the chosen content from the source layer to the target layer.")
 		self.w.setDefaultButton(self.w.runButton)
+		self.w.runButton.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton.getNSButton().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window
 		# ends up exactly as tall as the content
@@ -165,7 +173,7 @@ class CopyLayerToLayer(mekkaObject):
 				"H:|-inset-[createIfNotPresent]-(>=inset)-|",
 				"H:|-inset-[addToContents]-(>=inset)-|",
 				"H:|-inset-[applyFontWide]-(>=inset)-|",
-				"H:|-(>=inset)-[runButton(>=120)]-inset-|",
+				"H:|-inset-[status]-gap-[runButton(>=120)]-inset-|",
 				"V:|-inset-[descriptionText]-headlineGap-[sourceFontPopup]-row-[sourceLayerPopup]-row-[targetFontPopup]-row-[targetLayerPopup]-sectionGap-[includePaths]-checkRow-[includeAnchors]-sectionGap-[separator1(1)]-sectionGap-[intoBackground]-checkRow-[createIfNotPresent]-checkRow-[addToContents]-checkRow-[applyFontWide]-inset-[runButton]-inset-|",
 				# one baseline per row:
 				{"view1": self.w.sourceFontText, "attribute1": "centerY", "view2": self.w.sourceFontPopup, "attribute2": "centerY"},
@@ -177,6 +185,7 @@ class CopyLayerToLayer(mekkaObject):
 				{"view1": self.w.includeComponents, "attribute1": "centerY", "view2": self.w.includePaths, "attribute2": "centerY"},
 				{"view1": self.w.includeMetrics, "attribute1": "centerY", "view2": self.w.includeAnchors, "attribute2": "centerY"},
 				{"view1": self.w.includeHints, "attribute1": "centerY", "view2": self.w.includeAnchors, "attribute2": "centerY"},
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 			] + widthRules + columnRules,
 			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5, "headlineGap": 10, "sectionGap": 10},
 		)
@@ -394,12 +403,15 @@ class CopyLayerToLayer(mekkaObject):
 
 	def CopyLayerToLayerMain(self, sender=None):
 		"""Main function to copy layers"""
+		glyphNameForStatus = "start"
 		try:
+			self.setStatus("🛠️ Processing …")
 			# Get fonts
 			sourceFont = self.GetFont(self.w.sourceFontPopup)
 			targetFont = self.GetFont(self.w.targetFontPopup)
 
 			if not sourceFont or not targetFont:
+				self.setStatus("⚠️ Could not access source or target font.")
 				Message("Error", "Could not access source or target font.", OKButton=None)
 				return
 
@@ -408,6 +420,7 @@ class CopyLayerToLayer(mekkaObject):
 			targetSpec = self.SelectedSpec(self.w.targetLayerPopup, self.targetLayerSpecs)
 
 			if sourceSpec is None or targetSpec is None:
+				self.setStatus("⚠️ Could not determine the source or target layer.")
 				Message("Error", "Could not determine the source or target layer.", OKButton=None)
 				return
 
@@ -438,6 +451,7 @@ class CopyLayerToLayer(mekkaObject):
 				if targetFont.selectedLayers:
 					glyphsToProcess = list(set([layer.parent.name for layer in targetFont.selectedLayers]))
 				else:
+					self.setStatus("⚠️ No glyphs selected.")
 					Message("Error", "No glyphs selected.", OKButton=None)
 					return
 
@@ -448,7 +462,10 @@ class CopyLayerToLayer(mekkaObject):
 			createdLayerCount = 0
 
 			# Process each glyph
+			self.setStatus(f"🛠️ Processing {len(glyphsToProcess)} glyphs …")
 			for glyphName in glyphsToProcess:
+				glyphNameForStatus = glyphName
+				self.setStatus(f"🔠 {glyphName}")
 				print("🔡 Processing %s..." % glyphName)
 				# Get source glyph
 				sourceGlyph = sourceFont.glyphs[glyphName]
@@ -580,6 +597,7 @@ class CopyLayerToLayer(mekkaObject):
 			if skippedCount > 0:
 				resultMessage += "\nSkipped %d glyph(s)" % skippedCount
 
+			self.setStatus(f"✅ Processed {processedCount} layers, skipped {skippedCount} glyphs.")
 			Message("Copy Complete", resultMessage, OKButton=None)
 
 			# Save preferences
@@ -591,6 +609,7 @@ class CopyLayerToLayer(mekkaObject):
 		except Exception as e:
 			# Brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
+			self.setStatus(f"❌ Error at {glyphNameForStatus}. Details in Macro Window.")
 			print("Copy Layer to Layer Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())

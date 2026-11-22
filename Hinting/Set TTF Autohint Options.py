@@ -4,7 +4,7 @@ Set options for existing 'TTFAutohint options' Custom Parameters.
 """
 
 import vanilla
-from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
+from AppKit import NSColor, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message, INSTANCETYPEVARIABLE
 from mekkablue import mekkaObject, makeWindowResizable
 from ttfautohintoptions import parameterName, valuelessOptions, availableOptionsDict, availableOptions, removeFromAutohintOptions, dictToParameterValue, ttfAutohintDict, glyphInterpolation, idotlessMeasure, writeOptionsToInstance
@@ -74,6 +74,10 @@ class SetTTFAutohintOptions(mekkaObject):
 
 		self.w.setDefaultButton(self.w.runButton)
 
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
+
 		# every control hugs vertically, so the window ends up exactly as tall as the content
 		for view in self.w.getNSWindow().contentView().subviews():
 			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
@@ -85,7 +89,8 @@ class SetTTFAutohintOptions(mekkaObject):
 			[
 				"H:|-inset-[helpButton]-gap-[ttfAutohintOption(>=150)]-gap-[optionValue(>=100)]-gap-[runButton(>=50)]-gap-[delButton(>=50)]-inset-|",
 				"H:|-inset-[explanation]-inset-|",
-				"V:|-gap-[optionValue]-row-[explanation(56)]-inset-|",
+				"H:|-inset-[status]-inset-|",
+				"V:|-gap-[optionValue]-row-[explanation(56)]-gap-[status]-inset-|",
 				{"view1": self.w.helpButton, "attribute1": "centerY", "view2": self.w.optionValue, "attribute2": "centerY"},
 				{"view1": self.w.ttfAutohintOption, "attribute1": "centerY", "view2": self.w.optionValue, "attribute2": "centerY"},
 				{"view1": self.w.runButton, "attribute1": "centerY", "view2": self.w.optionValue, "attribute2": "centerY"},
@@ -158,18 +163,30 @@ class SetTTFAutohintOptions(mekkaObject):
 		Glyphs.defaults[ttfAutohintOption] = self.w.optionValue.get()
 
 	def RemoveOption(self, sender):
+		currentItem = None
 		try:
 			thisFont = Glyphs.font
 			if not thisFont:
+				self.setStatus("⚠️ No font open.")
 				Message("No Font Open", "The script requires a font. Open a font and run the script again.", OKButton=None)
 				return
 			optionIndex = self.prefInt("ttfAutohintOption")
 			optionName = availableOptions[optionIndex]
+			self.setStatus(f"🛠️ Removing {optionName} from {len(thisFont.instances)} instance(s)…")
+			removedCount = 0
 			for thisInstance in thisFont.instances:
+				currentItem = thisInstance.name
+				self.setStatus(f"🔠 {thisInstance.name}")
 				if thisInstance.customParameters[parameterName]:
 					removeFromAutohintOptions(thisInstance, optionName)
+					removedCount += 1
 					print(f"Removing {optionName} from instance '{thisInstance.name}'.")
+			if removedCount:
+				self.setStatus(f"✅ Removed {optionName} from {removedCount} instance(s).")
+			else:
+				self.setStatus("⚠️ No instances with ttfautohint options.")
 		except Exception as e:
+			self.setStatus(f"❌ Error at {currentItem or 'start'}. Details in Macro Window.")
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print(f"Set ttfautohint Options Error: {e}")
@@ -177,12 +194,14 @@ class SetTTFAutohintOptions(mekkaObject):
 			print(traceback.format_exc())
 
 	def SetTTFAutohintOptionsMain(self, sender):
+		currentItem = None
 		try:
 			optionIndex = self.prefInt("ttfAutohintOption")
 			optionName = availableOptions[optionIndex]
 			enteredValue = Glyphs.defaults[f"com.mekkablue.SetTTFAutohintOptions.{optionName}"]
 
 			if not Glyphs.orderedDocuments():
+				self.setStatus("⚠️ No font open.")
 				Message("No Font Open", "The script requires a font. Open a font and run the script again.", OKButton=None)
 				return
 			firstDoc = Glyphs.orderedDocuments()[0]
@@ -200,21 +219,32 @@ class SetTTFAutohintOptions(mekkaObject):
 					instances = firstDoc.instances()  # GLYPHS 2
 
 			if enteredValue != "" or optionName in valuelessOptions:
+				self.setStatus(f"🛠️ Setting {optionName} in {len(instances)} instance(s)…")
+				setCount = 0
 				for thisInstance in instances:
 					if thisInstance.type == INSTANCETYPEVARIABLE:
 						continue
+					currentItem = thisInstance.name
+					self.setStatus(f"🔠 {thisInstance.name}")
 					if thisInstance.customParameters[parameterName] is not None:
 						optionDict = ttfAutohintDict(thisInstance.customParameters[parameterName])
 						optionDict[optionName] = enteredValue
 						writeOptionsToInstance(optionDict, thisInstance, font=thisFont)
+						setCount += 1
 						print(f"Set {optionName} in instance '{thisInstance.name}'.")
 					else:
 						print(f"No ttfautohint parameter in instance '{thisInstance.name}'. {optionName} not set.")
+				if setCount:
+					self.setStatus(f"✅ Set {optionName} in {setCount} instance(s).")
+				else:
+					self.setStatus("⚠️ No instances with ttfautohint options.")
 			else:
+				self.setStatus("❌ Illegal value entered.")
 				Message("Script Error", "Illegal value entered.", OKButton=None)
 
 			# self.w.close()  # delete if you want window to stay open
 		except Exception as e:
+			self.setStatus(f"❌ Error at {currentItem or 'start'}. Details in Macro Window.")
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print(f"Set ttfautohint Options Error: {e}")

@@ -6,7 +6,7 @@ import datetime
 import vanilla
 from mekkablue import mekkaObject, SteppingEditText, integerFormatter, makeWindowResizable
 from GlyphsApp import Glyphs, Message
-from AppKit import NSDate, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
+from AppKit import NSColor, NSDate, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 
 
 def addPropertyToFont(font, key, value):
@@ -202,6 +202,17 @@ class FontInfoBatchSetter(mekkaObject):
 		self.w.runButton.setToolTip("Applies the checked settings above to all fonts indicated in the ‘Apply to’ option.")
 		self.w.setDefaultButton(self.w.runButton)
 
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
+		nsStatus = self.w.status.getNSTextField()
+		nsStatus.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		nsStatus.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		for buttonName in ("extractButton", "runButton"):
+			nsButton = getattr(self.w, buttonName).getNSButton()
+			nsButton.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsButton.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
 		# checkboxes and square buttons stretch vertically by default; with everything
 		# hugging, the window ends up exactly as tall as the content
 		for view in self.w.getNSWindow().contentView().subviews():
@@ -269,9 +280,10 @@ class FontInfoBatchSetter(mekkaObject):
 				"H:|-inset-[setDate]-gap-[datePicker]-gap-[noonButton(>=70)]-(>=inset)-|",
 				"H:|-inset-[separator]-inset-|",
 				"H:|-inset-[finger]-dot-[applyText]-gap-[applyPopup]-gap-[applyContaining(>=150)]-inset-|",
-				"H:|-(>=inset)-[extractButton(>=70)]-gap-[runButton(>=70)]-inset-|",
+				"H:|-inset-[status]-gap-[extractButton(>=70)]-gap-[runButton(>=70)]-inset-|",
 				"V:|-inset-[explanatoryText]-headlineGap-[designer]-row-[designerURL]-row-[manufacturer]-row-[manufacturerURL]-row-[license]-row-[licenseURL]-row-[copyright]-row-[trademark]-row-[fontDescription]-row-[sampleText]-row-[vendorID]-row-[versionMajor]-row-[datePicker]-row-[separator(1)]-row-[applyPopup]-inset-[runButton]-inset-|",
 				"V:[extractButton]-inset-|",
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 				"V:[versionMinorDecrease(20)]",
 				"V:[versionMinorIncrease(20)]",
 				"V:[minVersionButton(20)]",
@@ -365,7 +377,9 @@ class FontInfoBatchSetter(mekkaObject):
 		if not thisFont:
 			self.complainAboutNoFonts()
 		else:
+			self.setStatus("🛠️ Extracting font info…")
 			print(f"Extracting font info from: {thisFont.familyName}")
+			self.setStatus(f"🔠 {thisFont.familyName}")
 			self.reportFilePath(thisFont)
 
 			# update prefs:
@@ -439,11 +453,13 @@ class FontInfoBatchSetter(mekkaObject):
 			print(f"🔢 Version: {thisFont.versionMajor}.{thisFont.versionMinor:03}")
 			print(f'📆 Date: {thisFont.date}')
 			print("\n✅ Done.")
+			self.setStatus(f"✅ Extracted font info from {thisFont.familyName}.")
 
 			# update UI to the settings stored above:
 			self.LoadPreferences()
 
 	def FontInfoBatchSetterMain(self, sender=None):
+		thisFont = None
 		try:
 			# clear macro window log:
 			Glyphs.clearLog()
@@ -492,6 +508,7 @@ class FontInfoBatchSetter(mekkaObject):
 				theseFonts = [f for f in Glyphs.fonts if applyContaining in f.familyName]
 
 			print("Font Info Batch Setter Report:")
+			self.setStatus(f"🛠️ Processing {len(theseFonts)} font{'' if len(theseFonts) == 1 else 's'}…")
 
 			changeCount = 0
 			changedFontsCount = 0
@@ -502,6 +519,7 @@ class FontInfoBatchSetter(mekkaObject):
 			else:
 
 				for i, thisFont in enumerate(theseFonts):
+					self.setStatus(f"🔠 {thisFont.familyName}")
 					print(f"\n\n{i + 1}. {thisFont.familyName}:")
 					self.reportFilePath(thisFont)
 					print()
@@ -633,15 +651,18 @@ class FontInfoBatchSetter(mekkaObject):
 				OKButton=None,
 			)
 			print("\nDone.")
+			self.setStatus(f"✅ Changed {changeCount} value{'' if changeCount == 1 else 's'} in {changedFontsCount} font{'' if changedFontsCount == 1 else 's'}.")
 
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print("Font Info Batch Setter Error: %s" % e)
+			self.setStatus(f"❌ Error at {thisFont.familyName if thisFont else 'start'}. Details in Macro Window.")
 			import traceback
 			print(traceback.format_exc())
 
 	def complainAboutNoFonts(self, sender=None):
+		self.setStatus("⚠️ No fonts open.")
 		Message(title="No Font Open", message="The script requires at least one font open. Open a font and run the script again.", OKButton=None)
 		print("🤷‍♂️ No open fonts found.")
 

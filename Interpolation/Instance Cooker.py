@@ -8,6 +8,7 @@ import vanilla
 from mekkablue import mekkaObject, getLegibleFont, makeWindowResizable
 from GlyphsApp import Glyphs, GSAxis, GSCustomParameter, GSInstance, INSTANCETYPESINGLE, INSTANCETYPEVARIABLE, GetSaveFile, GetOpenFile, Message
 from AppKit import (
+	NSColor,
 	NSDictionary,
 	NSLayoutConstraintOrientationVertical,
 	NSLayoutPriorityDefaultLow,
@@ -377,6 +378,10 @@ class InstanceCooker(mekkaObject):
 		self.w.runButton.setToolTip("Inserts the instances described by the recipe into the frontmost font.")
 		self.w.setDefaultButton(self.w.runButton)
 
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
+
 		# everything but the recipe editor hugs vertically, so the editor takes all the leftover height:
 		for view in self.w.getNSWindow().contentView().subviews():
 			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
@@ -387,11 +392,12 @@ class InstanceCooker(mekkaObject):
 				"H:|-inset-[descriptionText]-(>=inset)-|",
 				"H:|-1-[recipe]-1-|",
 				"H:|-inset-[openButton(>=70)]-gap-[saveButton(>=70)]-gap-[resetButton(>=70)]-gap-[extractButton(>=70)]-(>=gap)-[runButton(>=70)]-inset-|",
-				"V:|-gap-[descriptionText]-gap-[recipe(>=150)]-inset-[runButton]-inset-|",
-				"V:[openButton]-inset-|",
-				"V:[saveButton]-inset-|",
-				"V:[resetButton]-inset-|",
-				"V:[extractButton]-inset-|",
+				"H:|-inset-[status]-inset-|",
+				"V:|-gap-[descriptionText]-gap-[recipe(>=150)]-inset-[runButton]-gap-[status]-inset-|",
+				"V:[openButton]-gap-[status]",
+				"V:[saveButton]-gap-[status]",
+				"V:[resetButton]-gap-[status]",
+				"V:[extractButton]-gap-[status]",
 			],
 			metrics={"inset": inset, "gap": 8},
 		)
@@ -410,34 +416,43 @@ class InstanceCooker(mekkaObject):
 		# positional arguments: the second one is called ProposedFileName in Glyphs 3, proposedFileName in Glyphs 4
 		filePath = GetSaveFile("Save Recipe", "instance recipe.txt", ["txt"])
 		if filePath:
+			self.setStatus("🛠️ Saving recipe …")
 			fileContent = self.pref("recipe")
 			saveFileInLocation(content=fileContent, filePath=filePath)
+			self.setStatus("✅ Saved recipe.")
 
 
 	def importRecipe(self, sender=None):
 		filePath = GetOpenFile(message="Open Recipe", allowsMultipleSelection=False, filetypes=["txt"])
 		if filePath:
+			self.setStatus("🛠️ Loading recipe …")
 			fileContent = readFileFromLocation(filePath=filePath)
 			if fileContent:
 				self.setPref("recipe", fileContent)
 				self.LoadPreferences()
+				self.setStatus("✅ Loaded recipe.")
 			else:
+				self.setStatus("⚠️ File could not be read.")
 				Message(title="File Error", message="File could not be read. Perhaps empty?", OKButton=None)
 
 
 	def resetRecipe(self, sender=None):
 		self.setPref("recipe", defaultRecipe.lstrip())
 		self.LoadPreferences()
+		self.setStatus("✅ Reset recipe.")
 
 
 	def extractRecipe(self, sender=None):
 		thisFont = Glyphs.font
 		if not thisFont:
+			self.setStatus("⚠️ No font open.")
 			Message(title="No Font Error", message="You need to have a font open for extracting a recipe.", OKButton=None)
 		else:
+			self.setStatus("🛠️ Extracting recipe …")
 			text = ""
 			singleInstances = [i for i in thisFont.instances if i.type == INSTANCETYPESINGLE]
 			for axisIndex, thisAxis in enumerate(thisFont.axes):
+				self.setStatus(f"🔠 {thisAxis.name}")
 				text += "\n#%s:%s" % (thisAxis.name, thisAxis.axisTag)
 				elidableNames = elidableParticleNames(thisFont, thisAxis.axisId)
 				axisValues = sorted(set([int(i.axisValueValueForId_(thisAxis.axisId)) for i in singleInstances]))
@@ -470,10 +485,12 @@ class InstanceCooker(mekkaObject):
 
 			text = text.lstrip()
 			if not text:
+				self.setStatus("⚠️ No instances with discrete values found.")
 				Message(title="No Instances Found", message="Could not find any instances with discrete values.", OKButton=None)
 			else:
 				self.w.recipe.set(text)
 				self.SavePreferences()
+				self.setStatus(f"✅ Extracted recipe for {len(thisFont.axes)} axes.")
 
 
 	def axisLocationsFromRecipe(self, recipeDict):
@@ -548,16 +565,19 @@ class InstanceCooker(mekkaObject):
 
 
 	def InstanceCookerMain(self, sender=None):
+		lastItem = "start"
 		try:
 			# clear macro window log:
 			Glyphs.clearLog()
 			instanceCount = 0
+			self.setStatus("🛠️ Processing …")
 
 			# update settings to the latest user input:
 			self.SavePreferences()
 
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
+				self.setStatus("⚠️ No font open.")
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
 				print("Instance Cooker Report for %s" % thisFont.familyName)
@@ -592,6 +612,8 @@ class InstanceCooker(mekkaObject):
 						multiEntryAxisKeys.append(axisKey)
 
 				for axisKey in multiEntryAxisKeys:
+					lastItem = axisKey
+					self.setStatus(f"🔠 {axisKey.split(',', 1)[-1].split(':')[0]}")
 					axisNameParts = axisKey.split(":")
 					axisIndex, axisName = axisNameParts[0].split(",")
 					axisTag = axisNameParts[1]
@@ -683,6 +705,8 @@ class InstanceCooker(mekkaObject):
 
 				# clean elidable names:
 				for instance in instances:
+					lastItem = instance.name
+					self.setStatus(f"🔠 {instance.name}")
 					removeElidableNames(instance)
 					print(f"ℹ️ {instance.name}")
 
@@ -699,12 +723,14 @@ class InstanceCooker(mekkaObject):
 					thisFont.familyName,
 				))
 				thisFont.parent.windowController().showFontInfoWindowWithTabSelected_(2)
+				self.setStatus(f"✅ Added {instanceCount} instance{'' if instanceCount == 1 else 's'}.")
 				self.w.close()
 				print("\n✅ Done.")
 
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
+			self.setStatus(f"❌ Error at {lastItem}. Details in Macro Window.")
 			print("Instance Cooker Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())

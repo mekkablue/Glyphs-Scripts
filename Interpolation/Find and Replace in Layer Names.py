@@ -4,7 +4,7 @@ Replaces strings in layer names of all selected glyphs. Useful for adjusting lay
 """
 
 import vanilla
-from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
+from AppKit import NSColor, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, makeWindowResizable
 
@@ -45,6 +45,13 @@ class replaceInLayerNames(mekkaObject):
 		self.w.allGlyphs.setToolTip("If enabled, processes all glyphs in the font. Otherwise, only the selected glyphs.")
 		self.w.replaceButton = vanilla.Button("auto", "Replace", sizeStyle='small', callback=self.buttonCallback)
 		self.w.replaceButton.setToolTip("Replaces the search text in the layer names of the glyphs.")
+		self.w.replaceButton.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.replaceButton.getNSButton().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
+		self.w.status.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window
 		# ends up exactly as tall as the content
@@ -63,11 +70,12 @@ class replaceInLayerNames(mekkaObject):
 				"H:|-inset-[textSearch]-gap-[searchFor]-inset-|",
 				"H:|-inset-[textReplace]-gap-[replaceBy]-inset-|",
 				"H:|-inset-[allGlyphs]-(>=inset)-|",
-				"H:|-(>=inset)-[replaceButton(>=70)]-inset-|",
+				"H:|-inset-[status]-gap-[replaceButton(>=70)]-inset-|",
 				"V:|-inset-[searchFor]-row-[replaceBy]-row-[allGlyphs]-inset-[replaceButton]-inset-|",
 				{"view1": self.w.textSearch, "attribute1": "centerY", "view2": self.w.searchFor, "attribute2": "centerY"},
 				{"view1": self.w.textReplace, "attribute1": "centerY", "view2": self.w.replaceBy, "attribute2": "centerY"},
 				{"view1": self.w.textSearch, "attribute1": "width", "view2": self.w.textReplace, "attribute2": "width"},
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.replaceButton, "attribute2": "centerY"},
 			],
 			metrics={"inset": inset, "gap": 8, "row": 6},
 		)
@@ -83,6 +91,7 @@ class replaceInLayerNames(mekkaObject):
 	def buttonCallback(self, sender):
 		thisFont = Glyphs.font
 		if thisFont is None:
+			self.setStatus("⚠️ No font open.")
 			Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			return
 
@@ -96,14 +105,19 @@ class replaceInLayerNames(mekkaObject):
 		replaceBy = self.pref("replaceBy")
 		if not searchFor:
 			# an empty search string would match everywhere and insert the replacement between all characters:
+			self.setStatus("⚠️ Nothing to search for.")
 			Message(title="Nothing to search for", message="Please enter a search string.", OKButton=None)
 			return
 
 		replaceCount = 0
+		glyphNameForStatus = "start"
+		self.setStatus(f"🛠️ Processing {len(glyphsToProcess)} glyphs …")
 
 		thisFont.disableUpdateInterface()
 		try:
 			for thisGlyph in glyphsToProcess:
+				glyphNameForStatus = thisGlyph.name
+				self.setStatus(f"🔠 {thisGlyph.name}")
 				for thisLayer in thisGlyph.layers:
 					# do not change names of master layers:
 					if thisLayer.layerId != thisLayer.associatedFontMaster().id:
@@ -115,6 +129,7 @@ class replaceInLayerNames(mekkaObject):
 							replaceCount += 1
 		except Exception as e:
 			Glyphs.showMacroWindow()
+			self.setStatus(f"❌ Error at {glyphNameForStatus}. Details in Macro Window.")
 			print("\n⚠️ Script Error:\n")
 			import traceback
 			print(traceback.format_exc())
@@ -124,8 +139,10 @@ class replaceInLayerNames(mekkaObject):
 			thisFont.enableUpdateInterface()  # re-enables UI updates in Font View
 
 		if replaceCount > 0:
+			self.setStatus(f"✅ Replaced {replaceCount} occurrences.")
 			Message(title="Replaced successfully", message="Replaced %i occurrences." % replaceCount, OKButton=None)
 		else:
+			self.setStatus("⚠️ Nothing replaced.")
 			Message(title="Nothing replaced", message="Could not find any occurrences of search string in the processed layers.", OKButton=None)
 
 
