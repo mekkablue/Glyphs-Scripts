@@ -172,7 +172,7 @@ class ComponentProblemFinder(mekkaObject):
 		self.w.runButton.enable(any(self.prefBool(prefName) for prefName in self.prefs))
 		self.w.unproportionallyScaledComponents.enable(self.w.scaledComponents.get())
 
-	def glyphHas_composablesWithoutComponents(self, thisGlyph):
+	def glyphHasComposablesWithoutComponents(self, thisGlyph):
 		for thisLayer in thisGlyph.layers:
 			if (thisLayer.isMasterLayer or thisLayer.isSpecialLayer) and not thisLayer.components:
 				info = thisGlyph.glyphInfo
@@ -184,7 +184,7 @@ class ComponentProblemFinder(mekkaObject):
 					return True
 		return False
 
-	def glyphHas_unusualComponents(self, thisGlyph):
+	def glyphHasUnusualComponents(self, thisGlyph):
 		componentStructure = orthodoxComponentsForGlyph(thisGlyph)
 		if componentStructure:
 			for thisLayer in thisGlyph.layers:
@@ -196,7 +196,7 @@ class ComponentProblemFinder(mekkaObject):
 					return True
 		return False
 
-	def glyphHas_lockedComponents(self, thisGlyph):
+	def glyphHasLockedComponents(self, thisGlyph):
 		for thisLayer in thisGlyph.layers:
 			for thisComponent in thisLayer.components:
 				if thisComponent.locked:
@@ -204,7 +204,7 @@ class ComponentProblemFinder(mekkaObject):
 					return True
 		return False
 
-	def glyphHas_nestedComponents(self, thisGlyph):
+	def glyphHasNestedComponents(self, thisGlyph):
 		for thisLayer in thisGlyph.layers:
 			for thisComponent in thisLayer.components:
 				originalLayer = thisComponent.componentLayer
@@ -213,7 +213,7 @@ class ComponentProblemFinder(mekkaObject):
 					return True
 		return False
 
-	def glyphHas_orphanedComponents(self, thisGlyph):
+	def glyphHasOrphanedComponents(self, thisGlyph):
 		for thisLayer in thisGlyph.layers:
 			for thisComponent in thisLayer.components:
 				if thisComponent.component is None:
@@ -221,7 +221,7 @@ class ComponentProblemFinder(mekkaObject):
 					return True
 		return False
 
-	def glyphHas_emptyComponents(self, thisGlyph):
+	def glyphHasEmptyComponents(self, thisGlyph):
 		for thisLayer in thisGlyph.layers:
 			for thisComponent in thisLayer.components:
 				if thisComponent.componentLayer and not thisComponent.componentLayer.shapes:
@@ -229,7 +229,7 @@ class ComponentProblemFinder(mekkaObject):
 					return True
 		return False
 
-	def glyphHas_unalignedComponents(self, thisGlyph):
+	def glyphHasUnalignedComponents(self, thisGlyph):
 		for thisLayer in thisGlyph.layers:
 			for thisComponent in thisLayer.components:
 				if thisComponent.alignment == -1:
@@ -237,7 +237,7 @@ class ComponentProblemFinder(mekkaObject):
 					return True
 		return False
 
-	def glyphHas_scaledComponents(self, thisGlyph, unproportional=False):
+	def glyphHasScaledComponents(self, thisGlyph, unproportional=False):
 		for thisLayer in thisGlyph.layers:
 			for thisComponent in thisLayer.components:
 				if thisComponent.rotation == 0.0:
@@ -253,10 +253,10 @@ class ComponentProblemFinder(mekkaObject):
 							return True
 		return False
 
-	def glyphHas_unproportionallyScaledComponents(self, thisGlyph):
-		return self.glyphHas_scaledComponents(thisGlyph, unproportional=True)
+	def glyphHasUnproportionallyScaledComponents(self, thisGlyph):
+		return self.glyphHasScaledComponents(thisGlyph, unproportional=True)
 
-	def glyphHas_rotatedComponents(self, thisGlyph):
+	def glyphHasRotatedComponents(self, thisGlyph):
 		for thisLayer in thisGlyph.layers:
 			for thisComponent in thisLayer.components:
 				hScale, vScale = thisComponent.scale
@@ -266,7 +266,7 @@ class ComponentProblemFinder(mekkaObject):
 					return True
 		return False
 
-	def glyphHas_mirroredComponents(self, thisGlyph):
+	def glyphHasMirroredComponents(self, thisGlyph):
 		for thisLayer in thisGlyph.layers:
 			for thisComponent in thisLayer.components:
 				hScale, vScale = thisComponent.scale
@@ -275,7 +275,7 @@ class ComponentProblemFinder(mekkaObject):
 					return True
 		return False
 
-	def glyphHas_shiftedComponents(self, thisGlyph):
+	def glyphHasShiftedComponents(self, thisGlyph):
 		for thisLayer in thisGlyph.layers:
 			for thisComponent in thisLayer.components:
 				hScale, vScale = thisComponent.scale
@@ -286,7 +286,7 @@ class ComponentProblemFinder(mekkaObject):
 						return True
 		return False
 
-	def glyphHas_detachedCornerComponents(self, thisGlyph):
+	def glyphHasDetachedCornerComponents(self, thisGlyph):
 		for thisLayer in thisGlyph.layers:
 			for thisHint in thisLayer.hints:
 				if thisHint.type == CORNER and not thisHint.originNode:
@@ -294,7 +294,7 @@ class ComponentProblemFinder(mekkaObject):
 					return True
 		return False
 
-	def glyphHas_transformedCornerComponents(self, thisGlyph):
+	def glyphHasTransformedCornerComponents(self, thisGlyph):
 		for thisLayer in thisGlyph.layers:
 			for thisHint in thisLayer.hints:
 				if thisHint.type == CORNER and (abs(thisHint.scale.x) != 1.0 or abs(thisHint.scale.y) != 1.0):
@@ -342,7 +342,7 @@ class ComponentProblemFinder(mekkaObject):
 
 				if shouldIncludeNonExporting or thisGlyph.export:
 					for prefName in enabledPrefNames:
-						if getattr(self, f"glyphHas_{prefName}")(thisGlyph):
+						if getattr(self, f"glyphHas{prefName[0].upper()}{prefName[1:]}")(thisGlyph):
 							affectedGlyphNames[prefName].append(thisGlyph.name)
 
 			# one paragraph per problem, for the tab and the Macro Window:
