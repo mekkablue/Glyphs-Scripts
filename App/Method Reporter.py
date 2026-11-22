@@ -4,10 +4,10 @@ Searches in PyObjC method names of a chosen object.
 """
 
 import vanilla
-from AppKit import NSObject, NSWindowStyleMaskResizable
+from AppKit import NSObject
 from Foundation import NSSize, NSPoint, NSRect  # noqa: F401 (NSPoint and NSRect are looked up by name, see methodList)
 from GlyphsApp import Glyphs
-from mekkablue import setClipboard, mekkaObject
+from mekkablue import setClipboard, mekkaObject, makeWindowResizable
 
 
 class MethodReporter(mekkaObject):
@@ -196,8 +196,6 @@ class MethodReporter(mekkaObject):
 		# Window 'self.w':
 		windowWidth = 320
 		windowHeight = 260
-		windowWidthResize = 1000  # user can resize width by this value
-		windowHeightResize = 850  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Method Reporter",
@@ -238,19 +236,14 @@ class MethodReporter(mekkaObject):
 			metrics={"inset": inset, "gap": 6},
 		)
 
+		makeWindowResizable(self.w, vertical=True, minSize=(windowWidth, windowHeight))
+
 		# Load Settings:
 		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-		# Resizable in both directions. Vanilla's minSize/maxSize would count the title bar twice,
-		# so set the limits on the NSWindow, in content sizes:
-		nsWindow = self.w.getNSWindow()
-		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
-		nsWindow.setContentMinSize_(NSSize(windowWidth, windowHeight))
-		nsWindow.setContentMaxSize_(NSSize(windowWidth + windowWidthResize, windowHeight + windowHeightResize))
 
 		self.MethodReporterMain(None)
 

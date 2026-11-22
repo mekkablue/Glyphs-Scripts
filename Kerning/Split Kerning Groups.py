@@ -4,9 +4,9 @@ In existing group kerning, separate some glyphs out of a kerning group, effectiv
 """
 
 import vanilla
-from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSSize, NSWindowStyleMaskResizable
+from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, reportFontName, UpdateButton
+from mekkablue import mekkaObject, reportFontName, UpdateButton, makeWindowResizable
 
 def splitOffGroup(font, newGroup, splitoffs, rightGroup=True):
 	totalCount = 0
@@ -116,7 +116,7 @@ class SplitKerningGroups(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Split Kerning Groups",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -168,6 +168,8 @@ class SplitKerningGroups(mekkaObject):
 			metrics={"inset": inset, "gap": 8, "row": 8},
 		)
 
+		makeWindowResizable(self.w, vertical=True)
+
 		# Load Settings:
 		self.LoadPreferences()
 
@@ -176,14 +178,6 @@ class SplitKerningGroups(mekkaObject):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-		# make the window resizable, starting at the size that Auto Layout determined.
-		# (Content sizes set directly on the NSWindow, so the title bar is not counted twice.)
-		nsWindow = self.w.getNSWindow()
-		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
-		nsWindow.layoutIfNeeded()  # make sure the content has its final size before we read it
-		contentSize = nsWindow.contentView().frame().size
-		nsWindow.setContentMinSize_(NSSize(contentSize.width, contentSize.height))
 
 	def update(self, sender=None):
 		font = Glyphs.font

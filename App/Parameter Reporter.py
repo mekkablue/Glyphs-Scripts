@@ -4,10 +4,8 @@ Searches in Custom Parameter names of all registered parameters in the current a
 """
 
 import vanilla
-from AppKit import NSWindowStyleMaskResizable
-from Foundation import NSSize
 from GlyphsApp import Glyphs, GSGlyphsInfo
-from mekkablue import setClipboard, mekkaObject
+from mekkablue import setClipboard, mekkaObject, makeWindowResizable
 
 
 class ParameterReporter(mekkaObject):
@@ -30,8 +28,6 @@ class ParameterReporter(mekkaObject):
 		# Window 'self.w':
 		windowWidth = 250
 		windowHeight = 200
-		windowWidthResize = 400  # user can resize width by this value
-		windowHeightResize = 650  # user can resize height by this value
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Parameter Reporter",
@@ -59,19 +55,14 @@ class ParameterReporter(mekkaObject):
 			metrics={"inset": inset},
 		)
 
+		makeWindowResizable(self.w, vertical=True, minSize=(windowWidth, windowHeight))
+
 		# Load Settings:
 		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-		# Resizable in both directions. Vanilla's minSize/maxSize would count the title bar twice,
-		# so set the limits on the NSWindow, in content sizes:
-		nsWindow = self.w.getNSWindow()
-		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
-		nsWindow.setContentMinSize_(NSSize(windowWidth, windowHeight))
-		nsWindow.setContentMaxSize_(NSSize(windowWidth + windowWidthResize, windowHeight + windowHeightResize))
 
 		self.ParameterReporterMain(None)
 

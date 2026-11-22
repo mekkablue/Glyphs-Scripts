@@ -4,7 +4,7 @@ Batch apply metrics keys to the current font.
 """
 
 import vanilla
-from mekkablue import mekkaObject, getLegibleFont, SteppingEditText, integerFormatter
+from mekkablue import mekkaObject, getLegibleFont, SteppingEditText, integerFormatter, makeWindowResizable
 from GlyphsApp import Glyphs, Message
 from AppKit import (
 	NSAlert,
@@ -17,7 +17,6 @@ from AppKit import (
 	NSLayoutPriorityDefaultLow,
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
-	NSWindowStyleMaskResizable,
 	NSTextAlignmentRight,
 )
 
@@ -91,7 +90,7 @@ class MetricsKeyManager(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Metrics Key Manager",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -184,17 +183,14 @@ class MetricsKeyManager(mekkaObject):
 			metrics={"inset": inset, "gap": 8, "boxGap": 10, "minBoxHeight": 50},
 		)
 
+		makeWindowResizable(self.w, vertical=True)
+
 		# Load Settings:
 		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-		# resizable horizontally and vertically, no maximum size; the minimum is what the content needs
-		nsWindow = self.w.getNSWindow()
-		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
-		nsWindow.setContentMinSize_(nsWindow.contentView().fittingSize())
 
 	def SetDefaults(self, sender=None):
 		self.w.RightMetricsKeys.set(RightKeys.strip())

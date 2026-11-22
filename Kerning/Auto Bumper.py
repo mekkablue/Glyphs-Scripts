@@ -4,10 +4,10 @@ Specify a minimum distance, left and right glyphs, and Auto Bumper will add the 
 """
 
 import vanilla
-from mekkablue import mekkaObject, reportTimeInNaturalLanguage, SteppingEditText, decimalFormatter
+from mekkablue import mekkaObject, reportTimeInNaturalLanguage, SteppingEditText, decimalFormatter, makeWindowResizable
 from timeit import default_timer as timer
 from kernanalysis import intervalList, minDistanceBetweenTwoLayers, sortedIntervalsFromString, stringToListOfGlyphsForFont, effectiveKerning, distanceFromEntry, bubbleLayer
-from AppKit import NSColor, NSTextAlignmentLeft, NSTextAlignmentRight, NSWindowStyleMaskResizable, NSSize, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
+from AppKit import NSColor, NSTextAlignmentLeft, NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message
 
 defaultStrings = """
@@ -95,7 +95,7 @@ class Bumper(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Auto Bumper",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and size
 		)
 
 		# UI elements:
@@ -320,21 +320,14 @@ class Bumper(mekkaObject):
 			metrics={"inset": inset, "gap": 8, "row": 6, "headlineGap": 12, "checkGap": 10, "checkRow": 5, "barGap": 14},
 		)
 
+		makeWindowResizable(self.w, vertical=True)
+
 		# Load Settings (this also triggers the prediction in the status line):
 		self.LoadPreferences()
 
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-		# make the window resizable, but not smaller than the size Auto Layout determined.
-		# (Content sizes set directly on the NSWindow, so the title bar is not counted twice.)
-		nsWindow = self.w.getNSWindow()
-		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
-		nsWindow.layoutIfNeeded()  # make sure the content has its final size before we read it
-		contentSize = nsWindow.contentView().frame().size
-		nsWindow.setContentMinSize_(NSSize(contentSize.width, contentSize.height))
-		nsWindow.setContentMaxSize_(NSSize(contentSize.width + 1000, contentSize.height + 1000))
 
 	def masterSwitch(self, sender=None):
 		if sender is self.w.nextButton and Glyphs.font:

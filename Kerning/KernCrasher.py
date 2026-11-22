@@ -5,11 +5,11 @@ Finds kerning collisions in the current master (or in more masters and fonts, se
 
 import vanilla
 from timeit import default_timer as timer
-from AppKit import NSTextAlignmentRight, NSWindowStyleMaskResizable, NSSize, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
+from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from Foundation import NSNotFound
 from kernanalysis import intervalList, categoryList, sortedIntervalsFromString, effectiveKerning, minDistanceBetweenTwoLayers, distanceFromEntry
 from GlyphsApp import Glyphs, GSControlLayer, Message
-from mekkablue import mekkaObject, caseDict, UpdateButton
+from mekkablue import mekkaObject, caseDict, UpdateButton, makeWindowResizable
 
 # entries for the left and right glyph popups; the new ones come last, so saved popup positions stay valid:
 currentTabEntry = "All glyphs in current tab"
@@ -54,7 +54,7 @@ class KernCrasher(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"KernCrasher",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -235,6 +235,8 @@ class KernCrasher(mekkaObject):
 			metrics={"inset": inset, "gap": 8, "row": 5, "headlineGap": 14, "barGap": 14},
 		)
 
+		makeWindowResizable(self.w)
+
 		# Load Settings:
 		self.LoadPreferences()
 		self.updateUI()  # prediction in the status line
@@ -242,15 +244,6 @@ class KernCrasher(mekkaObject):
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()
-
-		# make the window horizontally resizable, but keep the height that Auto Layout determined.
-		# (Content sizes set directly on the NSWindow, so the title bar is not counted twice.)
-		nsWindow = self.w.getNSWindow()
-		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
-		nsWindow.layoutIfNeeded()  # make sure the content has its final size before we read it
-		contentSize = nsWindow.contentView().frame().size
-		nsWindow.setContentMinSize_(NSSize(contentSize.width, contentSize.height))
-		nsWindow.setContentMaxSize_(NSSize(contentSize.width + 1000, contentSize.height))
 
 	def updateUI(self, sender=None):
 		pairCount = self.predictedPairCount()
