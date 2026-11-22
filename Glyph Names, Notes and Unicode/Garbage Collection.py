@@ -144,6 +144,7 @@ class GarbageCollection(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Clean", callback=self.GarbageCollectionMain)
+		self.w.runButton.setToolTip("Removes the checked items from the frontmost font.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window

@@ -63,17 +63,30 @@ class CopyLayerToLayer(mekkaObject):
 		self.w.descriptionText = vanilla.TextBox("auto", "Copy layer contents from one layer to another:", sizeStyle='small', selectable=True)
 
 		self.w.sourceFontText = vanilla.TextBox("auto", "Source font:", sizeStyle='small', selectable=True)
+		tooltipText = "The font that the layers are copied from."
 		self.w.sourceFontPopup = vanilla.PopUpButton("auto", self.GetFonts(), sizeStyle='small', callback=self.UpdateSourceLayers)
+		self.w.sourceFontPopup.setToolTip(tooltipText)
 		self.w.sourceFontUpdateButton = UpdateButton("auto", callback=self.UpdateFontList)
+		self.w.sourceFontText.setToolTip(tooltipText)
+		self.w.sourceFontUpdateButton.setToolTip("Updates the font lists from the currently open fonts.")
 
 		self.w.sourceLayerText = vanilla.TextBox("auto", "Source layer:", sizeStyle='small', selectable=True)
+		tooltipText = "The layer that is copied, e.g. a master, the background or a special layer."
 		self.w.sourceLayerPopup = vanilla.PopUpButton("auto", [], sizeStyle='small', callback=self.SavePreferences)
+		self.w.sourceLayerPopup.setToolTip(tooltipText)
+		self.w.sourceLayerText.setToolTip(tooltipText)
 
 		self.w.targetFontText = vanilla.TextBox("auto", "Target font:", sizeStyle='small', selectable=True)
+		tooltipText = "The font that the layers are copied into."
 		self.w.targetFontPopup = vanilla.PopUpButton("auto", self.GetFonts(), sizeStyle='small', callback=self.UpdateTargetLayers)
+		self.w.targetFontPopup.setToolTip(tooltipText)
+		self.w.targetFontText.setToolTip(tooltipText)
 
 		self.w.targetLayerText = vanilla.TextBox("auto", "Target layer:", sizeStyle='small', selectable=True)
+		tooltipText = "The layer that receives the copied content."
 		self.w.targetLayerPopup = vanilla.PopUpButton("auto", [], sizeStyle='small', callback=self.SavePreferences)
+		self.w.targetLayerPopup.setToolTip(tooltipText)
+		self.w.targetLayerText.setToolTip(tooltipText)
 
 		# Include options
 		self.w.includeText = vanilla.TextBox("auto", "Include:", sizeStyle='small', selectable=True)
@@ -110,6 +123,7 @@ class CopyLayerToLayer(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Copy Layers", sizeStyle='regular', callback=self.CopyLayerToLayerMain)
+		self.w.runButton.setToolTip("Copies the chosen content from the source layer to the target layer.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window

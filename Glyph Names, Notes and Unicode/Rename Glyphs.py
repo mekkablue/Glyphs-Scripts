@@ -36,11 +36,16 @@ class RenameGlyphs(mekkaObject):
 		self.w.renameList.getNSTextView().turnOffLigatures_(1)
 		self.w.renameList.getNSTextView().useStandardLigatures_(0)
 		self.w.renameList.selectAll()
+		tooltipText = "One oldname=newname pair per line. Glyphs with the old name are renamed to the new name."
+		self.w.text_1.setToolTip(tooltipText)
+		self.w.renameList.setToolTip(tooltipText)
 
 		self.w.allFonts = vanilla.CheckBox("auto", "⚠️ ALL Fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allFonts.setToolTip("If enabled, will rename glyphs in all open fonts. Otherwise, only in the frontmost font.")
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Rename", callback=self.RenameGlyphsMain)
+		self.w.runButton.setToolTip("Renames the glyphs according to the list.")
 		# self.w.setDefaultButton(self.w.runButton)
 
 		# everything hugs vertically, except for the text editor, which takes the leftover height:

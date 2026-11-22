@@ -49,6 +49,7 @@ class CustomUnicode(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Assign", callback=self.CustomUnicodeMain)
+		self.w.runButton.setToolTip("Assigns Unicode values to the selected glyphs, starting at the given value.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window ends up exactly as tall as the content

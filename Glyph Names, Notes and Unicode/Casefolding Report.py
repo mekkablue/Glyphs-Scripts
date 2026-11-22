@@ -33,12 +33,17 @@ class CasefoldingReport(mekkaObject):
 		self.w.descriptionText = vanilla.TextBox("auto", "Report all casefolding issues:", sizeStyle="small", selectable=True)
 
 		self.w.excludeMathSymbols = vanilla.CheckBox("auto", "Exclude math symbols (∆∏∑µ)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.excludeMathSymbols.setToolTip("If enabled, will not report math symbols like ∆, ∏, ∑ and µ, which are uppercase or lowercase only by Unicode convention.")
 		self.w.allFonts = vanilla.CheckBox("auto", "Check all open fonts (otherwise frontmost only)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allFonts.setToolTip("If enabled, will check all open fonts. Otherwise, only the frontmost font.")
 		self.w.reuseTab = vanilla.CheckBox("auto", "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.reuseTab.setToolTip("If enabled, will show the glyphs in the current Edit tab. Otherwise, will open a new tab.")
 		self.w.showMacroWindow = vanilla.CheckBox("auto", "Open Macro Window", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.showMacroWindow.setToolTip("If enabled, will bring the Macro Window to the front to show the detailed report.")
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Report", callback=self.CasefoldingReportMain)
+		self.w.runButton.setToolTip("Checks the casefolding and reports the glyphs with inconsistent casing in a tab and in the Macro Window.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window ends up exactly as tall as the content

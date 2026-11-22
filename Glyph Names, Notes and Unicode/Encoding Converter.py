@@ -407,9 +407,13 @@ class EncodingConverter(mekkaObject):
 
 		# Buttons:
 		self.w.openButton = vanilla.Button("auto", "Open Text…", callback=self.importEncoding)
+		self.w.openButton.setToolTip("Loads the conversion text from a text file.")
 		self.w.saveButton = vanilla.Button("auto", "Save Text…", callback=self.exportEncoding)
+		self.w.saveButton.setToolTip("Saves the conversion text to a text file.")
 		self.w.resetButton = vanilla.Button("auto", "Reset Text", callback=self.resetEncoding)
+		self.w.resetButton.setToolTip("Replaces the conversion text with the default text.")
 		self.w.runButton = vanilla.Button("auto", "Convert Font", callback=self.EncodingConverterMain)
+		self.w.runButton.setToolTip("Renames and builds glyphs in the frontmost font according to the conversion text.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# everything hugs vertically, except the text editor, which takes the height the user gives the window:

@@ -129,21 +129,37 @@ class AddTTFAutohintControlInstructionsForCurrentGlyph(mekkaObject):
 		)
 		self.w.sectionToMoveText = vanilla.TextBox("auto", "Touch", sizeStyle='small', selectable=True)
 		self.w.sectionToMove = vanilla.PopUpButton("auto", sectionOptions, sizeStyle='small', callback=self.SavePreferences)
+		tooltipText = "Choose which points of the glyph are touched: all of them, or only those in the upper or lower part of the glyph."
+		self.w.sectionToMoveText.setToolTip(tooltipText)
+		self.w.sectionToMove.setToolTip(tooltipText)
 
 		self.w.runButtonAdd100 = vanilla.Button("auto", "+1.00", callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
+		self.w.runButtonAdd100.setToolTip("Adds a touch instruction that moves the chosen points up by 1.00 px at the given sizes.")
 		self.w.runButtonAdd075 = vanilla.Button("auto", "+0.75", callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
+		self.w.runButtonAdd075.setToolTip("Adds a touch instruction that moves the chosen points up by 0.75 px at the given sizes.")
 		self.w.runButtonAdd050 = vanilla.Button("auto", "+0.50", callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
+		self.w.runButtonAdd050.setToolTip("Adds a touch instruction that moves the chosen points up by 0.50 px at the given sizes.")
 		self.w.runButtonAdd025 = vanilla.Button("auto", "+0.25", callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
+		self.w.runButtonAdd025.setToolTip("Adds a touch instruction that moves the chosen points up by 0.25 px at the given sizes.")
 		self.w.runButtonSub025 = vanilla.Button("auto", "-0.25", callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
+		self.w.runButtonSub025.setToolTip("Adds a touch instruction that moves the chosen points down by 0.25 px at the given sizes.")
 		self.w.runButtonSub050 = vanilla.Button("auto", "-0.50", callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
+		self.w.runButtonSub050.setToolTip("Adds a touch instruction that moves the chosen points down by 0.50 px at the given sizes.")
 		self.w.runButtonSub075 = vanilla.Button("auto", "-0.75", callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
+		self.w.runButtonSub075.setToolTip("Adds a touch instruction that moves the chosen points down by 0.75 px at the given sizes.")
 		self.w.runButtonSub100 = vanilla.Button("auto", "-1.00", callback=self.AddTTFAutohintControlInstructionsForCurrentGlyphMain)
+		self.w.runButtonSub100.setToolTip("Adds a touch instruction that moves the chosen points down by 1.00 px at the given sizes.")
 
 		self.w.ppmText = vanilla.TextBox("auto", "@", sizeStyle='small', selectable=True)
 		self.w.ppm = vanilla.EditText("auto", "8-12,20", sizeStyle='small', callback=self.SavePreferences)
+		tooltipText = "Pixel sizes (ppm) at which the instruction applies, e.g. 8-12,20."
+		self.w.ppmText.setToolTip(tooltipText)
+		self.w.ppm.setToolTip(tooltipText)
 
 		self.w.rightAtTop = vanilla.Button("auto", "right at top", callback=self.InsertRightAtTop)
+		self.w.rightAtTop.setToolTip("Adds a right instruction for the topmost point of the current glyph.")
 		self.w.leftAtTop = vanilla.Button("auto", "left at top", callback=self.InsertLeftAtTop)
+		self.w.leftAtTop.setToolTip("Adds a left instruction for the topmost point of the current glyph.")
 
 		# with everything hugging, the window ends up exactly as tall as the content
 		for view in self.w.getNSWindow().contentView().subviews():

@@ -39,7 +39,9 @@ class CompositeVariabler(mekkaObject):
 		self.w.descriptionText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		self.w.processBracketLayers = vanilla.CheckBox("auto", "Process [BRACKET] layers", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.processBracketLayers.setToolTip("If checked, bracket layers of components are copied into the composites that use them.")
 		self.w.processBraceLayers = vanilla.CheckBox("auto", "Process {BRACE} layers", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.processBraceLayers.setToolTip("If checked, brace layers of components are copied into the composites that use them.")
 
 		self.w.allGlyphs = vanilla.CheckBox("auto", "Include all exporting glyphs in font (otherwise only selected glyphs)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.allGlyphs.setToolTip("If checked, all glyphs in the font will be processed and receive the special (brace and bracket) layers of their respective components. If unchecked, only selected composite glyphs get processed.")
@@ -67,6 +69,7 @@ class CompositeVariabler(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Run", callback=self.CompositeVariablerMain)
+		self.w.runButton.setToolTip("Adds the special layers of the components to the composite glyphs.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window

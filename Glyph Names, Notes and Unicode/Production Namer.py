@@ -70,13 +70,18 @@ class ProductionNamer(mekkaObject):
 		self.w.finger = vanilla.TextBox("auto", "👉", selectable=True)
 		self.w.applyText = vanilla.TextBox("auto", "Apply to", sizeStyle='small', selectable=True)
 		self.w.applyPopup = vanilla.PopUpButton("auto", ("ALL open fonts", "open fonts containing", "frontmost font only"), sizeStyle='small', callback=self.SavePreferences)
+		tooltipText = "Choose whether to apply the production names to all open fonts, to open fonts whose family name contains a given text, or to the frontmost font only."
+		self.w.applyText.setToolTip(tooltipText)
+		self.w.applyPopup.setToolTip(tooltipText)
 		self.w.applyContaining = vanilla.EditText("auto", "", callback=self.SavePreferences, sizeStyle='small', placeholder="enter part of family name here")
 		self.w.applyContaining.setToolTip("Only applies the settings to fonts that contain this in Font Info > Font > Family Name.")
 
 		self.w.resetButton = vanilla.Button("auto", "Reset", callback=self.updateUI)
+		self.w.resetButton.setToolTip("Resets the text above to the default production names.")
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Set Names", callback=self.ProductionNamerMain)
+		self.w.runButton.setToolTip("Sets the production names listed above in the chosen fonts.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# everything hugs vertically, except for the text editor, which takes the leftover height:

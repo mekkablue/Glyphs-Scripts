@@ -60,23 +60,34 @@ class AdjustSpacing(mekkaObject):
 
 		formatter = decimalFormatter(fractionDigits=3)
 		self.w.choice = vanilla.PopUpButton("auto", choices, callback=self.SavePreferences)
+		self.w.choice.setToolTip("The kind of change applied to the sidebearings, using the value on the right.")
 		self.w.value = SteppingEditText("auto", "2", callback=self.SavePreferences, formatter=formatter)
+		self.w.value.setToolTip("The factor, number of units, rounding step, limit or percentage used by the chosen operation.")
 
 		self.w.treatSBsText1 = vanilla.TextBox("auto", "Apply to", sizeStyle="small", selectable=True)
 		self.w.treatPositiveSBs = vanilla.CheckBox("auto", "positive", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.treatPositiveSBs.setToolTip("Adjusts sidebearings that are positive (or zero).")
 		self.w.treatNegativeSBs = vanilla.CheckBox("auto", "negative sidebearings", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.treatNegativeSBs.setToolTip("Adjusts sidebearings that are negative.")
 
 		self.w.treatSBsText2 = vanilla.TextBox("auto", "Negative treatment:", sizeStyle="small", selectable=True)
+		tooltipText = "How the value is applied to negative sidebearings: the same as for positive ones, reversed, or reversed and halved."
+		self.w.treatSBsText2.setToolTip(tooltipText)
 		self.w.negativeChoice = vanilla.PopUpButton("auto", negativeChoices, sizeStyle="small", callback=self.SavePreferences)
+		self.w.negativeChoice.setToolTip(tooltipText)
 
 		self.w.updateMetricsKeys = vanilla.CheckBox("auto", "Update metrics keys and auto-alignments", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.updateMetricsKeys.setToolTip("After adjusting, re-aligns widths and updates metrics keys of the processed layers.")
 
 		self.w.applyToAllMasters = vanilla.CheckBox("auto", "Include ⚠️ ALL masters (otherwise current only)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.applyToAllMasters.setToolTip("Adjusts the sidebearings on all masters. If off, only the current master is processed.")
 
 		self.w.applyToAllGlyphs = vanilla.CheckBox("auto", "Include ⚠️ ALL glyphs (otherwise selected only)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.applyToAllGlyphs.setToolTip("Adjusts all glyphs of the font. If off, only the selected glyphs are processed.")
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Adjust", callback=self.AdjustSpacingMain)
+		self.w.runButton.setToolTip("Applies the adjustment to the sidebearings of the chosen glyphs.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window

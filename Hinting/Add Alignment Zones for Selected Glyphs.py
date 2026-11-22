@@ -80,6 +80,7 @@ class CreateAlignmentZonesforSelectedGlyphs(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Create Zones", callback=self.CreateAlignmentZonesforSelectedGlyphsMain)
+		self.w.runButton.setToolTip("Creates alignment zones in every master of the frontmost font for the selected glyphs.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# The description wraps at this window width, so let it take the available

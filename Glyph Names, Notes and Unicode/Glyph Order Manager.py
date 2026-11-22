@@ -75,13 +75,20 @@ class GlyphOrderManager(mekkaObject):
 		)
 		self.w.scopeText = vanilla.TextBox("auto", "Apply to:", selectable=True)
 		self.w.scope = vanilla.PopUpButton("auto", scopeOptions, callback=self.SavePreferences)
+		tooltipText = "Choose whether the glyphOrder is read from and applied to the frontmost font only, or to all open fonts."
+		self.w.scopeText.setToolTip(tooltipText)
+		self.w.scope.setToolTip(tooltipText)
 
 		# Run Button:
 		self.w.extractButton = vanilla.Button("auto", "Extract", callback=self.extractFromFrontmostFont)
+		self.w.extractButton.setToolTip("Copies the glyphOrder parameter of the frontmost font into the text field.")
 		self.w.cleanButton = vanilla.Button("auto", "Clean", callback=self.cleanForScope)
+		self.w.cleanButton.setToolTip("Removes glyph names from the text that do not exist in any font of the chosen scope.")
 		self.w.addMissingButton = vanilla.Button("auto", "Add Missing", callback=self.addMissingForScope)
+		self.w.addMissingButton.setToolTip("Appends the names of all glyphs of the chosen fonts that are missing from the text.")
 
 		self.w.runButton = vanilla.Button("auto", "Apply", callback=self.GlyphOrderManagerMain)
+		self.w.runButton.setToolTip("Sets the text as glyphOrder parameter in the chosen fonts.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# everything hugs vertically, except for the text editor, which takes the leftover height:

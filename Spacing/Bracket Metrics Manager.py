@@ -42,17 +42,24 @@ class BracketMetricsManager(mekkaObject):
 		self.w.descriptionText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		self.w.syncLSB = vanilla.CheckBox("auto", "Sync LSB", value=False, callback=self.syncAction, sizeStyle='small')
+		self.w.syncLSB.setToolTip("Sets the left sidebearing of bracket layers to that of their associated master layer.")
 		self.w.syncRSB = vanilla.CheckBox("auto", "Sync RSB", value=False, callback=self.syncAction, sizeStyle='small')
+		self.w.syncRSB.setToolTip("Sets the right sidebearing of bracket layers to that of their associated master layer.")
 		self.w.syncWidth = vanilla.CheckBox("auto", "Sync Width", value=False, callback=self.syncAction, sizeStyle='small')
+		self.w.syncWidth.setToolTip("Sets the width of bracket layers to that of their associated master layer.")
 
 		self.w.applyToAllGlyphsWithBrackets = vanilla.CheckBox("auto", "Apply to all glyphs in font that have bracket layers", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.applyToAllGlyphsWithBrackets.setToolTip("Processes all glyphs in the font that have bracket layers. If off, only the selected glyphs are processed.")
 
 		self.w.reportOnly = vanilla.CheckBox("auto", "Only report, do not change metrics", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reportOnly.setToolTip("Reports in the Macro Window which metrics are in sync or diverging, without changing anything.")
 
 		self.w.openTab = vanilla.CheckBox("auto", "Open tab with affected bracket glyphs", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.openTab.setToolTip("Opens a new tab with the glyphs that have bracket layers.")
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Sync", callback=self.BracketMetricsManagerMain)
+		self.w.runButton.setToolTip("Syncs the metrics of bracket layers with their associated layers, or only reports if ‘Only report’ is on.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window

@@ -32,15 +32,22 @@ class AddMetricsKeysforSymmetricGlyphs(mekkaObject):
 
 		formatter = decimalFormatter(0, fractionDigits=2)
 		self.w.toleranceText = vanilla.TextBox("auto", "Tolerance", sizeStyle='small')
+		tooltipText = "Maximum difference in units between LSB and RSB for a glyph to still count as symmetric."
+		self.w.toleranceText.setToolTip(tooltipText)
 		self.w.tolerance = SteppingEditText("auto", "2", callback=self.SavePreferences, sizeStyle='small', formatter=formatter)
+		self.w.tolerance.setToolTip(tooltipText)
 		self.w.toleranceUnitsText = vanilla.TextBox("auto", "units", sizeStyle='small')
+		self.w.toleranceUnitsText.setToolTip(tooltipText)
 
 		self.w.updateMetrics = vanilla.CheckBox("auto", "Update metrics of affected glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.updateMetrics.setToolTip("Also updates the metrics of the affected glyphs after inserting the metrics key.")
 
 		self.w.allGlyphs = vanilla.CheckBox("auto", "⚠️ Apply to ALL glyphs in font (ignore selection)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allGlyphs.setToolTip("Processes all glyphs of the font. If off, only the selected glyphs are processed.")
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Insert", callback=self.AddMetricsKeysforSymmetricGlyphsMain)
+		self.w.runButton.setToolTip("Inserts ‘=|’ as RSB metrics key in glyphs whose LSB and RSB match on all layers.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window
