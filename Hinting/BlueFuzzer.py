@@ -4,7 +4,7 @@ Extends all alignment zones (except for the baseline zone that should stay at 0)
 """
 
 import vanilla
-from mekkablue import mekkaObject, SteppingEditText, integerFormatter
+from mekkablue import mekkaObject, SteppingEditText, integerFormatter, makeWindowResizable
 from GlyphsApp import Glyphs
 from AppKit import (
 	NSColor,
@@ -14,23 +14,31 @@ from AppKit import (
 	NSLayoutPriorityDefaultLow,
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
+	NSTextAlignmentRight,
+)
+
+scopeOptions = (
+	"current master of current font",
+	"⚠️ ALL masters of current font",
+	"⚠️ current masters of ALL open fonts",
+	"⚠️ ALL masters of ALL open fonts",
 )
 
 
 class BlueFuzzer(mekkaObject):
 	prefDict = {
 		"fuzzValue": 1,
-		"allMasters": True,
+		"scope": 0,
 	}
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 270
+		windowWidth = 300
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"BlueFuzzer",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -43,8 +51,17 @@ class BlueFuzzer(mekkaObject):
 		self.w.fuzzValueText.setToolTip(tooltipText)
 		self.w.fuzzValue.setToolTip(tooltipText)
 
-		self.w.allMasters = vanilla.CheckBox("auto", "Apply to all masters", value=True, callback=self.SavePreferences, sizeStyle="small")
-		self.w.allMasters.setToolTip("Fuzz the alignment zones in all masters. If off, only the current master is changed.")
+		scopeTooltip = (
+			"Determines which masters get their alignment zones changed:\n"
+			"• current master of current font – the selected master of the frontmost font.\n"
+			"• ⚠️ ALL masters of current font – every master of the frontmost font.\n"
+			"• ⚠️ current masters of ALL open fonts – the selected master of every open font.\n"
+			"• ⚠️ ALL masters of ALL open fonts – every master of every open font."
+		)
+		self.w.scopeLabel = vanilla.TextBox("auto", "Apply to:", sizeStyle="small", selectable=True)
+		self.w.scope = vanilla.PopUpButton("auto", scopeOptions, callback=self.SavePreferences, sizeStyle="small")
+		self.w.scopeLabel.setToolTip(scopeTooltip)
+		self.w.scope.setToolTip(scopeTooltip)
 
 		self.w.runButton = vanilla.Button("auto", "Fuzz", callback=self.BlueFuzzerMain)
 		self.w.runButton.setToolTip("Extend the alignment zones and open Font Info > Masters.")
@@ -61,9 +78,11 @@ class BlueFuzzer(mekkaObject):
 		nsRunButton.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
 		nsRunButton.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 
-		nsLabel = self.w.fuzzValueText.getNSTextField()
-		nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
-		nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+		for label in (self.w.fuzzValueText, self.w.scopeLabel):
+			nsLabel = label.getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 
 		# hug vertically so the window is as tall as its content
 		for view in self.w.getNSWindow().contentView().subviews():
@@ -71,42 +90,55 @@ class BlueFuzzer(mekkaObject):
 
 		self.w.addAutoPosSizeRules(
 			[
-				"H:|-inset-[fuzzValueText]-gap-[fuzzValue(60)]-(>=inset)-|",
-				"H:|-inset-[allMasters]-(>=inset)-|",
+				"H:|-inset-[fuzzValueText]-gap-[fuzzValue(>=50)]-inset-|",
+				"H:|-inset-[scopeLabel]-gap-[scope]-inset-|",
 				"H:|-inset-[status]-gap-[runButton(>=70)]-inset-|",
-				"V:|-gap-[fuzzValue]-row-[allMasters]-inset-[runButton]-inset-|",
+				"V:|-gap-[fuzzValue]-row-[scope]-inset-[runButton]-inset-|",
 				{"view1": self.w.fuzzValueText, "attribute1": "centerY", "view2": self.w.fuzzValue, "attribute2": "centerY"},
+				{"view1": self.w.scopeLabel, "attribute1": "centerY", "view2": self.w.scope, "attribute2": "centerY"},
+				{"view1": self.w.scopeLabel, "attribute1": "width", "view2": self.w.fuzzValueText, "attribute2": "width"},
 				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 			],
 			metrics={"inset": inset, "gap": 12, "row": 6},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		self.LoadPreferences()
 		self.w.open()
 		self.w.makeKey()
 
 	def BlueFuzzerMain(self, sender):
+		masterName = "start"
 		try:
-			Font = Glyphs.font
-			if Font is None:
+			frontFont = Glyphs.font
+			if frontFont is None:
 				self.setStatus("⚠️ No font open.")
 				return
 
 			self.SavePreferences()
 			fuzzValue = self.prefInt("fuzzValue")
-			allMasters = self.prefBool("allMasters")
+			scope = self.prefInt("scope")
 
-			if allMasters:
-				masterList = Font.masters
+			# collect (font, master) pairs in the chosen scope:
+			targets = []
+			if scope == 0:
+				targets = [(frontFont, frontFont.selectedFontMaster)]
+			elif scope == 1:
+				targets = [(frontFont, master) for master in frontFont.masters]
+			elif scope == 2:
+				targets = [(font, font.selectedFontMaster) for font in Glyphs.fonts]
 			else:
-				masterList = [Font.selectedFontMaster]
+				targets = [(font, master) for font in Glyphs.fonts for master in font.masters]
+			multipleFonts = len(set(id(font) for font, master in targets)) > 1
 
-			self.setStatus(f"🛠️ Processing {len(masterList)} master{'' if len(masterList) == 1 else 's'}…")
-			for m in masterList:
-				self.setStatus(f"🔠 {m.name}")
-				numOfZones = len(m.alignmentZones)
+			self.setStatus(f"🛠️ Processing {len(targets)} master{'' if len(targets) == 1 else 's'}…")
+			for font, master in targets:
+				masterName = f"{font.familyName} – {master.name}" if multipleFonts else master.name
+				self.setStatus(f"🔠 {masterName}")
+				numOfZones = len(master.alignmentZones)
 				for i in range(numOfZones):
-					thisZone = m.alignmentZones[i]
+					thisZone = master.alignmentZones[i]
 					factor = 1
 					if thisZone.size < 0:  # negative zone
 						factor = -1
@@ -116,10 +148,11 @@ class BlueFuzzer(mekkaObject):
 						thisZone.setPosition_(thisZone.position - fuzzValue * factor)
 						thisZone.setSize_(thisZone.size + (fuzzValue * 2) * factor)
 
-			self.setStatus(f"✅ Fuzzed the zones of {len(masterList)} master{'' if len(masterList) == 1 else 's'}.")
+			self.setStatus(f"✅ Fuzzed the zones of {len(targets)} master{'' if len(targets) == 1 else 's'}.")
 			self.w.close()
-			Font.parent.windowController().showFontInfoWindowWithTabSelected_(1)  # master tab index
+			frontFont.parent.windowController().showFontInfoWindowWithTabSelected_(1)  # master tab index
 		except Exception as e:
+			self.setStatus(f"❌ Error at {masterName}. Details in Macro Window.")
 			raise e
 
 
