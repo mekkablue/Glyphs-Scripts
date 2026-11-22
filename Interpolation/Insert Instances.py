@@ -5,9 +5,9 @@ In Glyphs 4+, presents a redesigned UI for inserting axis particles.
 """
 
 import vanilla
-from mekkablue import mekkaObject, UpdateButton, SteppingEditText, decimalFormatter
+from mekkablue import mekkaObject, UpdateButton, SteppingEditText, decimalFormatter, makeWindowResizable
 from GlyphsApp import Glyphs, GSInstance, INSTANCETYPESINGLE
-from AppKit import NSFont, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSSize, NSTextAlignmentRight, NSWindowStyleMaskResizable
+from AppKit import NSFont, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
 from Foundation import NSDictionary, NSMutableArray, NSMutableDictionary
 
 if Glyphs.versionNumber >= 4:
@@ -193,7 +193,7 @@ class InstanceMaker(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Insert weight instances",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and height
 		)
 
 		# UI elements:
@@ -334,21 +334,14 @@ class InstanceMaker(mekkaObject):
 			metrics={"inset": inset, "indent": inset + 20, "gap": 8, "row": 8, "stackRow": 8, "sectionGap": 10, "radioHeight": self.w.existingInstances.getFittingHeight()},
 		)
 
+		# resizable vertically only, so the sample can grow:
+		makeWindowResizable(self.w, vertical=True, horizontal=False)
+
 		self.LoadPreferences()
 
 		self.w.open()
 		self.UpdateSample(self)
 		self.w.makeKey()
-
-		# make the window vertically resizable, starting at the size that Auto Layout determined,
-		# so the sample can grow. (Content sizes set directly on the NSWindow, so the title bar
-		# is not counted twice.)
-		nsWindow = self.w.getNSWindow()
-		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
-		nsWindow.layoutIfNeeded()  # make sure the content has its final size before we read it
-		contentSize = nsWindow.contentView().frame().size
-		nsWindow.setContentMinSize_(NSSize(contentSize.width, contentSize.height))
-		nsWindow.setContentMaxSize_(NSSize(contentSize.width, contentSize.height + 400))
 
 	def axisTag(self, axis):
 		if Glyphs.versionNumber >= 3:
