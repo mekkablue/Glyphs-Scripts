@@ -60,6 +60,7 @@ class MonospaceChecker(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Check", callback=self.MonospaceCheckerMain)
+		self.w.runButton.setToolTip("Checks the glyph widths and opens a tab with the glyphs that deviate.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window

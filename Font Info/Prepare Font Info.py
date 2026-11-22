@@ -57,8 +57,11 @@ class PrepareFontforGit(mekkaObject):
 		self.w.descriptionText = vanilla.TextBox("auto", "Make the font git-ready with these custom parameters:", sizeStyle="small", selectable=True)
 
 		self.w.preventDisplayStrings = vanilla.CheckBox("auto", "Prevent storing of tab contents (Write DisplayStrings = OFF)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.preventDisplayStrings.setToolTip("Adds the ‘Write DisplayStrings’ parameter set to off, so tab contents are not saved in the file. Avoids needless changes in git commits.")
 		self.w.preventTimeStamps = vanilla.CheckBox("auto", "Prevent storing of time stamps (Write lastChange = OFF)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.preventTimeStamps.setToolTip("Adds the ‘Write lastChange’ parameter set to off, so time stamps are not saved in the file. Avoids needless changes in git commits.")
 		self.w.preventMacName = vanilla.CheckBox("auto", "Prevent export of Mac entries in name table", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.preventMacName.setToolTip("Adds the ‘Export Mac Name Table Entries’ parameter set to off, so the name table of exported fonts has no Mac entries.")
 
 		fileFormatTooltip = "Sets Font Info > Other > File Format to the chosen Glyphs version."
 		self.w.fileFormat = vanilla.CheckBox("auto", "Set File Format to", value=True, callback=self.SavePreferences, sizeStyle="small")
@@ -69,15 +72,22 @@ class PrepareFontforGit(mekkaObject):
 		self.w.useExtensionKerning = vanilla.CheckBox("auto", "Add Use Extension Kerning parameter", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.useExtensionKerning.setToolTip("Adds the ‘Use Extension Kerning’ custom parameter, which makes the exported kern feature use the GPOS Extension lookup type. Useful for large kerning tables.")
 		self.w.removeGlyphOrder = vanilla.CheckBox("auto", "Remove glyphOrder", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.removeGlyphOrder.setToolTip("Removes the glyphOrder custom parameter, if there is one.")
 		self.w.disablesNiceNames = vanilla.CheckBox("auto", "Turn off Font Info > Other > Use Custom Naming", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.disablesNiceNames.setToolTip("Turns off the ‘Use Custom Naming’ option in Font Info > Other.")
 		self.w.disablesAutomaticAlignment = vanilla.CheckBox("auto", "Turn off Font Info > Other > Disable Auto Alignment", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.disablesAutomaticAlignment.setToolTip("Turns off the ‘Disable Automatic Alignment’ option in Font Info > Other, so automatic alignment of components stays active.")
 
 		# Apply Scope:
 		self.w.applyToFontsText = vanilla.TextBox("auto", "Apply to:", sizeStyle="small", selectable=True)
 		self.w.applyToFonts = vanilla.PopUpButton("auto", ("frontmost font only", "⚠️ ALL open fonts"), sizeStyle="small", callback=self.SavePreferences)
+		tooltipText = "Choose whether to apply the settings to the frontmost font only, or to all open fonts."
+		self.w.applyToFontsText.setToolTip(tooltipText)
+		self.w.applyToFonts.setToolTip(tooltipText)
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Apply", callback=self.PrepareFontforGitMain)
+		self.w.runButton.setToolTip("Applies the checked settings to the chosen fonts.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging,

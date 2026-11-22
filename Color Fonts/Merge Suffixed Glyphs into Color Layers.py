@@ -55,13 +55,17 @@ class MergeSuffixedGlyphsIntoColorLayers(mekkaObject):
 		textView.setMinSize_(textSize)
 
 		self.w.disableSuffixedGlyphs = vanilla.CheckBox("auto", "Deactivate export for glyphs with listed suffixes", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.disableSuffixedGlyphs.setToolTip("Turns off export for the glyphs with the listed suffixes, because they are merged into the color layers.")
 
 		self.w.deletePreexistingColorLayers = vanilla.CheckBox("auto", "Delete preexisting Color layers in target glyphs", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.deletePreexistingColorLayers.setToolTip("Deletes the Color layers that already exist in the target glyphs before adding the new ones.")
 
 		self.w.processCompleteFont = vanilla.CheckBox("auto", "Process complete font (otherwise only add into selected glyphs)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.processCompleteFont.setToolTip("If checked, processes all suitable glyphs in the font. Otherwise only the selected glyphs receive color layers.")
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Merge", callback=self.MergeSuffixedGlyphsIntoColorLayersMain)
+		self.w.runButton.setToolTip("Merges the suffixed glyphs into color layers of the unsuffixed glyphs.")
 		# self.w.setDefaultButton(self.w.runButton)
 
 		# everything hugs its content vertically, except the text editor, which takes the leftover height:

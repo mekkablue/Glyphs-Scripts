@@ -38,26 +38,42 @@ class AxisLocationSetter(mekkaObject):
 		inset = 15
 
 		self.w.descriptionText1 = vanilla.TextBox("auto", "In all masters/instances with name particle", sizeStyle='small', selectable=True)
+		tooltipText = "Name particle to look for in the names of masters and instances, e.g. Condensed."
 
 		self.w.particle = vanilla.ComboBox("auto", self.particlesOfCurrentFont(), sizeStyle='small', callback=self.SavePreferences)
+		self.w.particle.setToolTip(tooltipText)
 		self.w.particleUpdateButton = UpdateButton("auto", callback=self.update)
+		self.w.descriptionText1.setToolTip(tooltipText)
+		self.w.particleUpdateButton.setToolTip("Updates the particle and axis lists from the frontmost font.")
 
 		self.w.descriptionText2 = vanilla.TextBox("auto", "For axis", sizeStyle='small', selectable=True)
+		tooltipText = "Name of the axis whose location is set."
 		self.w.axisName = vanilla.ComboBox("auto", self.axesOfCurrentFont(), sizeStyle='small', callback=self.SavePreferences)
+		self.w.axisName.setToolTip(tooltipText)
+		self.w.descriptionText2.setToolTip(tooltipText)
 		self.w.descriptionText21 = vanilla.TextBox("auto", ", set coordinates", sizeStyle='small', selectable=True)
 
 		self.w.descriptionText3 = vanilla.TextBox("auto", "Internal", sizeStyle='small', selectable=True)
+		tooltipText = "The internal (design space) axis value to set. Leave empty for no change."
 		self.w.internalAxisValue = vanilla.EditText("auto", "0", callback=self.SavePreferences, sizeStyle='small')
+		self.w.internalAxisValue.setToolTip(tooltipText)
 		self.w.internalAxisValue.getNSTextField().setPlaceholderString_("no change")
 		self.w.descriptionText31 = vanilla.TextBox("auto", "→ External", sizeStyle='small', selectable=True)
+		self.w.descriptionText3.setToolTip(tooltipText)
+		tooltipText = "The external (user space) axis value to set. Leave empty for no change."
 		self.w.externalAxisValue = vanilla.EditText("auto", "0", callback=self.SavePreferences, sizeStyle='small')
+		self.w.externalAxisValue.setToolTip(tooltipText)
+		self.w.descriptionText31.setToolTip(tooltipText)
 		self.w.externalAxisValue.getNSTextField().setPlaceholderString_("no change")
 
 		self.w.includeInstances = vanilla.CheckBox("auto", "Apply to instances", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeInstances.setToolTip("If checked, the axis location is set in instances whose names contain the particle.")
 		self.w.includeMasters = vanilla.CheckBox("auto", "Apply to masters", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeMasters.setToolTip("If checked, the axis location is set in masters whose names contain the particle.")
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Set", callback=self.AxisLocationSetterMain)
+		self.w.runButton.setToolTip("Sets the axis location in the matching masters and/or instances of the frontmost font.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window

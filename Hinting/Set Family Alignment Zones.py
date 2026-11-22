@@ -58,6 +58,7 @@ class SetFamilyAlignmentZones(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Insert FAZ", callback=self.SetFamilyAlignmentZonesMain)
+		self.w.runButton.setToolTip("Inserts the family alignment zones for the chosen instance into the font.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging,

@@ -30,16 +30,26 @@ class CopyGlyphsIntoBackupLayers(mekkaObject):
 		inset = 15
 
 		self.w.from_text = vanilla.TextBox("auto", "Backup layers from:", sizeStyle='small')
+		tooltipText = "The font whose glyphs (on its current master) are copied into backup layers."
+		self.w.from_text.setToolTip(tooltipText)
 		self.w.from_font = vanilla.PopUpButton("auto", self.GetFonts(isSourceFont=True), sizeStyle='small', callback=self.buttonCheck)
+		self.w.from_font.setToolTip(tooltipText)
 
 		self.w.to_text = vanilla.TextBox("auto", "Into selected glyphs in:", sizeStyle='small')
+		tooltipText = "The font whose selected glyphs receive the backup layers."
+		self.w.to_text.setToolTip(tooltipText)
 		self.w.to_font = vanilla.PopUpButton("auto", self.GetFonts(isSourceFont=False), sizeStyle='small', callback=self.buttonCheck)
+		self.w.to_font.setToolTip(tooltipText)
 
 		self.w.suffix_text = vanilla.TextBox("auto", "Layer name suffix:", sizeStyle='small')
+		tooltipText = "Text appended to the master name to name the new backup layers."
+		self.w.suffix_text.setToolTip(tooltipText)
 		self.w.suffix = vanilla.EditText("auto", "Backup", sizeStyle='small')
+		self.w.suffix.setToolTip(tooltipText)
 
 		# Run Button:
 		self.w.copybutton = vanilla.Button("auto", "Copy", callback=self.CopyGlyphsIntoBackupLayersMain)
+		self.w.copybutton.setToolTip("Copies the glyphs from the source font into backup layers of the selected glyphs in the target font.")
 		self.w.setDefaultButton(self.w.copybutton)
 
 		# with everything hugging, the window ends up exactly as tall as the content

@@ -84,6 +84,7 @@ class ContextualCycler(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Build", callback=self.ContextualCyclerMain)
+		self.w.runButton.setToolTip("Builds the cycling contextual alternates code in the target feature.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window

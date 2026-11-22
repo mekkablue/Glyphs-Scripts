@@ -93,11 +93,16 @@ class ColorPaletteMultiplier(mekkaObject):
 		self.w.deriveUpdate.setToolTip("Reload the color list from the Color Palettes parameter of the frontmost font.")
 
 		self.w.allGlyphs = vanilla.CheckBox("auto", "Apply to all glyphs (otherwise selected only)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allGlyphs.setToolTip("If checked, processes all glyphs in the font. Otherwise only the selected glyphs.")
 		self.w.overwrite = vanilla.CheckBox("auto", "Overwrite preexisting target colors", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.overwrite.setToolTip("If checked, replaces target color layers that already exist. Otherwise they are left untouched.")
 
 		self.w.descriptionText = vanilla.TextBox("auto", "Build target colors with filter parameters:", sizeStyle="small", selectable=True)
 
 		self.w.build = vanilla.TextEditor("auto", "", callback=self.CleanInputAndSavePreferences)
+		tooltipText = "One filter parameter per line, applied in order to the copied color layers. Each line builds one target color."
+		self.w.descriptionText.setToolTip(tooltipText)
+		self.w.build.setToolTip(tooltipText)
 		self.w.build.getNSTextView().setFont_(NSFont.userFixedPitchFontOfSize_(14.0))
 		self.w.build.getNSTextView().turnOffLigatures_(1)
 		self.w.build.getNSTextView().useStandardLigatures_(0)
@@ -111,9 +116,11 @@ class ColorPaletteMultiplier(mekkaObject):
 			{"title": "Add TurnAllPathsCounterClockwise", "callback": self.turnAllPathsCounterClockwise},
 		)
 		self.w.ActionButton = vanilla.ActionButton("auto", actionItems, sizeStyle="regular")
+		self.w.ActionButton.setToolTip("Adds a filter line to the list of filter parameters.")
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Build", sizeStyle="regular", callback=self.ColorPaletteMultiplierMain)
+		self.w.runButton.setToolTip("Builds the target color layers in the processed glyphs.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# label hugs its text, so the popup takes the leftover width

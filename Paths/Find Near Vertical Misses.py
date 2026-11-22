@@ -78,6 +78,7 @@ class FindNearVerticalMisses(mekkaObject):
 		self.w.progress.set(0)
 
 		self.w.runButton = vanilla.Button("auto", "Find", callback=self.FindNearVerticalMissesMain)
+		self.w.runButton.setToolTip("Finds on-curve nodes that are close to, but not exactly on, a vertical metric.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small", selectable=True)

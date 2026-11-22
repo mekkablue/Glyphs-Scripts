@@ -112,6 +112,7 @@ class BatchImportMasters(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Import", callback=self.BatchImportMastersMain)
+		self.w.runButton.setToolTip("Adds an Import Master parameter to the target font for every matching master of the source font.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging,

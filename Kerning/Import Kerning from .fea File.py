@@ -143,13 +143,16 @@ class ImportKerningFromFeaFile(mekkaObject):
 		inset = 15
 
 		self.w.chooseButton = vanilla.Button("auto", "Choose .fea…", callback=self.chooseFile)
+		self.w.chooseButton.setToolTip("Chooses the .fea file that contains the kern feature.")
 		self.w.filePathText = vanilla.TextBox("auto", "No file chosen", sizeStyle="small", selectable=True)
 
 		self.w.RTL = vanilla.CheckBox("auto", "Kerning is for a Right-to-Left script", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.RTL.setToolTip("Enable if the .fea file contains kerning for a Right-to-Left script, so kerning classes and pairs are imported with the correct direction.")
 
 		self.w.importButton = vanilla.Button("auto", "Import", callback=self.importFeaFileToCurrentMaster)
+		self.w.importButton.setToolTip("Imports the kerning from the chosen .fea file into the current master of the frontmost font.")
 		self.w.closeButton = vanilla.Button("auto", "Close", callback=self.closeWindow)
+		self.w.closeButton.setToolTip("Closes this window.")
 		self.w.setDefaultButton(self.w.importButton)
 
 		for view in self.w.getNSWindow().contentView().subviews():

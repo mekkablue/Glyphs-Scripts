@@ -29,11 +29,16 @@ class ChangeMetricsbyPercentage(mekkaObject):
 		formatter = decimalFormatter(fractionDigits=2)
 		self.w.text_1 = vanilla.TextBox("auto", "Increase", sizeStyle='small')
 		self.w.LSB = vanilla.CheckBox("auto", "LSB", value=True, sizeStyle='small', callback=self.SavePreferences)
+		self.w.LSB.setToolTip("If enabled, changes the left sidebearings of the selected glyphs.")
 		self.w.RSB = vanilla.CheckBox("auto", "RSB by", value=True, sizeStyle='small', callback=self.SavePreferences)
+		self.w.RSB.setToolTip("If enabled, changes the right sidebearings of the selected glyphs.")
 		self.w.changeValue = SteppingEditText("auto", "10", sizeStyle='small', callback=self.SavePreferences, formatter=formatter)
+		self.w.changeValue.setToolTip("Percentage by which the sidebearings are changed. Negative values decrease them.")
 		self.w.text_3 = vanilla.TextBox("auto", "%", sizeStyle='small')
 		self.w.revertButton = vanilla.Button("auto", "⟲ Revert", sizeStyle='small', callback=self.ChangeMetricsbyPercentageMain)
+		self.w.revertButton.setToolTip("Reverses a previous change by the same percentage, i.e., divides the sidebearings by the factor.")
 		self.w.runButton = vanilla.Button("auto", "Change", sizeStyle='small', callback=self.ChangeMetricsbyPercentageMain)
+		self.w.runButton.setToolTip("Changes the sidebearings of the selected glyphs by the percentage.")
 
 		self.w.setDefaultButton(self.w.runButton)
 

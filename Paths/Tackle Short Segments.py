@@ -67,6 +67,7 @@ class TackleShortSegments(mekkaObject):
 
 		# run button (regular size):
 		self.w.runButton = vanilla.Button("auto", "Tackle", callback=self.TackleShortSegmentsMain)
+		self.w.runButton.setToolTip("Finds short segments and applies the chosen action to them.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# labels: right-aligned, same width

@@ -75,6 +75,7 @@ class StealKerningGroupsfromFont(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Steal", callback=self.StealKerningGroupsfromFontMain)
+		self.w.runButton.setToolTip("Copies the kerning groups from the source font to the target font.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window

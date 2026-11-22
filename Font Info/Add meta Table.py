@@ -85,6 +85,7 @@ class AddMetaTable(mekkaObject):
 		# Run Button:
 		self.w.helpButton = vanilla.HelpButton("auto", callback=self.openURL)
 		self.w.runButton = vanilla.Button("auto", "Add to Font Info", sizeStyle="regular", callback=self.AddMetaTableMain)
+		self.w.runButton.setToolTip("Adds the meta table entries with the tags above to the frontmost font.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging,

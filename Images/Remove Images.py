@@ -74,6 +74,7 @@ class RemoveImages(mekkaObject):
 		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
 		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 		self.w.runButton = vanilla.Button("auto", "Remove", callback=self.run)
+		self.w.runButton.setToolTip("Removes the images in the chosen scope.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging,

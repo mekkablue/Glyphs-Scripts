@@ -35,6 +35,7 @@ class Gridswitch(mekkaObject):
 		self.w.grid2.setToolTip("Second grid step value.")
 		self.w.currentGridStep = vanilla.TextBox("auto", self.gridStepReport(), sizeStyle='small')
 		self.w.switchButton = vanilla.Button("auto", "Switch Grid", callback=self.GridOnOffMain)
+		self.w.switchButton.setToolTip("Toggles the font's grid step between the two values above.")
 		self.w.setDefaultButton(self.w.switchButton)
 
 		# with everything hugging, the window ends up exactly as tall as the content

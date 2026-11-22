@@ -281,29 +281,51 @@ class AddGrade(mekkaObject):
 		self.w.descriptionText = vanilla.TextBox("auto", "Add Grade master (and if necessary Grade axis)", sizeStyle="small", selectable=True)
 
 		self.w.baseMasterText = vanilla.TextBox("auto", "Based on master", sizeStyle="small", selectable=True)
+		tooltipText = "The master that the new Grade master is derived from."
 		self.w.baseMaster = vanilla.PopUpButton("auto", self.mastersOfCurrentFont(), sizeStyle="small", callback=self.SavePreferences)
+		self.w.baseMaster.setToolTip(tooltipText)
 		self.w.updateBaseMaster = UpdateButton("auto", callback=self.updateFromButton)
+		self.w.baseMasterText.setToolTip(tooltipText)
+		self.w.updateBaseMaster.setToolTip("Updates the list of masters from the frontmost font.")
 
 		self.w.weightText = vanilla.TextBox("auto", "Use coordinate", sizeStyle="small", selectable=True)
+		tooltipText = "Comma-separated axis coordinates (tag=value) at which the grade glyphs are interpolated, e.g. wght=100, wdth=100."
 		self.w.weight = vanilla.ComboBox("auto", self.weightValuesForCurrentFont(), sizeStyle="small", callback=self.SavePreferences)
+		self.w.weight.setToolTip(tooltipText)
 		self.w.updateWeight = UpdateButton("auto", callback=self.updateFromButton)
+		self.w.weightText.setToolTip(tooltipText)
+		self.w.updateWeight.setToolTip("Fills in the axis coordinates of the chosen base master.")
 
 		self.w.gradeText = vanilla.TextBox("auto", "… for grade", sizeStyle="small", selectable=True)
+		tooltipText = "The value of the grade axis for the new master, e.g. -50, 0 or 50."
 		self.w.grade = vanilla.ComboBox("auto", ("-50", "0", "50"), sizeStyle="small", callback=self.SavePreferences)
+		self.w.grade.setToolTip(tooltipText)
+		self.w.gradeText.setToolTip(tooltipText)
 		self.w.axisTagText = vanilla.TextBox("auto", "Axis tag & name", sizeStyle="small", selectable=True)
+		tooltipText = "Four-letter tag and name of the grade axis, used if the font has no such axis yet."
 		self.w.axisTag = vanilla.EditText("auto", "GRAD", callback=self.SavePreferences, sizeStyle="small")
+		self.w.axisTag.setToolTip(tooltipText)
 		self.w.axisName = vanilla.EditText("auto", "Grade", callback=self.SavePreferences, sizeStyle="small")
+		self.w.axisName.setToolTip(tooltipText)
+		self.w.axisTagText.setToolTip(tooltipText)
 		self.w.axisReset = UpdateButton("auto", callback=self.updateFromButton)
+		self.w.axisReset.setToolTip("Resets axis tag and name to GRAD and Grade.")
 
 		self.w.fittingMethodText = vanilla.TextBox("auto", "Fitting", sizeStyle="small", selectable=True)
+		tooltipText = "How the glyph shapes are refitted into the metrics after the grade change."
 		self.w.fittingMethod = vanilla.PopUpButton("auto", self.refittingMethods, sizeStyle="small", callback=self.SavePreferences)
+		self.w.fittingMethod.setToolTip(tooltipText)
+		self.w.fittingMethodText.setToolTip(tooltipText)
 
 		self.w.addSyncMetricCustomParameter = vanilla.CheckBox("auto", "Add custom parameter ‘Link Metrics With Master’ (recommended)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.addSyncMetricCustomParameter.setToolTip("Adds the custom parameter ‘Link Metrics With Master’ to the new master, so that its metrics stay in sync with the base master.")
 
 		self.w.limitToSelectedGlyphs = vanilla.CheckBox("auto", "Limit to selected glyphs", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.limitToSelectedGlyphs.setToolTip("If checked, only the selected glyphs are processed; other glyphs are left as they are.")
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Add Master", callback=self.AddGradeMain)
+		self.w.runButton.setToolTip("Adds the Grade master (and the Grade axis if needed) to the frontmost font.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# labels: right-aligned, one shared width per column

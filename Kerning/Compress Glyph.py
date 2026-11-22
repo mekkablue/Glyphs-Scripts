@@ -97,7 +97,9 @@ class CompressGlyph(mekkaObject):
 
 		self.w.compressText = vanilla.TextBox("auto", "Compress when glyph is", sizeStyle="small", selectable=True)
 		self.w.compressLeft = vanilla.CheckBox("auto", "left side", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.compressLeft.setToolTip("Compresses pairs in which a matching glyph is on the left side.")
 		self.w.compressRight = vanilla.CheckBox("auto", "right side of pair", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.compressRight.setToolTip("Compresses pairs in which a matching glyph is on the right side.")
 
 		self.w.compressOtherSide = vanilla.CheckBox("auto", "Also compress the other side of the pair", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.compressOtherSide.setToolTip(
@@ -116,6 +118,7 @@ class CompressGlyph(mekkaObject):
 		self.w.openTab = vanilla.CheckBox("auto", "Open tab with affected pairs", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.openTab.setToolTip("Opens a tab with the affected kern pairs, with a space in between. One tab per font.")
 		self.w.verbose = vanilla.CheckBox("auto", "Verbose report in Macro window", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.verbose.setToolTip("Reports every compressed pair in the Macro window.")
 
 		self.w.progress = vanilla.ProgressBar("auto")
 		self.w.progress.set(0)

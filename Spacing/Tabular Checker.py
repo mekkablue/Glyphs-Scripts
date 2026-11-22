@@ -45,12 +45,14 @@ class TabularChecker(mekkaObject):
 		self.w.includeNonExporting.setToolTip("If not set, non-exporting glyphs will be ignored.")
 
 		self.w.allFonts = vanilla.CheckBox("auto", "Search in ⚠️ ALL fonts", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allFonts.setToolTip("If enabled, checks all open fonts. Otherwise only the frontmost font.")
 
 		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle='small')
 		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Report", callback=self.TabularCheckerMain)
+		self.w.runButton.setToolTip("Checks the widths of the tabular glyphs and reports in the Macro Window.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging,

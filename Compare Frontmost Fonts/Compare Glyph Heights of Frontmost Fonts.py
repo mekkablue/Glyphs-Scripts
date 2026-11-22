@@ -56,6 +56,7 @@ class CompareGlyphHeightsOfFrontmostFonts(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Compare", callback=self.CompareGlyphHeightsOfFrontmostFontsMain)
+		self.w.runButton.setToolTip("Compares the glyph heights of the two frontmost fonts and reports in the Macro window.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging,

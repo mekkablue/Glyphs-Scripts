@@ -341,7 +341,9 @@ class CompatibilityManager(mekkaObject):
 		# UI elements, start points and shape order:
 		inset = 15
 
+		tooltipText = "Rule for choosing the start point of each path in all layers of the glyph."
 		self.w.startPointTitle = vanilla.TextBox("auto", "Start Point Selection", sizeStyle="small")
+		self.w.startPointTitle.setToolTip(tooltipText)
 		self.w.startPointOptions = vanilla.PopUpButton(
 			"auto",
 			[
@@ -358,8 +360,11 @@ class CompatibilityManager(mekkaObject):
 			],
 			callback=self.SavePreferences,
 		)
+		self.w.startPointOptions.setToolTip(tooltipText)
 
+		tooltipText = "Rule for ordering the shapes in all layers of the glyph so they match the first layer."
 		self.w.shapeOrderTitle = vanilla.TextBox("auto", "Shape Order", sizeStyle="small")
+		self.w.shapeOrderTitle.setToolTip(tooltipText)
 		self.w.shapeOrderOptions = vanilla.PopUpButton(
 			"auto",
 			[
@@ -369,9 +374,12 @@ class CompatibilityManager(mekkaObject):
 			],
 			callback=self.SavePreferences,
 		)
+		self.w.shapeOrderOptions.setToolTip(tooltipText)
 
 		self.w.resetStartPoints = vanilla.Button("auto", "Reset Start Points", callback=self.resetStartPoints)
+		self.w.resetStartPoints.setToolTip("Resets the start points of the paths in the current glyph according to the chosen start point selection.")
 		self.w.reorderShapes = vanilla.Button("auto", "Reorder Shapes", callback=self.reorderShapes)
+		self.w.reorderShapes.setToolTip("Reorders the shapes in the current glyph according to the chosen shape order.")
 
 		# title of the collapsible lower part, set like the other titles, but clickable:
 		self.w.extraTitle = vanilla.Button("auto", "", callback=self.toggleExtraOptions, sizeStyle="small")

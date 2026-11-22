@@ -172,6 +172,7 @@ class VerticalMetricsManager(mekkaObject):
 		self.w.calculate = vanilla.PopUpButton("auto", ("Google", "Webfonts (2019)", "ArrowType (1.3×UPM)", "ArrowType (1.5×UPM)", "Microsoft (Legacy)"), sizeStyle="small", callback=self.SavePreferences)
 		self.w.calculate.setToolTip(calculateTooltip)
 		self.w.calculateButton = vanilla.Button("auto", "Calculate", sizeStyle="small", callback=self.calculateMethod)
+		self.w.calculateButton.setToolTip("Fills the vertical metrics fields above with the values calculated by the chosen method.")
 
 		# EXTRACT FROM EXISTING FONT
 		self.w.extractText = vanilla.TextBox("auto", "Copy values from existing OpenType font:", sizeStyle="small", selectable=True)

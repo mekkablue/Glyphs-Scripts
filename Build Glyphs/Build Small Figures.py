@@ -59,7 +59,9 @@ class smallFigureBuilder(mekkaObject):
 
 		# Run Button:
 		self.w.reportButton = vanilla.Button("auto", "Open Report", callback=self.openMacroWindow)
+		self.w.reportButton.setToolTip("Opens the Macro window with the report of the last run.")
 		self.w.runButton = vanilla.Button("auto", "Build", callback=self.smallFigureBuilderMain)
+		self.w.runButton.setToolTip("Builds the derivative figures from the default suffix figures.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# the description is the one block that wraps: it takes the width it is given

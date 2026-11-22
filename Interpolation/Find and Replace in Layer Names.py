@@ -31,12 +31,20 @@ class replaceInLayerNames(mekkaObject):
 
 		self.w.textSearch = vanilla.TextBox("auto", "Search for:", sizeStyle='small')
 		self.w.searchFor = vanilla.EditText("auto", "[130]", sizeStyle='small', callback=self.SavePreferences)
+		tooltipText = "The text to look for in the names of the non-master layers, e.g., [130]."
+		self.w.textSearch.setToolTip(tooltipText)
+		self.w.searchFor.setToolTip(tooltipText)
 
 		self.w.textReplace = vanilla.TextBox("auto", "Replace by:", sizeStyle='small')
 		self.w.replaceBy = vanilla.EditText("auto", "[150]", sizeStyle='small', callback=self.SavePreferences)
+		tooltipText = "The text that replaces the search text in the layer names."
+		self.w.textReplace.setToolTip(tooltipText)
+		self.w.replaceBy.setToolTip(tooltipText)
 
 		self.w.allGlyphs = vanilla.CheckBox("auto", "Include all glyphs in font", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allGlyphs.setToolTip("If enabled, processes all glyphs in the font. Otherwise, only the selected glyphs.")
 		self.w.replaceButton = vanilla.Button("auto", "Replace", sizeStyle='small', callback=self.buttonCallback)
+		self.w.replaceButton.setToolTip("Replaces the search text in the layer names of the glyphs.")
 
 		# checkboxes stretch vertically by default; with everything hugging, the window
 		# ends up exactly as tall as the content

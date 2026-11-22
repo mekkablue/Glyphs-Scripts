@@ -374,6 +374,7 @@ class InstanceCooker(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Cook Instances", callback=self.InstanceCookerMain)
+		self.w.runButton.setToolTip("Inserts the instances described by the recipe into the frontmost font.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# everything but the recipe editor hugs vertically, so the editor takes all the leftover height:

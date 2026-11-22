@@ -95,6 +95,7 @@ class RewireFire(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Fire", callback=self.RewireFireMain)
+		self.w.runButton.setToolTip("Finds nodes that are candidates for rewiring and marks or selects them.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window

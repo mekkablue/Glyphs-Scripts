@@ -123,16 +123,24 @@ class SplitKerningGroups(mekkaObject):
 		inset = 15
 		self.w.descriptionText = vanilla.TextBox("auto", "Move glyphs in", sizeStyle="small", selectable=True)
 		self.w.isRightGroup = vanilla.PopUpButton("auto", ("left group", "right group"), sizeStyle="small", callback=self.update)
+		self.w.isRightGroup.setToolTip("Choose whether the group to split is a left or a right kerning group.")
 		self.w.originalGroupName = vanilla.ComboBox("auto", [], sizeStyle="small", callback=self.update)
+		self.w.originalGroupName.setToolTip("The existing kerning group to move glyphs out of.")
 		self.w.updateButton = UpdateButton("auto", callback=self.update)
+		self.w.updateButton.setToolTip("Updates the group list and the glyphs from the frontmost font.")
 		self.w.newGroupText = vanilla.TextBox("auto", "to new group", sizeStyle="small", selectable=True)
 		self.w.newGroupName = vanilla.EditText("auto", "", callback=self.update, sizeStyle="small")
+		tooltipText = "The name of the new kerning group."
+		self.w.newGroupText.setToolTip(tooltipText)
+		self.w.newGroupName.setToolTip(tooltipText)
 
 		self.w.splitGlyphs = vanilla.TextEditor("auto", "", callback=self.SavePreferences)
+		self.w.splitGlyphs.setToolTip("The names of the glyphs to move to the new group, separated by spaces or commas.")
 
 		# Buttons at bottom:
 		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small", selectable=True)
 		self.w.runButton = vanilla.Button("auto", "Split", callback=self.SplitKerningGroupsMain)
+		self.w.runButton.setToolTip("Moves the listed glyphs to the new group and duplicates the group kerning for it.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# every control keeps its height, except the glyph list, which takes the leftover height:

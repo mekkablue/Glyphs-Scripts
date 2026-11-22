@@ -43,12 +43,17 @@ class KerningGroupReplacer(mekkaObject):
 		self.w.text_Find = vanilla.TextBox("auto", "Find", sizeStyle='small')
 		self.w.leftSearchFor = vanilla.EditText("auto", ".tf", callback=self.SavePreferences, sizeStyle='small', placeholder='(leave these blank ...')
 		self.w.rightSearchFor = vanilla.EditText("auto", ".tf", callback=self.SavePreferences, sizeStyle='small', placeholder='... to append)')
+		self.w.rightSearchFor.setToolTip("The text to find in the right kerning groups of the selected glyphs. Leave blank to append the replacement.")
+		self.w.leftSearchFor.setToolTip("The text to find in the left kerning groups of the selected glyphs. Leave blank to append the replacement.")
 
 		self.w.text_Replace = vanilla.TextBox("auto", "Replace", sizeStyle='small')
 		self.w.leftReplaceBy = vanilla.EditText("auto", "", callback=self.SavePreferences, sizeStyle='small', placeholder='(empty)')
+		self.w.leftReplaceBy.setToolTip("The text that replaces the search text in the left kerning groups.")
 		self.w.rightReplaceBy = vanilla.EditText("auto", "", callback=self.SavePreferences, sizeStyle='small', placeholder='(empty)')
+		self.w.rightReplaceBy.setToolTip("The text that replaces the search text in the right kerning groups.")
 
 		self.w.runButton = vanilla.Button("auto", "Replace", callback=self.KerningGroupReplaceMain)
+		self.w.runButton.setToolTip("Replaces the text in the kerning group names of the selected glyphs.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# with everything hugging, the window ends up exactly as tall as the content

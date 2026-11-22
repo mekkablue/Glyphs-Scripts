@@ -121,19 +121,25 @@ class PSNameMaker(mekkaObject):
 		self.w.descriptionText = vanilla.TextBox("auto", "Recalculates and resets PS Names in instances:", sizeStyle="small", selectable=True)
 
 		self.w.addAsNameEntryParameter = vanilla.CheckBox("auto", "Add as custom parameter (OTVAR safe)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.addAsNameEntryParameter.setToolTip("If enabled, will add the PS name as a ‘Name Table Entry’ custom parameter, which also survives variable font export. Otherwise, will set the font name (PostScript name) of the instance.")
 
 		self.w.shortenStyleNames = vanilla.CheckBox("auto", "Shorten style names (Tech Note #5088)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.shortenStyleNames.setToolTip("If enabled, will abbreviate style names in the PS names according to Adobe’s Font Tech Note #5088.")
 		self.w.helpButton = vanilla.HelpButton("auto", callback=self.openURL)
 		self.w.helpButton.setToolTip("Opens Adobe’s Font Tech Note #5088 on font names in your web browser.")
 
 		self.w.allFonts = vanilla.CheckBox("auto", "Apply to ⚠️ ALL open documents", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allFonts.setToolTip("If enabled, will process all open documents. Otherwise, only the frontmost one.")
 
 		self.w.includeInactiveInstances = vanilla.CheckBox("auto", "Include inactive instances", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.includeInactiveInstances.setToolTip("If enabled, will also process instances that are deactivated. Otherwise, only the active ones.")
 
 		self.w.removeButton = vanilla.Button("auto", "Remove", callback=self.PSNameMakerMain)
+		self.w.removeButton.setToolTip("Removes the PS names from the instances instead of adding them.")
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Add", callback=self.PSNameMakerMain)
+		self.w.runButton.setToolTip("Calculates and adds PS names to the instances.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window

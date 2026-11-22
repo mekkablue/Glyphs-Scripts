@@ -153,6 +153,10 @@ class VariationInterpolator(mekkaObject):
 		self.w.text_1 = vanilla.TextBox("auto", "Create", sizeStyle='small')
 		self.w.numberOfInterpolations = vanilla.ComboBox("auto", [x * 5 for x in range(1, 7)], sizeStyle='small', callback=self.SavePreferences)
 		self.w.text_2 = vanilla.TextBox("auto", "interpolations between", sizeStyle='small')
+		tooltipText = "The number of interpolations to create. Choose from the list or type a number."
+		self.w.text_1.setToolTip(tooltipText)
+		self.w.text_2.setToolTip(tooltipText)
+		self.w.numberOfInterpolations.setToolTip(tooltipText)
 
 		options = (
 			"background to foreground",
@@ -162,6 +166,9 @@ class VariationInterpolator(mekkaObject):
 		)
 		self.w.choice = vanilla.PopUpButton("auto", options, sizeStyle='small', callback=self.SavePreferences)
 		self.w.text_21 = vanilla.TextBox("auto", "with", sizeStyle='small', selectable=True)
+		tooltipText = "Which two layers or glyphs are interpolated, and in which direction."
+		self.w.text_21.setToolTip(tooltipText)
+		self.w.choice.setToolTip(tooltipText)
 
 		# the suffix row and the glyph name row take the same place, updateUI() shows one of them:
 		self.w.suffixText = vanilla.TextBox("auto", "suffix", sizeStyle='small')
@@ -180,6 +187,7 @@ class VariationInterpolator(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Interpolate", callback=self.VariationInterpolatorMain)
+		self.w.runButton.setToolTip("Creates the interpolated glyph variations.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes and square buttons stretch vertically by default; with everything hugging, the window

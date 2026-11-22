@@ -45,6 +45,7 @@ class InsertSpecialLayersV3(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = Button("auto", "Insert", callback=self.InsertSpecialLayersV3Main)
+		self.w.runButton.setToolTip("Inserts a brace layer with the given coordinates into the selected glyphs.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window
@@ -192,6 +193,7 @@ class InsertSpecialLayers(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = Button("auto", "Insert", callback=self.InsertSpecialLayersMain)
+		self.w.runButton.setToolTip("Inserts a layer with the given name into the selected glyphs.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window

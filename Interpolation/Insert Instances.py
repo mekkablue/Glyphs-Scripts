@@ -222,8 +222,10 @@ class InstanceMaker(mekkaObject):
 		self.w.algorithm.setToolTip(distributionExplanation)
 		self.w.text_7 = vanilla.TextBox("auto", "distribution.", sizeStyle='small')
 		self.w.help_instances = vanilla.HelpButton("auto", callback=self.openURL)
+		self.w.help_instances.setToolTip("Opens a tutorial about setting up instances in a web browser. Requires an internet connection.")
 
 		self.w.existingInstances = vanilla.VerticalRadioGroup("auto", ("Leave existing instances as they are", "Deactivate existing instances", "Delete existing instances"), callback=self.SavePreferences, sizeStyle='small')
+		self.w.existingInstances.setToolTip("What happens to the instances that already exist in the font: keep, deactivate or delete them.")
 		self.w.existingInstances.set(0)
 
 		self.w.naturalNames = vanilla.CheckBox("auto", "Use 'natural' weight names, starting at:", value=False, callback=self.UpdateSample, sizeStyle='small')
@@ -244,8 +246,12 @@ class InstanceMaker(mekkaObject):
 		self.w.maciej = vanilla.CheckBox("auto", "Maciej y distribution from:", value=False, callback=self.UpdateSample, sizeStyle='small')
 		self.w.maciej.setToolTip("An algorithm proposed by Maciej Ratajski, which introduces slightly different interpolation for y coordinates. Will add interpolationWeightY parameters to the instances. If these value differ greatly from the weight interpolation values, interpolation of your diagonals may suffer.")
 		self.w.maciej_light = vanilla.ComboBox("auto", self.MasterList(1), callback=self.UpdateSample, sizeStyle='small')
+		self.w.maciej_light.setToolTip("Horizontal stem width of the lightest master, for interpolating contrast with the Maciej distribution.")
 		self.w.text_maciej_1 = vanilla.TextBox("auto", "through:", sizeStyle='small')
 		self.w.maciej_bold = vanilla.ComboBox("auto", self.MasterList(-1), callback=self.UpdateSample, sizeStyle='small')
+		tooltipText = "Horizontal stem width of the boldest master, for interpolating contrast with the Maciej distribution."
+		self.w.text_maciej_1.setToolTip(tooltipText)
+		self.w.maciej_bold.setToolTip(tooltipText)
 
 		self.w.text_maciej_2 = vanilla.TextBox("auto", "Provide horizontal stem widths in extreme masters to interpolate contrast rather than stems.", sizeStyle='small', selectable=True)
 		self.w.help_maciej = vanilla.HelpButton("auto", callback=self.openURL)
@@ -259,10 +265,12 @@ class InstanceMaker(mekkaObject):
 
 		# the sample takes the leftover height if the user enlarges the window:
 		self.w.sample = vanilla.TextEditor("auto", "", readOnly=True)
+		self.w.sample.setToolTip("Preview of the instances that will be inserted. Read-only.")
 		self.w.sample.getNSTextView().setFont_(NSFont.systemFontOfSize_(NSFont.smallSystemFontSize()))
 
 		# buttons:
 		self.w.createButton = vanilla.Button("auto", "Insert", callback=self.CreateInstances)
+		self.w.createButton.setToolTip("Inserts the instances into the frontmost font.")
 		self.w.setDefaultButton(self.w.createButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window

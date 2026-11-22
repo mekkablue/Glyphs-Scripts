@@ -103,6 +103,7 @@ class FindShapeshiftingGlyphs(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Find", callback=self.FindShapeshiftingGlyphsMain)
+		self.w.runButton.setToolTip("Finds glyphs that change the number of clockwise and counterclockwise paths in interpolation.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle='small', selectable=False)

@@ -43,10 +43,15 @@ class BraceLayerManager(mekkaObject):
 		inset = 15
 		self.w.descriptionText = vanilla.TextBox("auto", "In", sizeStyle="small")
 		self.w.layerType = vanilla.PopUpButton("auto", self.layerTypes, sizeStyle="small", callback=self.SavePreferences)
+		self.w.layerType.setToolTip("Choose whether brace layers or bracket layers are changed.")
 
 		self.w.replaceText = vanilla.TextBox("auto", "replace", sizeStyle="small")
 		self.w.oldCoordinate = vanilla.ComboBox("auto", self.allBraceAndBracketLayerCoordinatesInFrontmostFont(), sizeStyle="small", callback=self.SavePreferences)
+		tooltipText = "The existing coordinate (a number) to find on the chosen axis. Pick one from the list of coordinates in the frontmost font."
+		self.w.oldCoordinate.setToolTip(tooltipText)
+		self.w.replaceText.setToolTip(tooltipText)
 		self.w.oldCoordinateUpdate = UpdateButton("auto", callback=self.update)
+		self.w.oldCoordinateUpdate.setToolTip("Updates the list of coordinates from the brace and bracket layers of the frontmost font.")
 		tooltipText = "Leave empty for disabling the brace layer or deleting the bracket layer condition."
 		self.w.withText = vanilla.TextBox("auto", "with", sizeStyle="small")
 		self.w.withText.setToolTip(tooltipText)
@@ -54,18 +59,24 @@ class BraceLayerManager(mekkaObject):
 		self.w.newCoordinate.setToolTip(tooltipText)
 
 		self.w.axisText = vanilla.TextBox("auto", "for axis at index", sizeStyle="small")
+		tooltipText = "Index of the axis whose coordinate is replaced. The first axis has index 0."
 		axisIndexFormatter = integerFormatter(0)
 		self.w.axisIndex = SteppingEditText("auto", "0", callback=self.SavePreferences, sizeStyle="small", formatter=axisIndexFormatter)
+		self.w.axisIndex.setToolTip(tooltipText)
+		self.w.axisText.setToolTip(tooltipText)
 		self.w.axisTextAfter = vanilla.TextBox("auto", "(first axis = 0)", sizeStyle="small")
 		self.w.axisTextAfter.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
 
 		self.w.scope = vanilla.VerticalRadioGroup("auto", self.scopes, callback=self.SavePreferences, sizeStyle="small")
 		self.w.scope.set(0)
+		self.w.scope.setToolTip("Which glyphs to process: the selected glyphs, all glyphs of the current font, or all glyphs of all open fonts.")
 
 		self.w.currentMasterOnly = vanilla.CheckBox("auto", "Restrict to currently selected master(s) only", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.currentMasterOnly.setToolTip("If checked, only layers belonging to the currently selected master are changed.")
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Change", callback=self.BraceLayerManagerMain)
+		self.w.runButton.setToolTip("Replaces the old coordinate with the new one in the chosen layers.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# labels: right-aligned, all with the width of the widest one

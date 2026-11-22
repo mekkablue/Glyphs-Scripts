@@ -146,18 +146,28 @@ class CopyKerningFromCapsToSmallcaps(mekkaObject):
 		inset = 15
 
 		self.w.smallcapSuffixText = vanilla.TextBox("auto", "Smallcap suffix", sizeStyle='small')
+		tooltipText = "Suffix of the smallcap glyphs, e.g. .sc. Choose from the list or type your own."
+		self.w.smallcapSuffixText.setToolTip(tooltipText)
 		self.w.smallcapSuffix = vanilla.ComboBox("auto", smallcapSuffixes, sizeStyle='small', callback=self.SavePreferences)
+		self.w.smallcapSuffix.setToolTip(tooltipText)
 
 		self.w.namingSchemeText = vanilla.TextBox("auto", "SC naming scheme", sizeStyle='small')
+		tooltipText = "Whether smallcap glyph names are built from lowercase (a.sc) or uppercase (A.sc) base names."
+		self.w.namingSchemeText.setToolTip(tooltipText)
 		self.w.namingScheme = vanilla.PopUpButton("auto", namingSchemeOptions, sizeStyle='small', callback=self.SavePreferences)
+		self.w.namingScheme.setToolTip(tooltipText)
 
 		self.w.includeAllMasters = vanilla.CheckBox("auto", "⚠️ Include all masters (otherwise current master only)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeAllMasters.setToolTip("Copies the kerning on all masters. If off, only the current master is processed.")
 
 		self.w.includeNonLetters = vanilla.CheckBox("auto", "Include smallcap non-letters (otherwise only from caps)", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.includeNonLetters.setToolTip("Includes smallcap figures, punctuation, etc. E.g. copies kerning for parenright if there is  parenright.sc.")
 
 		self.w.figureSuffixText = vanilla.TextBox("auto", "Figure suffix", sizeStyle='small')
+		tooltipText = "Suffix of the cap-height figures (e.g. .lf) that are used as the source for smallcap figure kerning."
+		self.w.figureSuffixText.setToolTip(tooltipText)
 		self.w.figureSuffix = vanilla.EditText("auto", ".lf", callback=self.SavePreferences, sizeStyle='small')
+		self.w.figureSuffix.setToolTip(tooltipText)
 
 		factorFormatter = decimalFormatter(fractionDigits=3)
 		self.w.factorText = vanilla.TextBox("auto", "Kerning factor", sizeStyle='small')
@@ -175,6 +185,7 @@ class CopyKerningFromCapsToSmallcaps(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Copy", callback=self.CopyKerningFromCapsToSmallcapsMain)
+		self.w.runButton.setToolTip("Copies the kerning of cap pairs to the corresponding smallcap pairs, overwriting existing smallcap kerning.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window

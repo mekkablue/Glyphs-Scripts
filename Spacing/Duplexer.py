@@ -140,21 +140,30 @@ class Duplexer(mekkaObject):
 		self.w.baseText = vanilla.TextBox("auto", "Based on:", sizeStyle="small", selectable=True)
 		self.w.base = vanilla.PopUpButton("auto", [], sizeStyle="small", callback=self.SavePreferences)
 		self.w.baseUpdate = UpdateButton("auto", callback=self.updateUI)
+		self.w.baseUpdate.setToolTip("Updates the list of masters from the frontmost font.")
+		tooltipText = "The master whose widths are copied to all other masters."
+		self.w.baseText.setToolTip(tooltipText)
+		self.w.base.setToolTip(tooltipText)
 		# the label hugs its text, the popup takes the leftover width and truncates long master entries:
 		self.w.baseText.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
 		self.w.base.getNSPopUpButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 		self.w.base.getNSPopUpButton().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		self.w.allGlyphs = vanilla.CheckBox("auto", "Apply to ALL glyphs (otherwise selected only)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allGlyphs.setToolTip("If enabled, duplexes all glyphs of the font. Otherwise only the selected glyphs.")
 
 		self.w.excludeSpecialGlyphs = vanilla.CheckBox("auto", "Exclude special glyphs (_corner, _smart, etc.)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.excludeSpecialGlyphs.setToolTip("Skips special glyphs, i.e., those with names that start with an underscore, such as corner and smart component glyphs.")
 
 		self.w.fixMetricsKeys = vanilla.CheckBox("auto", "Keep metrics keys on base master only", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.fixMetricsKeys.setToolTip("Keeps metrics keys on the base master and removes them from the other masters, so the base master drives the widths.")
 
 		self.w.addSyncParameter = vanilla.CheckBox("auto", "Add ‘Link Metrics With Master’ parameter", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.addSyncParameter.setToolTip("Adds the ‘Link Metrics With Master’ parameter to the font, so metrics stay synced with the base master.")
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Duplex", sizeStyle="regular", callback=self.DuplexerMain)
+		self.w.runButton.setToolTip("Syncs the widths of all masters to the base master.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window

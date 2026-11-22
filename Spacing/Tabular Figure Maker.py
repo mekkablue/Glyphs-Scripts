@@ -34,15 +34,23 @@ class TabularFigureSpacer(mekkaObject):
 		self.w.targetText = vanilla.TextBox("auto", "Reference glyph", sizeStyle="small", selectable=True)
 		self.w.target = vanilla.ComboBox("auto", [], sizeStyle="small", callback=self.SavePreferences)
 		self.w.updateButton = UpdateButton("auto", callback=self.update)
+		self.w.updateButton.setToolTip("Updates the list with the tabular figures of the frontmost font.")
+		tooltipText = "The tabular figure whose width the other figures are fitted to."
+		self.w.targetText.setToolTip(tooltipText)
+		self.w.target.setToolTip(tooltipText)
 
 		self.w.suffixText = vanilla.TextBox("auto", "Tabular suffix", sizeStyle="small", selectable=True)
 		self.w.suffix = vanilla.EditText("auto", ".tf", callback=self.SavePreferences, sizeStyle="small")
+		tooltipText = "Dot suffix of the tabular figures, e.g., .tf"
+		self.w.suffixText.setToolTip(tooltipText)
+		self.w.suffix.setToolTip(tooltipText)
 
 		self.w.createFromDefaultFigs = vanilla.CheckBox("auto", "Create glyphs if they are missing", value=True, callback=self.SavePreferences, sizeStyle="small")
 		self.w.createFromDefaultFigs.setToolTip("Creates glyphs for tab figures with default figures as components. Otherwise will just reset existing tab figures.")
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Tab", callback=self.TabularFigureSpacerMain)
+		self.w.runButton.setToolTip("Spaces the tabular figures, or creates them from the default figures.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging,

@@ -65,11 +65,20 @@ class GapFinder(mekkaObject):
 
 		self.w.textScript = vanilla.TextBox("auto", "Script:", sizeStyle='small', selectable=True)
 		self.w.popupScript = vanilla.ComboBox("auto", ("latin", "cyrillic", "greek"), callback=self.SavePreferences, sizeStyle='small')
+		tooltipText = "The script of the letters to check, e.g., latin, cyrillic or greek."
+		self.w.textScript.setToolTip(tooltipText)
+		self.w.popupScript.setToolTip(tooltipText)
 		self.w.textDistance = vanilla.TextBox("auto", "Max distance:", sizeStyle='small')
 		self.w.maxDistance = vanilla.EditText("auto", "200", callback=self.SavePreferences, sizeStyle='small')
+		tooltipText = "Pairs with a distance between their shapes larger than this value, in units, count as gaps."
+		self.w.textDistance.setToolTip(tooltipText)
+		self.w.maxDistance.setToolTip(tooltipText)
 
 		self.w.textSpeed = vanilla.TextBox("auto", "Speed:", sizeStyle='small', selectable=True)
 		self.w.popupSpeed = vanilla.PopUpButton("auto", ("very slow", "slow", "medium", "fast", "very fast"), callback=self.updateGUI, sizeStyle='small')
+		tooltipText = "How closely the distance is measured. Slower is more precise."
+		self.w.textSpeed.setToolTip(tooltipText)
+		self.w.popupSpeed.setToolTip(tooltipText)
 		intervalIndex = self.pref("popupSpeed")
 		if intervalIndex is None:
 			intervalIndex = 0
@@ -77,16 +86,27 @@ class GapFinder(mekkaObject):
 
 		self.w.text_3 = vanilla.TextBox("auto", "Left Category:", sizeStyle='small')
 		self.w.popupLeftCat = vanilla.PopUpButton("auto", categoryList, callback=self.SavePreferences, sizeStyle='small')
+		tooltipText = "Category and subcategory of the glyphs on the left side of the pairs."
+		self.w.text_3.setToolTip(tooltipText)
+		self.w.popupLeftCat.setToolTip(tooltipText)
 
 		self.w.text_4 = vanilla.TextBox("auto", "Right Category:", sizeStyle='small')
 		self.w.popupRightCat = vanilla.PopUpButton("auto", categoryList, callback=self.SavePreferences, sizeStyle='small')
+		tooltipText = "Category and subcategory of the glyphs on the right side of the pairs."
+		self.w.text_4.setToolTip(tooltipText)
+		self.w.popupRightCat.setToolTip(tooltipText)
 
 		self.w.text_5 = vanilla.TextBox("auto", "Exclude glyphs containing:", sizeStyle='small')
 		self.w.excludeSuffixes = vanilla.EditText("auto", ".locl, .alt, .sups, .sinf, .tf, .tosf, Ldot, ldot, Jacute, jacute", callback=self.SavePreferences, sizeStyle='small')
+		tooltipText = "Comma-separated name fragments: glyphs with any of them in their name are skipped."
+		self.w.text_5.setToolTip(tooltipText)
+		self.w.excludeSuffixes.setToolTip(tooltipText)
 
 		self.w.excludeNonExporting = vanilla.CheckBox("auto", "Exclude non-exporting glyphs", value=True, sizeStyle='small', callback=self.SavePreferences)
+		self.w.excludeNonExporting.setToolTip("If enabled, skips glyphs that do not export.")
 
 		self.w.reportGapsInMacroWindow = vanilla.CheckBox("auto", "Also report in Macro Window (slower)", value=False, sizeStyle='small', callback=self.SavePreferences)
+		self.w.reportGapsInMacroWindow.setToolTip("Also prints every gap pair to the Macro window. Slower.")
 		self.w.reuseCurrentTab = vanilla.CheckBox("auto", "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.reuseCurrentTab.setToolTip("If enabled, will not open a new tab with newly added kern pairs, but reuse the current Edit tab. Will open an Edit tab if none is open.")
 
@@ -95,9 +115,11 @@ class GapFinder(mekkaObject):
 
 		# Buttons:
 		self.w.nextButton = vanilla.Button("auto", "Next Master", callback=self.masterSwitch)
+		self.w.nextButton.setToolTip("Switches the frontmost font to its next master.")
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Open Tab", callback=self.GapFinderMain)
+		self.w.runButton.setToolTip("Finds kerning combinations with large gaps in the current master and opens a tab with them.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window

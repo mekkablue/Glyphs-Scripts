@@ -40,33 +40,45 @@ class SpacingChecker(mekkaObject):
 		self.w.descriptionText = vanilla.TextBox("auto", "Find glyphs with unusual sidebearings. Open tab with glyphs where", sizeStyle='small', selectable=True)
 
 		self.w.asymmetricSBs = vanilla.CheckBox("auto", "LSB & RSB differ more than", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.asymmetricSBs.setToolTip("If enabled, finds glyphs where the left and right sidebearings differ by more than the given value.")
 		self.w.asymmetricDifference = SteppingEditText("auto", "50", callback=self.SavePreferences, sizeStyle='small', formatter=integerFormatter(0))
+		self.w.asymmetricDifference.setToolTip("Maximum tolerated difference between LSB and RSB, in units.")
 		self.w.asymmetricUpdateButton = UpdateButton("auto", title="K", callback=self.updateValues)
 		self.w.asymmetricUpdateButton.setToolTip("Update the entry with the measurements for uppercase K, presumably the largest difference in most designs.")
 
 		self.w.largeLSB = vanilla.CheckBox("auto", "LSBs larger than", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.largeLSB.setToolTip("If enabled, finds glyphs with a left sidebearing larger than the given value.")
 		self.w.lsbThreshold = SteppingEditText("auto", "70", callback=self.SavePreferences, sizeStyle='small', formatter=integerFormatter(0))
+		self.w.lsbThreshold.setToolTip("Largest tolerated left sidebearing, in units.")
 		self.w.lsbThresholdUpdateButton = UpdateButton("auto", title="H", callback=self.updateValues)
 		self.w.lsbThresholdUpdateButton.setToolTip("Update the entry with the measurements for uppercase H, presumably the largest LSB in most designs.")
 
 		self.w.largeRSB = vanilla.CheckBox("auto", "RSBs larger than", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.largeRSB.setToolTip("If enabled, finds glyphs with a right sidebearing larger than the given value.")
 		self.w.rsbThreshold = SteppingEditText("auto", "70", callback=self.SavePreferences, sizeStyle='small', formatter=integerFormatter(0))
+		self.w.rsbThreshold.setToolTip("Largest tolerated right sidebearing, in units.")
 		self.w.rsbThresholdUpdateButton = UpdateButton("auto", title="H", callback=self.updateValues)
 		self.w.rsbThresholdUpdateButton.setToolTip("Update the entry with the measurements for uppercase H, presumably the largest RSB in most designs.")
 
 		self.w.whiteGlyphs = vanilla.CheckBox("auto", "LSB+RSB make up more than", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.whiteGlyphs.setToolTip("If enabled, finds glyphs where the sidebearings together take up more than the given share of the width.")
 		self.w.whitePercentage = SteppingEditText("auto", "50", callback=self.SavePreferences, sizeStyle='small', formatter=integerFormatter(0, 100))
+		self.w.whitePercentage.setToolTip("Largest tolerated share of LSB+RSB in the advance width, in percent (0 to 100).")
 		self.w.whiteGlyphsText = vanilla.TextBox("auto", "% of overall width", sizeStyle='small', selectable=True)
 
 		self.w.includeBraceAndBracketLayers = vanilla.CheckBox("auto", "Include brace and bracket layers", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeBraceAndBracketLayers.setToolTip("Also checks brace layers and bracket layers, not only master layers.")
 		self.w.allMasters = vanilla.CheckBox("auto", "Look on all masters (otherwise current master only)", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allMasters.setToolTip("If enabled, checks all masters. Otherwise only the current master.")
 		self.w.ignoreNonexportingGlyphs = vanilla.CheckBox("auto", "Ignore glyphs that do not export", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.ignoreNonexportingGlyphs.setToolTip("Skips glyphs that are set not to export.")
 
 		self.w.progress = vanilla.ProgressBar("auto")
 		self.w.progress.set(0)  # set progress indicator to zero
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Open Tab", callback=self.SpacingCheckerMain)
+		self.w.runButton.setToolTip("Opens a new tab with the glyphs that match the checked conditions.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging,

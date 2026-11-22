@@ -261,6 +261,7 @@ class FeatureCodeTweaks(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Tweak", callback=self.FeatureCodeTweaksMain)
+		self.w.runButton.setToolTip("Applies the checked tweaks to the feature code of the frontmost font.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window ends up exactly as tall as the content

@@ -63,11 +63,15 @@ class OffsetPixelRows(mekkaObject):
 		self.w.pixelWidthUpdate.setToolTip("Take the pixel width from the grid of the frontmost font.")
 
 		self.w.allGlyphs = vanilla.CheckBox("auto", "All glyphs (ignore selection)", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allGlyphs.setToolTip("Offsets the pixel rows in all glyphs of the font. If off, only the selected glyphs are processed.")
 		self.w.allMasters = vanilla.CheckBox("auto", "Include all masters", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allMasters.setToolTip("Offsets the pixel rows on all masters. If off, only the current master is processed.")
 		self.w.shouldResetGrid = vanilla.CheckBox("auto", "Reset grid to pixel width ÷ rhythm", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.shouldResetGrid.setToolTip("Sets the font's grid step to the pixel width divided by the line rhythm, so the offset pixels snap to the grid.")
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Offset", callback=self.OffsetPixelRowsMain)
+		self.w.runButton.setToolTip("Offsets the rows of pixels by the percentage defined by the line rhythm.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# labels in front of fields: right-aligned, one shared width

@@ -41,19 +41,30 @@ class FindCloseEncounters(mekkaObject):
 
 		formatter = decimalFormatter(0)
 		self.w.thresholdText = vanilla.TextBox("auto", "Max distance in units:", sizeStyle='small', selectable=True)
+		tooltipText = "Maximum distance in units between two orthogonal line segments for them to be reported as a close encounter."
+		self.w.thresholdText.setToolTip(tooltipText)
 		self.w.threshold = SteppingEditText("auto", self.prefDict["threshold"], callback=self.SavePreferences, sizeStyle='small', formatter=formatter)
+		self.w.threshold.setToolTip(tooltipText)
 
 		self.w.includeComposites = vanilla.CheckBox("auto", "Include composites (otherwise only glyphs with paths)", value=self.prefDict["includeComposites"], callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeComposites.setToolTip("Also checks glyphs that have no paths of their own, i.e., composites. If off, only glyphs with paths are checked.")
 		self.w.includeNonExporting = vanilla.CheckBox("auto", "Include non-exporting glyphs", value=self.prefDict["includeNonExporting"], callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeNonExporting.setToolTip("Also checks glyphs that are set not to export.")
 
 		self.w.excludeGlyphs = vanilla.CheckBox("auto", "Exclude glyphs containing:", value=True, callback=self.SavePreferences, sizeStyle='small')
+		tooltipText = "Comma-separated list of name fragments. Glyphs whose names contain any of them are skipped."
+		self.w.excludeGlyphs.setToolTip(tooltipText)
 		self.w.excludeGlyphsContaining = vanilla.EditText("auto", self.prefDict["excludeGlyphsContaining"], callback=self.SavePreferences, sizeStyle='small')
+		self.w.excludeGlyphsContaining.setToolTip(tooltipText)
 
 		self.w.allFonts = vanilla.CheckBox("auto", "Include ⚠️ ALL fonts", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.allFonts.setToolTip("Checks all open fonts instead of only the frontmost one.")
 		self.w.reuseTab = vanilla.CheckBox("auto", "Reuse current tab for report", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reuseTab.setToolTip("Shows the report in the current tab instead of opening a new tab.")
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Find", callback=self.FindCloseEncountersMain)
+		self.w.runButton.setToolTip("Finds close but not aligning orthogonal line segments and reports them in a tab.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window

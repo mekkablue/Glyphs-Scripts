@@ -70,6 +70,7 @@ class SetSSXXNames(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Fill Names", callback=self.SetSSXXNamesMain)
+		self.w.runButton.setToolTip("Fills in names for the ssXX features of the frontmost font.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging,

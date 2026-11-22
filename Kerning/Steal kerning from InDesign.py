@@ -103,17 +103,20 @@ class StealKerningFromInDesign(mekkaObject):
 		self.w.exceptionChars = vanilla.EditText("auto", "AFJKLPTVWXYfďľ[](){}‚\u2018\u2019\u201e\u201c\u201d/?", callback=self.SavePreferences, sizeStyle="small")
 		self.w.exceptionChars.setToolTip("Characters to kern against the diacritic glyphs. Each character is used in both directions (e.g. Tä and äT).")
 		self.w.exceptionCharsReset = UpdateButton("auto", self.resetExceptionChars)
+		self.w.exceptionCharsReset.setToolTip("Resets the characters field to its default characters.")
 
 		self.w.exceptionComponentsLabel = vanilla.TextBox("auto", "…and glyphs containing:", sizeStyle="small")
 		self.w.exceptionComponents = vanilla.EditText("auto", "dier, dot, acut, grav, tild, brev, macr, ring, circ, slash, bar", callback=self.SavePreferences, sizeStyle="small")
 		self.w.exceptionComponents.setToolTip("Comma-separated name fragments. Any exporting glyph with a Unicode whose name contains one of these is measured against the characters above.")
 		self.w.exceptionComponentsReset = UpdateButton("auto", self.resetExceptionComponents)
+		self.w.exceptionComponentsReset.setToolTip("Resets the glyph name fragments field to its default list.")
 
 		# Progress bar + Status + Run button
 		self.w.progressBar = vanilla.ProgressBar("auto")
 		self.w.progressBar.show(False)
 		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small", selectable=True)
 		self.w.runButton = vanilla.Button("auto", "Kern", callback=self.run)
+		self.w.runButton.setToolTip("Measures the optical kerning in InDesign and imports it into the font as kerning.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# Fixed vertical gaps and hugging let AppKit size the window to its content.

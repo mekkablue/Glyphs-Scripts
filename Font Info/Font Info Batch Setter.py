@@ -138,6 +138,9 @@ class FontInfoBatchSetter(mekkaObject):
 		# VENDOR ID
 		self.w.setVendorID = vanilla.CheckBox("auto", "Vendor ID:", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.vendorID = vanilla.EditText("auto", "", callback=self.SavePreferences, sizeStyle="small")
+		tooltipText = "Vendor ID, the four-character OS/2 achVendID code that identifies the font vendor."
+		self.w.setVendorID.setToolTip(tooltipText)
+		self.w.vendorID.setToolTip(tooltipText)
 
 		# VERSION NUMBER
 		self.w.setVersion = vanilla.CheckBox("auto", "Version:", value=True, callback=self.SavePreferences, sizeStyle="small")
@@ -173,7 +176,10 @@ class FontInfoBatchSetter(mekkaObject):
 			callback=None,
 			sizeStyle="small",
 		)
-		self.w.noonButton = vanilla.SquareButton("auto", "🕛 Today", sizeStyle="small", callback=self.setNoon)
+		tooltipText = "Date and time stamp that is set as Font Info > Font > Date."
+		self.w.setDate.setToolTip(tooltipText)
+		self.w.datePicker.setToolTip(tooltipText)
+		self.w.noonButton =vanilla.SquareButton("auto", "🕛 Today", sizeStyle="small", callback=self.setNoon)
 		self.w.noonButton.setToolTip("Resets the date to today 12:00 noon.")
 
 		# SEPARATOR
@@ -183,6 +189,9 @@ class FontInfoBatchSetter(mekkaObject):
 		self.w.finger = vanilla.TextBox("auto", "👉", selectable=True)
 		self.w.applyText = vanilla.TextBox("auto", "Apply to", sizeStyle="small", selectable=True)
 		self.w.applyPopup = vanilla.PopUpButton("auto", ("ALL open fonts", "open fonts containing"), sizeStyle="small", callback=self.SavePreferences)
+		tooltipText = "Choose whether to apply the settings to all open fonts, or only to open fonts whose family name contains a given text."
+		self.w.applyText.setToolTip(tooltipText)
+		self.w.applyPopup.setToolTip(tooltipText)
 		self.w.applyContaining = vanilla.EditText("auto", "", callback=self.SavePreferences, sizeStyle="small", placeholder="enter part of family name here")
 		self.w.applyContaining.setToolTip("Only applies the settings to fonts that contain this in Font Info > Font > Family Name.")
 

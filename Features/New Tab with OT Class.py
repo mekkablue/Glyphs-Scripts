@@ -25,9 +25,14 @@ class NewTabWithOTClass(mekkaObject):
 		self.w.text = vanilla.TextBox("auto", "Pick an OT class", sizeStyle='small')
 		self.w.classMenu = vanilla.PopUpButton("auto", self.currentFontClasses(None), callback=None, sizeStyle='small')
 		self.w.updateButton = UpdateButton("auto", callback=self.populateClassMenu)
+		tooltipText = "Choose the OpenType class whose glyphs will be shown in the new tab."
+		self.w.text.setToolTip(tooltipText)
+		self.w.classMenu.setToolTip(tooltipText)
+		self.w.updateButton.setToolTip("Updates the list of classes from the frontmost font.")
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "New Tab", callback=self.NewTabWithOTClassMain)
+		self.w.runButton.setToolTip("Opens a new tab with all glyphs of the chosen class.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		for view in self.w.getNSWindow().contentView().subviews():

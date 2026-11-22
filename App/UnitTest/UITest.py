@@ -158,6 +158,9 @@ class UISmokeTest(mekkaObject):
 		)
 		self.w.delayLabel = vanilla.TextBox("auto", "Seconds per dialog:", sizeStyle="small")
 		self.w.delay = SteppingEditText("auto", "0.25", sizeStyle="small", formatter=decimalFormatter(0.05, 5.0, 2))
+		tooltipText = "Time to wait before each script dialog is closed again. Enter a number between 0.05 and 5.0."
+		self.w.delayLabel.setToolTip(tooltipText)
+		self.w.delay.setToolTip(tooltipText)
 		self.w.progress = vanilla.ProgressBar("auto", maxValue=max(1, len(self.scriptPaths)))
 		self.w.status = vanilla.TextBox(
 			"auto",
@@ -166,7 +169,9 @@ class UISmokeTest(mekkaObject):
 		)
 		self.w.logPathText = vanilla.TextBox("auto", "Log: %s" % logPath, sizeStyle="small", selectable=True)
 		self.w.stopButton = vanilla.Button("auto", "Stop", callback=self.stop)
+		self.w.stopButton.setToolTip("Stops the test after the current dialog.")
 		self.w.startButton = vanilla.Button("auto", "Start", callback=self.start)
+		self.w.startButton.setToolTip("Opens the dialog of each UI script one after another, and closes it again after the delay.")
 		self.w.stopButton.enable(False)
 		self.w.setDefaultButton(self.w.startButton)
 

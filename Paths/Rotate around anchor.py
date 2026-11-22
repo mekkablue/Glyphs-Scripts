@@ -43,22 +43,38 @@ class Rotator(mekkaObject):
 		self.w.anchor_text = vanilla.TextBox("auto", "Set 'rotate' anchor", sizeStyle='small')
 		anchorFormatter = integerFormatter()
 		self.w.anchor_x = SteppingEditText("auto", "0", sizeStyle='small', callback=self.SavePreferences, formatter=anchorFormatter)
+		self.w.anchor_x.setToolTip("Horizontal position of the rotation center, i.e., the 'rotate' anchor.")
 		self.w.anchor_y = SteppingEditText("auto", "0", sizeStyle='small', callback=self.SavePreferences, formatter=anchorFormatter)
+		self.w.anchor_y.setToolTip("Vertical position of the rotation center, i.e., the 'rotate' anchor.")
 		self.w.updateButton = UpdateButton("auto", callback=self.updateRotateAnchor)
+		self.w.updateButton.setToolTip("Reads the position from the 'rotate' anchor of the current glyph, or inserts one at the center of the selection (or the origin) if there is none.")
 		self.w.anchor_button = vanilla.Button("auto", "Insert", sizeStyle='small', callback=self.insertRotateAnchor)
+		self.w.anchor_button.setToolTip("Inserts a '#rotate' anchor at the position given on the left into the selected glyphs, or resets it if it exists.")
 
 		self.w.rotate_text1 = vanilla.TextBox("auto", "Rotate by", sizeStyle='small')
+		tooltipText = "Angle in degrees by which the selection is rotated around the anchor."
+		self.w.rotate_text1.setToolTip(tooltipText)
 		self.w.rotate_degrees = vanilla.EditText("auto", "10", sizeStyle='small', callback=self.SavePreferences)
+		self.w.rotate_degrees.setToolTip(tooltipText)
 		self.w.rotate_text2 = vanilla.TextBox("auto", "degrees", sizeStyle='small')
+		self.w.rotate_text2.setToolTip(tooltipText)
 		self.w.rotate_ccw = vanilla.Button("auto", u"↺ ccw", sizeStyle='small', callback=self.rotate)
+		self.w.rotate_ccw.setToolTip("Rotates the selection counterclockwise around the anchor.")
 		self.w.rotate_cw = vanilla.Button("auto", u"↻ cw", sizeStyle='small', callback=self.rotate)
+		self.w.rotate_cw.setToolTip("Rotates the selection clockwise around the anchor.")
 
 		self.w.stepAndRepeat_text1 = vanilla.TextBox("auto", "Repeat", sizeStyle='small')
+		tooltipText = "Number of rotated copies added by step and repeat."
+		self.w.stepAndRepeat_text1.setToolTip(tooltipText)
 		timesFormatter = integerFormatter(0)
 		self.w.stepAndRepeat_times = SteppingEditText("auto", "5", sizeStyle='small', callback=self.SavePreferences, formatter=timesFormatter)
+		self.w.stepAndRepeat_times.setToolTip(tooltipText)
 		self.w.stepAndRepeat_text2 = vanilla.TextBox("auto", "times", sizeStyle='small')
+		self.w.stepAndRepeat_text2.setToolTip(tooltipText)
 		self.w.stepAndRepeat_ccw = vanilla.Button("auto", u"↺+ ccw", sizeStyle='small', callback=self.rotate)
+		self.w.stepAndRepeat_ccw.setToolTip("Adds counterclockwise rotated copies of the selection around the anchor, each rotated further by the angle.")
 		self.w.stepAndRepeat_cw = vanilla.Button("auto", u"↻+ cw", sizeStyle='small', callback=self.rotate)
+		self.w.stepAndRepeat_cw.setToolTip("Adds clockwise rotated copies of the selection around the anchor, each rotated further by the angle.")
 
 		# the labels of the three rows are right-aligned, share one width and resist compression:
 		for label in (self.w.anchor_text, self.w.rotate_text1, self.w.stepAndRepeat_text1):

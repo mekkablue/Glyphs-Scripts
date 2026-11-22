@@ -55,6 +55,7 @@ class NewTabWithUnevenHandleDistributions(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Open Tab", callback=self.NewTabWithUnevenHandleDistributionsMain)
+		self.w.runButton.setToolTip("Opens a new tab with the glyphs in which the handle distributions change too much.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window

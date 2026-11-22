@@ -27,10 +27,16 @@ class OTClassCreator(mekkaObject):
 
 		self.w.classNameLabel = vanilla.TextBox("auto", "OT class name:", sizeStyle="small")
 		self.w.otClassName = vanilla.EditText("auto", "xxxx", sizeStyle="small", callback=self.SavePreferences)
+		tooltipText = "Name of the new OT class, without the at sign. Use only letters, figures, period and underscore, and do not start with a figure."
+		self.w.classNameLabel.setToolTip(tooltipText)
+		self.w.otClassName.setToolTip(tooltipText)
 		self.w.overwrite = vanilla.CheckBox("auto", "Overwrite existing class", sizeStyle="small", callback=self.SavePreferences, value=True)
+		self.w.overwrite.setToolTip("If checked, replaces the glyphs of an existing class with the same name. Otherwise a name that is already taken cannot be used.")
 		self.w.keepOpen = vanilla.CheckBox("auto", "Keep this window open", sizeStyle="small", callback=self.SavePreferences, value=True)
+		self.w.keepOpen.setToolTip("Keeps this window open after the class is created, so you can create more classes.")
 		self.w.classNameCheck = vanilla.TextBox("auto", "Class name appears to be ok.", sizeStyle="small")
 		self.w.runButton = vanilla.Button("auto", "Create", sizeStyle="small", callback=self.createClass)
+		self.w.runButton.setToolTip("Creates the OT class with the selected glyphs.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging,

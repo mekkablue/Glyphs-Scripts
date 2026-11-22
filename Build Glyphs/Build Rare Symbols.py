@@ -589,6 +589,7 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Build", callback=self.BuildCirclesSquaresTrianglesMain)
+		self.w.runButton.setToolTip("Builds the checked glyphs in the frontmost font.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# (un)check all checkboxes:

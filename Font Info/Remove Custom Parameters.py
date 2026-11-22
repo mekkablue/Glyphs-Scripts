@@ -59,6 +59,7 @@ class RemoveCustomParameters(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Remove", callback=self.RemoveCustomParametersMain)
+		self.w.runButton.setToolTip("Removes the chosen custom parameter from the checked parts of Font Info.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# the popups take the extra width, the update button stays snug at the right

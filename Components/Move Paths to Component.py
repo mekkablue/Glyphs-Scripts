@@ -35,21 +35,29 @@ class MovePathstoComponent(mekkaObject):
 
 		self.w.nameText = vanilla.TextBox("auto", "Component name:", sizeStyle='small', selectable=True)
 		self.w.name = vanilla.EditText("auto", "_bar.dollar", callback=self.SavePreferences, sizeStyle='small')
+		tooltipText = "Name of the new glyph that receives the paths. The button suggests a name based on the selected glyph."
+		self.w.nameText.setToolTip(tooltipText)
+		self.w.name.setToolTip(tooltipText)
 		self.w.nameUpdateButton = UpdateButton("auto", callback=self.updateName)
 		self.w.nameUpdateButton.setToolTip("Suggests a name for the new component glyph, based on the selected glyph.")
 
 		self.w.anchorText = vanilla.TextBox("auto", "Attach to anchor:", sizeStyle='small', selectable=True)
 		self.w.anchor = vanilla.ComboBox("auto", self.allAnchorNames(), sizeStyle='small', callback=self.SavePreferences)
+		tooltipText = "Anchor of the base glyph to which the new component is attached."
+		self.w.anchorText.setToolTip(tooltipText)
+		self.w.anchor.setToolTip(tooltipText)
 		self.w.anchorUpdateButton = UpdateButton("auto", callback=self.updateAnchors)
 		self.w.anchorUpdateButton.setToolTip("Updates the anchor names from the selected glyph, and picks the anchor that suits the component name.")
 
 		self.w.includeSpecialLayers = vanilla.CheckBox("auto", "Include special layers (recommended)", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeSpecialLayers.setToolTip("Also processes brace and bracket layers, and other special layers, not just the masters.")
 
 		self.w.keepBaseComponentPosition = vanilla.CheckBox("auto", "Keep base component position (with incremental keys)", value=False, callback=self.SavePreferences, sizeStyle='small')
 		self.w.keepBaseComponentPosition.setToolTip("Will add an incremental metrics key (e.g. ==+10) if width deviation is at least 5u.")
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Make Composite", callback=self.MovePathsToComponentMain)
+		self.w.runButton.setToolTip("Moves the paths into the new glyph and inserts it as a component.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		self.w.warningText = vanilla.TextBox("auto", "", sizeStyle="small", selectable=True)

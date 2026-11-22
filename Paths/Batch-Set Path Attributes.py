@@ -102,9 +102,15 @@ class BatchSetPathAttributes(mekkaObject):
 		inset = 15
 
 		self.w.descriptionText = vanilla.TextBox("auto", "Attributes in", sizeStyle="small")
+		tooltipText = "Which glyphs are affected: the selected glyphs, all exporting glyphs, or all glyphs of the font."
+		self.w.descriptionText.setToolTip(tooltipText)
 		self.w.scopeGlyphs = vanilla.PopUpButton("auto", scopeGlyphs, sizeStyle="small", callback=self.SavePreferences)
+		self.w.scopeGlyphs.setToolTip(tooltipText)
 		self.w.scopeMasterText = vanilla.TextBox("auto", "for paths on", sizeStyle="small")
+		tooltipText = "Which layers are affected: only the paths on the current master, or the paths on all masters."
+		self.w.scopeMasterText.setToolTip(tooltipText)
 		self.w.scopeMaster = vanilla.PopUpButton("auto", scopeMaster, sizeStyle="small", callback=self.SavePreferences)
+		self.w.scopeMaster.setToolTip(tooltipText)
 
 		tooltip = "Width of the path in units."
 		self.w.strokeWidthCheck = vanilla.CheckBox("auto", "Stroke Width", sizeStyle="small", callback=self.SavePreferences)
@@ -145,6 +151,7 @@ class BatchSetPathAttributes(mekkaObject):
 		self.w.removeButton.setToolTip("Clears all path attributes for selection above.")
 
 		self.w.runButton = vanilla.Button("auto", "Apply", callback=self.BatchSetPathAttributesMain)
+		self.w.runButton.setToolTip("Applies the checked attributes to the paths in the chosen scope.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# the first column (labels and checkboxes) shares one width, the text labels are right-aligned:

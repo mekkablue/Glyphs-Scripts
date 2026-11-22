@@ -264,6 +264,7 @@ class BBoxBumperKerning(mekkaObject):
 		self.w.openFeaturesButton = vanilla.Button("auto", "Open Features", callback=self.openFeatures)
 		self.w.openFeaturesButton.setToolTip("Opens Font Info > Features so you can inspect the inserted kern feature code.")
 		self.w.runButton = vanilla.Button("auto", "Bump BBox", callback=self.BBoxBumperKerningMain)
+		self.w.runButton.setToolTip("Calculates the kerning between the class bbox and the other glyphs and inserts it as kern feature code.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window

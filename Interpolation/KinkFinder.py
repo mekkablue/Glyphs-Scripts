@@ -145,6 +145,7 @@ class KinkFinder(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Open Tab", callback=self.KinkFinderMain)
+		self.w.runButton.setToolTip("Finds kinks in interpolation and opens a tab with the affected glyphs.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window

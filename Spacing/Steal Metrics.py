@@ -49,9 +49,15 @@ class MetricsCopy(mekkaObject):
 
 		self.w.text_anchor = vanilla.TextBox("auto", "Transfer metrics from:", sizeStyle='small')
 		self.w.from_font = vanilla.PopUpButton("auto", self.listOfMasterNames(), sizeStyle='small', callback=self.buttonCheck)
+		tooltipText = "The font master the metrics are taken from."
+		self.w.text_anchor.setToolTip(tooltipText)
+		self.w.from_font.setToolTip(tooltipText)
 
 		self.w.text_value = vanilla.TextBox("auto", "To selected glyphs in:", sizeStyle='small')
 		self.w.to_font = vanilla.PopUpButton("auto", self.listOfMasterNames()[::-1], sizeStyle='small', callback=self.buttonCheck)
+		tooltipText = "The font master that receives the metrics in its selected glyphs."
+		self.w.text_value.setToolTip(tooltipText)
+		self.w.to_font.setToolTip(tooltipText)
 
 		self.w.lsb = vanilla.CheckBox("auto", "LSB", value=True, callback=self.buttonCheck, sizeStyle='small')
 		self.w.rsb = vanilla.CheckBox("auto", "RSB", value=True, callback=self.buttonCheck, sizeStyle='small')
@@ -77,6 +83,7 @@ class MetricsCopy(mekkaObject):
 		self.w.suffixToBeIgnored.setToolTip(suffixTooltip)
 
 		self.w.copybutton = vanilla.Button("auto", "Transfer", callback=self.copyMetrics)
+		self.w.copybutton.setToolTip("Transfers the metrics to the selected glyphs in the target font.")
 		self.w.setDefaultButton(self.w.copybutton)
 
 		# checkboxes stretch vertically by default; with everything hugging,

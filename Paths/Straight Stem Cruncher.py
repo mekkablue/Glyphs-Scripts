@@ -145,6 +145,7 @@ class StraightStemCruncher(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Measure", callback=self.StraightStemCruncherMain)
+		self.w.runButton.setToolTip("Measures the stems and reports those that deviate from the given stem widths.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# labels in front of fields: right-aligned, one shared width

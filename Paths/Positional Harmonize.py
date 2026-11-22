@@ -355,6 +355,7 @@ class PositionalHarmonize(mekkaObject):
 		self.w.updateButton.setToolTip("Update the list with all .medi glyphs in the frontmost font.")
 
 		self.w.runButton = vanilla.Button("auto", "Harmonize", callback=self.PositionalHarmonizeMain)
+		self.w.runButton.setToolTip("Harmonizes the connection handles of the selected glyphs with the reference glyph.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes and square buttons stretch vertically by default; with everything

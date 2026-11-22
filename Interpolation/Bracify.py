@@ -110,11 +110,18 @@ class Bracify(mekkaObject):
 		inset = 15
 
 		self.w.masterToRemoveText = vanilla.TextBox("auto", "Remove font master:", sizeStyle="small", selectable=True)
+		tooltipText = "The master that is removed from the font. Its shapes are kept as brace layers in the listed glyphs."
 		self.w.masterToRemove = vanilla.PopUpButton("auto", masterList(Glyphs.font), sizeStyle="small", callback=self.SavePreferences)
+		self.w.masterToRemove.setToolTip(tooltipText)
+		self.w.masterToRemoveText.setToolTip(tooltipText)
 
 		self.w.associateMasterText = vanilla.TextBox("auto", "Associate with master:", sizeStyle="small", selectable=True)
+		tooltipText = "The master that the new brace layers are associated with. Must differ from the master to remove."
 		self.w.associateMaster = vanilla.PopUpButton("auto", masterList(Glyphs.font), sizeStyle="small", callback=self.SavePreferences)
+		self.w.associateMaster.setToolTip(tooltipText)
 		self.w.updateButton = UpdateButton("auto", callback=self.UpdateForCurrentFont)
+		self.w.associateMasterText.setToolTip(tooltipText)
+		self.w.updateButton.setToolTip("Updates the master lists from the frontmost font.")
 
 		tooltipText = "Used by the Guess button: a glyph is added to the list if removing the master would move its points, anchors or width by more than this many units."
 		self.w.thresholdText = vanilla.TextBox("auto", "Coordinate threshold for guessing:", sizeStyle="small", selectable=True)
@@ -142,10 +149,13 @@ class Bracify(mekkaObject):
 		textView.setMinSize_(textSize)
 
 		self.w.guessButton = vanilla.Button("auto", "Guess", callback=self.BracifyGuess)
+		self.w.guessButton.setToolTip("Fills the glyph list with glyphs that would change too much if the master were removed without a brace layer.")
 		self.w.openTabButton = vanilla.Button("auto", "Open Tab", callback=self.OpenTab)
+		self.w.openTabButton.setToolTip("Opens a new tab with the glyphs of the list.")
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Remove Master", callback=self.BracifyMain)
+		self.w.runButton.setToolTip("Adds brace layers to the listed glyphs and removes the master from the font.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# labels: right-aligned, all with the width of the widest one

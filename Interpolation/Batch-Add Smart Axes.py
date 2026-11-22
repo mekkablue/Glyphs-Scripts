@@ -60,7 +60,9 @@ class BatchAddSmartAxes(mekkaObject):
 
 		# Run Button:
 		self.w.resetButton = vanilla.Button("auto", "Reset", callback=self.reset)
+		self.w.resetButton.setToolTip("Resets the recipe to the default example.")
 		self.w.runButton = vanilla.Button("auto", "Smartify", callback=self.BatchAddSmartAxesMain)
+		self.w.runButton.setToolTip("Adds the smart axes and smart layers from the recipe to the selected glyphs.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# everything but the recipe editor hugs vertically, so the editor takes all the leftover height:

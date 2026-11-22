@@ -47,18 +47,30 @@ class TransformImages(mekkaObject):
 		moveFormatter.setUsesGroupingSeparator_(False)
 		moveFormatter.setMaximumFractionDigits_(3)
 
+		scaleTooltip = "Relative change of the image size in percent, horizontal and vertical. Positive values enlarge, negative values shrink."
 		self.w.scale_text1 = vanilla.TextBox("auto", "Scale x/y:", sizeStyle='small')
 		self.w.scaleX = SteppingEditText("auto", "+10.5", callback=self.SavePreferences, sizeStyle='small', formatter=scaleFormatter)
+		self.w.scaleX.setToolTip(scaleTooltip)
 		self.w.scaleY = SteppingEditText("auto", "-11.0", callback=self.SavePreferences, sizeStyle='small', formatter=scaleFormatter)
+		self.w.scaleY.setToolTip(scaleTooltip)
 		self.w.scale_text2 = vanilla.TextBox("auto", "%", sizeStyle='small')
+		self.w.scale_text1.setToolTip(scaleTooltip)
+		self.w.scale_text2.setToolTip(scaleTooltip)
 
+		moveTooltip = "Distance in units to shift the image, horizontal and vertical."
 		self.w.move_text1 = vanilla.TextBox("auto", "Move x/y:", sizeStyle='small')
 		self.w.moveX = SteppingEditText("auto", "10", callback=self.SavePreferences, sizeStyle='small', formatter=moveFormatter)
+		self.w.moveX.setToolTip(moveTooltip)
 		self.w.moveY = SteppingEditText("auto", "10", callback=self.SavePreferences, sizeStyle='small', formatter=moveFormatter)
+		self.w.moveY.setToolTip(moveTooltip)
 		self.w.move_text2 = vanilla.TextBox("auto", "units", sizeStyle='small')
+		self.w.move_text1.setToolTip(moveTooltip)
+		self.w.move_text2.setToolTip(moveTooltip)
 
 		self.w.backButton = vanilla.Button("auto", "Back", callback=self.TransformImagesMain)
+		self.w.backButton.setToolTip("Reverses the scaling and moving, i.e. undoes a previous Go with the same values.")
 		self.w.runButton = vanilla.Button("auto", "Go", callback=self.TransformImagesMain)
+		self.w.runButton.setToolTip("Scales and moves the images in the selected layers by the given values.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# every control hugs vertically, so the window ends up exactly as tall as the content

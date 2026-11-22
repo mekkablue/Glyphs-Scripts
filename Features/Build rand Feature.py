@@ -45,8 +45,10 @@ class BuildRandFeature(mekkaObject):
 		self.w.suffix = vanilla.ComboBox("auto", self.fillSuffixes(), sizeStyle='small', callback=self.SavePreferences)
 		self.w.suffix.setToolTip("Find all (exporting) glyphs that have this suffix and in OT feature ‘rand’, build a one-from-many substitution with them. Hint: keep the dot, but avoid the figures, e.g. for all stylistic sets, type ‘.ss’.")
 		self.w.suffixReset = UpdateButton("auto", callback=self.updateSuffixs)
+		self.w.suffixReset.setToolTip("Updates the list of suffixes from the frontmost font.")
 
 		self.w.exclude = vanilla.CheckBox("auto", "Exclude glyphs containing:", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.exclude.setToolTip("If checked, glyphs with names containing any of the listed particles are left out of the rand feature.")
 		self.w.excludeList = vanilla.EditText("auto", ".build, .ss12", callback=self.SavePreferences, sizeStyle='small')
 		self.w.excludeList.setToolTip("Comma-separated list of glyph name particles. Glyphs containing these particles in their names will be excluded from the rand feature generation.")
 
@@ -58,6 +60,7 @@ class BuildRandFeature(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Add Feature", callback=self.BuildRandFeatureMain)
+		self.w.runButton.setToolTip("Builds the rand feature in the frontmost font.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window ends up exactly as tall as the content

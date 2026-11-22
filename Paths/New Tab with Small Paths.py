@@ -47,18 +47,25 @@ class FindSmallPaths(mekkaObject):
 
 		formatter = integerFormatter(1)
 		self.w.sliderMin = SteppingEditText("auto", "10", sizeStyle='small', callback=self.SliderUpdate, formatter=formatter)
+		self.w.sliderMin.setToolTip("Lowest area in square units that the slider can select. Minimum: 1.")
 		self.w.sliderMax = SteppingEditText("auto", "1000", sizeStyle='small', callback=self.SliderUpdate, formatter=formatter)
+		self.w.sliderMax.setToolTip("Highest area in square units that the slider can select. Must be larger than the minimum.")
 		self.w.areaSlider = vanilla.Slider("auto", value=0.1, minValue=0.0, maxValue=1.0, sizeStyle='small', callback=self.SliderUpdate)
+		self.w.areaSlider.setToolTip("Sets the area threshold between the minimum and maximum: paths smaller than this are reported.")
 
 		self.w.deleteThemRightAway = vanilla.CheckBox("auto", "Delete Small Paths Right Away", value=False, callback=self.CheckBoxUpdate, sizeStyle='small')
+		self.w.deleteThemRightAway.setToolTip("Deletes the small paths immediately instead of only opening a tab. Cannot be combined with the option below.")
 		self.w.afterOverlapRemoval = vanilla.CheckBox("auto", "After Decomposition and Overlap Removal (slower)", value=True, callback=self.CheckBoxUpdate, sizeStyle='small')
+		self.w.afterOverlapRemoval.setToolTip("Measures path areas after decomposing components and removing overlaps, on a temporary copy of each layer. Cannot be combined with deleting right away.")
 		self.w.allFonts = vanilla.CheckBox("auto", "Apply to all open fonts", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allFonts.setToolTip("Processes all open fonts instead of only the frontmost one.")
 
 		self.w.progress = vanilla.ProgressBar("auto")
 		self.w.progress.set(0)  # set progress indicator to zero
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Open Tab", callback=self.FindSmallPathsMain)
+		self.w.runButton.setToolTip("Finds paths below the area threshold and opens a tab with the affected glyphs.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window ends up exactly as tall as the content

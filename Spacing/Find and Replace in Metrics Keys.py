@@ -41,13 +41,18 @@ class MetricKeyReplacer(mekkaObject):
 
 		self.w.text_left = vanilla.TextBox("auto", "Left Key", sizeStyle='small')
 		self.w.leftSearchFor = vanilla.EditText("auto", "=a", callback=self.SavePreferences, sizeStyle='small', placeholder='(empty)')
+		self.w.leftSearchFor.setToolTip("Text to find in the left metrics keys. Leave empty to match nothing in particular.")
 		self.w.leftReplaceBy = vanilla.EditText("auto", "=a.ss01", callback=self.SavePreferences, sizeStyle='small', placeholder='(empty)')
+		self.w.leftReplaceBy.setToolTip("Text that replaces the found text in the left metrics keys.")
 
 		self.w.text_right = vanilla.TextBox("auto", "Right Key", sizeStyle='small')
 		self.w.rightSearchFor = vanilla.EditText("auto", "=|a", callback=self.SavePreferences, sizeStyle='small', placeholder='(empty)')
+		self.w.rightSearchFor.setToolTip("Text to find in the right metrics keys. Leave empty to match nothing in particular.")
 		self.w.rightReplaceBy = vanilla.EditText("auto", "=|a.ss01", callback=self.SavePreferences, sizeStyle='small', placeholder='(empty)')
+		self.w.rightReplaceBy.setToolTip("Text that replaces the found text in the right metrics keys.")
 
 		self.w.runButton = vanilla.Button("auto", "Replace", callback=self.MetricKeyReplaceMain)
+		self.w.runButton.setToolTip("Replaces the text in the metrics keys of the selected glyphs.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# with everything hugging, the window ends up exactly as tall as the content

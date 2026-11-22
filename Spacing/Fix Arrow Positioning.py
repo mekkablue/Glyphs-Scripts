@@ -60,22 +60,38 @@ class FixArrowPositioning(mekkaObject):
 
 		self.w.referenceForHorizontalArrowsText = vanilla.TextBox("auto", "Reference for H arrows", sizeStyle='small')
 		self.w.referenceForHorizontalArrows = vanilla.PopUpButton("auto", self.hArrows, callback=self.SavePreferences, sizeStyle='small')
+		tooltipText = "The horizontal arrow glyph that serves as the reference for the vertical position of all horizontal arrows."
+		self.w.referenceForHorizontalArrowsText.setToolTip(tooltipText)
+		self.w.referenceForHorizontalArrows.setToolTip(tooltipText)
 
 		self.w.referenceForVerticalArrowsText = vanilla.TextBox("auto", "Reference for V arrows", sizeStyle='small')
 		self.w.referenceForVerticalArrows = vanilla.PopUpButton("auto", self.vArrows, callback=self.SavePreferences, sizeStyle='small')
+		tooltipText = "The vertical arrow glyph that serves as the reference for the metrics of all vertical arrows."
+		self.w.referenceForVerticalArrowsText.setToolTip(tooltipText)
+		self.w.referenceForVerticalArrows.setToolTip(tooltipText)
 
 		self.w.referenceForDiagonalArrowsText = vanilla.TextBox("auto", "Reference for D arrows", sizeStyle='small')
 		self.w.referenceForDiagonalArrows = vanilla.PopUpButton("auto", self.dArrows, callback=self.SavePreferences, sizeStyle='small')
+		tooltipText = "The diagonal arrow glyph that serves as the reference for the vertical position of all diagonal arrows."
+		self.w.referenceForDiagonalArrowsText.setToolTip(tooltipText)
+		self.w.referenceForDiagonalArrows.setToolTip(tooltipText)
 
 		self.w.suffixText = vanilla.TextBox("auto", "Dot suffix", sizeStyle='small', selectable=False)
 		self.w.suffix = vanilla.EditText("auto", "", callback=self.SavePreferences, sizeStyle='small')
+		tooltipText = "Optional dot suffix (e.g., ss01) appended to the arrow glyph names, to fix a set of alternate arrows."
+		self.w.suffixText.setToolTip(tooltipText)
+		self.w.suffix.setToolTip(tooltipText)
 
 		self.w.verticalPosOfHorizontalArrows = vanilla.CheckBox("auto", "Fix vertical positioning of horizontal arrows", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.verticalPosOfHorizontalArrows.setToolTip("Shifts the horizontal arrows vertically, so their center strokes match the reference arrow.")
 		self.w.verticalPosOfDiagonalArrows = vanilla.CheckBox("auto", "Fix vertical positioning of diagonal arrows", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.verticalPosOfDiagonalArrows.setToolTip("Shifts the diagonal arrows vertically, so their vertical centers match the reference arrow.")
 		self.w.addAndUpdateMetricsKeys = vanilla.CheckBox("auto", "Add and update metrics keys", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.addAndUpdateMetricsKeys.setToolTip("Adds metrics keys to the arrows that refer to the reference arrows, and updates the metrics.")
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Fix", callback=self.FixArrowPositioningMain)
+		self.w.runButton.setToolTip("Fixes position and metrics of the arrows in the frontmost font.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging,

@@ -82,6 +82,7 @@ class CalculateSubscriptAndSuperscriptParameters(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Insert", callback=self.CalculateSubscriptAndSuperscriptParametersMain)
+		self.w.runButton.setToolTip("Measures the reference glyphs and inserts the calculated subscript and superscript parameters in the masters.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# the 'in relation to' labels hug their text and resist compression

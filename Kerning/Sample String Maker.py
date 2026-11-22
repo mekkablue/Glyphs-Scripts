@@ -72,6 +72,7 @@ class SampleStringMaker(mekkaObject):
 		self.w.scriptPopup = vanilla.PopUpButton("auto", self.scripts, sizeStyle='small', callback=self.SavePreferences)
 		self.w.scriptPopup.setToolTip("Script for letters, will be ignored for all other categories (e.g., numbers).")
 		self.w.scriptUpdate = UpdateButton("auto", callback=self.updateScripts)
+		self.w.scriptUpdate.setToolTip("Updates the list of scripts from the frontmost font.")
 
 		self.w.leftCategoryText = vanilla.TextBox("auto", "Left Category:", sizeStyle='small', selectable=True)
 		self.w.leftCategoryPopup = vanilla.PopUpButton("auto", self.categoryList, sizeStyle='small', callback=self.SavePreferences)

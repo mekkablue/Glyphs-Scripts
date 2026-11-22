@@ -321,6 +321,7 @@ class BuildExtraMathSymbols(mekkaObject):
 		self.w.control.setToolTip("Will create control (butted to the top of zero) and downArrowHead (its rotated copy).")
 
 		self.w.runButton = vanilla.Button("auto", "Build", callback=self.BuildMain)
+		self.w.runButton.setToolTip("Builds the checked glyphs in the frontmost font.")
 		self.w.setDefaultButton(self.w.runButton)
 		self.w.checkAllButton = vanilla.Button("auto", "Check All", callback=self.checkOrUncheckAll)
 		self.w.checkAllButton.setToolTip("Activates all checkboxes.")

@@ -43,20 +43,31 @@ class MergeCPALLayersIntoMasterLayer(mekkaObject):
 
 		self.w.allText = vanilla.TextBox("auto", "for:", sizeStyle="small", selectable=True)
 		self.w.all = vanilla.PopUpButton("auto", allOptions, sizeStyle="small", callback=self.SavePreferences)
+		tooltipText = "Choose which glyphs get their color layers merged: the selected glyphs, all color glyphs of the current font, or of all open fonts."
+		self.w.allText.setToolTip(tooltipText)
+		self.w.all.setToolTip(tooltipText)
 
 		self.w.removeOverlap = vanilla.CheckBox("auto", "Remove overlap and tidy up paths", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.removeOverlap.setToolTip("Removes overlaps and cleans up the paths in the merged master layer.")
 
 		self.w.removeSmallItems = vanilla.CheckBox("auto", "Remove items smaller than", value=False, callback=self.SavePreferences, sizeStyle="small")
 		formatter = integerFormatter(0)
 		self.w.removeSmallItemsThreshold = SteppingEditText("auto", "400", callback=self.SavePreferences, sizeStyle="small", formatter=formatter)
 		self.w.removeSmallItemsText = vanilla.TextBox("auto", "square units", sizeStyle="small")
+		tooltipText = "Deletes merged shapes with an area below this threshold, in square units."
+		self.w.removeSmallItems.setToolTip(tooltipText)
+		self.w.removeSmallItemsThreshold.setToolTip(tooltipText)
+		self.w.removeSmallItemsText.setToolTip(tooltipText)
 
 		self.w.overwrite = vanilla.CheckBox("auto", "Overwrite existing master layers", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.overwrite.setToolTip("If checked, replaces the existing shapes of the master layer. Otherwise adds the color shapes to them.")
 
 		self.w.verbose = vanilla.CheckBox("auto", "Verbose reporting in Macro window (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.verbose.setToolTip("Prints a line for every glyph and master, including skipped ones. Can be slow in large fonts.")
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Merge", callback=self.MergeCPALLayersIntoMasterLayerMain)
+		self.w.runButton.setToolTip("Merges the color layers into the master layers.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging,

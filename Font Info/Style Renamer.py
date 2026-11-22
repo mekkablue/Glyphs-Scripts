@@ -72,6 +72,7 @@ class StyleRenamer(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Rename", callback=self.StyleRenamerMain)
+		self.w.runButton.setToolTip("Adds or removes the particle in the names of the styles, as shown in the preview.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window

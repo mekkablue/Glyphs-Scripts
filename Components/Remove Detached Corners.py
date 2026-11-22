@@ -50,12 +50,18 @@ class RemoveDetachedCorners(mekkaObject):
 
 		self.w.descriptionText = vanilla.TextBox("auto", "Delete corner components not linked to a node:", sizeStyle='small', selectable=True)
 		self.w.backgroundLayersChBox = vanilla.CheckBox("auto", "Include background layers", sizeStyle='small', callback=self.SavePreferences)
+		self.w.backgroundLayersChBox.setToolTip("Also removes detached corner components from background layers.")
 		self.w.allMastersChBox = vanilla.CheckBox("auto", "On all masters", sizeStyle='small', callback=self.SavePreferences)
+		self.w.allMastersChBox.setToolTip("If checked, processes all masters. Otherwise only the current master.")
 		self.w.fromWhereText = vanilla.TextBox("auto", "Remove from", sizeStyle='small')
 		self.w.fromWhere = vanilla.VerticalRadioGroup("auto", ["selected glyphs", "all glyphs in font"], callback=self.SavePreferences, sizeStyle='small')
+		tooltipText = "Choose whether to remove detached corner components from the selected glyphs only or from all glyphs in the font."
+		self.w.fromWhereText.setToolTip(tooltipText)
+		self.w.fromWhere.setToolTip(tooltipText)
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Remove", callback=self.removeDetachedCornersMain)
+		self.w.runButton.setToolTip("Removes the detached corner components from the chosen glyphs.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; hugging makes the window as tall as the content

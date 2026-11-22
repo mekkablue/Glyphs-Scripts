@@ -36,18 +36,27 @@ class NewTabsWithGlyphsNotReachingIntoZones(mekkaObject):
 		self.w.descriptionText = vanilla.TextBox("auto", u"Open tab with glyphs that are not reaching into zones.", sizeStyle='small', selectable=True)
 
 		self.w.allMastersInSeparateTabs = vanilla.CheckBox("auto", u"Include All Masters (in Separate Tabs)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allMastersInSeparateTabs.setToolTip("If checked, opens one tab per master. Otherwise only the current master is checked.")
 		self.w.includeSpecialLayers = vanilla.CheckBox("auto", u"Include Special Layers", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeSpecialLayers.setToolTip("If checked, brace and bracket layers are checked as well.")
 
+		ignoreTooltip = "Comma-separated name parts. Glyphs whose names contain any of them are left out."
 		self.w.ignoreGlyphsText = vanilla.TextBox("auto", u"Ignore glyphs containing:", sizeStyle='small', selectable=True)
 		self.w.ignoreGlyphs = vanilla.EditText("auto", ".sups, .subs, superior, inferior, Arrow", callback=self.SavePreferences, sizeStyle='small')
+		self.w.ignoreGlyphs.setToolTip(ignoreTooltip)
+		self.w.ignoreGlyphsText.setToolTip(ignoreTooltip)
 
 		self.w.includeText = vanilla.TextBox("auto", u"Include:", sizeStyle='small', selectable=True)
 		self.w.includeMarks = vanilla.CheckBox("auto", u"Marks", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeMarks.setToolTip("If checked, glyphs of category Mark are included.")
 		self.w.includeSymbols = vanilla.CheckBox("auto", u"Symbols", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeSymbols.setToolTip("If checked, glyphs of category Symbol are included.")
 		self.w.includePunctuation = vanilla.CheckBox("auto", u"Punctuation", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includePunctuation.setToolTip("If checked, glyphs of category Punctuation are included.")
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Open Tabs", callback=self.NewTabsWithGlyphsNotReachingIntoZonesMain)
+		self.w.runButton.setToolTip("Opens a new tab with the glyphs that do not reach into any alignment zone.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging,

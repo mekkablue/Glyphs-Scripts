@@ -54,10 +54,13 @@ class FontInfoOverview(mekkaObject):
 			# doubleClickCallback = self.doubleclickedAction,
 			editCallback=self.editAction
 		)
+		self.w.List.getNSTableView().setToolTip_("Font Info values of all open fonts. Double-click a cell to edit it, then click Apply Changes.")
 
 		# Buttons:
 		self.w.reloadButton = vanilla.Button("auto", "Reload", callback=self.Reload)
 		self.w.applyButton = vanilla.Button("auto", "Apply Changes", callback=self.Apply)
+		self.w.reloadButton.setToolTip("Reloads the Font Info values of all open fonts and discards edits that were not applied yet.")
+		self.w.applyButton.setToolTip("Writes the edited values back to their fonts, for the selected rows, or for all rows if none is selected.")
 		# self.w.setDefaultButton(self.w.reloadButton)
 
 		# Counter:

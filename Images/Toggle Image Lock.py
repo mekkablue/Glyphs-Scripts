@@ -23,7 +23,9 @@ class ToggleImageLock(mekkaObject):
 
 		inset = 15
 		self.w.lockButton = vanilla.Button("auto", "🔒 Lock", callback=self.ToggleImageLockMain)
+		self.w.lockButton.setToolTip("Locks the images in the selected layers.")
 		self.w.unlockButton = vanilla.Button("auto", "🔓 Unlock", callback=self.ToggleImageLockMain)
+		self.w.unlockButton.setToolTip("Unlocks the images in the selected layers.")
 		self.w.setDefaultButton(self.w.unlockButton)
 
 		for view in self.w.getNSWindow().contentView().subviews():

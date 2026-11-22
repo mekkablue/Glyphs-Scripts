@@ -253,6 +253,7 @@ class ReportHighestAndLowestGlyphs(mekkaObject):
 		self.shownEntries = []
 
 		self.w.preview = GlyphOverlayPreview("auto")
+		self.w.preview.setToolTip("Canvas with the overlaid highest, lowest, leftmost and rightmost glyphs.")
 		self.w.report = vanilla.TextEditor("auto", "", readOnly=True)
 		self.w.report.setToolTip("Highest, lowest, leftmost (smallest origin.x) and rightmost (highest origin.x + width) glyph.")
 		self.w.report.getNSTextView().setFont_(NSFont.systemFontOfSize_(NSFont.smallSystemFontSize()))

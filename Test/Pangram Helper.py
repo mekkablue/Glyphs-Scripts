@@ -227,6 +227,7 @@ class PangramHelper(mekkaObject):
 		inset = 15
 
 		self.w.alphabetChoice = vanilla.PopUpButton("auto", menuTitles, sizeStyle="small", callback=self.updateMissingLetters)
+		self.w.alphabetChoice.setToolTip("The alphabet to check the pangram against.")
 		self.w.missingLetters = vanilla.TextBox("auto", "Missing: %s" % self.alphabet, sizeStyle="small")
 		self.w.missingLetters.setToolTip(
 			"Status of the pangram.\n"
@@ -239,12 +240,15 @@ class PangramHelper(mekkaObject):
 			NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal
 		)
 		self.w.pangram = vanilla.TextEditor("auto", "The quick brown fox jumps over the lazy dog.", checksSpelling=True, callback=self.updateMissingLetters)
+		self.w.pangram.setToolTip("The pangram text. The status above shows which letters are missing or repeated.")
 
 		self.w.pangram.getNSTextView().setFont_(NSFont.systemFontOfSize_(NSFont.systemFontSize()))  # regular size
 
 		# Buttons:
 		self.w.copyButton = vanilla.Button("auto", "Copy", callback=self.PangramHelperMain)
+		self.w.copyButton.setToolTip("Copies the text to the clipboard.")
 		self.w.tabButton = vanilla.Button("auto", "Open Tab", callback=self.PangramHelperMain)
+		self.w.tabButton.setToolTip("Opens a new tab with the text in the frontmost font and closes this window.")
 		self.w.randomButton = vanilla.Button("auto", "Random", callback=self.randomPangram)
 		self.w.randomButton.setToolTip("Replaces the text with a random pangram for the chosen language. Click again for another one.")
 		self.w.setDefaultButton(self.w.tabButton)

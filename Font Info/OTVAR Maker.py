@@ -135,6 +135,7 @@ class OTVARMaker(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Add", callback=self.OTVARMakerMain)
+		self.w.runButton.setToolTip("Adds a variable font setting to Font Info > Exports of the chosen fonts.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window

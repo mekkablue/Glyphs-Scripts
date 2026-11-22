@@ -118,6 +118,7 @@ class TravelTracker(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Find", callback=self.TravelTrackerMain)
+		self.w.runButton.setToolTip("Finds glyphs with nodes that travel more than they should in interpolation.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window

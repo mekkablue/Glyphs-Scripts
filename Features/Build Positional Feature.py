@@ -76,6 +76,7 @@ class BuildPositionalFeature(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Build", callback=self.BuildPositionalFeatureMain)
+		self.w.runButton.setToolTip("Builds or updates the positional feature code and OpenType classes.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window ends up exactly as tall as the content

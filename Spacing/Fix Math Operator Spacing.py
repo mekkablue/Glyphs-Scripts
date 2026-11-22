@@ -108,12 +108,14 @@ class FixMathOperatorSpacing(mekkaObject):
 			"Metrics keys based on",
 		)
 		self.w.lessGreaterRadioButtons = vanilla.VerticalRadioGroup("auto", radioOptions, callback=self.SavePreferences, sizeStyle='small')
+		self.w.lessGreaterRadioButtons.setToolTip("How to treat less, greater, lessequal and greaterequal: like the other operators, without centering, or with metrics keys based on a reference glyph.")
 		self.w.lessGreaterRadioButtons.set(0)
 
 		self.w.lessGreaterMetricReference = vanilla.PopUpButton("auto", ["%s %s" % (c, Glyphs.niceGlyphName(c)) for c in lessGreater + mathOperators + asciiOperators], sizeStyle='small', callback=self.SavePreferences)
 		self.w.lessGreaterMetricReference.setToolTip("Override the reference glyph for <>≤≥. Useful if you do not want to center <>≤≥.")
 
 		self.w.syncWidthOfLessGreaterReference = vanilla.CheckBox("auto", "Sync width of this reference glyph", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.syncWidthOfLessGreaterReference.setToolTip("Also syncs the width of the reference glyph chosen for the less and greater symbols.")
 
 		self.w.syncHeights = vanilla.CheckBox("auto", "Vertically center: %s" % heightSyncOperators, value=True, callback=self.SavePreferences, sizeStyle='small')
 		self.w.syncHeights.setToolTip("Syncs the vertical center of the math operators with the reference glyph.")
@@ -133,6 +135,7 @@ class FixMathOperatorSpacing(mekkaObject):
 		self.w.tabButton.setToolTip("Opens a new Edit tab with +−×÷=≠±≈¬ <>≤≥ ^~")
 
 		self.w.runButton = vanilla.Button("auto", "Sync", callback=self.FixMathOperatorSpacingMain)
+		self.w.runButton.setToolTip("Syncs the widths and positions of the math operators in the frontmost font.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes and the radio group stretch vertically by default; with everything hugging,

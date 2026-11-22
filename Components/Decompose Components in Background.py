@@ -71,6 +71,7 @@ class Decompose_Components_in_Background(mekkaObject):
 
 		# ## Action button
 		self.w.decomposeButton = vanilla.Button("auto", "Decompose", callback=self.decomposeButtonCallback)
+		self.w.decomposeButton.setToolTip("Decomposes the components in the backgrounds of the chosen glyphs.")
 		self.w.setDefaultButton(self.w.decomposeButton)
 
 		# checkboxes stretch vertically by default; with everything hugging,

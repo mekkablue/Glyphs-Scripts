@@ -45,19 +45,31 @@ class CompareKerningBetweenMasters(mekkaObject):
 
 		self.w.firstMasterText = vanilla.TextBox("auto", "1st Master:", sizeStyle="small", selectable=True)
 		self.w.firstMaster = vanilla.PopUpButton("auto", self.menuItemsForFrontMostFont(), sizeStyle="small", callback=self.SavePreferences)
+		tooltipText = "The first of the two masters to compare."
+		self.w.firstMasterText.setToolTip(tooltipText)
+		self.w.firstMaster.setToolTip(tooltipText)
 
 		self.w.secondMasterText = vanilla.TextBox("auto", "2nd Master:", sizeStyle="small", selectable=True)
 		self.w.secondMaster = vanilla.PopUpButton("auto", self.menuItemsForFrontMostFont(), sizeStyle="small", callback=self.SavePreferences)
+		tooltipText = "The second of the two masters to compare."
+		self.w.secondMasterText.setToolTip(tooltipText)
+		self.w.secondMaster.setToolTip(tooltipText)
 		self.w.updateButton = UpdateButton("auto", callback=self.updateUI)
+		self.w.updateButton.setToolTip("Updates the master lists from the frontmost font.")
 
 		self.w.kernTypeText = vanilla.TextBox("auto", "Types of kerning to compare:", sizeStyle="small", selectable=True)
 
 		self.w.group2group = vanilla.CheckBox("auto", "@group ↔︎ @group", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.group2group.setToolTip("Includes kern pairs between two groups in the comparison.")
 		self.w.group2glyph = vanilla.CheckBox("auto", "@group ↔︎ glyph", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.group2glyph.setToolTip("Includes kern pairs between a group on the left and a glyph on the right in the comparison.")
 		self.w.glyph2group = vanilla.CheckBox("auto", "glyph ↔︎ @group", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.glyph2group.setToolTip("Includes kern pairs between a glyph on the left and a group on the right in the comparison.")
 		self.w.glyph2glyph = vanilla.CheckBox("auto", "glyph ↔︎ glyph", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.glyph2glyph.setToolTip("Includes kern pairs between two glyphs (exceptions) in the comparison.")
 
 		self.w.reuseTab = vanilla.CheckBox("auto", "Reuse current tab", value=True, callback=self.SavePreferences, sizeStyle="small")
+		self.w.reuseTab.setToolTip("If enabled, shows the result in the current Edit tab instead of opening a new tab.")
 
 		# Buttons:
 		self.w.syncButton = vanilla.Button("auto", "Sync Kern Pairs", callback=self.SyncKernPairs)

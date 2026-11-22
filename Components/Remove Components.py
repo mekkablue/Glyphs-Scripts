@@ -65,9 +65,11 @@ class RemoveComponentfromSelectedGlyphs(mekkaObject):
 		self.w.updateButton.setToolTip("Reload a list of glyph names based on the current font (and selection).")
 
 		self.w.fromWhere = vanilla.VerticalRadioGroup("auto", ("from all selected glyphs", "⚠️ from all glyphs in the font"), callback=self.SavePreferences, sizeStyle='small')
+		self.w.fromWhere.setToolTip("Choose whether to remove the component from the selected glyphs only or from all glyphs in the font.")
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Remove Component", callback=self.RemoveComponentFromSelectedGlyphsMain)
+		self.w.runButton.setToolTip("Removes the component from the chosen glyphs.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# the label hugs its text, so the combo box takes the leftover width:

@@ -91,6 +91,7 @@ class AutoStems(mekkaObject):
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Add Stems", callback=self.AutoStemsMain)
+		self.w.runButton.setToolTip("Measures the chosen glyphs and adds the stem values to the font masters.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window

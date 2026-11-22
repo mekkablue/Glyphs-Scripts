@@ -162,6 +162,7 @@ class AxisMapper(mekkaObject):
 		self.w.mappingLevel.setToolTip("Choose level in which the custom parameter for axis mapping will be added.")
 
 		self.w.mappingRecipe = vanilla.TextEditor("auto", text=fallbackText.strip(), callback=self.SavePreferences, checksSpelling=False)
+		self.w.mappingRecipe.setToolTip("One mapping per line, written as userValue -> targetValue. Text after a # is a comment.")
 
 		legibleFont = getLegibleFont()
 

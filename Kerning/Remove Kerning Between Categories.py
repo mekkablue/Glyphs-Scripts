@@ -68,8 +68,11 @@ class RemoveKerning(mekkaObject):
 		)
 
 		self.w.includeDirtyCategories = vanilla.CheckBox("auto", "Delete group kerning even if groups are ‘dirty’ (e.g., group with uppercase and lowercase letters mixed)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.includeDirtyCategories.setToolTip("If enabled, also removes group kerning of groups that mix categories, e.g., uppercase and lowercase letters.")
 		self.w.reportInMacroWindow = vanilla.CheckBox("auto", "Detailed report in macro window", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.reportInMacroWindow.setToolTip("Prints every removed pair to the Macro window.")
 		self.w.processAllMasters = vanilla.CheckBox("auto", "Process all masters (otherwise current master only)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.processAllMasters.setToolTip("If enabled, removes the kerning in all masters. Otherwise, only in the current master.")
 
 		self.w.progress = vanilla.ProgressBar("auto")
 		self.w.progress.set(0)  # set progress indicator to zero

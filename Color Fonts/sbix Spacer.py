@@ -45,7 +45,9 @@ class sbixSpacer(mekkaObject):
 		inset = 15
 
 		self.w.insertMarkers = vanilla.CheckBox("auto", "Reset master layer and insert markers for sbix bounds", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.insertMarkers.setToolTip("Resets the master layer and inserts two tiny markers that define the sbix bounds of the image.")
 		self.w.resetWidths = vanilla.CheckBox("auto", "Reset sidebearings to image widths", value=True, callback=self.SavePreferences, sizeStyle='small')
+		self.w.resetWidths.setToolTip("Sets the sidebearings so the glyph width matches the width of the iColor image.")
 
 		tooltipText = "Size of the iColor layer (e.g. 128 for ‘iColor 128’) used as reference for the width."
 		self.w.preferredSizeForWidthText = vanilla.TextBox("auto", "Preferred iColor size for width reference", sizeStyle='small', selectable=True)
@@ -60,12 +62,16 @@ class sbixSpacer(mekkaObject):
 		self.w.verticalShiftValue.setToolTip(tooltipText)
 
 		self.w.allGlyphs = vanilla.CheckBox("auto", "Include all iColor glyphs in font (ignore glyph selection)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allGlyphs.setToolTip("If checked, processes all glyphs with iColor layers, ignoring the selection.")
 		self.w.allMasters = vanilla.CheckBox("auto", "Include all masters (otherwise only current master)", value=False, callback=self.SavePreferences, sizeStyle='small')
+		self.w.allMasters.setToolTip("If checked, processes all masters. Otherwise only the current master.")
 
 		# Buttons:
 		self.w.help = vanilla.HelpButton("auto", callback=self.openURL)
+		self.w.help.setToolTip("Opens the tutorial on creating an Apple color font in your browser.")
 
 		self.w.runButton = vanilla.Button("auto", "Apply", callback=self.sbixSpacerMain)
+		self.w.runButton.setToolTip("Applies the settings to the glyphs.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; hug so the window is as tall as its content

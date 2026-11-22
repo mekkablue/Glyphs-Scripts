@@ -39,20 +39,31 @@ class ItalicShiftFeature(mekkaObject):
 		self.w.text_1 = vanilla.TextBox("auto", "Insert GPOS lookup for shifting punctuation in italic angle of 1st master:", sizeStyle='small')
 
 		self.w.edit_1a = vanilla.EditText("auto", "case", sizeStyle='small', placeholder="smcp,c2sc", callback=self.SavePreferences)
+		self.w.edit_1a.setToolTip("OpenType feature tag that receives the shifting lookup, e.g. case.")
 		self.w.edit_1b = vanilla.EditText("auto", "100", sizeStyle='small', placeholder="80", callback=self.SavePreferences)
+		self.w.edit_1b.setToolTip("Vertical shift in units. The horizontal shift is calculated from the italic angle of the first master.")
 		self.w.edit_1c = vanilla.EditText("auto", "exclamdown questiondown", sizeStyle='small', placeholder="parenleft parenright bracketleft bracketright", callback=self.SavePreferences)
+		self.w.edit_1c.setToolTip("Space-separated glyph names to be shifted, e.g. parenleft parenright.")
 
 		self.w.edit_2a = vanilla.EditText("auto", "case", sizeStyle='small', placeholder="smcp,c2sc", callback=self.SavePreferences)
+		self.w.edit_2a.setToolTip("OpenType feature tag that receives the shifting lookup, e.g. case.")
 		self.w.edit_2b = vanilla.EditText("auto", "50", sizeStyle='small', placeholder="80", callback=self.SavePreferences)
+		self.w.edit_2b.setToolTip("Vertical shift in units. The horizontal shift is calculated from the italic angle of the first master.")
 		self.w.edit_2c = vanilla.EditText("auto", "parenleft parenright braceleft braceright bracketleft bracketright", sizeStyle='small', placeholder="parenleft parenright bracketleft bracketright", callback=self.SavePreferences)
+		self.w.edit_2c.setToolTip("Space-separated glyph names to be shifted, e.g. parenleft parenright.")
 
 		self.w.edit_3a = vanilla.EditText("auto", "", sizeStyle='small', placeholder="smcp,c2sc", callback=self.SavePreferences)
+		self.w.edit_3a.setToolTip("OpenType feature tag that receives the shifting lookup, e.g. case.")
 		self.w.edit_3b = vanilla.EditText("auto", "", sizeStyle='small', placeholder="80", callback=self.SavePreferences)
+		self.w.edit_3b.setToolTip("Vertical shift in units. The horizontal shift is calculated from the italic angle of the first master.")
 		self.w.edit_3c = vanilla.EditText("auto", "", sizeStyle='small', placeholder="parenleft parenright bracketleft bracketright", callback=self.SavePreferences)
+		self.w.edit_3c.setToolTip("Space-separated glyph names to be shifted, e.g. parenleft parenright.")
 
 		# Run Button:
 		self.w.copyButton = vanilla.Button("auto", "Copy Code", callback=self.ItalicShiftFeatureMain)
+		self.w.copyButton.setToolTip("Copies the feature code to the clipboard without changing the font.")
 		self.w.runButton = vanilla.Button("auto", "Insert", callback=self.ItalicShiftFeatureMain)
+		self.w.runButton.setToolTip("Inserts the shifting feature code into the frontmost font.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# keep everything at its natural height, so the window is exactly as tall as the content

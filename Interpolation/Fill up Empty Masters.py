@@ -55,22 +55,33 @@ class FillUpEmptyMasters(mekkaObject):
 
 		self.w.masterChoiceText = vanilla.TextBox("auto", "Use shapes from", sizeStyle="small", selectable=True)
 		self.w.masterChoice = vanilla.PopUpButton("auto", (), sizeStyle="small", callback=self.SavePreferences)
+		tooltipText = "The master whose shapes are copied into the empty layers of the selected glyphs."
+		self.w.masterChoiceText.setToolTip(tooltipText)
+		self.w.masterChoice.setToolTip(tooltipText)
 		self.w.masterChoiceUpdate = UpdateButton("auto", callback=self.masterChoiceUpdateAction)
+		self.w.masterChoiceUpdate.setToolTip("Updates the list from the frontmost font.")
 
 		self.w.firstOneWithShapes = vanilla.CheckBox("auto", "If empty, use first master with shapes", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.firstOneWithShapes.setToolTip("If the chosen master has no shapes in a glyph, uses the first master that has shapes instead.")
 		self.w.addMissingAnchors = vanilla.CheckBox("auto", "Add missing default anchors", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.addMissingAnchors.setToolTip("Adds the default anchors that are still missing in the filled-up layers.")
 		self.w.copySidebearings = vanilla.CheckBox("auto", "Also copy sidebearings", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.copySidebearings.setToolTip("Also copies the left and right sidebearings of the source layer to the filled-up layers.")
 
 		self.w.markWithColor = vanilla.CheckBox("auto", "Color-mark filled-up layers", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.markWithColor.setToolTip("Marks the filled-up layers with the layer color chosen on the right.")
 		self.w.layerColor = vanilla.PopUpButton("auto", labelColors, sizeStyle="small", callback=self.SavePreferences)
+		self.w.layerColor.setToolTip("The layer color used for marking the filled-up layers.")
 
 		self.w.overwriteExisting = vanilla.CheckBox("auto", "Overwrite Existing Outlines❗️", value=False, callback=self.SavePreferences, sizeStyle="small")
+		self.w.overwriteExisting.setToolTip("Also replaces layers that already contain shapes. The existing outlines in those layers are lost.")
 
 		# Status:
 		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small", selectable=True)
 
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Fill Up", callback=self.FillUpEmptyMastersMain)
+		self.w.runButton.setToolTip("Fills up the empty layers of the selected glyphs with the shapes of the chosen master.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window
