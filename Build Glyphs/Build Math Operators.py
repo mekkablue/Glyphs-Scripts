@@ -5,7 +5,7 @@ Draws +−×÷=≠±≈¬ (optionally also <>≤≥ and ~^) from a few measureme
 
 import math
 import vanilla
-from mekkablue import mekkaObject, newGlyphWithName, UpdateButton, SteppingEditText, integerFormatter, decimalFormatter, fontFileName
+from mekkablue import mekkaObject, newGlyphWithName, UpdateButton, SteppingEditText, integerFormatter, decimalFormatter, fontFileName, makeWindowResizable
 from GlyphsApp import Glyphs, GSPath, GSNode, GSLINE, GSCURVE, GSOFFCURVE, GSMetricsTypeCapHeight, GSMetricsTypexHeight, Message
 from AppKit import (
 	NSAlert,
@@ -18,9 +18,7 @@ from AppKit import (
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
 	NSLineBreakByTruncatingTail,
-	NSSize,
 	NSTextAlignmentRight,
-	NSWindowStyleMaskResizable,
 )
 from Foundation import NSPoint
 
@@ -718,7 +716,7 @@ class BuildMathOperators(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Build Math Operators",
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and width
 		)
 		self.backedUp = set()  # layers whose previous outlines we already looked at in this session
 		self.drawnLayers = set()  # layers drawn by this script in this session: the live preview may always redraw them
@@ -977,6 +975,9 @@ class BuildMathOperators(mekkaObject):
 		# the stroke is a property of the font, not of this script, so it is preset and not remembered:
 		self.w.stroke.set(str(self.presetStroke(font)))
 
+		# resizable horizontally; the narrowest width at which every row fits is the minimum:
+		makeWindowResizable(self.w, fitWidth=True)
+
 		self.LoadPreferences()
 		storedSuffix = self.pref("figureStyle")
 		if storedSuffix in self.figureSuffixes:
@@ -987,19 +988,6 @@ class BuildMathOperators(mekkaObject):
 		self.draw()  # show the current values right away; the previous outlines go to the background if that option is on
 		self.w.open()
 		self.w.makeKey()
-
-		# make the window horizontally resizable, but keep the height that Auto Layout determined.
-		# (Content sizes set directly on the NSWindow, so the title bar is not counted twice.)
-		nsWindow = self.w.getNSWindow()
-		nsWindow.setStyleMask_(nsWindow.styleMask() | NSWindowStyleMaskResizable)
-		nsWindow.layoutIfNeeded()
-		contentSize = nsWindow.contentView().frame().size
-		# the narrowest width at which every row still fits is the minimum. If the window is narrower than that, it grows.
-		minimumWidth = nsWindow.contentView().fittingSize().width
-		if minimumWidth > contentSize.width:
-			nsWindow.setContentSize_(NSSize(minimumWidth, contentSize.height))
-		nsWindow.setContentMinSize_(NSSize(minimumWidth, contentSize.height))
-		nsWindow.setContentMaxSize_(NSSize(minimumWidth + 1000, contentSize.height))
 
 	# ------------------------------------------------------------------ UI
 
