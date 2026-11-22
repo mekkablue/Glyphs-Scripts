@@ -10,6 +10,7 @@ from mekkablue import mekkaObject, newAnchorWithName, UpdateButton, SteppingEdit
 from mekkablue.geometry import centerOfRect
 from GlyphsApp import Glyphs
 from AppKit import (
+	NSColor,
 	NSLayoutConstraintOrientationHorizontal,
 	NSLayoutConstraintOrientationVertical,
 	NSLayoutPriorityDefaultHigh,
@@ -76,6 +77,10 @@ class Rotator(mekkaObject):
 		self.w.stepAndRepeat_cw = vanilla.Button("auto", u"↻+ cw", sizeStyle='small', callback=self.rotate)
 		self.w.stepAndRepeat_cw.setToolTip("Adds clockwise rotated copies of the selection around the anchor, each rotated further by the angle.")
 
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
+
 		# the labels of the three rows are right-aligned, share one width and resist compression:
 		for label in (self.w.anchor_text, self.w.rotate_text1, self.w.stepAndRepeat_text1):
 			nsLabel = label.getNSTextField()
@@ -91,7 +96,8 @@ class Rotator(mekkaObject):
 			"H:|-inset-[anchor_text]-gap-[anchor_x(41)]-gap-[anchor_y]-gap-[updateButton]-(>=gap)-[anchor_button(>=70)]-inset-|",
 			"H:|-inset-[rotate_text1]-gap-[rotate_degrees]-gap-[rotate_text2]-(>=gap)-[rotate_ccw(>=70)]-gap-[rotate_cw]-inset-|",
 			"H:|-inset-[stepAndRepeat_text1]-gap-[stepAndRepeat_times]-gap-[stepAndRepeat_text2]-(>=gap)-[stepAndRepeat_ccw(>=70)]-gap-[stepAndRepeat_cw]-inset-|",
-			"V:|-inset-[anchor_x]-row-[rotate_degrees]-row-[stepAndRepeat_times]-inset-|",
+			"V:|-inset-[anchor_x]-row-[rotate_degrees]-row-[stepAndRepeat_times]-gap-[status]-inset-|",
+				"H:|-inset-[status]-inset-|",
 		]
 		equalWidths = (
 			(self.w.rotate_text1, self.w.anchor_text),
@@ -127,14 +133,18 @@ class Rotator(mekkaObject):
 	def insertRotateAnchor(self, sender=None):
 		try:
 			selectedLayers = Glyphs.currentDocument.selectedLayers()
+			self.setStatus(f"🛠️ Inserting anchor into {len(selectedLayers)} layer{'' if len(selectedLayers) == 1 else 's'}…")
 			myRotationCenter = NSPoint()
 			myRotationCenter.x = self.prefInt("anchor_x")
 			myRotationCenter.y = self.prefInt("anchor_y")
 			myRotationAnchor = newAnchorWithName("#%s" % rotateAnchorName, myRotationCenter)
 			for thisLayer in selectedLayers:
+				self.setStatus(f"🔠 {thisLayer.parent.name}")
 				# adds '#rotate' if it doesn't exist, resets it if it exists:
 				thisLayer.addAnchor_(myRotationAnchor)
+			self.setStatus(f"✅ Inserted anchor into {len(selectedLayers)} layer{'' if len(selectedLayers) == 1 else 's'}.")
 		except Exception as e:  # noqa: F841
+			self.setStatus("❌ Error while inserting the anchor. Details in Macro Window.")
 			import traceback
 			print(traceback.format_exc())
 
@@ -147,6 +157,7 @@ class Rotator(mekkaObject):
 					if thisAnchor.name == anchorName:
 						self.w.anchor_x.set(int(thisAnchor.x))
 						self.w.anchor_y.set(int(thisAnchor.y))
+						self.setStatus(f"✅ Read the ‘{anchorName}’ anchor.")
 						return
 
 			# no anchor present:
@@ -164,6 +175,7 @@ class Rotator(mekkaObject):
 				self.w.anchor_y.set(0)
 				self.insertRotateAnchor()
 		except Exception as e:  # noqa: F841
+			self.setStatus("❌ Error while reading the anchor. Details in Macro Window.")
 			import traceback
 			print(traceback.format_exc())
 
@@ -186,6 +198,7 @@ class Rotator(mekkaObject):
 		self.SavePreferences()
 
 		if not Glyphs.font:
+			self.setStatus("⚠️ No font open.")
 			return
 		selectedLayers = Glyphs.font.selectedLayers
 		originatingButton = sender.getTitle()
@@ -211,8 +224,11 @@ class Rotator(mekkaObject):
 		else:
 			selectionCounts = False
 
+		self.setStatus(f"🛠️ Processing {len(selectedLayers)} layer{'' if len(selectedLayers) == 1 else 's'}…")
+		errorCount = 0
 		for thisLayer in selectedLayers:
 			# rotate individually selected nodes and components
+			self.setStatus(f"🔠 {thisLayer.parent.name}")
 			try:
 				selectionCounts = selectionCounts and bool(thisLayer.selection)  # True only if both are True
 				RotationTransform = self.rotationTransform(rotationCenter, rotationDegrees, rotationDirection)
@@ -251,9 +267,16 @@ class Rotator(mekkaObject):
 
 				# thisGlyph.endUndo()  # undo grouping causes crashes
 			except Exception as e:
+				errorCount += 1
+				self.setStatus(f"❌ Error at {thisLayer.parent.name}. Details in Macro Window.")
 				print(e)
 				import traceback
 				print(traceback.format_exc())
+
+		if errorCount:
+			self.setStatus(f"⚠️ Errors in {errorCount} layer{'' if errorCount == 1 else 's'}. Details in Macro Window.")
+		else:
+			self.setStatus(f"✅ Rotated {len(selectedLayers)} layer{'' if len(selectedLayers) == 1 else 's'}.")
 
 
 Rotator()
