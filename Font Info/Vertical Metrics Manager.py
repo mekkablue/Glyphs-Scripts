@@ -232,6 +232,10 @@ class VerticalMetricsManager(mekkaObject):
 		self.w.helpButton = vanilla.HelpButton("auto", callback=self.openURL)
 		self.w.helpButton.setToolTip("Opens the Vertical Metrics tutorial (highly recommended) in your web browser.")
 
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
+
 		self.w.runButton = vanilla.Button("auto", "Apply to Font", callback=self.VerticalMetricsManagerMain)
 		self.w.runButton.setToolTip("Insert the OS/2, hhea and fsSelection values above as custom parameters in the font. The number values will be inserted where the Write values to popup says (all masters, first master, or font-wide), and removed from the other places. Blank values will delete the respective parameters everywhere.")
 		self.w.setDefaultButton(self.w.runButton)
@@ -240,6 +244,12 @@ class VerticalMetricsManager(mekkaObject):
 		# hugging, the window ends up exactly as tall as the content
 		for view in self.w.getNSWindow().contentView().subviews():
 			view.setContentHuggingPriority_forOrientation_(NSLayoutPriorityWindowSizeStayPut, NSLayoutConstraintOrientationVertical)
+
+		# the status line takes the leftover width, the button stays as wide as its title needs:
+		self.w.status.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton.getNSButton().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 
 		# in the Limit rows, the checkboxes hug their text and the popups stretch up to it
 		for checkBox in (self.w.preferScript, self.w.preferCategory):
@@ -285,7 +295,7 @@ class VerticalMetricsManager(mekkaObject):
 			(self.w.preferScript, (self.w.preferScriptPopup, self.w.preferScriptUpdate)),
 			(self.w.preferCategory, (self.w.preferCategoryPopup, self.w.preferCategoryUpdate)),
 			(self.w.writeToPopup, (self.w.writeToText, )),
-			(self.w.runButton, (self.w.helpButton, )),
+			(self.w.runButton, (self.w.helpButton, self.w.status)),
 		)
 		centerRules = [
 			{"view1": otherView, "attribute1": "centerY", "view2": mainView, "attribute2": "centerY"}
@@ -317,7 +327,7 @@ class VerticalMetricsManager(mekkaObject):
 				"H:|-inset-[separatorAction]-inset-|",
 				"H:|-inset-[writeToText]-gap-[writeToPopup]-inset-|",
 				"H:|-inset-[allOpenFonts]-(>=inset)-|",
-				"H:|-inset-[helpButton]-(>=gap)-[runButton(>=120)]-inset-|",
+				"H:|-inset-[helpButton]-gap-[status]-gap-[runButton(>=120)]-inset-|",
 				"V:|-inset-[descriptionText]-row-[titleAscent]-row-[winAsc]-groupGap-[typoAsc]-tightRow-[hheaAsc]-row-[useTypoMetrics]-inset-[separatorMethods(1)]-inset-[descriptionMethods]-row-[calculate]-row-[extractButton]-inset-[separator(1)]-inset-[descriptionMeasurements]-row-[round]-stackRow-[includeAllMasters]-stackRow-[respectMarkToBaseOffset]-stackRow-[ignoreNonExporting]-stackRow-[preferSelectedGlyphs]-stackRow-[preferScript]-stackRow-[preferCategory]-inset-[separatorAction(1)]-inset-[writeToPopup]-checkRow-[allOpenFonts]-inset-[runButton]-inset-|",
 				# the checkbox lines up with the first column of the grid:
 				{"view1": self.w.useTypoMetrics, "attribute1": "left", "view2": self.w.winAsc, "attribute2": "left"},
@@ -351,6 +361,7 @@ class VerticalMetricsManager(mekkaObject):
 
 	def extract(self, sender=None):
 		Glyphs.clearLog()  # clears macro window log
+		self.setStatus("🛠️ Extracting vertical metrics…")
 
 		sourceFile = GetOpenFile(
 			message="Choose font file (.otf or .ttf) for vertical metrics",
@@ -359,6 +370,7 @@ class VerticalMetricsManager(mekkaObject):
 		)
 		if not sourceFile:
 			print("❌ No font file specified for extracting vertical metrics.")
+			self.setStatus("⚠️ No font file chosen.")
 			return
 
 		# extract from font file with fontTools:
@@ -385,6 +397,7 @@ class VerticalMetricsManager(mekkaObject):
 			print(f"📤 {verticalMetric} = {extractedValues[verticalMetric]}")
 			self.setPref(verticalMetric, extractedValues[verticalMetric])
 		self.LoadPreferences()
+		self.setStatus("✅ Extracted vertical metrics.")
 		print("✅ Done.")
 
 
@@ -423,6 +436,7 @@ class VerticalMetricsManager(mekkaObject):
 
 		# update settings to the latest user input:
 		self.SavePreferences()
+		self.setStatus("🛠️ Updating values…")
 
 		frontmostFont = Glyphs.font
 		allOpenFonts = self.pref("allOpenFonts")
@@ -467,6 +481,7 @@ class VerticalMetricsManager(mekkaObject):
 					fontReport = f"{i+1}. {thisFont.familyName}, "
 				currentMaster = thisFont.selectedFontMaster
 				for thisGlyph in thisFont.allGlyphs():
+					self.setStatus(f"🔠 {thisGlyph.name}")
 					if not thisGlyph.export and ignoreNonExporting:
 						continue
 					scriptCheckOK = not shouldLimitToScript or thisGlyph.script == selectedScript  # needed for respectMarkToBaseOffset
@@ -563,11 +578,13 @@ class VerticalMetricsManager(mekkaObject):
 
 			self.setPref("winAsc", winAsc)
 			self.setPref("winDesc", winDesc)
+			self.setStatus(f"✅ Measured usWin values: {winAsc}, {winDesc}.")
 
 		# Use Typo Metrics checkbox
 		elif sender == self.w.useTypoMetricsUpdate:
 			print("Use Typo Metrics (fsSelection bit 7) should always be YES.\n")
 			self.setPref("useTypoMetrics", True)
+			self.setStatus("✅ Use Typo Metrics set.")
 
 		# hhea and typo popups:
 		elif sender is self.w.hheaUpdate:
@@ -578,6 +595,7 @@ class VerticalMetricsManager(mekkaObject):
 			self.setPref("hheaAsc", asc)
 			self.setPref("hheaDesc", desc)
 			self.setPref("hheaGap", gap)
+			self.setStatus("✅ Copied sTypo values into hhea values.")
 			
 		elif sender is self.w.typoUpdate:
 			name = "OS/2 sTypo"
@@ -612,6 +630,7 @@ class VerticalMetricsManager(mekkaObject):
 
 				# ascender & descender calculation:
 				for thisGlyph in self.chosenGlyphs(thisFont):
+					self.setStatus(f"🔠 {thisGlyph.name}")
 					for thisLayer in thisGlyph.layers:
 						belongsToCurrentMaster = thisLayer.associatedFontMaster() == currentMaster
 						if not(belongsToCurrentMaster or includeAllMasters or allOpenFonts):
@@ -682,6 +701,7 @@ class VerticalMetricsManager(mekkaObject):
 			self.setPref("typoAsc", asc)
 			self.setPref("typoDesc", desc)
 			self.setPref("typoGap", gap)
+			self.setStatus(f"✅ Measured sTypo values: {asc}, {desc}, {gap}.")
 
 		# Updating "Limit to Script" popup:
 		elif sender == self.w.preferScriptUpdate:
@@ -694,9 +714,11 @@ class VerticalMetricsManager(mekkaObject):
 			if scripts:
 				self.w.preferScriptPopup.setItems(scripts)
 				print(f"✅ Found scripts:\n{', '.join(scripts)}")
+				self.setStatus(f"✅ Found {len(scripts)} scripts.")
 			else:
 				msg = "Found no glyphs belonging to any script in the frontmost font. Please double check."
 				print(f"⚠️ {msg}")
+				self.setStatus("⚠️ Found no scripts.")
 				Message(
 					title="Error Determining Scripts",
 					message=f"Cannot determine list of scripts. {msg}",
@@ -714,9 +736,11 @@ class VerticalMetricsManager(mekkaObject):
 			if categories:
 				self.w.preferCategoryPopup.setItems(categories)
 				print(f"✅ Found categories:\n{', '.join(categories)}")
+				self.setStatus(f"✅ Found {len(categories)} categories.")
 			else:
 				msg = "Found no glyphs belonging to any category in the current font. Please double check."
 				print(f"⚠️ {msg}")
+				self.setStatus("⚠️ Found no categories.")
 				Message(
 					title="Error Determining Categories",
 					message=f"Cannot determine list of categories. {msg}", 
@@ -737,6 +761,7 @@ class VerticalMetricsManager(mekkaObject):
 
 	def calculateMethod(self, sender=None):
 		method = self.pref("calculate")
+		self.setStatus("🛠️ Calculating vertical metrics…")
 		if method == 0:
 			self.methodGoogle()
 		elif method == 1:
@@ -747,6 +772,7 @@ class VerticalMetricsManager(mekkaObject):
 			self.methodArrowType(lineHeightFactor=1.5)
 		elif method == 4:
 			self.methodMicrosoft()
+		self.setStatus("✅ Calculated vertical metrics.")
 
 
 	def methodWebfonts2019(self, sender=None):
@@ -766,6 +792,7 @@ class VerticalMetricsManager(mekkaObject):
 				ascender = capHeight
 			
 			for glyph in self.chosenGlyphs(thisFont):
+				self.setStatus(f"🔠 {glyph.name}")
 				glyphAscender = capHeight + (glyphHeight(glyph) - capHeight) * 0.92
 				glyphDescender = glyphDepth(glyph)
 				if glyph.case != GSLowercase and glyphAscender > ascender:
@@ -828,10 +855,12 @@ class VerticalMetricsManager(mekkaObject):
 		lineHeight = 0
 
 		for thisFont in theseFonts:
+			self.setStatus(f"🔠 {thisFont.familyName}")
 			lineHeight = max(lineHeight, thisFont.upm * lineHeightFactor)
 			capHeight = max([m.capHeight for m in thisFont.masters] + [capHeight])
 
 		if capHeight <= 0:
+			self.setStatus("⚠️ Could not determine the cap height.")
 			Message(
 				title="Cannot Measure Font",
 				message="Could not determine the cap height of the masters. Please check your master metrics.",
@@ -888,6 +917,7 @@ class VerticalMetricsManager(mekkaObject):
 		descender = 0
 		
 		for thisFont in theseFonts:
+			self.setStatus(f"🔠 {thisFont.familyName}")
 			for name in string.ascii_letters:
 				thisGlyph = thisFont.glyphs[name]
 				if not thisGlyph:
@@ -924,6 +954,7 @@ class VerticalMetricsManager(mekkaObject):
 		capHeight = 0
 
 		for thisFont in theseFonts:
+			self.setStatus(f"🔠 {thisFont.familyName}")
 			capHeight = max([m.capHeight for m in thisFont.masters] + [capHeight])
 			# print(capHeight, type(capHeight), roundValue, type(roundValue))
 
@@ -939,6 +970,7 @@ class VerticalMetricsManager(mekkaObject):
 			else:
 				abreveacuteHeight = 0
 				for glyph in thisFont.glyphs:
+					self.setStatus(f"🔠 {glyph.name}")
 					if ignoreNonExporting and not glyph.export:
 						continue
 					if glyph.category == "Letter":
@@ -955,6 +987,7 @@ class VerticalMetricsManager(mekkaObject):
 			
 			# sanity check: descender must go below all actual descenders
 			for glyph in thisFont.glyphs:
+				self.setStatus(f"🔠 {glyph.name}")
 				if glyph.category != "Letter":
 					continue
 				if glyphDepth(glyph) < descender:
@@ -1000,6 +1033,7 @@ class VerticalMetricsManager(mekkaObject):
 				print(f"  🚫 Master {thisMaster.name}: custom parameter removed.")
 
 	def VerticalMetricsManagerMain(self, sender):
+		currentItem = None
 		try:
 			Glyphs.clearLog()  # clears macro window log
 			print("Vertical Metrics Manager: setting parameters\n")
@@ -1033,7 +1067,10 @@ class VerticalMetricsManager(mekkaObject):
 			else:
 				theseFonts = (Glyphs.font, )  # iterable tuple of frontmost font only
 
+			self.setStatus(f"🛠️ Processing {len(theseFonts)} font(s)…")
 			for i, thisFont in enumerate(theseFonts):
+				currentItem = thisFont.familyName
+				self.setStatus(f"🔠 {thisFont.familyName}")
 				print("\n\n🔠 %s%s:" % (
 					"%i. " % (i+1) if allOpenFonts else "",
 					thisFont.familyName,
@@ -1084,6 +1121,7 @@ class VerticalMetricsManager(mekkaObject):
 					thisFont.customParameters["Use Typo Metrics"] = False
 					print("  ⁉️ Set Use Typo Metrics parameter to NO. This is not recommended. Are you sure?")
 
+			self.setStatus(f"✅ Set vertical metrics in {len(theseFonts)} font(s).")
 			Message(
 				title="Vertical Metrics Set",
 				message="Set vertical metrics in %i font%s. Detailed report in Macro Window." % (
@@ -1094,6 +1132,7 @@ class VerticalMetricsManager(mekkaObject):
 			)
 
 		except Exception as e:
+			self.setStatus(f"❌ Error at {currentItem or 'start'}. Details in Macro Window.")
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print(f"Vertical Metrics Manager Error: {e}")

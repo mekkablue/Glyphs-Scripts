@@ -4,7 +4,16 @@ Fixes the placement and metrics keys of arrows, dependent on a specified default
 """
 
 import vanilla
-from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
+from AppKit import (
+	NSColor,
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityDefaultLow,
+	NSLayoutPriorityRequired,
+	NSLayoutPriorityWindowSizeStayPut,
+	NSTextAlignmentRight,
+)
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, Message
 from mekkablue import mekkaObject, makeWindowResizable
@@ -94,6 +103,10 @@ class FixArrowPositioning(mekkaObject):
 		self.w.runButton.setToolTip("Fixes position and metrics of the arrows in the frontmost font.")
 		self.w.setDefaultButton(self.w.runButton)
 
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
+
 		# checkboxes stretch vertically by default; with everything hugging,
 		# the window ends up exactly as tall as the content
 		for view in self.w.getNSWindow().contentView().subviews():
@@ -112,6 +125,13 @@ class FixArrowPositioning(mekkaObject):
 			for labelName in labelNames if labelName != widestLabel
 		]
 
+		nsStatus = self.w.status.getNSTextField()
+		nsStatus.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		nsStatus.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		nsRunButton = self.w.runButton.getNSButton()
+		nsRunButton.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		nsRunButton.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+
 		self.w.addAutoPosSizeRules(
 			[
 				"H:|-inset-[explanation]-inset-|",
@@ -122,12 +142,13 @@ class FixArrowPositioning(mekkaObject):
 				"H:|-inset-[verticalPosOfHorizontalArrows]-(>=inset)-|",
 				"H:|-inset-[verticalPosOfDiagonalArrows]-(>=inset)-|",
 				"H:|-inset-[addAndUpdateMetricsKeys]-(>=inset)-|",
-				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"H:|-inset-[status]-gap-[runButton(>=70)]-inset-|",
 				"V:|-gap-[explanation]-headlineGap-[referenceForHorizontalArrows]-row-[referenceForVerticalArrows]-row-[referenceForDiagonalArrows]-row-[suffix]-headlineGap-[verticalPosOfHorizontalArrows]-checkRow-[verticalPosOfDiagonalArrows]-checkRow-[addAndUpdateMetricsKeys]-inset-[runButton]-inset-|",
 				{"view1": self.w.referenceForHorizontalArrowsText, "attribute1": "centerY", "view2": self.w.referenceForHorizontalArrows, "attribute2": "centerY"},
 				{"view1": self.w.referenceForVerticalArrowsText, "attribute1": "centerY", "view2": self.w.referenceForVerticalArrows, "attribute2": "centerY"},
 				{"view1": self.w.referenceForDiagonalArrowsText, "attribute1": "centerY", "view2": self.w.referenceForDiagonalArrows, "attribute2": "centerY"},
 				{"view1": self.w.suffixText, "attribute1": "centerY", "view2": self.w.suffix, "attribute2": "centerY"},
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 			] + widthRules,
 			metrics={"inset": inset, "gap": 8, "row": 6, "headlineGap": 10, "checkRow": 5},
 		)
@@ -175,6 +196,7 @@ class FixArrowPositioning(mekkaObject):
 				thisLayer.syncMetrics()
 
 	def FixArrowPositioningMain(self, sender):
+		lastItem = "start"
 		try:
 			# update settings to the latest user input (the suffix field is read below):
 			self.SavePreferences()
@@ -202,25 +224,33 @@ class FixArrowPositioning(mekkaObject):
 			thisFont = Glyphs.font
 
 			if not Glyphs.font:
+				self.setStatus("⚠️ No font open.")
 				Message(title="Fix Arrow Positioning Error", message="The script requires that a font is open for editing.", OKButton=None)
 			else:
 				# clears macro window log:
 				Glyphs.clearLog()
 				warnAboutLayers = []
+				fixedCount = 0
+				self.setStatus("🛠️ Processing arrows…")
 
 				# HORIZONTAL ARROWS:
 				if shouldFixHorizontalArrows:
 					hReferenceGlyph = thisFont.glyphs[hArrowName]
 					if not hReferenceGlyph:
+						self.setStatus(f"⚠️ No glyph found with name: {hArrowName}.")
 						Message(title="Fix Arrow Positioning Error", message=u"No glyph found with name: ‘%s’. Cannot fix horizontal arrows." % hArrowName, OKButton=None)
 					else:
 						print("\nFIXING VERTICAL POSITIONS OF HORIZONTAL ARROWS:")
 
 						# step through arrow glyphs
 						for thisMaster in thisFont.masters:
+							lastItem = thisMaster.name
+							self.setStatus(f"🔠 {thisMaster.name}")
 							referenceHeight = self.measureBottomOfCenterStroke(hReferenceGlyph.layers[thisMaster.id])
 							print("\nChecking for master %s..." % thisMaster.name)
 							for horizontalArrowName in allHorizontalArrowGlyphNames:
+								lastItem = horizontalArrowName
+								self.setStatus(f"🔠 {horizontalArrowName} ({thisMaster.name})")
 								horizontalArrow = thisFont.glyphs[horizontalArrowName]
 								if not horizontalArrow:
 									print(u"⚠️ WARNING: no glyph found for '%s'." % horizontalArrowName)
@@ -238,6 +268,7 @@ class FixArrowPositioning(mekkaObject):
 									if abs(shift) > 0.6:
 										shiftTransformMatrix = transform(shiftY=shift).transformStruct()
 										horizontalArrowLayer.applyTransform(shiftTransformMatrix)
+										fixedCount += 1
 										print(u"⚠️ %s: layer '%s' shifted %i units." % (
 											horizontalArrow.name,
 											horizontalArrowLayer.name,
@@ -253,16 +284,21 @@ class FixArrowPositioning(mekkaObject):
 				if shouldFixDiagonalArrows:
 					dReferenceGlyph = thisFont.glyphs[dArrowName]
 					if not dReferenceGlyph:
+						self.setStatus(f"⚠️ No glyph found with name: {dArrowName}.")
 						Message(title="Fix Arrow Positioning Error", message=u"No glyph found with name: ‘%s’. Cannot fix diagonal arrows." % dArrowName, OKButton=None)
 					else:
 						print("\nFIXING VERTICAL POSITIONS OF DIAGONAL ARROWS:")
 
 						# step through arrow glyphs
 						for thisMaster in thisFont.masters:
+							lastItem = thisMaster.name
+							self.setStatus(f"🔠 {thisMaster.name}")
 							referenceLayer = dReferenceGlyph.layers[thisMaster.id]
 							referenceHeight = referenceLayer.bounds.origin.y + referenceLayer.bounds.size.height * 0.5
 							print("\nChecking for master %s..." % thisMaster.name)
 							for diagonalArrowName in allDiagonalArrowGlyphNames:
+								lastItem = diagonalArrowName
+								self.setStatus(f"🔠 {diagonalArrowName} ({thisMaster.name})")
 								diagonalArrow = thisFont.glyphs[diagonalArrowName]
 								if not diagonalArrow:
 									print(u"⚠️ WARNING: no glyph found for '%s'." % diagonalArrowName)
@@ -280,6 +316,7 @@ class FixArrowPositioning(mekkaObject):
 									if abs(shift) > 0.6:
 										shiftTransformMatrix = transform(shiftY=shift).transformStruct()
 										diagonalArrowLayer.applyTransform(shiftTransformMatrix)
+										fixedCount += 1
 										print(u"⚠️ %s: layer '%s' shifted %i units." % (
 											diagonalArrow.name,
 											diagonalArrowLayer.name,
@@ -301,6 +338,8 @@ class FixArrowPositioning(mekkaObject):
 					else:
 						for thisName in allHArrowNames:
 							if thisName != hArrowName:
+								lastItem = thisName
+								self.setStatus(f"🔠 {thisName}")
 								thisGlyph = thisFont.glyphs[thisName]
 								if not thisGlyph:
 									print(u"⚠️ Warning: '%s' not found in font." % thisName)
@@ -315,6 +354,7 @@ class FixArrowPositioning(mekkaObject):
 										thisGlyph.leftMetricsKey = "=|%s" % hArrowName
 										thisGlyph.rightMetricsKey = "=|%s" % hArrowName
 									self.updateMetricsKeys(thisGlyph)
+									fixedCount += 1
 									print(u"✅ Metrics updated: %s" % thisName)
 
 					# ... FOR DIAGONAL ARROWS:
@@ -323,6 +363,8 @@ class FixArrowPositioning(mekkaObject):
 					else:
 						for thisName in self.dArrows:
 							if thisName != dArrowName:
+								lastItem = thisName
+								self.setStatus(f"🔠 {thisName}")
 								thisGlyph = thisFont.glyphs[thisName]
 								if not thisGlyph:
 									print(u"⚠️ Warning: '%s' not found in font." % thisName)
@@ -335,6 +377,7 @@ class FixArrowPositioning(mekkaObject):
 										thisGlyph.leftMetricsKey = "=%s" % dArrowName
 										thisGlyph.rightMetricsKey = "=%s" % dArrowName
 									self.updateMetricsKeys(thisGlyph)
+									fixedCount += 1
 									print(u"✅ Metrics updated: %s" % thisName)
 
 					# ... FOR VERTICAL ARROWS:
@@ -343,6 +386,8 @@ class FixArrowPositioning(mekkaObject):
 					else:
 						for thisName in self.vArrows:
 							if thisName != vArrowName:
+								lastItem = thisName
+								self.setStatus(f"🔠 {thisName}")
 								thisGlyph = thisFont.glyphs[thisName]
 								if not thisGlyph:
 									print(u"⚠️ Warning: '%s' not found in font." % thisName)
@@ -350,7 +395,13 @@ class FixArrowPositioning(mekkaObject):
 									thisGlyph.leftMetricsKey = "=%s" % vArrowName
 									thisGlyph.rightMetricsKey = "=%s" % vArrowName
 									self.updateMetricsKeys(thisGlyph)
+									fixedCount += 1
 									print(u"✅ Metrics updated: %s" % thisName)
+
+				if fixedCount:
+					self.setStatus(f"✅ Fixed {fixedCount} arrow layers and metrics.")
+				else:
+					self.setStatus("⚠️ Nothing needed fixing.")
 
 				if warnAboutLayers:
 					Message(
@@ -364,6 +415,7 @@ class FixArrowPositioning(mekkaObject):
 
 			Glyphs.showMacroWindow()
 		except Exception as e:
+			self.setStatus(f"❌ Error at {lastItem}. Details in Macro Window.")
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print("Fix Arrow Positioning Error: %s" % e)
