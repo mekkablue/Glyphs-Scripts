@@ -7,6 +7,7 @@ import vanilla
 from mekkablue import mekkaObject, SteppingEditText, integerFormatter
 from GlyphsApp import Glyphs, Message
 from AppKit import (
+	NSColor,
 	NSLayoutConstraintOrientationHorizontal,
 	NSLayoutConstraintOrientationVertical,
 	NSLayoutPriorityDefaultHigh,
@@ -106,7 +107,9 @@ class CPALManager(mekkaObject):
 		self.w.applyFontWide.setToolTip("Process all glyphs in the font. Unchecked: only process selected glyphs.")
 
 		# Status line
-		self.w.status = vanilla.TextBox("auto", "", sizeStyle='small')
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle='small')
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the result of the last action.")
 
 		# labels: right-aligned, same width, hugging their text
 		labelNames = ("removeText", "disableText", "duplicateText", "changeText", "cycleText", "reverseText")
@@ -268,7 +271,7 @@ class CPALManager(mekkaObject):
 			'change': 'changed'
 		}
 		operationName = operationNames.get(operation, 'processed')
-		self.w.status.set(f"{operationName.capitalize()} {processedCount} layer(s) in {glyphCount} glyph(s).")
+		self.w.status.set(f"✅ {operationName.capitalize()} {processedCount} layer(s) in {glyphCount} glyph(s).")
 
 	def removeColorIndex(self, sender=None):
 		"""Remove all layers with the specified color index."""
@@ -393,7 +396,7 @@ class CPALManager(mekkaObject):
 				glyphCount += 1
 
 		font.enableUpdateInterface()
-		self.w.status.set(f"Reversed {processedCount} layer(s) in {glyphCount} glyph(s).")
+		self.w.status.set(f"✅ Reversed {processedCount} layer(s) in {glyphCount} glyph(s).")
 
 
 CPALManager()
