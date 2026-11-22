@@ -1,6 +1,6 @@
 # MenuTitle: Remove Components
 __doc__ = """
-Removes the specified component from all (selected) glyphs.
+Removes the specified component (and corner component) from the glyphs and layers in the chosen scope, with a prediction of how many will be removed.
 """
 import vanilla
 from AppKit import (
@@ -11,9 +11,19 @@ from AppKit import (
 	NSLayoutPriorityDefaultLow,
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
+	NSTextAlignmentRight,
 )
 from GlyphsApp import Glyphs
 from mekkablue import mekkaObject, match, UpdateButton, makeWindowResizable
+
+
+scopeOptions = (
+	"selected glyphs",
+	"all masters of selected glyphs",
+	"⚠️ complete current master",
+	"⚠️ complete font",
+	"⚠️ all open fonts",
+)
 
 
 def deleteCornerComponent(componentName, thisLayer):
@@ -35,18 +45,19 @@ def deleteCornerComponent(componentName, thisLayer):
 			"" if count == 1 else "s",
 			thisLayer.name,
 		))
+	return count
 
 
 class RemoveComponentfromSelectedGlyphs(mekkaObject):
 	prefDict = {
 		"componentName": "a",
-		"fromWhere": 0,
+		"scope": 1,
 	}
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 250
-		windowMinWidth = 230
+		windowWidth = 380
+		windowMinWidth = 340
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
@@ -58,25 +69,35 @@ class RemoveComponentfromSelectedGlyphs(mekkaObject):
 		inset = 15
 
 		self.w.textDescription = vanilla.TextBox("auto", "Remove component", sizeStyle='small')
-		self.w.componentName = vanilla.ComboBox("auto", self.glyphList(), sizeStyle='small')
+		self.w.componentName = vanilla.ComboBox("auto", self.glyphList(), callback=self.SavePreferences, sizeStyle='small')
 		tooltip = "Pick a glyph name. All components and corner components referencing this glyph will be deleted. Wildcards * and ? are supported."
 		self.w.textDescription.setToolTip(tooltip)
 		self.w.componentName.setToolTip(tooltip)
 
-		self.w.updateButton = UpdateButton("auto", callback=self.updateUI)
+		self.w.updateButton = UpdateButton("auto", callback=self.updateComponents)
 		self.w.updateButton.setToolTip("Reload a list of glyph names based on the current font (and selection).")
 
-		self.w.fromWhere = vanilla.VerticalRadioGroup("auto", ("from all selected glyphs", "⚠️ from all glyphs in the font"), callback=self.SavePreferences, sizeStyle='small')
-		self.w.fromWhere.setToolTip("Choose whether to remove the component from the selected glyphs only or from all glyphs in the font.")
+		self.w.scopeLabel = vanilla.TextBox("auto", "Remove in:", sizeStyle="small")
+		self.w.scope = vanilla.PopUpButton("auto", scopeOptions, callback=self.SavePreferences, sizeStyle="small")
+		scopeTooltip = (
+			"Determines which glyphs and layers are affected:\n"
+			"• Selected glyphs – current master layer of each selected glyph.\n"
+			"• All masters of selected glyphs – all layers of each selected glyph.\n"
+			"• ⚠️ Complete current master – all glyphs in the font, current master only.\n"
+			"• ⚠️ Complete font – all glyphs in the font, all masters.\n"
+			"• ⚠️ All open fonts – all glyphs in every open font, all masters."
+		)
+		self.w.scopeLabel.setToolTip(scopeTooltip)
+		self.w.scope.setToolTip(scopeTooltip)
 
 		# Run Button:
-		self.w.runButton = vanilla.Button("auto", "Remove Component", callback=self.RemoveComponentFromSelectedGlyphsMain)
+		self.w.runButton = vanilla.Button("auto", "Remove", callback=self.RemoveComponentFromSelectedGlyphsMain)
 		self.w.runButton.setToolTip("Removes the component from the chosen glyphs.")
 		self.w.setDefaultButton(self.w.runButton)
 
 		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
 		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
-		self.w.status.setToolTip("Shows the progress and the result of the run.")
+		self.w.status.setToolTip("Predicts how many components will be removed, then shows the progress and the result of the run.")
 		nsStatus = self.w.status.getNSTextField()
 		nsStatus.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 		nsStatus.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
@@ -84,10 +105,12 @@ class RemoveComponentfromSelectedGlyphs(mekkaObject):
 		self.w.runButton.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
 		self.w.runButton.getNSButton().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 
-		# the label hugs its text, so the combo box takes the leftover width:
-		nsLabel = self.w.textDescription.getNSTextField()
-		nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
-		nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+		# the labels are right-aligned and hug their text, so the combo box and the popup take the leftover width:
+		for label in (self.w.textDescription, self.w.scopeLabel):
+			nsLabel = label.getNSTextField()
+			nsLabel.setAlignment_(NSTextAlignmentRight)
+			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 
 		# the window is as tall as the content needs
 		for view in self.w.getNSWindow().contentView().subviews():
@@ -96,14 +119,16 @@ class RemoveComponentfromSelectedGlyphs(mekkaObject):
 		self.w.addAutoPosSizeRules(
 			[
 				"H:|-inset-[textDescription]-gap-[componentName]-gap-[updateButton]-inset-|",
-				"H:|-inset-[fromWhere]-(>=inset)-|",
+				"H:|-inset-[scopeLabel]-gap-[scope]-inset-|",
 				"H:|-inset-[status]-gap-[runButton(>=70)]-inset-|",
-				"V:|-inset-[componentName]-row-[fromWhere(radioHeight)]-row-[runButton]-inset-|",
+				"V:|-inset-[componentName]-row-[scope]-inset-[runButton]-inset-|",
 				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 				{"view1": self.w.textDescription, "attribute1": "centerY", "view2": self.w.componentName, "attribute2": "centerY"},
 				{"view1": self.w.updateButton, "attribute1": "centerY", "view2": self.w.componentName, "attribute2": "centerY"},
+				{"view1": self.w.scopeLabel, "attribute1": "centerY", "view2": self.w.scope, "attribute2": "centerY"},
+				{"view1": self.w.scopeLabel, "attribute1": "width", "view2": self.w.textDescription, "attribute2": "width"},
 			],
-			metrics={"inset": inset, "gap": 8, "row": 8, "radioHeight": self.w.fromWhere.getFittingHeight()},
+			metrics={"inset": inset, "gap": 8, "row": 8},
 		)
 
 		makeWindowResizable(self.w, minSize=(windowMinWidth, 0))  # resizable horizontally only
@@ -116,10 +141,65 @@ class RemoveComponentfromSelectedGlyphs(mekkaObject):
 
 		self.w.makeKey()
 
-	def updateUI(self, sender=None):
+	def updateComponents(self, sender=None):
 		glyphList = self.glyphList()
 		if glyphList:
 			self.w.componentName.setItems(glyphList)
+		self.updateUI()
+
+	def updateUI(self, sender=None):
+		self.setStatus(self.predictionText())
+
+	def scopeFonts(self):
+		"""The fonts the scope applies to."""
+		if self.prefInt("scope") == 4:
+			return list(Glyphs.fonts)
+		return [Glyphs.font] if Glyphs.font else []
+
+	def glyphsAndLayerScope(self, font):
+		"""Returns (glyphs, layerScope) for a font, where layerScope is a master ID or 'all'."""
+		scope = self.prefInt("scope")
+		masterId = font.selectedFontMaster.id
+		if scope in (0, 1):
+			glyphs = list(dict.fromkeys(layer.parent for layer in font.selectedLayers if layer.parent))
+			return glyphs, (masterId if scope == 0 else "all")
+		elif scope == 2:
+			return list(font.glyphs), masterId
+		return list(font.glyphs), "all"  # complete font and all open fonts
+
+	def layersForGlyph(self, glyph, layerScope):
+		"""Returns the layers of a glyph that are in the layer scope."""
+		if layerScope == "all":
+			return list(glyph.layers)
+		return [layer for layer in glyph.layers if layer.associatedMasterId == layerScope]
+
+	def countComponentsInLayer(self, componentName, layer):
+		count = sum(1 for component in layer.components if match(componentName, component.componentName))
+		count += sum(1 for hint in layer.hints if hint.isCorner and match(componentName, hint.name))
+		return count
+
+	def predictionText(self):
+		fonts = self.scopeFonts()
+		if not fonts:
+			return "⚠️ No font open."
+		componentName = self.pref("componentName")
+		if not componentName:
+			return "🤖 Ready."
+		componentCount = 0
+		glyphCount = 0
+		for font in fonts:
+			glyphs, layerScope = self.glyphsAndLayerScope(font)
+			for glyph in glyphs:
+				countInGlyph = sum(self.countComponentsInLayer(componentName, layer) for layer in self.layersForGlyph(glyph, layerScope))
+				if countInGlyph:
+					componentCount += countInGlyph
+					glyphCount += 1
+		return "🔮 Will remove %i component%s from %i glyph%s." % (
+			componentCount,
+			"" if componentCount == 1 else "s",
+			glyphCount,
+			"" if glyphCount == 1 else "s",
+		)
 
 	def componentsInGlyph(self, glyph):
 		components = []
@@ -143,8 +223,10 @@ class RemoveComponentfromSelectedGlyphs(mekkaObject):
 	def glyphList(self):
 		thisFont = Glyphs.font
 		if thisFont:
-			if self.pref("fromWhere") == 0 and thisFont.selectedLayers:
+			if self.prefInt("scope") in (0, 1) and thisFont.selectedLayers:
 				return sorted(self.componentsInGlyphs([layer.parent for layer in thisFont.selectedLayers if layer.parent]))
+			elif self.prefInt("scope") == 4:
+				return sorted(set(component for font in Glyphs.fonts for component in self.componentsInGlyphs(font.glyphs)))
 			else:
 				return sorted(self.componentsInGlyphs(thisFont.glyphs))
 		else:
@@ -175,12 +257,16 @@ class RemoveComponentfromSelectedGlyphs(mekkaObject):
 				)
 			)
 
-		deleteCornerComponent(componentName, thisLayer)
+		removedCorners = deleteCornerComponent(componentName, thisLayer)
+		return len(removedComponents) + removedCorners
 
-	def removeComponentFromGlyph(self, componentName, thisGlyph):
+	def removeComponentFromGlyph(self, componentName, thisGlyph, layerScope="all"):
+		"""Removes the components from the layers in the layer scope. Returns the number of removed components."""
 		print("🔠 %s" % thisGlyph.name)
-		for thisLayer in thisGlyph.layers:
-			self.removeComponentFromLayer(componentName, thisLayer)
+		removedCount = 0
+		for thisLayer in self.layersForGlyph(thisGlyph, layerScope):
+			removedCount += self.removeComponentFromLayer(componentName, thisLayer)
+		return removedCount
 
 	def RemoveComponentFromSelectedGlyphsMain(self, sender):
 		# brings macro window to front and clears its log:
@@ -188,25 +274,34 @@ class RemoveComponentfromSelectedGlyphs(mekkaObject):
 
 		thisGlyph = None
 		try:
-			thisFont = Glyphs.font  # frontmost font
-			if not thisFont:
+			fonts = self.scopeFonts()  # frontmost font, or all open fonts
+			if not fonts:
 				self.setStatus("⚠️ No font open.")
 				return
 			componentName = self.pref("componentName")
-			print("Removing component %s from font ‘%s’:" % (componentName, thisFont.familyName))
 
-			if self.pref("fromWhere") == 0:
-				listOfGlyphs = [layer.parent for layer in thisFont.selectedLayers]  # active layers of currently selected glyphs
-			else:
-				listOfGlyphs = thisFont.glyphs
-
-			self.setStatus("🛠️ Processing %i glyph%s…" % (len(listOfGlyphs), "" if len(listOfGlyphs) == 1 else "s"))
-			for thisGlyph in listOfGlyphs:
-				self.setStatus("🔠 %s" % thisGlyph.name)
-				self.removeComponentFromGlyph(componentName, thisGlyph)
+			removedCount = 0
+			affectedGlyphCount = 0
+			glyphCount = 0
+			for thisFont in fonts:
+				print("Removing component %s from font ‘%s’:" % (componentName, thisFont.familyName))
+				listOfGlyphs, layerScope = self.glyphsAndLayerScope(thisFont)
+				glyphCount += len(listOfGlyphs)
+				self.setStatus("🛠️ Processing %i glyph%s…" % (len(listOfGlyphs), "" if len(listOfGlyphs) == 1 else "s"))
+				for thisGlyph in listOfGlyphs:
+					self.setStatus("🔠 %s" % thisGlyph.name)
+					removedInGlyph = self.removeComponentFromGlyph(componentName, thisGlyph, layerScope)
+					if removedInGlyph:
+						removedCount += removedInGlyph
+						affectedGlyphCount += 1
 
 			self.SavePreferences()
-			self.setStatus("✅ Processed %i glyph%s." % (len(listOfGlyphs), "" if len(listOfGlyphs) == 1 else "s"))
+			self.setStatus("✅ Removed %i component%s from %i glyph%s." % (
+				removedCount,
+				"" if removedCount == 1 else "s",
+				affectedGlyphCount,
+				"" if affectedGlyphCount == 1 else "s",
+			))
 
 		except Exception as e:
 			# brings macro window to front and reports error:
