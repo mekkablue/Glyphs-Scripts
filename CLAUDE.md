@@ -652,6 +652,12 @@ Glyphs.showNotification("My Script", "Brief summary. Details in Macro Window.")
     `⚠️`/`❌`). Put the processing in a `try`/`except` or `try`/`finally`, so that a crash leaves the last item in the
     status line and the traceback in the Macro Window. A script that only opens a tab or a window with its result, or
     that only reads, still gets a status line for the crash case, but may skip the `✅`.
+  - **Where the status line goes.** Never below the buttons. If the window has a bottom row of action buttons and no
+    other button on the left of that row, and there is room, put the status line in that row, left of the buttons
+    (reference: `Paths/Position Clicker.py`). If the row has a button on the left (a help button, a reset button, several
+    action buttons) or there is not enough room, give the status line its own line directly above the button row. A
+    window whose buttons sit inline in the form rows (a button behind each field) keeps the status line as the last
+    line of the form.
   - **A script without a window** ends with `Glyphs.showNotification()` (or opens a tab with the result) after it has
     changed the font, and prints the item it is working on to the Macro Window, so that a crash can be located.
   - **A window that only toggles one setting or runs instantly** (e.g. a one-click switch) does not need a status line.

@@ -6,7 +6,14 @@ Manage Automatic Alignment for (multiple) selected glyphs.
 import vanilla
 from GlyphsApp import Glyphs
 from mekkablue import mekkaObject, makeWindowResizable
-from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
+from AppKit import (
+	NSColor,
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityDefaultLow,
+	NSLayoutPriorityWindowSizeStayPut,
+)
 
 
 class AutoAlignmentManager(mekkaObject):
@@ -56,6 +63,14 @@ class AutoAlignmentManager(mekkaObject):
 		self.w.rotateButton = vanilla.Button("auto", "🔄 Rotate", callback=self.rotateComponents)
 		self.w.rotateButton.setToolTip("Moves the last component into first place. Useful if you quickly want to fix component order without leaving the script UI.")
 
+		# Status line:
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
+		# the status line takes the full width of its own row:
+		self.w.status.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
 		# a label next to a flexible control hugs its text, so the control gets the leftover width:
 		self.w.differentiationText.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
 
@@ -74,10 +89,11 @@ class AutoAlignmentManager(mekkaObject):
 				"H:|-inset-[differentiationText]-[differentiation]-inset-|",
 				"H:|-inset-[alignVertical(20)]-gap-[alignFull(20)]-gap-[alignmentTypeText]-inset-|",
 				"H:|-inset-[rotateButton(>=70)]-(>=gap)-[disableButton(>=70)]-gap-[enableButton(>=70)]-inset-|",
-				"V:|-gap-[descriptionText]-line-[includeAllGlyphs]-line-[includeAllLayers]-line-[differentiation]-line-[alignVertical(18)]-inset-[enableButton]-inset-|",
+				"H:|-inset-[status]-inset-|",
+				"V:|-gap-[descriptionText]-line-[includeAllGlyphs]-line-[includeAllLayers]-line-[differentiation]-line-[alignVertical(18)]-inset-[enableButton]-gap-[status]-inset-|",
 				"V:[alignFull(18)]",
-				"V:[rotateButton]-inset-|",
-				"V:[disableButton]-inset-|",
+				"V:[rotateButton]-gap-[status]",
+				"V:[disableButton]-gap-[status]",
 				# labels ride along with the control they belong to:
 				{"view1": self.w.differentiationText, "attribute1": "centerY", "view2": self.w.differentiation, "attribute2": "centerY"},
 				{"view1": self.w.alignFull, "attribute1": "centerY", "view2": self.w.alignVertical, "attribute2": "centerY"},
@@ -103,7 +119,10 @@ class AutoAlignmentManager(mekkaObject):
 		thisFont = Glyphs.font  # frontmost font
 		selectedGlyphs = [layer.parent for layer in thisFont.selectedLayers]
 
+		self.setStatus(f"🛠️ Processing {len(selectedGlyphs)} glyph{'' if len(selectedGlyphs) == 1 else 's'}…")
+		rotatedCount = 0
 		for thisGlyph in selectedGlyphs:
+			self.setStatus(f"🔠 {thisGlyph.name}")
 			print(f"Rotating: {thisGlyph.name}")
 			for thisLayer in thisGlyph.layers:
 				if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
@@ -116,8 +135,14 @@ class AutoAlignmentManager(mekkaObject):
 						else:
 							lastComponent = thisLayer.components[-1]
 							thisLayer.makeFirstComponent_(lastComponent)
+						rotatedCount += 1
 					else:
 						print("⚠️ Not enough components for rotating.")
+
+		if rotatedCount:
+			self.setStatus(f"✅ Rotated components on {rotatedCount} layer{'' if rotatedCount == 1 else 's'}.")
+		else:
+			self.setStatus("⚠️ Nothing to rotate.")
 
 	def enableOrDisableLayer(self, thisLayer, differentiation=0, sender=None):
 		if thisLayer.components:
@@ -137,6 +162,7 @@ class AutoAlignmentManager(mekkaObject):
 		return True
 
 	def AutoAlignmentManagerMain(self, sender):
+		currentGlyphName = None
 		try:
 			# update settings to the latest user input:
 			self.SavePreferences()
@@ -153,6 +179,8 @@ class AutoAlignmentManager(mekkaObject):
 			includeAllLayers = self.pref("includeAllLayers")
 			componentDifferentiation = self.pref("differentiation")
 			currentMasterID = thisFont.selectedFontMaster.id
+			self.setStatus("🛠️ Processing…")
+			changedCount = 0
 
 			if sender == self.w.alignVertical or sender == self.w.alignFull:
 				alignmentType = 1
@@ -171,11 +199,13 @@ class AutoAlignmentManager(mekkaObject):
 							if layer.isMasterLayer and layer.compareString() == selectedLayer.compareString():
 								for index in compIndexes:
 									layer.components[index].alignment = alignmentType
+									changedCount += 1
 									# print("index", index, "alignmentType", alignmentType)  # DEBUG
 				else:
 					for c in selectedLayer.components:
 						if c.selected:
 							c.alignment = alignmentType
+							changedCount += 1
 			else:
 				if includeAllLayers:
 					if self.pref("includeAllGlyphs"):
@@ -184,11 +214,15 @@ class AutoAlignmentManager(mekkaObject):
 						selectedGlyphs = [layer.parent for layer in thisFont.selectedLayers]
 
 					for thisGlyph in selectedGlyphs:
+						currentGlyphName = thisGlyph.name
+						self.setStatus(f"🔠 {thisGlyph.name}")
 						print(f"Processing: {thisGlyph.name}")
 						for thisLayer in thisGlyph.layers:
 							if thisLayer.isMasterLayer or thisLayer.isSpecialLayer:
 								if not self.enableOrDisableLayer(thisLayer, differentiation=componentDifferentiation, sender=sender):
 									print("⚠️ Error setting alignment.")
+								else:
+									changedCount += 1
 				else:
 					if self.pref("includeAllGlyphs"):
 						layersToBeProcessed = [g.layers[currentMasterID] for g in thisFont.glyphs]
@@ -197,11 +231,21 @@ class AutoAlignmentManager(mekkaObject):
 						layersToBeProcessed = thisFont.selectedLayers
 
 					for thisLayer in layersToBeProcessed:
+						currentGlyphName = thisLayer.parent.name
+						self.setStatus(f"🔠 {thisLayer.parent.name}")
 						print(f"Processing: {thisLayer.parent.name}")
 						if not self.enableOrDisableLayer(thisLayer, differentiation=componentDifferentiation, sender=sender):
 							print("⚠️ Error setting alignment.")
+						else:
+							changedCount += 1
+
+			if changedCount:
+				self.setStatus(f"✅ Changed {changedCount} item{'' if changedCount == 1 else 's'}.")
+			else:
+				self.setStatus("⚠️ Nothing changed.")
 
 		except Exception as e:
+			self.setStatus(f"❌ Error at {currentGlyphName}. Details in Macro Window." if currentGlyphName else "❌ Error. Details in Macro Window.")
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print(f"Auto Alignment Manager Error: {e}")
