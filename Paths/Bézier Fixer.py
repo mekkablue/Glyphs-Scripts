@@ -5,7 +5,7 @@ Small floating panel combining three curve cleanup steps for the selected glyphs
 
 import math
 import vanilla
-from AppKit import NSTextAlignmentLeft
+from AppKit import NSTextAlignmentLeft, NSWindowStyleMaskResizable
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSSMOOTH, GSOFFCURVE, GSCURVE, Message, UPDATEINTERFACE
 from mekkablue import mekkaObject
@@ -425,7 +425,7 @@ class BezierFixer(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, self.collapsedWindowHeight),
 			"Bézier Fixer",
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and width
 		)
 		self.clamp(newHeight=self.collapsedWindowHeight)
 
@@ -552,10 +552,13 @@ class BezierFixer(mekkaObject):
 	def clamp(self, sender=None, newHeight=None):
 		if newHeight is None:
 			return
+		# the height is fixed per mode, but the width can be changed by the user (the slider and the button stretch):
 		panel = self.w.getNSWindow()
-		panel.setContentMaxSize_((self.windowWidth, newHeight))
+		panel.setStyleMask_(panel.styleMask() | NSWindowStyleMaskResizable)
+		currentWidth = max(self.windowWidth, panel.contentRectForFrameRect_(panel.frame()).size.width)
 		panel.setContentMinSize_((self.windowWidth, newHeight))
-		panel.setContentSize_((self.windowWidth, newHeight))
+		panel.setContentMaxSize_((2000, newHeight))
+		panel.setContentSize_((currentWidth, newHeight))
 
 	def interfaceUpdated(self, sender=None):
 		"""
