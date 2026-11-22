@@ -654,8 +654,10 @@ Glyphs.showNotification("My Script", "Brief summary. Details in Macro Window.")
     that only reads, still gets a status line for the crash case, but may skip the `✅`.
   - **Where the status line goes.** Never below the buttons. If the window has a bottom row of action buttons and no
     other button on the left of that row, and there is room, put the status line in that row, left of the buttons
-    (reference: `Paths/Position Clicker.py`). If the row has a button on the left (a help button, a reset button, several
-    action buttons) or there is not enough room, give the status line its own line directly above the button row. A
+    (reference: `Paths/Position Clicker.py`). The one exception is a help button: it may stay on the left of the status
+    line (`[helpButton]-gap-[status]-gap-[runButton]`). If the row has any other button on the left (a reset button,
+    an action popup, several action buttons) or there is not enough room, give the status line its own line directly
+    above the button row. A
     window whose buttons sit inline in the form rows (a button behind each field) keeps the status line as the last
     line of the form.
   - **A script without a window** ends with `Glyphs.showNotification()` (or opens a tab with the result) after it has
