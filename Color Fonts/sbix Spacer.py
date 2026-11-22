@@ -8,9 +8,11 @@ from mekkablue import mekkaObject, SteppingEditText, integerFormatter
 from GlyphsApp import Glyphs, Message
 from AppKit import (
 	NSAffineTransform,
+	NSColor,
 	NSLayoutConstraintOrientationHorizontal,
 	NSLayoutConstraintOrientationVertical,
 	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityDefaultLow,
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
 	NSRect,
@@ -70,9 +72,19 @@ class sbixSpacer(mekkaObject):
 		self.w.help = vanilla.HelpButton("auto", callback=self.openURL)
 		self.w.help.setToolTip("Opens the tutorial on creating an Apple color font in your browser.")
 
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows the progress and the result of the run.")
+
 		self.w.runButton = vanilla.Button("auto", "Apply", callback=self.sbixSpacerMain)
 		self.w.runButton.setToolTip("Applies the settings to the glyphs.")
 		self.w.setDefaultButton(self.w.runButton)
+
+		# the status line takes the leftover width, the button stays as wide as its title needs:
+		self.w.status.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton.getNSButton().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 
 		# checkboxes stretch vertically by default; hug so the window is as tall as its content
 		for view in self.w.getNSWindow().contentView().subviews():
@@ -90,12 +102,13 @@ class sbixSpacer(mekkaObject):
 				"H:|-inset-[verticalShift]-(>=gap)-[verticalShiftValue(60)]-(>=inset)-|",
 				"H:|-inset-[allGlyphs]-(>=inset)-|",
 				"H:|-inset-[allMasters]-(>=inset)-|",
-				"H:|-inset-[help]-(>=gap)-[runButton(>=70)]-inset-|",
+				"H:|-inset-[help]-gap-[status]-gap-[runButton(>=70)]-inset-|",
 				"V:|-gap-[insertMarkers]-checkRow-[resetWidths]-row-[preferredSizeForWidth]-row-[verticalShiftValue]-row-[allGlyphs]-checkRow-[allMasters]-inset-[runButton]-inset-|",
 				"V:[help]-inset-|",
 				{"view1": self.w.preferredSizeForWidthText, "attribute1": "centerY", "view2": self.w.preferredSizeForWidth, "attribute2": "centerY"},
 				{"view1": self.w.verticalShift, "attribute1": "centerY", "view2": self.w.verticalShiftValue, "attribute2": "centerY"},
 				{"view1": self.w.verticalShiftValue, "attribute1": "leading", "view2": self.w.preferredSizeForWidth, "attribute2": "leading"},
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 			],
 			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
 		)
@@ -134,6 +147,7 @@ class sbixSpacer(mekkaObject):
 				pen.endPath()
 
 	def sbixSpacerMain(self, sender=None):
+		currentItemName = None
 		try:
 			# clear macro window log:
 			Glyphs.clearLog()
@@ -143,6 +157,7 @@ class sbixSpacer(mekkaObject):
 
 			thisFont = Glyphs.font  # frontmost font
 			if thisFont is None:
+				self.setStatus("⚠️ No font open.")
 				Message(title="No Font Open", message="The script requires a font. Open a font and run the script again.", OKButton=None)
 			else:
 				print(f"sbix Spacer Report for {thisFont.familyName}")
@@ -171,8 +186,12 @@ class sbixSpacer(mekkaObject):
 				else:
 					masters = (thisFont.selectedFontMaster, )
 
+				self.setStatus(f"🛠️ Processing {len(glyphs)} glyph{'' if len(glyphs) == 1 else 's'}…")
+				sbixCount = 0
 				for glyph in glyphs:
 					for master in masters:
+						currentItemName = f"{glyph.name} ({master.name})"
+						self.setStatus(f"🔠 {currentItemName}")
 						masterLayer = glyph.layers[master.id]
 						layers = [layer for layer in glyph.layers if layer.master == master and layer != masterLayer]
 						isSbixGlyph = False
@@ -182,6 +201,7 @@ class sbixSpacer(mekkaObject):
 								break
 
 						if isSbixGlyph:
+							sbixCount += 1
 							print(f"🔠 {glyph.name}")
 							if resetWidths or insertMarkers:
 								preferredLayerName = f"iColor {preferredSizeForWidth}"
@@ -213,8 +233,14 @@ class sbixSpacer(mekkaObject):
 								masterLayer.applyTransform(shiftMatrix)
 
 			print("\nDone.")
+			if thisFont is not None:
+				if sbixCount:
+					self.setStatus(f"✅ Processed {sbixCount} glyph/master combination{'' if sbixCount == 1 else 's'}.")
+				else:
+					self.setStatus("⚠️ No iColor glyphs found.")
 
 		except Exception as e:
+			self.setStatus(f"❌ Error at {currentItemName}. Details in Macro Window." if currentItemName else "❌ Error. Details in Macro Window.")
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print(f"sbix Spacer Error: {e}")
