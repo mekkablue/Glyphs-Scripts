@@ -6,7 +6,15 @@ Lists all glyphs that differ from the second font in height beyond a given thres
 import vanilla
 from mekkablue import mekkaObject, SteppingEditText, decimalFormatter, fontFileName
 from GlyphsApp import Glyphs, Message
-from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
+from AppKit import (
+	NSColor,
+	NSLayoutConstraintOrientationHorizontal,
+	NSLayoutConstraintOrientationVertical,
+	NSLayoutPriorityDefaultHigh,
+	NSLayoutPriorityDefaultLow,
+	NSLayoutPriorityRequired,
+	NSLayoutPriorityWindowSizeStayPut,
+)
 
 
 class CompareGlyphHeightsOfFrontmostFonts(mekkaObject):
@@ -20,7 +28,7 @@ class CompareGlyphHeightsOfFrontmostFonts(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 340
+		windowWidth = 380
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
@@ -54,10 +62,19 @@ class CompareGlyphHeightsOfFrontmostFonts(mekkaObject):
 		self.w.verbose = vanilla.CheckBox("auto", "Verbose output in Macro Window (slow)", value=False, callback=self.SavePreferences, sizeStyle="small")
 		self.w.verbose.setToolTip("Will output a detailed progress report in Window > Macro Panel. This slows down the script significantly, so only use for debugging.")
 
-		# Run Button:
+		# Status line and Run Button:
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Shows what the script is doing, and the result when it is done.")
 		self.w.runButton = vanilla.Button("auto", "Compare", callback=self.CompareGlyphHeightsOfFrontmostFontsMain)
 		self.w.runButton.setToolTip("Compares the glyph heights of the two frontmost fonts and reports in the Macro window.")
 		self.w.setDefaultButton(self.w.runButton)
+
+		# the status line takes the leftover width, the button stays as wide as its title needs:
+		self.w.status.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton.getNSButton().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 
 		# checkboxes stretch vertically by default; with everything hugging,
 		# the window ends up exactly as tall as the content
@@ -72,8 +89,9 @@ class CompareGlyphHeightsOfFrontmostFonts(mekkaObject):
 				"H:|-inset-[depths]-(>=inset)-|",
 				"H:|-inset-[includeNonExporting]-(>=inset)-|",
 				"H:|-inset-[verbose]-(>=inset)-|",
-				"H:|-(>=inset)-[runButton(>=120)]-inset-|",
+				"H:|-inset-[status]-gap-[runButton(>=120)]-inset-|",
 				"V:|-gap-[descriptionText(28)]-row-[tolerate]-row-[heights]-checkRow-[depths]-checkRow-[includeNonExporting]-checkRow-[verbose]-inset-[runButton]-inset-|",
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 				{"view1": self.w.tolerateText, "attribute1": "centerY", "view2": self.w.tolerate, "attribute2": "centerY"},
 			],
 			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
@@ -93,14 +111,17 @@ class CompareGlyphHeightsOfFrontmostFonts(mekkaObject):
 			self.w.runButton.enable(True)
 
 	def CompareGlyphHeightsOfFrontmostFontsMain(self, sender):
+		currentItem = "start"
 		try:
 			# update settings to the latest user input:
 			self.SavePreferences()
 
 			if len(Glyphs.fonts) < 2:
+				self.setStatus("⚠️ Open at least two fonts.")
 				Message(title="Compare Error", message="You need to have at least two fonts open for comparing.", OKButton="Ooops")
 			else:
 				Glyphs.clearLog()
+				self.setStatus("🛠️ Processing…")
 
 				thisFont = Glyphs.font  # frontmost font
 				otherFont = Glyphs.fonts[1]  # second font
@@ -135,6 +156,8 @@ class CompareGlyphHeightsOfFrontmostFonts(mekkaObject):
 
 				for thisGlyph in thisFont.glyphs:
 					if thisGlyph.export or includeNonExporting:
+						currentItem = thisGlyph.name
+						self.setStatus("🔠 %s" % currentItem)
 						if verbose:
 							print("🔠 Comparing %s" % thisGlyph.name)
 						glyphName = thisGlyph.name
@@ -180,11 +203,16 @@ class CompareGlyphHeightsOfFrontmostFonts(mekkaObject):
 					thisFont.newTab(tabText)
 					otherFont.newTab(tabText)
 
+				if collectedGlyphNames:
+					self.setStatus("✅ Found %i glyph%s with differences." % (len(collectedGlyphNames), "" if len(collectedGlyphNames) == 1 else "s"))
+				else:
+					self.setStatus("✅ No significant differences.")
 				print("✅ Done.")
 				if verbose:
 					Glyphs.showMacroWindow()
 
 		except Exception as e:
+			self.setStatus("❌ Error at %s. Details in Macro Window." % currentItem)
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
 			print("Compare Glyph Heights of Frontmost Fonts Error: %s" % e)
