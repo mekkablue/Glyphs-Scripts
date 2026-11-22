@@ -4,7 +4,7 @@ Finds interpolations in which points travel more than they should, i.e., can fin
 """
 
 import vanilla
-from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
+from AppKit import NSColor, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
 from GlyphsApp import Glyphs, GSOFFCURVE, Message, distance
 from mekkablue import mekkaObject, previewPanel, SteppingEditText, decimalFormatter
 from mekkablue.geometry import angle
@@ -50,7 +50,7 @@ class TravelTracker(mekkaObject):
 
 	def __init__(self):
 		# Window 'self.w':
-		windowWidth = 330
+		windowWidth = 380
 		windowHeight = 1  # Auto Layout grows the window to the height the content needs
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
@@ -87,6 +87,7 @@ class TravelTracker(mekkaObject):
 		self.w.thresholdAngle = SteppingEditText("auto", "40", callback=self.SavePreferences, sizeStyle="small", formatter=angleFormatter)
 		self.w.segmentRotationText = vanilla.TextBox("auto", "degrees", sizeStyle="small", selectable=True)
 		tooltip = "Follows the rotation of consecutive node pairs across the interpolation. A high change in degrees may indicate a wrong start point or an unintentionally different path structure."
+		self.w.segmentRotationDescription.setToolTip(tooltip)
 		self.w.segmentRotation.setToolTip(tooltip)
 		self.w.thresholdAngle.setToolTip(tooltip)
 		self.w.segmentRotationText.setToolTip(tooltip)
@@ -116,6 +117,10 @@ class TravelTracker(mekkaObject):
 		self.w.progress = vanilla.ProgressBar("auto")
 		self.w.progress.set(0)  # set progress indicator to zero
 
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Reports what the script is doing: the glyph it is examining and the result.")
+
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Find", callback=self.TravelTrackerMain)
 		self.w.runButton.setToolTip("Finds glyphs with nodes that travel more than they should in interpolation.")
@@ -128,6 +133,12 @@ class TravelTracker(mekkaObject):
 
 		# the description wraps, so it must not demand one long line:
 		self.w.descriptionText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
+		# the button keeps the width of its title, the status line takes the leftover width:
+		self.w.runButton.getNSButton().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+		self.w.runButton.getNSButton().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
+		self.w.status.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# the label is right-aligned and as wide as the checkboxes with a field behind them, so the fields line up:
 		nsLabel = self.w.travelPercentageText.getNSTextField()
@@ -153,9 +164,10 @@ class TravelTracker(mekkaObject):
 				"H:|-inset-[includeNonExporting]-(>=inset)-|",
 				"H:|-inset-[allFonts]-gap-[verbose]-(>=inset)-|",
 				"H:|-inset-[progress]-inset-|",
-				"H:|-(>=inset)-[runButton(>=70)]-inset-|",
+				"H:|-inset-[status]-gap-[runButton(>=70)]-inset-|",
 				"V:|-inset-[descriptionText(42)]-headlineGap-[travelPercentage]-stackRow-[normalizeShape]-sectionGap-[separator1(1)]-sectionGap-[segmentRotationDescription]-row-[segmentRotation]-stackRow-[orthogonalToNonOrthogonal]-stackRow-[ignoreShortSegments]-sectionGap-[separator2(1)]-sectionGap-[includeNonExporting]-stackRow-[allFonts]-barGap-[progress(16)]-inset-[runButton]-inset-|",
 				# one baseline per row:
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 				{"view1": self.w.travelPercentageText, "attribute1": "centerY", "view2": self.w.travelPercentage, "attribute2": "centerY"},
 				{"view1": self.w.travelPercentageText2, "attribute1": "centerY", "view2": self.w.travelPercentage, "attribute2": "centerY"},
 				{"view1": self.w.normalizeGlyph, "attribute1": "centerY", "view2": self.w.normalizeShape, "attribute2": "centerY"},
@@ -324,8 +336,10 @@ class TravelTracker(mekkaObject):
 		return maxTravelRatio
 
 	def TravelTrackerMain(self, sender):
+		lastItem = ""
 		try:
 			Glyphs.clearLog()
+			self.setStatus("🛠️ Processing …")
 
 			# update settings to the latest user input:
 			self.SavePreferences()
@@ -376,6 +390,8 @@ class TravelTracker(mekkaObject):
 				affectedGlyphInfosDeorthogonalization = []
 
 				for i, relevantGlyph in enumerate(relevantGlyphs):
+					lastItem = relevantGlyph.name
+					self.setStatus(f"🔠 {relevantGlyph.name}")
 					# push progress bar 1 tick further:
 					fontSector = 100 / len(theseFonts)
 					self.w.progress.set(int(j * fontSector + i / numOfGlyphs * fontSector))
@@ -478,6 +494,7 @@ class TravelTracker(mekkaObject):
 					OKButton="🥂 Cheers!",
 				)
 				print("✅ Done. No issues found.")
+				self.setStatus("✅ No issues found.")
 			else:
 				issues = []
 				if totalAffectedGlyphsNodeTravel != 0:
@@ -496,10 +513,12 @@ class TravelTracker(mekkaObject):
 					OKButton=None,
 				)
 				print(f"\n✅ Done. Found {int(totalAffectedGlyphs)} issue{'s' if totalAffectedGlyphs != 1 else ''} in {len(theseFonts)} font{'s' if len(theseFonts)!=1 else ''}:\n🔤 {', 🔤 '.join(issues)}.")
+				self.setStatus(f"⚠️ Found {int(totalAffectedGlyphs)} issue{'s' if totalAffectedGlyphs != 1 else ''}.")
 
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
+			self.setStatus(f"❌ Error at {lastItem}. Details in Macro Window." if lastItem else "❌ Error. Details in Macro Window.")
 			print(f"Travel Tracker Error: {e}")
 			import traceback
 			print(traceback.format_exc())
