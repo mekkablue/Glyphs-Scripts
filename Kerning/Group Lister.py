@@ -14,7 +14,7 @@ from AppKit import (
 	NSLayoutPriorityWindowSizeStayPut,
 )
 from GlyphsApp import Glyphs, GSControlLayer, Message
-from mekkablue import mekkaObject, caseDict, fontFileName, UpdateButton
+from mekkablue import mekkaObject, caseDict, fontFileName, UpdateButton, makeWindowResizable
 
 scopeChoices = (
 	"Currently selected glyphs",
@@ -55,7 +55,7 @@ class GroupLister(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Group Lister",
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and width
 		)
 
 		# UI elements:
@@ -158,6 +158,8 @@ class GroupLister(mekkaObject):
 			],
 			metrics={"inset": inset, "indentedInset": inset + 20, "gap": 8, "popupGap": 16, "row": 8, "stackRow": 8, "section": 12},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

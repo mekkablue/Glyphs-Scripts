@@ -6,7 +6,7 @@ Builds white and black, small and large, circles, diamonds, triangles, arrowhead
 import vanilla
 import traceback
 from GlyphsApp import Glyphs, GSLayer, GSComponent, Message
-from mekkablue import mekkaObject, newGlyphWithName, SteppingEditText, integerFormatter
+from mekkablue import mekkaObject, newGlyphWithName, SteppingEditText, integerFormatter, makeWindowResizable
 from mekkablue.geometry import transform, offsetLayer
 from Foundation import NSPoint
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
@@ -513,7 +513,7 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Build Rare Symbols",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -659,6 +659,8 @@ class BuildCirclesSquaresTriangles(mekkaObject):
 			] + columnRules,
 			metrics={"inset": inset, "gap": 8, "row": 8},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

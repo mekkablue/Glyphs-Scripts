@@ -6,7 +6,7 @@ Finds glyphs that change the number of visible shapes and countershapes while in
 import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, GSInstance, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, makeWindowResizable
 
 tempMarker = "###DELETEME###"
 
@@ -64,7 +64,7 @@ class FindShapeshiftingGlyphs(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Find Shapeshifting Glyphs",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -141,6 +141,8 @@ class FindShapeshiftingGlyphs(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8, "row": 8, "checkRow": 5, "headlineGap": 10, "barGap": 12},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

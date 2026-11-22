@@ -4,7 +4,7 @@ Takes all CPAL/COLR layers and puts copies of their shapes into the master layer
 """
 
 import vanilla
-from mekkablue import mekkaObject, reportFontName, SteppingEditText, integerFormatter
+from mekkablue import mekkaObject, reportFontName, SteppingEditText, integerFormatter, makeWindowResizable
 from GlyphsApp import Glyphs, Message
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityWindowSizeStayPut
 
@@ -34,7 +34,7 @@ class MergeCPALLayersIntoMasterLayer(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Merge CPAL Layers into Master Layer",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -84,6 +84,8 @@ class MergeCPALLayersIntoMasterLayer(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8, "row": 6, "stackRow": 8},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

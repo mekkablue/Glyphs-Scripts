@@ -13,7 +13,7 @@ from AppKit import (
 	NSColor,
 )
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, makeWindowResizable
 from os import listdir, path
 from shutil import rmtree
 from subprocess import run
@@ -65,7 +65,7 @@ class ResetPluginManagerRepo(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Reset Plugin Manager Repo",
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and width
 		)
 
 		# UI elements:
@@ -112,6 +112,8 @@ class ResetPluginManagerRepo(mekkaObject):
 		# the folder content may have changed since the index was saved:
 		if not 0 <= self.pref("repositoryIndex") < len(repositories):
 			self.setPref("repositoryIndex", 0)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

@@ -4,7 +4,7 @@ Duplexes all masters according to one master you pick, so all widths are synced 
 """
 
 import vanilla
-from mekkablue import mekkaObject, UpdateButton, reportFontName
+from mekkablue import mekkaObject, UpdateButton, reportFontName, makeWindowResizable
 from GlyphsApp import Glyphs, GSLayer, GSCustomParameter, Message
 from AppKit import (
 	NSAffineTransform,
@@ -130,7 +130,7 @@ class Duplexer(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Duplexer",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -182,6 +182,8 @@ class Duplexer(mekkaObject):
 		if not self.LoadPreferences():
 			print("⚠️ ‘Duplexer’ could not load preferences. Will resort to defaults.")
 		
+		makeWindowResizable(self.w)  # resizable horizontally only
+
 		# Open window and focus on it:
 		self.w.open()
 		self.w.makeKey()

@@ -5,7 +5,7 @@ Finds kinks in interpolation space, reports them in the Macro window and opens a
 
 from math import hypot
 import vanilla
-from mekkablue import mekkaObject, setMacroDivider, SteppingEditText, decimalFormatter
+from mekkablue import mekkaObject, setMacroDivider, SteppingEditText, decimalFormatter, makeWindowResizable
 from GlyphsApp import Glyphs, GSInstance, GSAnnotation, CIRCLE, GSSMOOTH, GSOFFCURVE, Message, subtractPoints
 from AppKit import (
 	NSLayoutConstraintOrientationHorizontal,
@@ -96,7 +96,7 @@ class KinkFinder(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Kink Finder",  # window title
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and width
 		)
 
 		# UI elements:
@@ -178,6 +178,8 @@ class KinkFinder(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5, "headlineGap": 10, "barGap": 12},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

@@ -9,7 +9,7 @@ from AppKit import (
 )
 import vanilla
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, newAnchorWithName, UpdateButton, reportFontName, setMacroDivider, SteppingEditText, integerFormatter
+from mekkablue import mekkaObject, newAnchorWithName, UpdateButton, reportFontName, setMacroDivider, SteppingEditText, integerFormatter, makeWindowResizable
 
 
 def moveMacroWindowSeparator(pos=20):
@@ -45,7 +45,7 @@ class AddZWROOriginAnchors(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Add *origin Anchors to Combining Marks",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -123,6 +123,8 @@ class AddZWROOriginAnchors(mekkaObject):
 			] + widthRules,
 			metrics={"inset": 15, "gap": 8, "row": 6, "checkRow": 5},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

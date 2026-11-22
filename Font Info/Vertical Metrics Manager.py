@@ -5,7 +5,7 @@ Manage and sync ascender, descender and linegap values for hhea, OS/2 sTypo and 
 
 import string
 import vanilla
-from mekkablue import mekkaObject, UpdateButton, SteppingEditText, integerFormatter
+from mekkablue import mekkaObject, UpdateButton, SteppingEditText, integerFormatter, makeWindowResizable
 from GlyphsApp import Glyphs, Message, GetOpenFile, GSUppercase, GSLowercase, GSLayer
 from AppKit import NSColor, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
 
@@ -96,7 +96,7 @@ class VerticalMetricsManager(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Vertical Metrics Manager",  # window title
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and width
 		)
 
 		# UI elements:
@@ -326,6 +326,8 @@ class VerticalMetricsManager(mekkaObject):
 			] + labelRules + columnRules + titleRules + centerRules,
 			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5, "stackRow": 8, "groupGap": 9, "tightRow": 3, "bracketInset": 3},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		self.LoadPreferences()
 		self.w.open()

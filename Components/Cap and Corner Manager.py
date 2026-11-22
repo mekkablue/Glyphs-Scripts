@@ -4,7 +4,7 @@ Batch-edit settings for cap, corner, brush or segment components throughout all 
 """
 
 import vanilla
-from mekkablue import mekkaObject, UpdateButton, SteppingEditText, decimalFormatter
+from mekkablue import mekkaObject, UpdateButton, SteppingEditText, decimalFormatter, makeWindowResizable
 from GlyphsApp import Glyphs, Message, CORNER, CAP
 from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 
@@ -65,7 +65,7 @@ class CapAndCornerManager(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Cap and Corner Manager",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -130,6 +130,8 @@ class CapAndCornerManager(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8, "row": 6},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

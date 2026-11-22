@@ -6,7 +6,7 @@ Find and replace brace and bracket layer coordinates.
 import vanilla
 from AppKit import NSColor, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSNotificationCenter, NSTextAlignmentRight
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, UpdateButton, SteppingEditText, integerFormatter
+from mekkablue import mekkaObject, UpdateButton, SteppingEditText, integerFormatter, makeWindowResizable
 
 
 class BraceLayerManager(mekkaObject):
@@ -36,7 +36,7 @@ class BraceLayerManager(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Brace and Bracket Manager",  # window title
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and width
 		)
 
 		# UI elements:
@@ -106,6 +106,8 @@ class BraceLayerManager(mekkaObject):
 			rules,
 			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5, "radioHeight": self.w.scope.getFittingHeight()},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

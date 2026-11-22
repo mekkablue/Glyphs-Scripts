@@ -4,7 +4,7 @@ Specify a kerning value, and every kerning in the current master smaller than th
 """
 
 import vanilla
-from mekkablue import mekkaObject, SteppingEditText, integerFormatter
+from mekkablue import mekkaObject, SteppingEditText, integerFormatter, makeWindowResizable
 from GlyphsApp import Glyphs
 from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal
 
@@ -35,7 +35,7 @@ class DeleteSmallKerningPairs(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Remove Small Kerning Pairs",
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and width
 		)
 
 		# UI elements:
@@ -124,6 +124,8 @@ class DeleteSmallKerningPairs(mekkaObject):
 			] + columnRules,
 			metrics={"inset": inset, "gap": 8, "row": 8, "stackRow": 5},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		self.LoadPreferences()
 		self.w.open()

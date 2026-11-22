@@ -4,7 +4,7 @@ Report differences in kerning structures between two masters, and sync them by a
 """
 
 import vanilla
-from mekkablue import mekkaObject, newLineControlLayer, reportFontName, UpdateButton
+from mekkablue import mekkaObject, newLineControlLayer, reportFontName, UpdateButton, makeWindowResizable
 from GlyphsApp import Glyphs, Message
 from Foundation import NSNotFound
 from AppKit import (
@@ -36,7 +36,7 @@ class CompareKerningBetweenMasters(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Compare Kerning Between Masters",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -102,6 +102,8 @@ class CompareKerningBetweenMasters(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5, "section": 12},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

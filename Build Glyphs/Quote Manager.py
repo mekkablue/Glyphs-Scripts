@@ -6,7 +6,7 @@ Build and sync quotes: create single and double quotes with cursive attachment a
 import vanilla
 from Foundation import NSPoint
 from GlyphsApp import Glyphs, GSComponent, GSPath, GSNode, LINE, GSMetricsTypeCapHeight, Message
-from mekkablue import mekkaObject, newAnchorWithName, newGlyphWithName
+from mekkablue import mekkaObject, newAnchorWithName, newGlyphWithName, makeWindowResizable
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 
 # Maps single quote → double quote
@@ -200,6 +200,8 @@ class QuoteManager(mekkaObject):
 			] + columnRules,
 			metrics={"inset": 15, "gap": 8, "row": 8},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		self.LoadPreferences()
 		self.w.open()

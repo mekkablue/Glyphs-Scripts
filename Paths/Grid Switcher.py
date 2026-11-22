@@ -6,7 +6,7 @@ Toggles grid between two gridstep values.
 import vanilla
 from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs
-from mekkablue import mekkaObject, SteppingEditText, integerFormatter
+from mekkablue import mekkaObject, SteppingEditText, integerFormatter, makeWindowResizable
 
 
 class Gridswitch(mekkaObject):
@@ -22,7 +22,7 @@ class Gridswitch(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Grid Switcher",
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and width
 		)
 
 		# UI elements:
@@ -51,6 +51,8 @@ class Gridswitch(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

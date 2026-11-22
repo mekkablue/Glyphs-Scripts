@@ -4,7 +4,7 @@ Multiply, increase/decrease, limit or round spacing, differentiate between negat
 """
 
 import vanilla
-from mekkablue import mekkaObject, reportFontName, SteppingEditText, decimalFormatter
+from mekkablue import mekkaObject, reportFontName, SteppingEditText, decimalFormatter, makeWindowResizable
 from GlyphsApp import Glyphs, Message
 from AppKit import (
 	NSLayoutConstraintOrientationHorizontal,
@@ -51,7 +51,7 @@ class AdjustSpacing(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Adjust Spacing",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -110,6 +110,8 @@ class AdjustSpacing(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

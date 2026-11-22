@@ -6,7 +6,7 @@ Look for glyphs with unusual spacings and open them in a new tab.
 import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, UpdateButton, SteppingEditText, integerFormatter, fontFileName
+from mekkablue import mekkaObject, UpdateButton, SteppingEditText, integerFormatter, fontFileName, makeWindowResizable
 
 
 class SpacingChecker(mekkaObject):
@@ -31,7 +31,7 @@ class SpacingChecker(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Spacing Checker",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -112,6 +112,8 @@ class SpacingChecker(mekkaObject):
 			] + columnRules,
 			metrics={"inset": inset, "gap": 8, "headlineGap": 10, "stackRow": 8, "barGap": 12},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

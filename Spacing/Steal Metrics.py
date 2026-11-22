@@ -8,7 +8,7 @@ import traceback
 import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSTextAlignmentRight
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, makeWindowResizable
 from mekkablue.geometry import transform
 
 
@@ -39,7 +39,7 @@ class MetricsCopy(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Steal Metrics",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -121,6 +121,8 @@ class MetricsCopy(mekkaObject):
 			] + widthRules,
 			metrics={"inset": inset, "indent": inset + 18, "gap": 8, "row": 6, "headlineGap": 10, "stackRow": 8},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		self.LoadPreferences()
 

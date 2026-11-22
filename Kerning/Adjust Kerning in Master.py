@@ -7,7 +7,7 @@ import vanilla
 from AppKit import NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 from Foundation import NSNumberFormatter
 from GlyphsApp import Glyphs, GSLTR, GSRTL
-from mekkablue import mekkaObject, SteppingEditText
+from mekkablue import mekkaObject, SteppingEditText, makeWindowResizable
 
 optionList = ("Multiply by", "Add", "Add Absolute", "Round by", "Limit to")
 
@@ -28,7 +28,7 @@ class AdjustKerning(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Adjust Kerning",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -77,6 +77,8 @@ class AdjustKerning(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8, "row": 6},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

@@ -9,7 +9,7 @@ from copy import deepcopy
 import vanilla
 from AppKit import NSFont, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message, TTF, PLAIN, INSTANCETYPEVARIABLE
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, makeWindowResizable
 from ttfautohintoptions import parameterName, valuelessOptions, availableOptionsDict, availableOptions, removeFromAutohintOptions, dictToParameterValue, ttfAutohintDict, glyphInterpolation, idotlessMeasure, writeOptionsToInstance
 # from ttfautohintoptions import *
 
@@ -26,7 +26,7 @@ class SetFamilyAlignmentZones(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Set Family Alignment Zones",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -80,6 +80,8 @@ class SetFamilyAlignmentZones(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8, "row": 8},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Open window and focus on it:
 		self.LoadPreferences()

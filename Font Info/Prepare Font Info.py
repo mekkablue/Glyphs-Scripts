@@ -6,7 +6,7 @@ Prepare open fonts for a modern font production and git workflow.
 import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, makeWindowResizable
 
 
 class PrepareFontforGit(mekkaObject):
@@ -38,7 +38,7 @@ class PrepareFontforGit(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Prepare File",
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and width
 		)
 
 		# UI elements:
@@ -104,6 +104,8 @@ class PrepareFontforGit(mekkaObject):
 			{"view1": self.w.runButton, "attribute1": "centerY", "view2": self.w.applyToFonts, "attribute2": "centerY"},
 		]
 		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "checkRow": 5})
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

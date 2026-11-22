@@ -11,7 +11,7 @@ Copies one layer to another layer across selected glyphs:
 """
 
 import vanilla
-from mekkablue import mekkaObject, newGlyphWithName, UpdateButton, colorCountOfFirstPalette
+from mekkablue import mekkaObject, newGlyphWithName, UpdateButton, colorCountOfFirstPalette, makeWindowResizable
 from GlyphsApp import Glyphs, Message, GSLayer
 from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 
@@ -54,7 +54,7 @@ class CopyLayerToLayer(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Copy Layer to Layer",
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -166,6 +166,8 @@ class CopyLayerToLayer(mekkaObject):
 			] + widthRules + columnRules,
 			metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5, "headlineGap": 10, "sectionGap": 10},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

@@ -6,7 +6,7 @@ Marks nodes so the Round Corners filter leaves them alone (node.name = "c"), and
 from math import hypot
 
 import vanilla
-from mekkablue import mekkaObject, layerGroupsOf
+from mekkablue import mekkaObject, layerGroupsOf, makeWindowResizable
 from GlyphsApp import Glyphs, GSNode, Message
 from AppKit import (
 	NSLayoutConstraintOrientationHorizontal,
@@ -358,6 +358,8 @@ class RoundingProtector(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8, "row": 8},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		self.LoadPreferences()
 		if font and self.prefInt("master") >= len(font.masters):

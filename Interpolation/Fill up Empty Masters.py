@@ -7,7 +7,7 @@ import vanilla
 from copy import copy as copy
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message, CORNER, SEGMENT, CAP
-from mekkablue import mekkaObject, UpdateButton, reportFontName
+from mekkablue import mekkaObject, UpdateButton, reportFontName, makeWindowResizable
 
 
 labelColors = (
@@ -45,7 +45,7 @@ class FillUpEmptyMasters(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Fill Up Empty Masters",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -109,6 +109,8 @@ class FillUpEmptyMasters(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8, "row": 8, "stackRow": 8, "headlineGap": 10},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

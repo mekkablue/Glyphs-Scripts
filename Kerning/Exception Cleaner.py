@@ -4,7 +4,7 @@ Removes kerning exceptions (glyph-to-glyph, glyph-to-group and group-to-glyph pa
 """
 
 import vanilla
-from mekkablue import mekkaObject, reportFontName, SteppingEditText, integerFormatter
+from mekkablue import mekkaObject, reportFontName, SteppingEditText, integerFormatter, makeWindowResizable
 from GlyphsApp import Glyphs, Message
 from AppKit import (
 	NSBeep,
@@ -35,7 +35,7 @@ class DeleteExceptionsTooCloseToGroupKerning(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Exception Cleaner",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -115,6 +115,8 @@ class DeleteExceptionsTooCloseToGroupKerning(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8, "checkRow": 5, "section": 12, "titleGap": 2, "tallRow": 8},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

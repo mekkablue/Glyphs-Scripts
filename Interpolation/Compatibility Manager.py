@@ -7,7 +7,7 @@ import math
 from copy import copy
 
 import vanilla
-from mekkablue import mekkaObject, newAnchorWithName, reportFontName
+from mekkablue import mekkaObject, newAnchorWithName, reportFontName, makeWindowResizable
 from GlyphsApp import Glyphs, GSPath, GSComponent, OFFCURVE, GSOFFCURVE, GSSMOOTH, Message, distance
 from AppKit import (
 	NSAffineTransform,
@@ -335,7 +335,7 @@ class CompatibilityManager(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),
 			"Compatibility Manager",
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and width
 		)
 
 		# UI elements, start points and shape order:
@@ -504,6 +504,8 @@ class CompatibilityManager(mekkaObject):
 			)
 		expanded = Glyphs.defaults[self.domain("extraOptionsExpanded")]
 		self.setExtraOptionsExpanded(True if expanded is None else bool(expanded), resizeWindow=False)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		self.LoadPreferences()
 		self.w.open()

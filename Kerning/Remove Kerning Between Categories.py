@@ -6,7 +6,7 @@ Removes kerning between glyphs, categories, subcategories, scripts, cases. Optio
 import vanilla
 from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, makeWindowResizable
 
 
 class RemoveKerning(mekkaObject):
@@ -38,7 +38,7 @@ class RemoveKerning(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Remove Kerning Between Categories",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -141,6 +141,8 @@ class RemoveKerning(mekkaObject):
 			rules,
 			metrics={"inset": inset, "gap": 8, "columnGap": 20, "row": 6, "headlineGap": 12, "sectionGap": 14, "stackRow": 8},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

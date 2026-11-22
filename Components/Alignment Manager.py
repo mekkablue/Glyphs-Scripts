@@ -5,7 +5,7 @@ Manage Automatic Alignment for (multiple) selected glyphs.
 
 import vanilla
 from GlyphsApp import Glyphs
-from mekkablue import mekkaObject
+from mekkablue import mekkaObject, makeWindowResizable
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationVertical, NSLayoutPriorityWindowSizeStayPut
 
 
@@ -24,7 +24,7 @@ class AutoAlignmentManager(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Alignment Manager",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -85,6 +85,8 @@ class AutoAlignmentManager(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8, "line": 8},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

@@ -6,7 +6,7 @@ Removes PS Hints, selectively or completely, in the selected glyphs, a master, t
 import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message, STEM, BOTTOMGHOST, TOPGHOST
-from mekkablue import mekkaObject, fontFileName
+from mekkablue import mekkaObject, fontFileName, makeWindowResizable
 from hintscopes import scopes, scopeTooltip, detachedTooltip, isDetached, fontsForScope, glyphsAndLayers
 
 
@@ -27,7 +27,7 @@ class RemovePSHints(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Remove PS Hints",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -87,6 +87,8 @@ class RemovePSHints(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8, "headlineGap": 10, "checkRow": 5, "barGap": 12},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

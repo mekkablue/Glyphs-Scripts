@@ -4,7 +4,7 @@ Open a new tab with all glyphs contained in a specific OpenType class.
 """
 
 import vanilla
-from mekkablue import mekkaObject, UpdateButton
+from mekkablue import mekkaObject, UpdateButton, makeWindowResizable
 from GlyphsApp import Glyphs, Message
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 
@@ -18,7 +18,7 @@ class NewTabWithOTClass(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"New Tab with OT Class",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -49,6 +49,8 @@ class NewTabWithOTClass(mekkaObject):
 			],
 			metrics={"inset": 12, "gap": 8},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Open window and focus on it:
 		self.w.open()

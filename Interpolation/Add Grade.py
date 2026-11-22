@@ -8,7 +8,7 @@ import vanilla
 from AppKit import NSAffineTransform, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut, NSPoint, NSTextAlignmentRight
 from copy import copy
 from GlyphsApp import Glyphs, GSInstance, GSUppercase, GSSmallcaps, GSSMOOTH, GSOFFCURVE, GSAxis, GSCustomParameter, Message
-from mekkablue import mekkaObject, UpdateButton, reportFontName
+from mekkablue import mekkaObject, UpdateButton, reportFontName, makeWindowResizable
 
 
 def axisIdForTag(font, tag="wght"):
@@ -272,7 +272,7 @@ class AddGrade(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Add Grade",  # window title
-			autosaveName=self.domain("mainwindow"),  # stores last window position
+			autosaveName=self.domain("mainwindow"),  # stores last window position and width
 		)
 
 		# UI elements:
@@ -347,6 +347,8 @@ class AddGrade(mekkaObject):
 			sameAttribute("centerY", "fittingMethodText", "fittingMethod"),
 		]
 		self.w.addAutoPosSizeRules(rules, metrics={"inset": inset, "gap": 8, "row": 6, "checkRow": 5, "section": 12})
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

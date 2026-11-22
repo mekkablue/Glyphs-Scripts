@@ -6,7 +6,7 @@ Copies kerning groups from one font to another.
 import vanilla
 from AppKit import NSTextAlignmentRight, NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityRequired, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, Message
-from mekkablue import mekkaObject, reportFontName, fontFileName, UpdateButton
+from mekkablue import mekkaObject, reportFontName, fontFileName, UpdateButton, makeWindowResizable
 
 
 def menuForFonts(fonts):
@@ -36,7 +36,7 @@ class StealKerningGroupsfromFont(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Steal Kerning Groups",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -109,6 +109,8 @@ class StealKerningGroupsfromFont(mekkaObject):
 			],
 			metrics={"inset": inset, "gap": 8, "row": 6, "headlineGap": 10, "checkRow": 5},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()

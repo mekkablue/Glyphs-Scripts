@@ -6,7 +6,7 @@ Deletes a user-specified set of TT instructions in the selected glyphs, a master
 import vanilla
 from AppKit import NSLayoutConstraintOrientationHorizontal, NSLayoutConstraintOrientationVertical, NSLayoutPriorityDefaultHigh, NSLayoutPriorityDefaultLow, NSLayoutPriorityWindowSizeStayPut
 from GlyphsApp import Glyphs, TTSTEM, TTANCHOR, TTALIGN, TTINTERPOLATE, TTDIAGONAL, TTDELTA, Message
-from mekkablue import mekkaObject, fontFileName
+from mekkablue import mekkaObject, fontFileName, makeWindowResizable
 from hintscopes import scopes, scopeTooltip, detachedTooltip, isDetached, fontsForScope, glyphsAndLayers
 
 
@@ -56,7 +56,7 @@ class RemoveTTHints(mekkaObject):
 		self.w = vanilla.FloatingWindow(
 			(windowWidth, windowHeight),  # default window size
 			"Remove TT Hints",  # window title
-			autosaveName=self.domain("mainwindow")  # stores last window position
+			autosaveName=self.domain("mainwindow")  # stores last window position and width
 		)
 
 		# UI elements:
@@ -155,6 +155,8 @@ class RemoveTTHints(mekkaObject):
 			rules + columnRules + rowRules,
 			metrics={"inset": inset, "gap": 8, "headlineGap": 10, "stackRow": 8},
 		)
+
+		makeWindowResizable(self.w)  # resizable horizontally only
 
 		# Load Settings:
 		self.LoadPreferences()
