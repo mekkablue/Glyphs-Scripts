@@ -6,6 +6,7 @@ Edit Filter custom parameters as plain text, one filter value string per line, i
 import re
 import vanilla
 from AppKit import NSArray, NSColor, NSDictionary, NSMakeSize
+from Foundation import NSString
 from mekkablue import mekkaObject, getClipboard, setClipboard, getLegibleFont, makeWindowResizable
 
 parameterName = "Filter"
@@ -20,7 +21,7 @@ escapes = {"n": "\n", "t": "\t"}
 def parseParameters(plistString):
 	"""Returns a list of parameter dicts from a plist string, or None if it cannot be parsed."""
 	try:
-		parsed = plistString.propertyList()
+		parsed = NSString.stringWithString_(str(plistString)).propertyList()
 	except:
 		import traceback
 		print(traceback.format_exc())
@@ -32,6 +33,53 @@ def parseParameters(plistString):
 	if not isinstance(parsed, (list, NSArray)):
 		return None
 	return parsed
+
+
+pastedMarker = re.compile(r"customParameters\s*=\s*\(")
+
+
+def pastedPlistSpans(text):
+	"""Returns (start, end) spans of top-level {…} expressions that contain ‘customParameters = (’. Braces in quoted strings are ignored."""
+	spans = []
+	depth = 0
+	start = None
+	inString = False
+	index = 0
+	while index < len(text):
+		char = text[index]
+		if inString:
+			if char == "\\":
+				index += 1
+			elif char == '"':
+				inString = False
+		elif char == '"':
+			inString = True
+		elif char == "{":
+			if depth == 0:
+				start = index
+			depth += 1
+		elif char == "}" and depth > 0:
+			depth -= 1
+			if depth == 0 and pastedMarker.search(text, start, index):
+				spans.append((start, index + 1))
+		index += 1
+	return spans
+
+
+def filterLines(parameters):
+	"""Returns the lines (value strings, disabled ones prefixed with #) of all Filter parameters."""
+	lines = []
+	for parameter in parameters:
+		if not isinstance(parameter, (dict, NSDictionary)) or parameter.get("name") != parameterName:
+			continue
+		value = parameter.get("value")
+		if not isinstance(value, str):
+			continue
+		line = value.replace("\n", " ")
+		if str(parameter.get("disabled", 0)) not in ("0", "False", ""):
+			line = f"{disabledPrefix} {line}"
+		lines.append(line)
+	return lines
 
 
 def quoted(text):
@@ -54,7 +102,7 @@ class FilterManager(mekkaObject):
 
 		inset = 15
 
-		self.w.filters = vanilla.TextEditor("auto", "", callback=self.SavePreferences, checksSpelling=False)
+		self.w.filters = vanilla.TextEditor("auto", "", callback=self.filtersEdited, checksSpelling=False)
 		self.w.filters.setToolTip("One filter per line, without the name ‘Filter’. Start a line with # to disable it.")
 		scrollView = self.w.filters.getNSScrollView()
 		scrollView.setHasVerticalScroller_(True)
@@ -106,6 +154,37 @@ class FilterManager(mekkaObject):
 		self.w.open()
 		self.w.makeKey()
 
+	def filtersEdited(self, sender=None):
+		"""Converts a parameters plist pasted into the text view to one filter value per line."""
+		text = self.w.filters.get()
+		if "customParameters" in text:
+			newText = ""
+			position = 0
+			cursor = None
+			count = 0
+			for start, end in pastedPlistSpans(text):
+				parameters = parseParameters(text[start:end])
+				lines = filterLines(parameters) if parameters else []
+				if not lines:
+					continue
+				newText += text[position:start]
+				if newText and not newText.endswith("\n"):
+					newText += "\n"
+				newText += "\n".join(lines)
+				cursor = len(newText.encode("utf-16-le")) // 2
+				position = end
+				count += len(lines)
+				if text[position:position + 1] == "\n":
+					position += 1  # the line break after the block is replaced by the one below
+				newText += "\n"
+			if count:
+				newText += text[position:]
+				textView = self.w.filters.getNSTextView()
+				textView.setString_(newText)
+				textView.setSelectedRange_((cursor + 1, 0))
+				self.setStatus(f"✅ Converted pasted plist into {count} filter line{'' if count == 1 else 's'}.")
+		self.SavePreferences(sender)
+
 	def pasteParameters(self, sender=None):
 		self.pasteFromClipboard(append=False)
 
@@ -121,17 +200,7 @@ class FilterManager(mekkaObject):
 			print("⚠️ Filter Manager: the clipboard does not contain parameters. Copy them from Custom Parameters in Font Info.")
 			return
 
-		lines = []
-		for parameter in parameters:
-			if not isinstance(parameter, (dict, NSDictionary)) or parameter.get("name") != parameterName:
-				continue
-			value = parameter.get("value")
-			if not isinstance(value, str):
-				continue
-			line = value.replace("\n", " ")
-			if str(parameter.get("disabled", 0)) not in ("0", "False", ""):
-				line = f"{disabledPrefix} {line}"
-			lines.append(line)
+		lines = filterLines(parameters)
 
 		existingText = self.w.filters.get().rstrip("\n")
 		if append and existingText:
