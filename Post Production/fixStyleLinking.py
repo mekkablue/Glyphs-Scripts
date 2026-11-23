@@ -5,10 +5,21 @@ python3 fixStyleLinking.py *.ttf  ... apply to all TTFs in current dir
 
 from argparse import ArgumentParser
 from fontTools import ttLib
+from fontTools.ttLib.tables import otTables
 
 # axis value that is the regular one of the axis, and the value it links to (style linking):
 REGULAR_VALUES = {"wght": 400, "ital": 0, "slnt": 0}
 LINKED_VALUES = {"wght": 700, "ital": 1}  # slnt: the most negative value of the axis, see linkedValueFor()
+
+
+def nameIDOf(nameTable, string):
+	"""Returns the ID of the first name table entry with that string (Windows entries first), or None."""
+	candidates = []
+	for nameRecord in nameTable.names:
+		if nameRecord.toUnicode() == string:
+			candidates.append(nameRecord)
+	candidates.sort(key=lambda nameRecord: nameRecord.platformID != 3)
+	return candidates[0].nameID if candidates else None
 
 
 def linkedValueFor(axisTag, fvarAxes):
@@ -26,19 +37,22 @@ def fixStyleLinking(font):
 	"""
 	Turns the STAT Format 1 (or 3) axis value of wght=400 and ital=0 (or, if there is no ital axis, slnt=0)
 	into a Format 3 (style linking) entry that is elidable (Flags=2) and links to wght=700, ital=1 or slnt=min.
-	Keeps AxisIndex, ValueNameID and Value. Returns True if the font was changed.
+	Keeps AxisIndex, ValueNameID and Value. Also makes the axis value of wdth=100 elidable, and adds an elidable ital=0 → 1 entry if STAT has an ital axis but no axis value for it.
+	Returns True if the font was changed.
 	"""
 	if "STAT" not in font:
 		print("  ⚠️ No STAT table. Skipping.")
 		return False
 
 	statTable = font["STAT"].table
+	axes = [axis.AxisTag for axis in statTable.DesignAxisRecord.Axis] if statTable.DesignAxisRecord else []
 	axisValueArray = getattr(statTable, "AxisValueArray", None)
-	if not axisValueArray or not axisValueArray.AxisValue:
+	if axisValueArray is None:
+		axisValueArray = statTable.AxisValueArray = otTables.AxisValueArray()
+		axisValueArray.AxisValue = []
+	if not axisValueArray.AxisValue and "ital" not in axes:
 		print("  ⚠️ STAT table has no axis values. Skipping.")
 		return False
-
-	axes = [axis.AxisTag for axis in statTable.DesignAxisRecord.Axis]
 	fvarAxes = {axis.axisTag: axis for axis in font["fvar"].axes} if "fvar" in font else {}
 
 	if "wght" in axes:
@@ -49,11 +63,49 @@ def fixStyleLinking(font):
 		targetTags.append("ital")
 	elif "slnt" in axes:
 		targetTags.append("slnt")
-	if not targetTags:
-		print("  ⚠️ No wght, ital or slnt axis in STAT. Skipping.")
+	if not targetTags and "wdth" not in axes:
+		print("  ⚠️ No wght, wdth, ital or slnt axis in STAT. Skipping.")
 		return False
 
 	changesMade = False
+
+	# ital axis without any axis value: add a single elidable style linking entry ital=0 → 1
+	if "ital" in axes:
+		italIndex = axes.index("ital")
+		hasItalValue = False
+		for statEntry in axisValueArray.AxisValue:
+			if statEntry.Format == 4:
+				hasItalValue = hasItalValue or any(record.AxisIndex == italIndex for record in statEntry.AxisValueRecord)
+			elif statEntry.AxisIndex == italIndex:
+				hasItalValue = True
+		if not hasItalValue:
+			nameTable = font["name"]
+			nameID = nameIDOf(nameTable, "Roman")
+			if nameID is None:
+				nameID = nameIDOf(nameTable, "Regular")
+			if nameID is None:
+				nameID = statTable.ElidedFallbackNameID
+			romanValue = otTables.AxisValue()
+			romanValue.Format = 3
+			romanValue.AxisIndex = italIndex
+			romanValue.Flags = 2
+			romanValue.ValueNameID = nameID
+			romanValue.Value = 0.0
+			romanValue.LinkedValue = 1.0
+			axisValueArray.AxisValue.append(romanValue)
+			print(f"  🏛️ No STAT axis value for ital. Adding Format 3 entry ital=0 → 1, name ID {nameID}, elidable.")
+			changesMade = True
+
+	# wdth=100 is made elidable, whatever its format (other flag bits are kept):
+	for statIndex, statEntry in enumerate(axisValueArray.AxisValue):
+		if statEntry.AxisIndex >= len(axes) or axes[statEntry.AxisIndex] != "wdth" or statEntry.Format == 4:
+			continue
+		axisValue = statEntry.NominalValue if statEntry.Format == 2 else statEntry.Value
+		if axisValue == 100 and not statEntry.Flags & 2:
+			print(f"  🏛️ STAT axis value {statIndex}, wdth=100: flags {statEntry.Flags} → {statEntry.Flags | 2} (elidable)")
+			statEntry.Flags |= 2
+			changesMade = True
+
 	handledTags = set()
 	newAxisValues = []
 	for statIndex, statEntry in enumerate(axisValueArray.AxisValue):
@@ -120,7 +172,7 @@ def fixStyleLinkingInFile(fontPath):
 
 def main():
 	parser = ArgumentParser(
-		description="In STAT, turns the Format 1 axis values of wght=400 and ital=0 (or, if there is no ital axis, slnt=0) into Format 3 (style linking) entries, makes them elidable (Flags=2) and sets the linked values wght=700, ital=1, slnt=most negative value of the axis. Keeps AxisIndex, ValueNameID and Value."
+		description="In STAT, turns the Format 1 axis values of wght=400 and ital=0 (or, if there is no ital axis, slnt=0) into Format 3 (style linking) entries, makes them elidable (Flags=2) and sets the linked values wght=700, ital=1, slnt=most negative value of the axis. Keeps AxisIndex, ValueNameID and Value. Also makes the wdth=100 axis value elidable."
 	)
 	parser.add_argument(
 		"fonts",
