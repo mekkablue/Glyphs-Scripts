@@ -1,11 +1,12 @@
 # MenuTitle: Kink Finder
 __doc__ = """
-Finds kinks in interpolation space, reports them in the Macro window and opens a new tab with affected glyphs.
+Finds kinks in interpolation space, reports them in the Macro window and opens a new tab with affected glyphs. The HOI Dekink button (Glyphs 4 or later) additionally adds HOI intermediate points to the kinky nodes, with the same algorithm as HOI Dekinker, but with the acceptable max kink size as threshold.
 """
 
 from math import hypot
 import vanilla
 from mekkablue import mekkaObject, setMacroDivider, SteppingEditText, decimalFormatter, makeWindowResizable
+from mekkablue.hoi import dekinkGlyph, selectHOINodes
 from GlyphsApp import Glyphs, GSInstance, GSAnnotation, CIRCLE, GSSMOOTH, GSOFFCURVE, Message, subtractPoints
 from AppKit import (
 	NSLayoutConstraintOrientationHorizontal,
@@ -15,6 +16,7 @@ from AppKit import (
 	NSLayoutPriorityRequired,
 	NSLayoutPriorityWindowSizeStayPut,
 	NSTextAlignmentRight,
+	NSColor,
 )
 from Foundation import NSPoint
 
@@ -143,10 +145,26 @@ class KinkFinder(mekkaObject):
 		self.w.progress = vanilla.ProgressBar("auto")
 		self.w.progress.set(0)  # set progress indicator to zero
 
+		self.w.status = vanilla.TextBox("auto", "🤖 Ready. 💬 See tooltips for help.", sizeStyle="small")
+		self.w.status.getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
+		self.w.status.setToolTip("Reports what the script is doing, and how it ended.")
+		self.w.status.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		self.w.status.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+
+		# HOI Dekink Button:
+		self.w.hoiButton = vanilla.Button("auto", "HOI Dekink", callback=self.HOIDekink)
+		self.w.hoiButton.setToolTip("Finds kinks like the other button, then adds HOI intermediate points to the kinky nodes in the lower layer of each span between neighboring masters and brace layers, with the same algorithm as HOI Dekinker, but with the acceptable max kink size as threshold. Opens the same tab. Requires Glyphs 4 or later.")
+		self.w.hoiButton.enable(Glyphs.versionNumber >= 4)
 		# Run Button:
 		self.w.runButton = vanilla.Button("auto", "Open Tab", callback=self.KinkFinderMain)
 		self.w.runButton.setToolTip("Finds kinks in interpolation and opens a tab with the affected glyphs.")
 		self.w.setDefaultButton(self.w.runButton)
+
+		# buttons stay as wide as their titles; the status line takes the leftover width
+		for button in (self.w.hoiButton, self.w.runButton):
+			nsButton = button.getNSButton()
+			nsButton.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
+			nsButton.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
 
 		# checkboxes stretch vertically by default; with everything hugging, the window
 		# ends up exactly as tall as the content
@@ -170,7 +188,9 @@ class KinkFinder(mekkaObject):
 				"H:|-inset-[markKinks]-(>=inset)-|",
 				"H:|-inset-[reportIncompatibilities]-gap-[bringMacroWindowToFront]-(>=inset)-|",
 				"H:|-inset-[progress]-inset-|",
-				"H:|-(>=inset)-[runButton(>=100)]-inset-|",
+				"H:|-inset-[status]-gap-[hoiButton(>=90)]-gap-[runButton(>=100)]-inset-|",
+				"V:[hoiButton]-inset-|",
+				{"view1": self.w.status, "attribute1": "centerY", "view2": self.w.runButton, "attribute2": "centerY"},
 				"V:|-gap-[descriptionText(28)]-headlineGap-[maxKinkSize]-row-[findKinksWhere]-headlineGap-[allGlyphs]-checkRow-[exportingOnly]-checkRow-[markKinks]-checkRow-[reportIncompatibilities]-barGap-[progress(16)]-inset-[runButton]-inset-|",
 				{"view1": self.w.text_1, "attribute1": "centerY", "view2": self.w.maxKinkSize, "attribute2": "centerY"},
 				{"view1": self.w.findKinksWhereText, "attribute1": "centerY", "view2": self.w.findKinksWhere, "attribute2": "centerY"},
@@ -356,8 +376,12 @@ class KinkFinder(mekkaObject):
 		self.addAnnotationAtPosition(layer, position)
 
 
-	def KinkFinderMain(self, sender):
+	def HOIDekink(self, sender):
+		self.KinkFinderMain(sender, hoi=True)
+
+	def KinkFinderMain(self, sender, hoi=False):
 		try:
+			self.setStatus("🛠️ Looking for kinks…")
 			self.SavePreferences()
 
 			# brings macro window to front and clears its log:
@@ -378,6 +402,7 @@ class KinkFinder(mekkaObject):
 			maxKink = self.prefFloat("maxKinkSize")
 			kinkyGlyphNames = []
 			kinkyLayers = []
+			kinkyNodes = {}  # glyph name: set of (path index, node index)
 			if self.pref("allGlyphs"):
 				glyphsToProbe = thisFont.glyphs
 			else:
@@ -402,6 +427,7 @@ class KinkFinder(mekkaObject):
 			for index, thisGlyph in enumerate(glyphsToProbe):
 				# update progress bar:
 				self.w.progress.set(int(100 * (float(index) / numOfGlyphs)))
+				self.setStatus(f"🔠 {thisGlyph.name}")
 
 				# skip glyph if not exporting:
 				if not thisGlyph.export and self.pref("exportingOnly"):
@@ -440,6 +466,7 @@ class KinkFinder(mekkaObject):
 
 								if kinkLayer not in kinkyLayers:
 									kinkyLayers.append(kinkLayer)
+								kinkyNodes.setdefault(thisGlyph.name, set()).add((pathIndex, nodeIndex))
 
 								print(
 									"%s Kink in %s on layer '%s', path %i, node %i: %.1f units" %
@@ -492,6 +519,7 @@ class KinkFinder(mekkaObject):
 								thisKink = self.kinkSizeForNode(kinkNode)
 								if thisKink > maxKink:
 									kinkyGlyphNames.append(thisGlyph.name)
+									kinkyNodes.setdefault(thisGlyph.name, set()).add((pathIndex, nodeIndex))
 									print(
 										"%s Kink in %s between masters %s, path %i, node %i: %.1f units (%.1f, %.1f)" % (
 											nodeMarker, thisGlyph.name, " and ".join(instanceName.split("-")[:2]),
@@ -514,6 +542,38 @@ class KinkFinder(mekkaObject):
 				print("\nSkipped %i glyphs:\n%s" % (len(skippedGlyphNames), ", ".join(skippedGlyphNames)))
 			uniqueKinkyGlyphNames = set(kinkyGlyphNames)
 
+			# HOI Dekink: apply the HOI Dekinker algorithm to the kinky nodes
+			hoiCount = 0
+			if hoi and kinkyNodes:
+				self.setStatus("🛠️ Adding HOI intermediate points…")
+				appVersion = int(Glyphs.versionNumber)
+				if thisFont.formatVersion < appVersion:
+					print(f"☑️ Font Info → Document → File format version was {thisFont.formatVersion}, setting it to {appVersion} for HOI.")
+					thisFont.formatVersion = appVersion
+				stats = {"spans": 0, "nodesWithHOI": 0}
+				dekinkedGlyphNames = []
+				print("\nHOI Dekink:")
+				thisFont.disableUpdateInterface()
+				try:
+					for glyphName, nodeIndexes in kinkyNodes.items():
+						self.setStatus(f"🔠 {glyphName}")
+						count, skipped = dekinkGlyph(thisFont.glyphs[glyphName], thisFont.axes, stats, threshold=maxKink, nodeFilter=nodeIndexes)
+						hoiCount += count
+						if count:
+							dekinkedGlyphNames.append(glyphName)
+				finally:
+					thisFont.enableUpdateInterface()
+				selectHOINodes(thisFont, dekinkedGlyphNames)
+				print(f"Added {hoiCount} HOI intermediate point{'s' if hoiCount != 1 else ''} in {len(dekinkedGlyphNames)} glyph{'s' if len(dekinkedGlyphNames) != 1 else ''}.")
+				Glyphs.showNotification("Kink Finder", f"Added {hoiCount} HOI intermediate points. Details in Macro Window.")
+
+			if hoi and kinkyNodes:
+				self.setStatus(f"✅ Added {hoiCount} HOI intermediate point{'s' if hoiCount != 1 else ''}.")
+			elif kinkyNodes:
+				self.setStatus(f"✅ Found kinks in {len(kinkyNodes)} glyph{'s' if len(kinkyNodes) != 1 else ''}.")
+			else:
+				self.setStatus("✅ No kinks found.")
+
 			if kinkyLayers:
 				kinkyTab = thisFont.newTab()
 				kinkyTab.layers = kinkyLayers
@@ -534,6 +594,7 @@ class KinkFinder(mekkaObject):
 		except Exception as e:
 			# brings macro window to front and reports error:
 			Glyphs.showMacroWindow()
+			self.setStatus("❌ Error. See Macro Window.")
 			print("Kink Finder Error: %s" % e)
 			import traceback
 			print(traceback.format_exc())
