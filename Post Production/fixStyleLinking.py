@@ -33,11 +33,12 @@ def linkedValueFor(axisTag, fvarAxes):
 	return None
 
 
-def fixStyleLinking(font):
+def fixStyleLinking(font, setElidable=True):
 	"""
 	Turns the STAT Format 1 (or 3) axis value of wght=400 and ital=0 (or, if there is no ital axis, slnt=0)
 	into a Format 3 (style linking) entry that is elidable (Flags=2) and links to wght=700, ital=1 or slnt=min.
 	Keeps AxisIndex, ValueNameID and Value. Also makes the axis value of wdth=100 elidable, and adds an elidable ital=0 → 1 entry if STAT has an ital axis but no axis value for it.
+	With setElidable=False, no flags are touched: wdth=100 is left alone, and the added ital entry gets Flags=0.
 	Returns True if the font was changed.
 	"""
 	if "STAT" not in font:
@@ -88,7 +89,7 @@ def fixStyleLinking(font):
 			romanValue = otTables.AxisValue()
 			romanValue.Format = 3
 			romanValue.AxisIndex = italIndex
-			romanValue.Flags = 2
+			romanValue.Flags = 2 if setElidable else 0
 			romanValue.ValueNameID = nameID
 			romanValue.Value = 0.0
 			romanValue.LinkedValue = 1.0
@@ -97,7 +98,7 @@ def fixStyleLinking(font):
 			changesMade = True
 
 	# wdth=100 is made elidable, whatever its format (other flag bits are kept):
-	for statIndex, statEntry in enumerate(axisValueArray.AxisValue):
+	for statIndex, statEntry in enumerate(axisValueArray.AxisValue if setElidable else ()):
 		if statEntry.AxisIndex >= len(axes) or axes[statEntry.AxisIndex] != "wdth" or statEntry.Format == 4:
 			continue
 		axisValue = statEntry.NominalValue if statEntry.Format == 2 else statEntry.Value
@@ -132,15 +133,16 @@ def fixStyleLinking(font):
 		oldFormat = statEntry.Format
 		oldFlags = statEntry.Flags
 		oldLinkedValue = getattr(statEntry, "LinkedValue", None)
-		if oldFormat == 3 and oldFlags == 2 and oldLinkedValue == linkedValue:
+		newFlags = 2 if setElidable else oldFlags
+		if oldFormat == 3 and oldFlags == newFlags and oldLinkedValue == linkedValue:
 			print(f"  🏛️ STAT axis value {statIndex}, {axisTag}={statEntry.Value}: already correct.")
 		else:
 			print(
 				f"  🏛️ STAT axis value {statIndex}, {axisTag}={statEntry.Value}: "
-				f"Format {oldFormat} → 3, flags {oldFlags} → 2 (elidable), linked value {oldLinkedValue} → {linkedValue}"
+				f"Format {oldFormat} → 3, flags {oldFlags} → {newFlags}{' (elidable)' if newFlags & 2 else ''}, linked value {oldLinkedValue} → {linkedValue}"
 			)
 			statEntry.Format = 3
-			statEntry.Flags = 2
+			statEntry.Flags = newFlags
 			statEntry.LinkedValue = linkedValue
 			changesMade = True
 		newAxisValues.append(statEntry)
