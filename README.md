@@ -272,14 +272,14 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 ## Hinting
 
-*Most important: Set blueScale, Set Family Alignment Zones for PostScript hinting. If you are making big changes, The Transfer and Keep Only scripts can save you a lot of work. The New Tab scripts help find glyphs missing zones. Also consider Paths > Find Near Vertical Misses for that purpose.*
+*Most important: Set blueScale, Set Family Alignment Zones for PostScript hinting. If you are making big changes, Hint Mover can save you a lot of work. The New Tab scripts help find glyphs missing zones. Also consider Paths > Find Near Vertical Misses for that purpose.*
 
 * **Add Alignment Zones for Selected Glyphs:** Creates fitting zones for the selected glyphs in all masters.
 * **Add Hints to Selected Nodes:** Adds hints for the selected nodes. Tries to guess whether it should be H or V. If exactly one node inside a zone is selected, it will add a Ghost Hint. Useful for setting a shortcut in System Prefs.
-* **Add TTF Autohint Control Instructions for Current Glyph:** Adds a touch line for a given up/down amount to the Control Instructions of the current instance.
+* **Add ttfautohint Control Instructions for Current Glyph:** Adds a touch line for a given up/down amount to the Control Instructions of the current instance.
 * **Auto Stems:** Derive one H and one V stem value for all your masters by measuring certain shapes (first, second, last, smallest or largest) in your font.
 * **BlueFuzzer:** Extends all alignment zones by the specified value. Similar to what the blueFuzz value used to do, hence the name.
-* **Keep First Master Hints Only:** In selected glyphs, deletes all hints in all layers except for whatever is ordered as first master. Respects Bracket Layers. E.g., if your first master is 'Regular', then the script will delete hints in 'Bold', 'Bold [120]', but keep them in 'Regular' and 'Regular [100]'.
+* **Hint Mover:** Transfers PS and/or TT hints from one or all other masters to a target master (never duplicating hints), and/or deletes the hints of the chosen type(s) in all other masters (including brace and bracket layers), and optionally adds a ‘Get Hints From Master’ parameter. Replaces the former scripts ‘Transfer Hints to First Master’ and ‘Keep First Master Hints Only’.
 * **New Tab with Glyphs in Alignment Zones:** Opens a new tab and lists all glyphs that reach into alignment zones.
 * **New Tab with Layers with TTDeltas:** Opens a new tab with all layers that have defined TTDeltas.
 * **New Tabs with Glyphs Not Reaching Into Zones:** Opens a new tab with all glyphs that do NOT reach into any top or bottom alignment zone. Only counts glyphs that contain paths in the current master. Ignores empty glyphs and compounds.
@@ -290,8 +290,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 * **Set Family Alignment Zones:** Pick an instance and set its zones as Family Alignment Zones in *Font Info > Font > Custom Parameters.*
 * **Set TT Stem Hints to Auto:** Sets all TT stem hints to ‘auto’ in selected glyphs.
 * **Set TT Stem Hints to No Stem:** Sets all TT stem hints to ‘no stem’ in selected glyphs. In complex paths, it can improve rendering on Windows.
-* **Set ttfautohint Options:** Set options for existing 'TTF Autohint Options' Custom Parameters.
-* **Transfer Hints to First Master:** Copies PS hints from the current layer to the first master layer, provided the paths are compatible. Reports errors to the Macro window.
+* **Set ttfautohint Options:** Set options for existing 'ttfautohint Options' Custom Parameters.
 * **TT Autoinstruct Selected Glyphs:** Automatically add Glyphs TT instructions to the selected glyphs in the selected master. (Should be the first master.) Attention: this is NOT Werner Lemberg's ttfAutohint, but the manual TT hints that the TT Instruction tool (I) would add through the context menu item of the same name. Useful for adding hints in many glyphs at once.
 
 ## Images
@@ -417,14 +416,14 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 ## Post Production
 
-*The DSIG and GDEF scripts are not necessary anymore if you run the latest Glyphs version. For Italic exports, I recommend fixing PS Names and STAT Entries. The Upgrade STAT script is optional, it adds ranges which are still hardly supported by software, but may make sense as future-proofing.*
+*The DSIG and GDEF scripts are not necessary anymore if you run the latest Glyphs version. For Italic exports, I recommend fixing PS Names and running Fix STAT. Its option to upgrade to ranges is optional, ranges are still hardly supported by software, but may make sense as future-proofing.*
 
+* **Add Empty fvar (Static):** Adds an fvar table to static font files you choose, with wght, wdth and ital axes pinned to the font’s own values (read from OS/2), and one named instance. Needs the FontTools module.
 * **Add Empty DSIG (OTVAR):** Run this after you export a Variable Font (TTF) and it will add an empty DSIG table. Necessary to pass the MyFonts onboarding of OTVAR TTFs. Needs the FontTools module. Script should not be necessary in the latest Glyphs 3.2+.
 * **Fix GDEF Class Definition of Legacy Marks (OTVAR):** Fix GDEF definition of spacing, non-combining marks for your most recent OTVAR export(s), will switch to class 1 (‘base glyph’, single character, spacing glyph) if necessary. Needs the FontTools module. Script should not be necessary in the latest Glyphs 3.2+.
 * **Fix Italic PS Names (OTVAR):** Fixes double Italic namings in name table records intended for fvar postScriptName entries in the most recent export of the current font, e.g., turns `MyfontItalic-SemiboldItalic` into `MyfontItalic-Semibold`. Run this right after an italic variable font export. Needs the FontTools module.
-* **Fix STAT Entries (OTVAR):** For every axis, renames normal STAT entries to ‘Regular’ (also makes changes in name table if necessary), and makes them elidable (Flags=2). Typically only necessary in italic OTVAR exports. Needs the FontTools module.
+* **Fix STAT (OTVAR):** Fixes the STAT table in the most recent OTVAR export(s) of the current font. Checkboxes (with ALL and NONE buttons): set the names of normal axis values (Regular; Roman for ital=0 and Regular for the rest; or also Normal for wdth=100), make normal values elidable; style linking (Format 3: wght 400→700, ital 0→1, slnt 0→−max; elidable flags untouched); remove Format 1 duplicates of Format 3 entries; upgrade discrete values (Format 1) to ranges (Format 2). Needs the FontTools module.
 * **Read and Write STAT Axis Values (OTVAR):** After an OTVAR export, run once, and it will read STAT.AxisValueArray most recently exported from the current Glyphs file, and add ‘Axis Values’ parameters in your Variable Font Settings. When run with these custom parameters present, it will use them to rewrite STAT.AxisValueArray in the OTVAR most recently exported from the current Glyphs file. Value syntax for the custom parameter: `axisTag; value=name, value=elidableName*, minValue:nominalValue:maxValue=name, value>linkedValue=name`
-* **Upgrade STAT Axis Values from Discrete to Ranges (OTVAR):** Turns STAT entries of format 1 (discrete) into format 2 (range) for axes with more than one axis value. Run this right after a variable font export. Needs the FontTools module.
 
 ## Smallcaps
 
