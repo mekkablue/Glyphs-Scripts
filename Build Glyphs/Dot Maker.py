@@ -115,15 +115,60 @@ def dotContour(shape, size, settings, scale):
 	return roundedPolygon(vertices, radius, settings["cornerCurvature"])
 
 
+def contourBounds(contours):
+	"""Returns (left, bottom, right, top) of the closed contours, curves included."""
+	xs, ys = [], []
+	for contour in contours:
+		starts = [index for index, point in enumerate(contour) if not point[2]]
+		if not starts:
+			continue
+		ordered = list(contour[starts[0]:]) + list(contour[:starts[0]])
+		ordered.append(ordered[0])
+		xs.append(ordered[0][0])
+		ys.append(ordered[0][1])
+		index = 0
+		while index < len(ordered) - 1:
+			end = index + 1
+			while ordered[end][2]:
+				end += 1
+			segment = ordered[index:end + 1]
+			if len(segment) == 4:
+				for step in range(1, 21):
+					t = step / 20.0
+					u = 1 - t
+					xs.append(u ** 3 * segment[0][0] + 3 * u * u * t * segment[1][0] + 3 * u * t * t * segment[2][0] + t ** 3 * segment[3][0])
+					ys.append(u ** 3 * segment[0][1] + 3 * u * u * t * segment[1][1] + 3 * u * t * t * segment[2][1] + t ** 3 * segment[3][1])
+			else:
+				xs.append(segment[-1][0])
+				ys.append(segment[-1][1])
+			index = end
+	return min(xs), min(ys), max(xs), max(ys)
+
+
+def rotatedClockwise(contours, degrees):
+	"""Rotates the contours clockwise around (0, 0), where the dot is centered. The rotated dot is centered on its bounding box again."""
+	cosine, sine = math.cos(math.radians(degrees)), math.sin(math.radians(degrees))
+	rotated = [[(x * cosine + y * sine, -x * sine + y * cosine) + tuple(rest) for x, y, *rest in contour] for contour in contours]
+	left, bottom, right, top = contourBounds(rotated)
+	centerX, centerY = (left + right) / 2.0, (bottom + top) / 2.0
+	centered = [[(point[0] - centerX, point[1] - centerY) + tuple(point[2:]) for point in contour] for contour in rotated]
+	return centered, right - left, top - bottom
+
+
 def dotContours(settings, scale, template):
 	"""Returns (contours, width, height) of one dot around (0, 0), width and height of its bounding box."""
 	if template is not None:
 		# custom: the outlines of dotabove-ar, resized with the Size field and the compensation
 		factor = template["factor"] * scale
 		contours = [[(x * factor, y * factor, isOffcurve, smooth) for x, y, isOffcurve, smooth in contour] for contour in template["contours"]]
-		return contours, template["width"] * factor, template["height"] * factor
-	size = max(1, int(round(settings["size"] * scale)))
-	return [dotContour(settings["shape"], size, settings, scale)], size, size
+		width, height = template["width"] * factor, template["height"] * factor
+	else:
+		size = max(1, int(round(settings["size"] * scale)))
+		contours = [dotContour(settings["shape"], size, settings, scale)]
+		width, height = size, size
+	if settings["rotation"] % 360:
+		return rotatedClockwise(contours, settings["rotation"])
+	return contours, width, height
 
 
 def dotCenters(arrangement, width, height, horizontalGap, verticalGap, twoDotsOffset=0, threeDotsOffset=0):
@@ -242,6 +287,7 @@ class DotMaker(mekkaObject):
 		"slant": 0,
 		"radius": 0,
 		"cornerCurvature": 58,
+		"rotation": 0,
 		"distance": 40,
 		"verticalGap": 20,
 		"horizontalGap": 30,
@@ -279,45 +325,32 @@ class DotMaker(mekkaObject):
 		self.w.customButton = vanilla.Button("auto", "Open dotabove", callback=self.openDotabove, sizeStyle="small")
 		self.w.customButton.setToolTip("Custom shape: opens dotabove-ar in a tab, so you can draw your own dot. Its outlines become the dot for all 12 glyphs, and the Size field takes its size (the larger of width and height). Resizing then scales your dot. The glyphs update when you come back to this window.")
 
-		tooltipText = "Width and height of the bounding box of a single dot, in units. Use the arrow keys to step. With a custom shape, the larger of its width and height; the field takes the size of your dot when you edit it, and changing it scales your dot."
-		self.w.sizeLabel = vanilla.TextBox("auto", "Size", sizeStyle="small")
-		self.w.sizeLabel.setToolTip(tooltipText)
-		self.w.size = SteppingEditText("auto", "100", formatter=integerFormatter(1, 999), callback=self.SavePreferences, sizeStyle="small")
-		self.w.size.setToolTip(tooltipText)
-		self.w.sizeText = vanilla.TextBox("auto", "units, bounding box of one dot", sizeStyle="small")
-
-		tooltipText = "Size of the dots in the marks with two or three dots, in percent of the size above. The corner radius shrinks along; the gaps stay as they are."
-		self.w.compensationLabel = vanilla.TextBox("auto", "Compensation", sizeStyle="small")
-		self.w.compensationLabel.setToolTip(tooltipText)
-		self.w.compensation = SteppingEditText("auto", "90", formatter=integerFormatter(10, 200), callback=self.SavePreferences, sizeStyle="small")
-		self.w.compensation.setToolTip(tooltipText)
-		self.w.compensationText = vanilla.TextBox("auto", "% size for two and three dots", sizeStyle="small")
-
-		tooltipText = "Circle: length of the handles in percent of the radius. 55 is a round circle; more makes it squarer, less more pointed."
-		self.w.fineTuneLabel = vanilla.TextBox("auto", "Fine tune", sizeStyle="small")
-		self.w.fineTuneLabel.setToolTip(tooltipText)
-		self.w.curvature = SteppingEditText("auto", "58", formatter=decimalFormatter(1, 100), callback=self.SavePreferences, sizeStyle="small")
-		self.w.curvature.setToolTip(tooltipText)
-		self.w.curvatureText = vanilla.TextBox("auto", "% curvature of the circle", sizeStyle="small")
-
-		self.w.slant = SteppingEditText("auto", "0", formatter=decimalFormatter(-45, 45), callback=self.SavePreferences, sizeStyle="small")
-		self.w.slant.setToolTip("Diamond: shears the diamond horizontally by this angle, from -45° to 45°. Positive leans to the right. The bounding box keeps its size.")
-		self.w.slantText = vanilla.TextBox("auto", "° slant of the diamond", sizeStyle="small")
-
-		self.w.radius = SteppingEditText("auto", "0", formatter=integerFormatter(0, 500), callback=self.SavePreferences, sizeStyle="small")
-		self.w.radius.setToolTip("Square and diamond: radius of the rounded corners, in units. 0 keeps the corners sharp. Where the sides are too short for the radius, it shrinks.")
-		self.w.radiusText = vanilla.TextBox("auto", "units radius of rounded corners", sizeStyle="small")
-
-		self.w.cornerCurvature = SteppingEditText("auto", "58", formatter=decimalFormatter(1, 100), callback=self.SavePreferences, sizeStyle="small")
-		self.w.cornerCurvature.setToolTip("Square and diamond: curvature of the rounded corners, in percent. The handles are this part of the way from the ends of the curve to the corner. 55 is a circular arc in a right angle; 100 is the sharpest, 1 the roundest.")
-		self.w.cornerCurvatureText = vanilla.TextBox("auto", "% curvature of rounded corners", sizeStyle="small")
-
 		tooltipText = "Distance from the baseline (marks below) or from the x-height (marks above) to the nearest edge of the dots, in units. The _bottom anchor sits on the baseline, the _top anchor on the x-height. The top and bottom anchors for stacking another mark sit the same distance beyond the dots, on the italic angle through _top or _bottom. Centered marks sit in the middle of the x-height and get a _center anchor."
 		self.w.distanceLabel = vanilla.TextBox("auto", "Distance", sizeStyle="small")
 		self.w.distanceLabel.setToolTip(tooltipText)
 		self.w.distance = SteppingEditText("auto", "40", formatter=integerFormatter(0, 999), callback=self.SavePreferences, sizeStyle="small")
 		self.w.distance.setToolTip(tooltipText)
 		self.w.distanceText = vanilla.TextBox("auto", "units from baseline or x-height", sizeStyle="small")
+
+		tooltipText = "Width and height of the bounding box of a single dot, in units. Use the arrow keys to step. With a custom shape, the larger of its width and height; the field takes the size of your dot when you edit it, and changing it scales your dot."
+		self.w.sizeLabel = vanilla.TextBox("auto", "Size", sizeStyle="small")
+		self.w.sizeLabel.setToolTip(tooltipText)
+		self.w.size = SteppingEditText("auto", "100", formatter=integerFormatter(1, 999), callback=self.SavePreferences, sizeStyle="small")
+		self.w.size.setToolTip(tooltipText)
+
+		tooltipText = "Size compensation: size of the dots in the marks with two or three dots, in percent of the size at the left. The corner radius shrinks along; the gaps stay as they are."
+		self.w.compensationLabel = vanilla.TextBox("auto", "Compensation", sizeStyle="small")
+		self.w.compensationLabel.setToolTip(tooltipText)
+		self.w.compensation = SteppingEditText("auto", "90", formatter=integerFormatter(10, 200), callback=self.SavePreferences, sizeStyle="small")
+		self.w.compensation.setToolTip(tooltipText)
+		self.w.compensationText = vanilla.TextBox("auto", "%", sizeStyle="small")
+
+		tooltipText = "Rotation of every single dot, in degrees clockwise, around the center of its bounding box. Negative values rotate counterclockwise. The gaps are measured between the bounding boxes of the rotated dots."
+		self.w.rotationLabel = vanilla.TextBox("auto", "Rotation", sizeStyle="small")
+		self.w.rotationLabel.setToolTip(tooltipText)
+		self.w.rotation = SteppingEditText("auto", "0", formatter=decimalFormatter(-360, 360), callback=self.SavePreferences, sizeStyle="small")
+		self.w.rotation.setToolTip(tooltipText)
+		self.w.rotationText = vanilla.TextBox("auto", "° clockwise, around the center of each dot", sizeStyle="small")
 
 		tooltipText = "Space between the dots, from edge to edge, in units (negative values overlap the dots): vertical between two stacked dots and between the rows of three dots, horizontal between two dots next to each other."
 		self.w.gapsLabel = vanilla.TextBox("auto", "Gaps", sizeStyle="small")
@@ -339,6 +372,25 @@ class DotMaker(mekkaObject):
 		self.w.threeDotsOffset.setToolTip("Three dots: moves the top row (the single dot, or the two dots) horizontally against the bottom row, in units. Negative moves it to the left.")
 		self.w.threeDotsOffsetText = vanilla.TextBox("auto", "three dots", sizeStyle="small")
 
+		# Fine tune shows only what applies to the shape. The fields take turns on three places, from left to right:
+		# circle: curvature | square: radius, corner curvature | diamond: radius, corner curvature, slant | custom: n/a
+		tooltipText = "Fine tune: settings that apply to the selected shape. Circle: curvature. Square: corner radius and curvature. Diamond: also slant. Custom: none."
+		self.w.fineTuneLabel = vanilla.TextBox("auto", "Fine tune", sizeStyle="small")
+		self.w.fineTuneLabel.setToolTip(tooltipText)
+		self.w.curvature = SteppingEditText("auto", "58", formatter=decimalFormatter(1, 100), callback=self.SavePreferences, sizeStyle="small")
+		self.w.curvature.setToolTip("Circle: length of the handles in percent of the radius. 55 is a round circle; more makes it squarer, less more pointed.")
+		self.w.radius = SteppingEditText("auto", "0", formatter=integerFormatter(0, 500), callback=self.SavePreferences, sizeStyle="small")
+		self.w.radius.setToolTip("Square and diamond: radius of the rounded corners, in units. 0 keeps the corners sharp. Where the sides are too short for the radius, it shrinks.")
+		self.w.cornerCurvature = SteppingEditText("auto", "58", formatter=decimalFormatter(1, 100), callback=self.SavePreferences, sizeStyle="small")
+		self.w.cornerCurvature.setToolTip("Square and diamond: curvature of the rounded corners, in percent. The handles are this part of the way from the ends of the curve to the corner. 55 is a circular arc in a right angle; 100 is the sharpest, 1 the roundest.")
+		self.w.slant = SteppingEditText("auto", "0", formatter=decimalFormatter(-45, 45), callback=self.SavePreferences, sizeStyle="small")
+		self.w.slant.setToolTip("Diamond: shears the diamond horizontally by this angle, from -45° to 45°. Positive leans to the right. The bounding box keeps its size.")
+		self.w.firstFineText = vanilla.TextBox("auto", "", sizeStyle="small")
+		self.w.secondFineText = vanilla.TextBox("auto", "", sizeStyle="small")
+		self.w.thirdFineText = vanilla.TextBox("auto", "", sizeStyle="small")
+		self.w.notApplicableText = vanilla.TextBox("auto", "n/a", sizeStyle="small")
+		self.w.notApplicableText.setToolTip("A custom shape has no settings to fine tune: it is the outline of dotabove-ar.")
+
 		tooltipText = "Where the dots are drawn. All masters of a font are drawn together, so they stay compatible; each master gets its own x-height."
 		self.w.scopeLabel = vanilla.TextBox("auto", "Scope", sizeStyle="small")
 		self.w.scopeLabel.setToolTip(tooltipText)
@@ -356,12 +408,13 @@ class DotMaker(mekkaObject):
 		self.w.setDefaultButton(self.w.tabButton)
 
 		# secondary info text takes a semantic color, and shortens instead of widening the window:
-		hintNames = ("sizeText", "compensationText", "curvatureText", "slantText", "radiusText", "cornerCurvatureText", "distanceText")
-		for hintName in hintNames:
+		for hintName in ("rotationText", "distanceText"):
 			nsHint = getattr(self.w, hintName).getNSTextField()
 			nsHint.setTextColor_(NSColor.tertiaryLabelColor())
 			nsHint.setLineBreakMode_(NSLineBreakByTruncatingTail)
 			nsHint.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
+		for hintName in ("compensationText", "firstFineText", "secondFineText", "thirdFineText", "notApplicableText"):
+			getattr(self.w, hintName).getNSTextField().setTextColor_(NSColor.tertiaryLabelColor())
 		# the status line shortens instead of widening the window:
 		self.w.status.getNSTextField().setLineBreakMode_(NSLineBreakByTruncatingTail)
 		self.w.status.getNSTextField().setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
@@ -377,14 +430,14 @@ class DotMaker(mekkaObject):
 		self.w.descriptionText.getNSTextField().setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityDefaultLow, NSLayoutConstraintOrientationHorizontal)
 
 		# the labels end at one x-position:
-		labelNames = ("shapeLabel", "sizeLabel", "compensationLabel", "fineTuneLabel", "distanceLabel", "gapsLabel", "offsetLabel", "scopeLabel")
-		widestLabel = "compensationLabel"
+		labelNames = ("shapeLabel", "distanceLabel", "sizeLabel", "rotationLabel", "gapsLabel", "offsetLabel", "fineTuneLabel", "scopeLabel")
+		widestLabel = max(labelNames, key=lambda labelName: getattr(self.w, labelName).getNSTextField().fittingSize().width)
 		for labelName in labelNames:
 			nsLabel = getattr(self.w, labelName).getNSTextField()
 			nsLabel.setAlignment_(NSTextAlignmentRight)
 			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
 			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
-		for labelName in ("verticalGapText", "horizontalGapText", "twoDotsOffsetText", "threeDotsOffsetText"):
+		for labelName in ("compensationLabel", "compensationText", "verticalGapText", "horizontalGapText", "twoDotsOffsetText", "threeDotsOffsetText", "firstFineText", "secondFineText", "thirdFineText"):
 			nsLabel = getattr(self.w, labelName).getNSTextField()
 			nsLabel.setContentHuggingPriority_forOrientation_(NSLayoutPriorityDefaultHigh, NSLayoutConstraintOrientationHorizontal)
 			nsLabel.setContentCompressionResistancePriority_forOrientation_(NSLayoutPriorityRequired, NSLayoutConstraintOrientationHorizontal)
@@ -399,26 +452,24 @@ class DotMaker(mekkaObject):
 		rules = [
 			"H:|-inset-[descriptionText]-inset-|",
 			"H:|-inset-[shapeLabel]-gap-[shape]-gap-[customButton]-inset-|",
-			"H:|-inset-[sizeLabel]-gap-[size(fieldWidth)]-gap-[sizeText]-(>=inset)-|",
-			"H:|-inset-[compensationLabel]-gap-[compensation(fieldWidth)]-gap-[compensationText]-(>=inset)-|",
-			"H:|-inset-[fineTuneLabel]-gap-[curvature(fieldWidth)]-gap-[curvatureText]-(>=inset)-|",
-			"H:[slant(fieldWidth)]-gap-[slantText]-(>=inset)-|",
-			"H:[radius(fieldWidth)]-gap-[radiusText]-(>=inset)-|",
-			"H:[cornerCurvature(fieldWidth)]-gap-[cornerCurvatureText]-(>=inset)-|",
 			"H:|-inset-[distanceLabel]-gap-[distance(fieldWidth)]-gap-[distanceText]-(>=inset)-|",
+			"H:|-inset-[sizeLabel]-gap-[size(fieldWidth)]-pair-[compensationLabel]-gap-[compensation(fieldWidth)]-tight-[compensationText]-(>=inset)-|",
+			"H:|-inset-[rotationLabel]-gap-[rotation(fieldWidth)]-gap-[rotationText]-(>=inset)-|",
 			"H:|-inset-[gapsLabel]-gap-[verticalGap(fieldWidth)]-tight-[verticalGapText]-pair-[horizontalGap(fieldWidth)]-tight-[horizontalGapText]-(>=inset)-|",
 			"H:|-inset-[offsetLabel]-gap-[twoDotsOffset(fieldWidth)]-tight-[twoDotsOffsetText]-pair-[threeDotsOffset(fieldWidth)]-tight-[threeDotsOffsetText]-(>=inset)-|",
+			"H:|-inset-[fineTuneLabel]-gap-[radius(fineWidth)]-tight-[firstFineText]-pair-[cornerCurvature(fineWidth)]-tight-[secondFineText]-pair-[slant(fineWidth)]-tight-[thirdFineText]-(>=inset)-|",
 			"H:|-inset-[scopeLabel]-gap-[scope]-inset-|",
 			"H:[backup]-(>=inset)-|",
 			"H:|-inset-[status]-gap-[redrawButton(>=70)]-gap-[tabButton(>=70)]-inset-|",
 			(
-				"V:|-inset-[descriptionText(42)]-section-[shape]-row-[size]-row-[compensation]-section-[curvature]-row-[slant]-row-[radius]-row-[cornerCurvature]"
-				"-section-[distance]-row-[verticalGap]-row-[twoDotsOffset]-section-[scope]-checkRow-[backup]-section-[tabButton]-inset-|"
+				"V:|-inset-[descriptionText(42)]-section-[shape]-row-[distance]-row-[size]-row-[rotation]-row-[verticalGap]-row-[twoDotsOffset]-row-[radius]"
+				"-section-[scope]-checkRow-[backup]-section-[tabButton]-inset-|"
 			),
-			# the fine tune fields stand above each other, the backup checkbox under the Scope popup:
-			aligned("slant", "curvature", "leading"),
-			aligned("radius", "curvature", "leading"),
-			aligned("cornerCurvature", "curvature", "leading"),
+			# the circle's curvature takes the place of the radius, and n/a the place of both:
+			aligned("curvature", "radius", "leading"),
+			aligned("curvature", "radius", "width"),
+			aligned("notApplicableText", "radius", "leading"),
+			# the backup checkbox under the Scope popup:
 			aligned("backup", "scope", "leading"),
 			# the status line sits on the vertical center of the button:
 			aligned("status", "tabButton", "centerY"),
@@ -428,21 +479,18 @@ class DotMaker(mekkaObject):
 		# everything in a row sits on the vertical center of its field:
 		rowFields = (
 			("shape", ("shapeLabel", "customButton")),
-			("size", ("sizeLabel", "sizeText")),
-			("compensation", ("compensationLabel", "compensationText")),
-			("curvature", ("fineTuneLabel", "curvatureText")),
-			("slant", ("slantText", )),
-			("radius", ("radiusText", )),
-			("cornerCurvature", ("cornerCurvatureText", )),
 			("distance", ("distanceLabel", "distanceText")),
+			("size", ("sizeLabel", "compensationLabel", "compensation", "compensationText")),
+			("rotation", ("rotationLabel", "rotationText")),
 			("verticalGap", ("gapsLabel", "verticalGapText", "horizontalGap", "horizontalGapText")),
 			("twoDotsOffset", ("offsetLabel", "twoDotsOffsetText", "threeDotsOffset", "threeDotsOffsetText")),
+			("radius", ("fineTuneLabel", "firstFineText", "cornerCurvature", "secondFineText", "slant", "thirdFineText", "curvature", "notApplicableText")),
 			("scope", ("scopeLabel", )),
 		)
 		for fieldName, otherNames in rowFields:
 			for otherName in otherNames:
 				rules.append(aligned(otherName, fieldName, "centerY"))
-		self.w.addAutoPosSizeRules(rules, metrics={"inset": 15, "gap": 8, "row": 8, "section": 12, "checkRow": 5, "tight": 5, "pair": 10, "fieldWidth": 60})
+		self.w.addAutoPosSizeRules(rules, metrics={"inset": 15, "gap": 8, "row": 8, "section": 12, "checkRow": 5, "tight": 5, "pair": 10, "fieldWidth": 60, "fineWidth": 50})
 
 		# resizable horizontally; the narrowest width at which every row fits is the minimum:
 		makeWindowResizable(self.w, fitWidth=True)
@@ -460,10 +508,15 @@ class DotMaker(mekkaObject):
 
 	def updateUI(self, sender=None):
 		shape = self.w.shape.get()
-		self.w.curvature.enable(shape == 0)
-		self.w.slant.enable(shape == 2)
-		self.w.radius.enable(shape in (1, 2))
-		self.w.cornerCurvature.enable(shape in (1, 2))
+		# only what applies to the shape is shown:
+		self.w.curvature.show(shape == 0)
+		self.w.radius.show(shape in (1, 2))
+		self.w.cornerCurvature.show(shape in (1, 2))
+		self.w.slant.show(shape == 2)
+		self.w.notApplicableText.show(shape == 3)
+		self.w.firstFineText.set("% curv." if shape == 0 else ("radius" if shape in (1, 2) else ""))
+		self.w.secondFineText.set("% curv." if shape in (1, 2) else "")
+		self.w.thirdFineText.set("° slant" if shape == 2 else "")
 		self.w.customButton.enable(shape == 3)
 
 	def windowBecameKey(self, sender):
@@ -527,6 +580,7 @@ class DotMaker(mekkaObject):
 				"slant": self.prefFloat("slant"),
 				"radius": self.prefFloat("radius"),
 				"cornerCurvature": self.prefFloat("cornerCurvature"),
+				"rotation": self.prefFloat("rotation"),
 				"distance": self.prefFloat("distance"),
 				"verticalGap": self.prefFloat("verticalGap"),
 				"horizontalGap": self.prefFloat("horizontalGap"),
@@ -544,6 +598,7 @@ class DotMaker(mekkaObject):
 			-45 <= settings["slant"] <= 45,
 			0 <= settings["radius"],
 			1 <= settings["cornerCurvature"] <= 100,
+			-360 <= settings["rotation"] <= 360,
 			0 <= settings["distance"],
 			-999 <= settings["verticalGap"],
 			-999 <= settings["horizontalGap"],
