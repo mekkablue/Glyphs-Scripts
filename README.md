@@ -418,7 +418,7 @@ All the scripts show a **tooltip** when you hover the mouse pointer over their m
 
 *The DSIG and GDEF scripts are not necessary anymore if you run the latest Glyphs version. For Italic exports, I recommend fixing PS Names and running Fix STAT. Its option to upgrade to ranges is optional, ranges are still hardly supported by software, but may make sense as future-proofing.*
 
-* **Add Empty fvar (Static):** Adds an fvar table to static font files you choose, with wght, wdth and ital axes pinned to the font’s own values (read from OS/2), and one named instance. Needs the FontTools module.
+* **Add Empty fvar (Static):** Adds an fvar table to static font files you choose, completely empty: no axes, no instances. Needs the FontTools module.
 * **Add Empty DSIG (OTVAR):** Run this after you export a Variable Font (TTF) and it will add an empty DSIG table. Necessary to pass the MyFonts onboarding of OTVAR TTFs. Needs the FontTools module. Script should not be necessary in the latest Glyphs 3.2+.
 * **Fix GDEF Class Definition of Legacy Marks (OTVAR):** Fix GDEF definition of spacing, non-combining marks for your most recent OTVAR export(s), will switch to class 1 (‘base glyph’, single character, spacing glyph) if necessary. Needs the FontTools module. Script should not be necessary in the latest Glyphs 3.2+.
 * **Fix Italic PS Names (OTVAR):** Fixes double Italic namings in name table records intended for fvar postScriptName entries in the most recent export of the current font, e.g., turns `MyfontItalic-SemiboldItalic` into `MyfontItalic-Semibold`. Run this right after an italic variable font export. Needs the FontTools module.
