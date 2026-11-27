@@ -1,4 +1,4 @@
-# MenuTitle: Add TTF Autohint Control Instructions for Current Glyph
+# MenuTitle: Add ttfautohint Control Instructions for Current Glyph
 __doc__ = """
 Adds a touch line for a given up/down amount to the Control Instructions of the current instance.
 """
